@@ -305,6 +305,19 @@
                   />
                   <!-- app → the fan-out junction, for the finale's one event -->
                   <path id="g-fan-in" d="M 146 310 L 840 310" />
+                  <!-- The push wire's route, whole. The LINE the reader sees
+                       comes apart in phase A into five paths, so the packet
+                       cannot fly on it; it flies on this, and stops where the
+                       break is. `d` is written by engine.ts from W_PUSH, which
+                       is also what the five pieces are cut from — one curve,
+                       one source. A route does not break; only the line does. -->
+                  <path id="g-direct-2" d="M 0 0" />
+                  <!-- The lane the "TOO MANY REQUESTS" label rides in: the
+                       email wire's own curve, lifted clear of it, in OFFSETS
+                       from the label's landing point (the label is authored in
+                       the markup where it ends up, so the scrub can only ever
+                       move it BY something). Written by engine.ts. -->
+                  <path id="g-flood-label" d="M 0 0" />
                 </g>
 
                 <!-- ── the timeline strip (phase D, the bridge) ──────────── -->
@@ -336,7 +349,55 @@
                 <g class="eng-l-direct" id="eng-direct">
                   <path class="eng-wire" id="w-direct-0" d="M 146 310 C 420 310 620 150 960 150" />
                   <path class="eng-wire" id="w-direct-1" d="M 146 310 L 960 310" />
-                  <path class="eng-wire" id="w-direct-2" d="M 146 310 C 420 310 620 470 960 470" />
+
+                  <!-- The push wire, in FIVE pieces, because in phase A it
+                       BREAKS. Every `d` is cut from W_PUSH in engine.ts by de
+                       Casteljau, so they lie on one curve exactly and read as
+                       one line right up to the moment the middle one goes.
+                       In order along the wire:
+
+                         0  app side, permanent
+                         1  the near edge — cross-fades to #fray-a
+                         2  the segment that flickers and dissolves
+                         3  the far edge  — cross-fades to #fray-b
+                         4  provider side, permanent
+
+                       Pieces 1 and 3 are separate paths ONLY so the frayed
+                       ends can be a cross-fade between a solid path and a
+                       dashed one. Retracting a stroke with drawSVG would have
+                       been fewer elements and does not work: every stroke here
+                       is `vector-effect: non-scaling-stroke`, and Chrome
+                       applies stroke-dasharray in SCREEN space when that is
+                       set, so drawSVG's user-unit dash lengths come out scaled
+                       by 1/zoom. A 5% retraction on a wire drawn at 0.85 does
+                       not shorten the line at all — it silently renders solid,
+                       and the fray dashes sit underneath it invisible. -->
+                  <path class="eng-wire" id="w-push-0" d="M 0 0" />
+                  <path class="eng-wire eng-break-edge" id="w-push-1" d="M 0 0" />
+                  <path class="eng-wire eng-break-seg" id="w-push-2" d="M 0 0" />
+                  <path class="eng-wire eng-break-edge" id="w-push-3" d="M 0 0" />
+                  <path class="eng-wire" id="w-push-4" d="M 0 0" />
+                  <!-- What is left at the severed ends: the same two curves as
+                       pieces 1 and 3, dashed. -->
+                  <path class="eng-fray" id="fray-a" d="M 0 0" />
+                  <path class="eng-fray" id="fray-b" d="M 0 0" />
+
+                  <!-- The two things phase A says out loud. Both live in this
+                       layer because both are about the direct wires and neither
+                       survives the moment the engine takes the middle of the
+                       line — which also gates them correctly on the still
+                       cards, where only the phase-A window shows this layer.
+
+                       The flood's label is authored AT ITS LANDING POINT and
+                       moved by the scrub (see #g-flood-label); the break's
+                       label never moves at all. -->
+                  <!-- One line each, no stray whitespace: SVG collapses the
+                       indentation into a leading AND a trailing space, which
+                       widens the box by two characters. Centred labels survive
+                       that; these two do not have the room — the flood's label
+                       lands 85u from the 429 that answers it. -->
+                  <text class="eng-flag" id="flag-flood" x="800" y="100" text-anchor="middle">TOO MANY REQUESTS</text>
+                  <text class="eng-flag eng-flag-settled" id="flag-drop" x="760" y="414" text-anchor="middle">NETWORK DROP</text>
                 </g>
 
                 <!-- ── the engine ────────────────────────────────────────── -->

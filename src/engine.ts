@@ -4,9 +4,14 @@
    One schematic, pinned, scrubbed over three and a half viewport heights, in
    four phases:
 
-     A  THE PROBLEM    fire-and-forget. A burst slams a provider, it answers
-                       429, and the packets fall off the wire and die. One
-                       simply vanishes, because networks do that.
+     A  THE PROBLEM    fire-and-forget. Fourteen requests arrive at one
+                       provider as a clump, with TOO MANY REQUESTS riding above
+                       them the whole way; the provider answers 429 and they
+                       fall off the wire and die. Then the wire itself fails:
+                       a segment of the push link flickers, dissolves into a
+                       gap with frayed ends, and the next packet teeters on the
+                       broken edge and tumbles through it. Nothing retries,
+                       because there is nothing to retry with.
      B  THE ABSORBER   the engine draws itself between the app and the
                        providers. The same burst is accepted in 8ms, BUFFERS
                        in a six-slot queue — entering at the tail, stepping
@@ -77,6 +82,115 @@ const PHASE_B = 18;
 const PHASE_C = 42;
 const PHASE_D = 68;
 const TL_END = 100;
+
+/* ── The request flood (phase A — the abuse) ───────────────────────────────
+   Three packets in a line is traffic. FLOOD_A_N is the count at which a
+   provider stops reading a wire as "requests" and starts reading it as abuse,
+   and 14 is where that flips at this scale: too many to count at a glance,
+   few enough that at FLOOD_A_R they stay individual dots instead of smearing
+   into one amber smudge.
+
+   The shape is doing the work, not the number. A stream of evenly spaced dots
+   is a picture of traffic no matter how long it is; a CLUMP is a picture of a
+   flood. So the spread comes from FLOOD_A_CLUMP — a fixed 49 × 23u scatter
+   applied as each circle's OWN cx/cy, which survives the flight because these
+   packets run their motionPath with `raw` (path coordinates straight into
+   x/y, the circle's own offset riding on top). Nearest neighbours sit ~8.5u
+   apart against a 7.6u diameter, so the clump reads as touching without
+   fusing.
+
+   The launch stagger is deliberately tiny. 0.003 units over a ~900u wire
+   covered in FLOOD_A_DUR is ~2u of separation per packet — 26u across the
+   whole clump — which is just enough that it stretches as it accelerates
+   instead of moving like a plate, and not enough to turn it back into a
+   queue. Arrivals therefore span 10.00 → 10.04: they hit as one event. */
+const FLOOD_A_N = 14;
+const FLOOD_A_R = 3.8;
+const FLOOD_A_T0 = 8.0;
+const FLOOD_A_DUR = 2.0;
+const FLOOD_A_STAGGER = 0.003;
+/** When the clump reaches the provider. Everything in the exchange — the
+ *  amber box, the 429, the label leaving — is written against this. */
+const FLOOD_A_HIT = FLOOD_A_T0 + FLOOD_A_DUR;
+/** Offsets from the packet's point on the wire, in scene units. Authored, not
+ *  rolled: a flood whose shape changes when you scroll back up is a flood
+ *  nobody believes (same rule as RECEIPT_MS). */
+const FLOOD_A_CLUMP: readonly (readonly [number, number])[] = [
+  [-25, -1],
+  [-19, -10],
+  [-18, 8],
+  [-12, -4],
+  [-10, 9],
+  [-6, -12],
+  [-4, 1],
+  [1, -7],
+  [2, 6],
+  [7, -2],
+  [9, 11],
+  [12, -9],
+  [17, 3],
+  [24, -3],
+];
+/** How far a refused packet drops before it is gone. Each packet's own clump
+ *  offset is added, so the front of the clump falls furthest and the fourteen
+ *  do not come off the wire like one plate. */
+const FLOOD_A_FALL = 96;
+
+/* ── The traveling label ───────────────────────────────────────────────────
+   "TOO MANY REQUESTS" is not written on the packets and it is not parked at
+   the provider waiting for them: it RIDES the clump. It runs its own lane —
+   the email wire's curve, lifted clear of it — at exactly the clump's pace,
+   so it hangs above the flood for the whole flight and arrives with it.
+
+   Where it lands is the whole beat, and it took two tries. The label is ~148u
+   wide and the 429 stamp's own left edge is at ~959, so landing it at 875 put
+   85u of its own body inside the stamp's approach and the two rendered as ONE
+   line of amber text: "TOO MANY REQUESTS 429 Too Many Requests". They are not
+   one line. They are a call and an answer, and an answer has to arrive from
+   somewhere else. 800 leaves 85u of black between them — call on the left,
+   answer over the provider — at the cost of the label finishing 160u behind
+   the clump, which is the right thing to pay: a banner trails the mob. */
+const FLAG_FLOOD_AT: readonly [number, number] = [800, 100];
+const FLAG_FLOOD_LANE: readonly (readonly [number, number])[] = [
+  [146, 276],
+  [430, 272],
+  [640, 104],
+  [800, 100],
+];
+/** Where the break's label settles once it has finished stuttering. Matches
+ *  `.eng-flag-settled` in styles.css, which is what the still cards show. */
+const FLAG_SETTLE = 0.62;
+
+/* ── The network drop (phase A — the wire itself) ──────────────────────────
+   The push wire is authored ONCE, as the four control points of its own
+   cubic, because four different things have to agree about it: the route the
+   packet flies (#g-direct-2), the two pieces of line that survive, the piece
+   that dissolves, and the two frayed ends. Splitting a cubic is exact — de
+   Casteljau, below — so every piece lies ON the route rather than near it.
+
+   MUST match the wire this replaced: `M 146 310 C 420 310 620 470 960 470`.
+
+   BREAK_T is in the cubic's OWN parameter, not in arc length: the split is a
+   de Casteljau split, and "75.5% of the length" would need an inversion
+   nobody would ever be able to read off the source. In scene units these two
+   values put the severed ends at (732,446) and (787,456) — a 56u gap, seven
+   times the packet's diameter. Narrower than ~40u and the packet looks like
+   it could still make it, which is a different (and wrong) sentence. */
+const W_PUSH: readonly (readonly [number, number])[] = [
+  [146, 310],
+  [420, 310],
+  [620, 470],
+  [960, 470],
+];
+const BREAK_T = [0.755, 0.818] as const;
+/** How much line on each side of the gap stops being line and becomes dashes.
+ *  0.034 of the curve ≈ 30u, which is four dashes at the 2.5/5 pattern in
+ *  styles.css. Sized off the PACKET, not off the wire: the packet teeters with
+ *  its centre on the severed edge, so a 9u-wide dot parks on the last 9u of
+ *  the fray and eats it. At 19u (the first try) that left three dashes, two of
+ *  them under the packet, and the break read as "the line stops here" instead
+ *  of "the line came apart here". */
+const FRAY_T = 0.034;
 
 /* ── The metering rhythm (phase B — the load-bearing beat) ─────────────────
    Six events are fired at the API in two ragged clumps and released on a
@@ -335,6 +449,48 @@ function pointAt(path: SVGPathElement, frac: number): { x: number; y: number } {
   return { x: p.x, y: p.y };
 }
 
+/* ── cutting a cubic into pieces ─────────────────────────────────────────
+   The push wire breaks in phase A, which means the one line the reader sees
+   has to become three paths that still lie on one curve. Approximating the
+   pieces (sampling the path, re-fitting) would put them near the route the
+   packet flies; de Casteljau puts them ON it, exactly, and it is nine lerps.
+
+   Everything here is in the cubic's own parameter t, never in arc length. */
+
+type Pt = readonly [number, number];
+
+const lerpPt = (a: Pt, b: Pt, t: number): Pt => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+
+/** The two halves of a cubic split at `t`, each as its own four control
+ *  points. The classic construction: three lerps, then two, then one. */
+function splitCubic(c: readonly Pt[], t: number): [Pt[], Pt[]] {
+  const [p0, p1, p2, p3] = c as [Pt, Pt, Pt, Pt];
+  const a = lerpPt(p0, p1, t);
+  const b = lerpPt(p1, p2, t);
+  const d = lerpPt(p2, p3, t);
+  const e = lerpPt(a, b, t);
+  const f = lerpPt(b, d, t);
+  const g = lerpPt(e, f, t);
+  return [
+    [p0, a, e, g],
+    [g, f, d, p3],
+  ];
+}
+
+/** The sub-curve between two parameters. The first cut re-parameterises what
+ *  is left — the tail's t runs 0→1 over the original's t0→1 — so the second
+ *  cut has to be rescaled or the piece comes out short. */
+function subCubic(c: readonly Pt[], t0: number, t1: number): Pt[] {
+  const tail = splitCubic(c, t0)[1];
+  return splitCubic(tail, (t1 - t0) / (1 - t0))[0];
+}
+
+const n2 = (v: number): string => String(Math.round(v * 100) / 100);
+
+const cubicD = (c: readonly Pt[]): string =>
+  `M ${n2(c[0]![0])} ${n2(c[0]![1])} C ${n2(c[1]![0])} ${n2(c[1]![1])} ` +
+  `${n2(c[2]![0])} ${n2(c[2]![1])} ${n2(c[3]![0])} ${n2(c[3]![1])}`;
+
 export interface EngineScene {
   destroy(): void;
 }
@@ -374,6 +530,13 @@ export function createEngineScene(): EngineScene {
      cheapest way to guarantee that is to refuse to boot if they do not. */
   if (QUEUE_X1 - QUEUE_X0 !== QUEUE_SLOTS * QUEUE_SLOT) {
     throw new Error("[engine] queue box width does not divide into QUEUE_SLOTS");
+  }
+
+  /* Same contract, one phase earlier: the flood's count and the flood's shape
+     are two constants that describe one thing, and a fifteenth clump offset
+     with FLOOD_A_N left at 14 would silently drop a packet. */
+  if (FLOOD_A_CLUMP.length !== FLOOD_A_N) {
+    throw new Error("[engine] FLOOD_A_CLUMP does not have FLOOD_A_N entries");
   }
 
   /** The QUEUE_SLOTS − 1 dividers of one lane, ruled between its walls. */
@@ -551,21 +714,97 @@ export function createEngineScene(): EngineScene {
     );
   }
 
+  /* ── the push wire, cut into the pieces that break ──────────────────────
+     One curve (W_PUSH), five paths off it, and one guide that is still the
+     whole thing because a ROUTE does not break — only the line does. Setting
+     the guide's own `d` from the same constants is what guarantees the
+     packet's flight and the drawn wire cannot drift apart. */
+  const gDirect2 = q<SVGPathElement>(svg, "#g-direct-2");
+  const frayA = q<SVGPathElement>(svg, "#fray-a");
+  const frayB = q<SVGPathElement>(svg, "#fray-b");
+
+  /** The five cuts, in order along the wire. Every boundary is shared, so the
+   *  pieces abut exactly and there is no seam to see. */
+  const pushCuts: readonly [number, number][] = [
+    [0, BREAK_T[0] - FRAY_T],
+    [BREAK_T[0] - FRAY_T, BREAK_T[0]],
+    [BREAK_T[0], BREAK_T[1]],
+    [BREAK_T[1], BREAK_T[1] + FRAY_T],
+    [BREAK_T[1] + FRAY_T, 1],
+  ];
+
+  gDirect2.setAttribute("d", cubicD(W_PUSH));
+
+  /** The five solid pieces, indexed the same way as pushCuts. */
+  const pushPieces = pushCuts.map(([a, b], i) => {
+    const p = q<SVGPathElement>(svg, `#w-push-${i}`);
+    p.setAttribute("d", cubicD(subCubic(W_PUSH, a, b)));
+    return p;
+  });
+
+  /* The two dashed ends sit on the same two curves as pieces 1 and 3 — same
+     `d`, different stroke — so the cross-fade at the break swaps one for the
+     other without anything moving. */
+  frayA.setAttribute("d", pushPieces[1]!.getAttribute("d")!);
+  frayB.setAttribute("d", pushPieces[3]!.getAttribute("d")!);
+
+  /** The two pieces that stop being line and become dashes. */
+  const pushEdges = [pushPieces[1]!, pushPieces[3]!];
+  /** The one that goes entirely. */
+  const pushSeg = pushPieces[2]!;
+
+  /** The share of the wire's draw each piece owns. Phase A draws them back to
+   *  back at a constant rate, which is the only way five paths add up to one
+   *  continuous line — see the draw call itself. */
+  const pushShare = ((): number[] => {
+    const l = pushPieces.map((p) => p.getTotalLength());
+    const total = l.reduce((a, b) => a + b, 0);
+    return l.map((v) => v / total);
+  })();
+
+  /** The broken edge — where the near fray ends — and its fraction along the
+   *  route, in ARC LENGTH, which is what motionPath counts in. The packet
+   *  flies to exactly here and stops. */
+  const breakEdge = splitCubic(W_PUSH, BREAK_T[0])[0][3]!;
+  const breakEdgeF = fracNearX(gDirect2, breakEdge[0], 0);
+
+  /* ── the traveling label's lane ─────────────────────────────────────────
+     Written as offsets from where the label is authored, so the scrub only
+     ever moves it BY something and the still frame — which no scrub touches —
+     is already correct. */
+  q<SVGPathElement>(svg, "#g-flood-label").setAttribute(
+    "d",
+    cubicD(
+      FLAG_FLOOD_LANE.map(
+        (p) => [p[0] - FLAG_FLOOD_AT[0], p[1] - FLAG_FLOOD_AT[1]] as Pt,
+      ),
+    ),
+  );
+
   /* ── the packet pool ───────────────────────────────────────────────────── */
 
   const allDots: SVGCircleElement[] = [];
 
-  /** One packet, at the origin so that a motionPath's align lands its centre
-   *  exactly on the path point and a later `x` tween can move it in scene
-   *  coordinates without any offset arithmetic. */
-  function newDot(r = DOT_R): SVGCircleElement {
-    const c = svgEl("circle", { class: "eng-dot", cx: 0, cy: 0, r });
+  /** One packet. At the origin by default, so that a motionPath's align lands
+   *  its centre exactly on the path point and a later `x` tween can move it in
+   *  scene coordinates without any offset arithmetic.
+   *
+   *  `ox`/`oy` are the one exception: the phase-A flood's clump shape lives in
+   *  the circles themselves, and those packets fly with `raw` motionPaths
+   *  (no align) so the offset rides along instead of being normalised away —
+   *  which is exactly what `alignOrigin` would do to it. */
+  function newDot(r = DOT_R, ox = 0, oy = 0): SVGCircleElement {
+    const c = svgEl("circle", { class: "eng-dot", cx: ox, cy: oy, r });
     dotsG.appendChild(c);
     allDots.push(c);
     return c;
   }
 
-  const dA = { solo: newDot(), burst: [newDot(), newDot(), newDot()], lost: newDot() };
+  const dA = {
+    solo: newDot(),
+    flood: FLOOD_A_CLUMP.map(([ox, oy]) => newDot(FLOOD_A_R, ox, oy)),
+    lost: newDot(),
+  };
   const dB = { queue: Array.from({ length: 6 }, () => newDot()), dupe: newDot() };
   const dC = { retry: newDot(), fail: newDot(), dlq: newDot() };
   const dD = {
@@ -594,7 +833,15 @@ export function createEngineScene(): EngineScene {
   const appBox = q<SVGRectElement>(svg, "#app-box");
   const appLabel = q<SVGTextElement>(svg, "#app-label");
 
-  const directWires = [0, 1, 2].map((i) => q<SVGPathElement>(svg, `#w-direct-${i}`));
+  /* The two direct wires that stay whole. The third one is `pushPieces` — it
+     comes apart in phase A and every beat that touches it has to know which
+     piece it means. */
+  const wEmail = q<SVGPathElement>(svg, "#w-direct-0");
+  const wSms = q<SVGPathElement>(svg, "#w-direct-1");
+
+  const flagFlood = q<SVGTextElement>(svg, "#flag-flood");
+  const flagDrop = q<SVGTextElement>(svg, "#flag-drop");
+  const gFloodLabel = q<SVGPathElement>(svg, "#g-flood-label");
 
   const chassis = q<SVGRectElement>(svg, "#chassis");
   const chassisLabel = q<SVGTextElement>(svg, "#chassis-label");
@@ -658,7 +905,9 @@ export function createEngineScene(): EngineScene {
   /** Everything that gets traced rather than faded in. */
   const strokeParts: SVGGeometryElement[] = [
     appBox,
-    ...directWires,
+    wEmail,
+    wSms,
+    ...pushPieces,
     chassis,
     wAppApi,
     apiBox,
@@ -714,6 +963,13 @@ export function createEngineScene(): EngineScene {
     asideDigest,
     asideEda,
     digestEnv,
+    /* Phase A's two flags and the two frayed ends. All four are marks the
+       stylesheet paints in their finished state and restState hides, same as
+       every other fade — which is also why the still cards get them free. */
+    flagFlood,
+    flagDrop,
+    frayA,
+    frayB,
   ];
 
   /* ════════════════════════════════════════════════════════════════════════
@@ -773,6 +1029,15 @@ export function createEngineScene(): EngineScene {
       transformOrigin: "50% 50%",
     });
     gsap.set(digestEnv, { x: QUEUE_HEAD_X, y: SPINE_Y, scale: 1, transformOrigin: "50% 50%" });
+    /* The traveling label is the one piece of TEXT the scrub moves. Its lane
+       is written in offsets from where the markup already puts it, so zero is
+       its home and rest means "not moved". */
+    gsap.set(flagFlood, { x: 0, y: 0 });
+    /* The push wire's middle three pieces are hidden by drawSVG above, but the
+       break drives their OPACITY as well — the segment flickers, the two edges
+       hand over to their dashed twins. Rest has to put that back or a rewind
+       past the break leaves a dimmed or missing piece of wire. */
+    gsap.set([pushSeg, ...pushEdges], { opacity: 1 });
     camState.z = CAM_START.z;
     camState.fx = CAM_START.fx;
     camState.fy = CAM_START.fy;
@@ -814,10 +1079,19 @@ export function createEngineScene(): EngineScene {
       lede.textContent = "One API call in. Every provider paced, retried and accounted for.";
       frag.appendChild(lede);
       frag.appendChild(figure("all", "0 24 1200 592"));
-      for (const capNode of caps) {
+      for (const [i, capNode] of caps.entries()) {
         const card = doc.createElement("div");
         card.className = "eng-card";
         card.append(...Array.from(capNode.children).map((n) => n.cloneNode(true)));
+        /* Phase A is the one phase whose mechanism is ERASED from the finished
+           anatomy: the direct wires retract the moment the engine arrives, so
+           the whole-drawing figure above has no flood, no broken wire, and
+           nowhere to hang the two things phase A says out loud. It gets its
+           own close-up, or a reduced-motion reader never learns what the
+           engine was built to answer (DESIGN §3 — same information, delivered
+           by layout instead of by time). No other caption needs one; every
+           other mechanism is still in the finished picture. */
+        if (i === 0) card.appendChild(figure(CARD_VIEW[0].phase, CARD_VIEW[0].box));
         frag.appendChild(card);
       }
       frag.appendChild(copyStat());
@@ -913,24 +1187,30 @@ export function createEngineScene(): EngineScene {
 
     /** A packet running a route. Always explicit about both ends of the path
      *  so the tween is a pure function of progress and never of whatever
-     *  transform the element happened to be carrying. */
+     *  transform the element happened to be carrying.
+     *
+     *  `raw` drops `align`/`alignOrigin` and lets the path's own coordinates
+     *  land straight in x/y. Every guide and every packet lives inside
+     *  #eng-cam with no transform of its own, so the two forms put a centred
+     *  element in exactly the same place — but `alignOrigin` measures the
+     *  target's bounding box and centres THAT on the path, which silently
+     *  cancels any offset the element was authored with. The phase-A flood's
+     *  clump lives in its circles' cx/cy, and the traveling label is authored
+     *  at its landing point; both need the offset to survive the flight. */
     function run(
       dot: Element,
       path: SVGPathElement,
       at: number,
       dur: number,
-      o: { start?: number; end?: number; ease?: string } = {},
+      o: { start?: number; end?: number; ease?: string; raw?: boolean } = {},
     ): void {
+      const span = { start: o.start ?? 0, end: o.end ?? 1 };
       tl.to(
         dot,
         {
-          motionPath: {
-            path,
-            align: path,
-            alignOrigin: [0.5, 0.5],
-            start: o.start ?? 0,
-            end: o.end ?? 1,
-          },
+          motionPath: o.raw
+            ? { path, ...span }
+            : { path, align: path, alignOrigin: [0.5, 0.5], ...span },
           duration: dur,
           ease: o.ease ?? "none",
           immediateRender: false,
@@ -993,38 +1273,225 @@ export function createEngineScene(): EngineScene {
       1,
       0.5,
     );
-    draw(directWires, 2.6, 2.6, 0.35);
+    /** How long a direct wire takes to draw, and the gap between the three of
+     *  them. The push wire is drawn last, which is why its pieces begin at
+     *  2.6 + 2 · 0.35. */
+    const WIRE_DUR = 2.6;
+    const WIRE_GAP = 0.35;
+    draw([wEmail, wSms], 2.6, WIRE_DUR, WIRE_GAP);
+
+    /* The push wire is five paths and has to draw as ONE line, so each piece
+       takes exactly the share of WIRE_DUR that its own length is, back to
+       back. Ease "none" and not draw()'s power2.out, and that is the whole
+       reason this is written out rather than being a draw() call: an eased
+       sweep cannot be cut into pieces and reassembled — five power2.out curves
+       laid end to end is a line that lurches five times. A linear
+       concatenation is exact. Over 2.6 units, against two neighbours easing
+       out beside it, the constant rate is not readable. */
+    {
+      let at = 2.6 + 2 * WIRE_GAP;
+      pushPieces.forEach((piece, i) => {
+        const dur = WIRE_DUR * pushShare[i]!;
+        ft(piece, { drawSVG: "0% 0%" }, { drawSVG: "0% 100%", duration: dur }, at);
+        at += dur;
+      });
+    }
 
     /* One packet gets through, so the reader learns what an arrival looks
-       like before being shown four that do not. */
+       like before being shown fourteen that do not. */
     fadeIn(dA.solo, 5.4, 0.4);
-    run(dA.solo, directWires[1]!, 5.4, 2.4, { ease: "power1.inOut" });
+    run(dA.solo, wSms, 5.4, 2.4, { ease: "power1.inOut" });
     deliver(dA.solo, 7.8);
 
-    /* The burst. Three at the same provider, close together. */
-    dA.burst.forEach((dot, i) => {
-      const t = 8.2 + i * 0.7;
+    /* ── the flood ─────────────────────────────────────────────────────────
+       Fourteen at the same provider, arriving as one clump. `raw` because the
+       clump's shape is the circles' own cx/cy — see run(). */
+    dA.flood.forEach((dot, i) => {
+      const t = FLOOD_A_T0 + i * FLOOD_A_STAGGER;
+      const [ox, oy] = FLOOD_A_CLUMP[i]!;
+
       fadeIn(dot, t, 0.35);
-      run(dot, directWires[0]!, t, 2.0, { ease: "power1.in" });
+      run(dot, wEmail, t, FLOOD_A_DUR, { ease: "power1.in", raw: true });
 
       /* It refuses. The packet goes amber, then falls off the wire under
-         gravity — power2.in, because that is what falling is. */
-      const hit = t + 2.0;
+         gravity — power2.in, because that is what falling is. The distance
+         and the duration are read off the packet's own place in the clump, so
+         fourteen packets come off the wire as fourteen packets: the ones at
+         the front of the clump fall furthest, and no two take the same time
+         to do it. Derived rather than rolled, for the same reason the clump
+         itself is authored — a scroll back up must find the same fall. */
+      const hit = t + FLOOD_A_DUR;
       ft(dot, { fill: COLOR.greenDim }, { fill: COLOR.amber, duration: 0.2 }, hit);
-      ft(dot, { y: PROV_Y[0]! }, { y: PROV_Y[0]! + 96, duration: 1.9, ease: "power2.in" }, hit + 0.18);
+      ft(
+        dot,
+        { y: PROV_Y[0]! },
+        { y: PROV_Y[0]! + FLOOD_A_FALL + ox, duration: 1.9 + oy * 0.02, ease: "power2.in" },
+        hit + 0.18,
+      );
       fadeOut(dot, hit + 0.5, 1.5);
     });
 
-    ft(provRects[0]!, { stroke: COLOR.hairline }, { stroke: COLOR.amber, duration: 0.5 }, 10.2);
-    fadeIn(stamp429, 10.3, 1.1);
-    fadeOut(stamp429, 15.4, 1.4);
-    ft(provRects[0]!, { stroke: COLOR.amber }, { stroke: COLOR.hairline, duration: 1.4 }, 15.4);
+    /* The complaint, riding the clump. Same start, same duration, same ease
+       as the packets under it, on a lane that is their wire lifted clear —
+       so it is not following them, it is one of them. */
+    run(flagFlood, gFloodLabel, FLOOD_A_T0, FLOOD_A_DUR, { ease: "power1.in", raw: true });
+    fadeIn(flagFlood, FLOOD_A_T0 + 0.3, 0.5);
 
-    /* And one that nothing at all happens to. No stamp, no fall — it is 62%
-       of the way there and then it is not there. That is the network. */
-    fadeIn(dA.lost, 12.4, 0.4);
-    run(dA.lost, directWires[2]!, 12.4, 2.6, { end: 0.62, ease: "power1.inOut" });
-    fadeOut(dA.lost, 13.9, 1.0);
+    /* And the provider answers. 0.35 units after the label lands, not with
+       it: call, beat, response. Three sentences in a row would be noise. */
+    ft(provRects[0]!, { stroke: COLOR.hairline }, { stroke: COLOR.amber, duration: 0.5 }, FLOOD_A_HIT);
+    fadeIn(stamp429, FLOOD_A_HIT + 0.35, 0.9);
+    /* The label leaves once it has been answered. The 429 stays, because the
+       provider's word is the one that counts. */
+    fadeOut(flagFlood, FLOOD_A_HIT + 0.95, 0.85);
+    fadeOut(stamp429, 13.6, 1.4);
+    ft(provRects[0]!, { stroke: COLOR.amber }, { stroke: COLOR.hairline, duration: 1.4 }, 13.6);
+
+    /* ══════════════════════════════════════════════════════════════════════
+       PHASE A — THE NETWORK DROP   (12.6 → 18)
+       ──────────────────────────────────────────────────────────────────────
+       The second half of the phase is a different accusation. The flood was
+       the PROVIDER refusing; this is nobody refusing. The wire fails, and the
+       packet on it has nowhere to be.
+
+       It is staged on the push link because that link is otherwise idle: the
+       flood owns the top wire and the one delivery owned the middle, so the
+       bottom of the frame is clear and the two failures never share a beat.
+       ══════════════════════════════════════════════════════════════════════ */
+
+    /** When the segment starts arguing. Everything below is written against
+     *  it, so the whole break moves as one if the phase is retimed. */
+    const DROP_T0 = 12.6;
+
+    /* Two stutters. A link does not go down cleanly, it flickers first — and
+       the flicker is what makes the reader look at the wire instead of at the
+       packet, which is the point: the wire is the subject now. */
+    ft(pushSeg, { opacity: 1 }, { opacity: 0.12, duration: 0.12 }, DROP_T0);
+    ft(pushSeg, { opacity: 0.12 }, { opacity: 1, duration: 0.14 }, DROP_T0 + 0.12);
+    ft(pushSeg, { opacity: 1 }, { opacity: 0.18, duration: 0.12 }, DROP_T0 + 0.34);
+    ft(pushSeg, { opacity: 0.18 }, { opacity: 1, duration: 0.14 }, DROP_T0 + 0.46);
+
+    /* Then it dissolves. drawSVG collapses the segment onto its own middle,
+       so the gap opens outward from a point rather than being erased from one
+       end — a line coming apart, not a line being rubbed out. It lands on a
+       ZERO-LENGTH dash, which with `stroke-linecap: butt` (DESIGN §3, and
+       styles.css says it again) is nothing at all. With a round cap it would
+       be a 1px dot sitting in the middle of the gap, which is the exact bug
+       this scene has already paid for once. */
+    ft(pushSeg, { drawSVG: "0% 100%" }, { drawSVG: "50% 50%", duration: 0.7, ease: "power2.in" }, DROP_T0 + 0.7);
+
+    /* The ends fray: the two edge pieces hand over to their dashed twins, which
+       lie on exactly the same curve. A cross-fade and not a retraction — see
+       index.html for why a retraction cannot work on a non-scaling stroke.
+       The dashes come up 0.1 behind the solid going down, so there is a frame
+       where the edge is neither, which is the fray happening. */
+    fadeOut(pushEdges, DROP_T0 + 1.0, 0.5);
+    fadeIn([frayA, frayB], DROP_T0 + 1.1, 0.5, 0.9);
+
+    /* It is not dead, it is intermittent, which is worse. Three dips, unevenly
+       spaced so they never read as a pulse. Authored as tweens rather than a
+       repeating one: an infinite loop has no place on a timeline that can run
+       backwards, and this one has to rewind like everything else. */
+    ([
+      [14.9, 0.34],
+      [15.9, 0.5],
+      [17.0, 0.28],
+    ] as const).forEach(([at, lo]) => {
+      ft([frayA, frayB], { opacity: 0.9 }, { opacity: lo, duration: 0.18 }, at);
+      ft([frayA, frayB], { opacity: lo }, { opacity: 0.9, duration: 0.22 }, at + 0.18);
+    });
+
+    /* ── the packet that finds it ──────────────────────────────────────────
+       It leaves before the segment has finished dissolving and arrives after
+       — so the reader watches it commit to a wire that is already failing,
+       which is the whole feeling of a network drop. The route is the WHOLE
+       curve (#g-direct-2): a route does not break, only the line does. */
+    const DROP_PKT_T0 = 12.9;
+    const DROP_PKT_DUR = 1.5;
+    /** When it reaches the severed edge, and where. */
+    const DROP_EDGE_AT = DROP_PKT_T0 + DROP_PKT_DUR;
+    const [edgeX, edgeY] = breakEdge;
+
+    fadeIn(dA.lost, DROP_PKT_T0, 0.4);
+    run(dA.lost, gDirect2, DROP_PKT_T0, DROP_PKT_DUR, {
+      end: breakEdgeF,
+      ease: "power1.inOut",
+    });
+
+    /* The teeter. Lean, pull back, lean again — three tweens, none of them
+       more than 5u, which on a 1200u schematic is nothing and is meant to be:
+       it has to read as hesitation, not as a second journey. sine.inOut on the
+       first two because a rock is a rock; sine.in on the third because that
+       one does not come back. */
+    ft(
+      dA.lost,
+      { x: edgeX, y: edgeY },
+      { x: edgeX + 4, y: edgeY + 2.5, duration: 0.3, ease: "sine.inOut" },
+      DROP_EDGE_AT,
+    );
+    ft(
+      dA.lost,
+      { x: edgeX + 4, y: edgeY + 2.5 },
+      { x: edgeX - 2, y: edgeY - 1, duration: 0.28, ease: "sine.inOut" },
+      DROP_EDGE_AT + 0.3,
+    );
+    ft(
+      dA.lost,
+      { x: edgeX - 2, y: edgeY - 1 },
+      { x: edgeX + 5, y: edgeY + 3, duration: 0.26, ease: "sine.in" },
+      DROP_EDGE_AT + 0.58,
+    );
+
+    /* And through. Gravity down (power2.in), a little forward drift because it
+       was still moving when the wire stopped, and a tumble.
+
+       THE TUMBLE: a circle cannot show rotation — spin a disc about its own
+       centre and nothing on screen changes. So it is squashed onto its edge
+       and back while it turns, which is what a coin going end over end
+       actually looks like. Two tweens on scaleY plus one on rotation, and the
+       rotation only becomes visible BECAUSE of the squash. */
+    const DROP_FALL_AT = DROP_EDGE_AT + 0.84;
+    const DROP_FALL_DUR = 2.0;
+    ft(
+      dA.lost,
+      { y: edgeY + 3 },
+      { y: edgeY + 3 + 210, duration: DROP_FALL_DUR, ease: "power2.in" },
+      DROP_FALL_AT,
+    );
+    ft(dA.lost, { x: edgeX + 5 }, { x: edgeX + 19, duration: DROP_FALL_DUR }, DROP_FALL_AT);
+    ft(dA.lost, { rotation: 0 }, { rotation: 214, duration: DROP_FALL_DUR }, DROP_FALL_AT);
+    ft(
+      dA.lost,
+      { scaleY: 1 },
+      { scaleY: 0.42, duration: DROP_FALL_DUR * 0.42, ease: "sine.inOut" },
+      DROP_FALL_AT,
+    );
+    ft(
+      dA.lost,
+      { scaleY: 0.42 },
+      { scaleY: 1, duration: DROP_FALL_DUR * 0.58, ease: "sine.inOut" },
+      DROP_FALL_AT + DROP_FALL_DUR * 0.42,
+    );
+    /* Gone before it reaches the bottom of the frame, so it reads as falling
+       out of the drawing rather than as landing on its edge — but not before.
+       power2.in means the first half of the fall covers a quarter of the
+       distance, so a fade that starts at +0.7 spends itself while the packet
+       has barely moved and the tumble never gets seen. +1.0 puts the whole
+       fade in the part of the drop that is actually moving. */
+    fadeOut(dA.lost, DROP_FALL_AT + 1.0, 0.95);
+
+    /* ── and the name of it ────────────────────────────────────────────────
+       Struck in where it happened, with the same double-blink the segment made
+       on its way out — so the label reads as the wire's own last word rather
+       than as a caption somebody added afterwards. Then it settles faint and
+       stays for the rest of the phase, because unlike the 429 nobody is going
+       to tell you about this one twice. */
+    const DROP_LBL_AT = 15.3;
+    ft(flagDrop, { opacity: 0 }, { opacity: 0.95, duration: 0.1 }, DROP_LBL_AT);
+    ft(flagDrop, { opacity: 0.95 }, { opacity: 0, duration: 0.12 }, DROP_LBL_AT + 0.1);
+    ft(flagDrop, { opacity: 0 }, { opacity: 1, duration: 0.1 }, DROP_LBL_AT + 0.32);
+    ft(flagDrop, { opacity: 1 }, { opacity: 0, duration: 0.12 }, DROP_LBL_AT + 0.42);
+    ft(flagDrop, { opacity: 0 }, { opacity: FLAG_SETTLE, duration: 0.5 }, DROP_LBL_AT + 0.64);
 
     /* ══════════════════════════════════════════════════════════════════════
        PHASE B — THE ABSORBER   (18 → 42)
@@ -1033,11 +1500,24 @@ export function createEngineScene(): EngineScene {
     /* The direct wires retract toward the providers as the engine takes the
        middle of the line. Nothing is deleted; the route is re-cut. */
     ft(
-      directWires,
+      [wEmail, wSms],
       { drawSVG: "0% 100%" },
       { drawSVG: "100% 100%", duration: 2.6, stagger: 0.3, ease: "power2.inOut" },
       PHASE_B,
     );
+
+    /* The broken wire leaves as it stands, on the third beat of the stagger:
+       the two surviving pieces retract to their own far ends, the frayed ends
+       and the label fade, and the three pieces in the middle are already
+       nothing — two at opacity 0 since the break, one dissolved. */
+    ft(
+      [pushPieces[0]!, pushPieces[4]!],
+      { drawSVG: "0% 100%" },
+      { drawSVG: "100% 100%", duration: 2.6, ease: "power2.inOut" },
+      PHASE_B + 0.6,
+    );
+    fadeOut([frayA, frayB], PHASE_B + 0.6, 1.6, 0.9);
+    fadeOut(flagDrop, PHASE_B - 0.6, 1.4, FLAG_SETTLE);
 
     draw(chassis, 19.4, 3.0);
     fadeIn(chassisLabel, 21.6, 1.2);

@@ -60,6 +60,22 @@ storytelling, feedback, or state change. "It looked cool" is not an answer — d
   At 1–1.25px, `butt` and `round` are visually identical, so this costs nothing. (Cost us a
   bug report on scene 2: ~20 dots, one of them floating above the schematic on the
   not-yet-drawn timeline strip.)
+- **`vector-effect: non-scaling-stroke` makes `stroke-dasharray` SCREEN-relative.** Chrome
+  computes the stroke of such a path in screen space, and the dash pattern goes with it — so
+  dash lengths stop being user units and become CSS pixels. Two consequences, and the second
+  one is a trap:
+  - A hand-authored dash pattern (a frayed end, a dotted guide) keeps the same look at every
+    camera zoom. That is a feature; use it.
+  - **DrawSVG cannot express a partial range on such a path.** It converts percentages into
+    user units via `getTotalLength()`, and those numbers are then read as pixels. A wire drawn
+    at 0.85 scale and told to hold `"0% 95%"` renders **fully solid** — the 5% it meant to hide
+    is smaller than the error. `"0% 0%"`, `"0% 100%"` and `"50% 50%"` still work, because zero
+    and everything are the same number in both spaces, which is exactly why the whole scene
+    can draw itself and nobody notices.
+  - So: to shorten a non-scaling stroke *to a specific point*, do not tween drawSVG. Cut the
+    path into pieces at that point and cross-fade or dissolve a piece. (Cost us the first
+    version of scene 2's network drop: the wire's severed end never pulled back, and the
+    dashed fray sat underneath a solid line, invisible.)
 - **Transform origins are explicit.** A bell rotates from its thread pivot, not its center. A
   clapper rotates from its yoke. A ripple grows from the mouth. Every `svgOrigin` /
   `transform-origin` in this codebase is written out and commented.

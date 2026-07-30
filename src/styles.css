@@ -937,6 +937,51 @@ html {
   fill: var(--text-faint);
 }
 
+/* ── the two things phase A says out loud ────────────────────────────────
+   Mono caps at the engraving's tracking, but AMBER, because these two are the
+   only utterances in the scene that are about something going wrong and amber
+   is the only colour allowed to say so (BRAND §2). 12u so they sit a step
+   under the 15u stamps: the provider's "429" is the louder voice in that
+   exchange, and it should be.
+
+   `.eng-break-seg`, `.eng-fray` and these two are the whole vocabulary of the
+   break. Nothing else in the scene may borrow it. */
+.eng-flag {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  fill: var(--amber);
+}
+
+/* The break's label does not shout — the hole in the line already did. This is
+   where it settles once it has stopped stuttering, and it is also what the
+   still cards show, since a still frame has no stutter to settle out of. */
+.eng-flag-settled {
+  opacity: 0.62;
+}
+
+/* The severed ends: the wire's own curve, dashed, so the break reads as a line
+   that came APART rather than a line that was trimmed. Butt caps are not
+   optional here for a second reason on top of DESIGN §3 — a dash pattern with
+   round caps grows every dash by a stroke-width at each end, which closes the
+   gaps and turns the fray back into a solid line.
+
+   The gap is twice the dash and that is not a proportion anyone would choose
+   for a dashed line in the abstract. It is what the APPROACH side needs: that
+   fray continues straight out of 600u of solid wire, so at 2/3.2 the eye
+   integrated it back into the line and the break looked like it only had one
+   frayed end. The far side, which the reader meets across a 56u hole, read
+   fine at any ratio. Set the pattern for the harder of the two. */
+.eng-fray {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-dasharray: 2.5 5;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
 .eng-receipt {
   font-family: var(--mono);
   font-size: 12px;
@@ -1091,6 +1136,17 @@ html {
 .eng-card-figure[data-phase="b"] .eng-l-alt,
 .eng-card-figure[data-phase="d"] .eng-l-alt,
 .eng-card-figure[data-phase="e"] .eng-l-alt {
+  display: none;
+}
+
+/* The push wire came apart in phase A and never goes back together, so the
+   still shows it apart: the segment that dissolved and the two solid edges
+   that handed over to dashes are simply not in the picture, and the frays
+   (opacity 1 by default, like every other finished mark) are. Only the
+   phase-A window shows `.eng-l-direct` at all, so this needs no phase
+   qualifier. */
+.eng-card-figure .eng-break-seg,
+.eng-card-figure .eng-break-edge {
   display: none;
 }
 
