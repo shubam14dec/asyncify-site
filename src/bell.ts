@@ -287,6 +287,11 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
   const clapper = q<SVGGElement>(scene, "#clapper");
   const clapBall = q<SVGCircleElement>(scene, "#c-ball");
   const glint = q<SVGPathElement>(scene, "#b-glint");
+  /** The two foundry words cast on the outer skirt (index.html). Held once
+   *  rather than re-selected per ring — and because the entrance has to hide
+   *  them: they are type, not a stroke, so drawSVG cannot trace them, and left
+   *  alone they sit in empty space for the second before the bell exists. */
+  const foundry = Array.from(scene.querySelectorAll<SVGTextElement>(".foundry"));
 
   /** Draw order for the entrance trace. Reads like a hand: loop, cap, both
    *  shoulders, the rim, the lip flicks, then the guts. */
@@ -737,7 +742,11 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     tl.call(
       () => {
         // The inscription catches light as the bell sounds.
-        gsap.fromTo(".foundry", { opacity: 0.4 }, { opacity: 1, duration: 0.28, yoyo: true, repeat: 1, ease: "power1.inOut" });
+        gsap.fromTo(
+          foundry,
+          { opacity: 0.4 },
+          { opacity: 1, duration: 0.28, yoyo: true, repeat: 1, ease: "power1.inOut" },
+        );
         opts.onRing?.(heroRect.left + mouthX, heroRect.top + mouthY);
       },
       undefined,
@@ -884,6 +893,8 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     gsap.set(thread, { drawSVG: "0% 0%" });
     gsap.set(bellDrawOrder, { drawSVG: "0% 0%" });
     gsap.set(glint, { drawSVG: "0% 0%", opacity: 0 });
+    // Nothing is cast into metal that has not been poured yet.
+    gsap.set(foundry, { opacity: 0 });
     // The dot's outline is traced by the stagger below; its fill arrives after,
     // so the bell is a line drawing first and gains its one solid last.
     gsap.set(clapBall, { fillOpacity: 0 });
@@ -912,6 +923,12 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
 
     // never told about.
     tl.to(clapBall, { fillOpacity: 1, duration: 0.34, ease: "power2.out" }, 0.86);
+
+    /* The foundry mark surfaces once both flares have finished tracing (the
+       sides land at ~0.78s), at the same low 0.4 the CSS holds it at. It is the
+       last thing the drawing gains and the quietest — which is how you find an
+       inscription on a real bell: only after you have seen the bell. */
+    tl.to(foundry, { opacity: 0.4, duration: 0.5, ease: "power2.out" }, 0.82);
 
     // headline, word by word: 12px rise + fade, 40ms apart
     tl.set(copy, { opacity: 1 }, 0.55);

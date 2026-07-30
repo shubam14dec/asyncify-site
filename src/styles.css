@@ -644,12 +644,17 @@ html {
   display: none;
 }
 
-/* Foundry inscription on the bell's waist — engraved, not printed:
-   faint ink, wide tracking, mono caps. Discovered on approach. */
+/* Foundry inscription cast on the bell's outer skirt — engraved, not printed:
+   faint ink, wide tracking, mono caps. Discovered on approach.
+   font-size is in BELL-LOCAL units (the whole bell is drawn at ~114u tall and
+   scaled by layout()), so 6u ≈ 10px of cap-and-a-bit on a 189px bell — small
+   enough to read as cast metal, big enough to actually read. The arcs in
+   index.html are cut to these exact metrics: change the size or the tracking
+   and the word will no longer fill its arc. */
 .foundry {
   font-family: "Geist Mono", ui-monospace, monospace;
-  font-size: 3.6px; /* bell-local units */
-  letter-spacing: 0.14em;
+  font-size: 6px; /* bell-local units */
+  letter-spacing: 0.16em;
   fill: #6e6e6e;
   opacity: 0.4; /* engraved-faint; the ring lights it */
 }

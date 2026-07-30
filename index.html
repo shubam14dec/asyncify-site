@@ -69,10 +69,22 @@
                 <!-- Foundry inscription — cast on the OUTER skirt like a real
                      bell's sound-bow: ASYNCIFY up the left flare, ENGINE down
                      the right. Engraved-faint at rest; the ring makes it catch
-                     light (see bell.ts ring timeline). -->
+                     light (see bell.ts ring timeline).
+
+                     These two arcs are NOT drawn by eye. Each is the profile
+                     path above (#b-side-l / #b-side-r) offset 3u along its own
+                     outward normal — i.e. ~2.6u clear of a 1.25px stroke — then
+                     least-squares refitted to a single cubic (max deviation
+                     0.12u ≈ 0.2px on screen). Both spans are centred on y 83,
+                     so the pair reads as one band around the bell; each span is
+                     cut to its own word's length + 14%, which is the margin.
+                     Direction matters: the left arc runs bottom→top and the
+                     right top→bottom, which is what puts the glyph tops OUTSIDE
+                     the metal on both halves instead of mirroring one of them
+                     inward. Reverse either one and that word turns inside-out. -->
                 <defs>
-                  <path id="skirt-l" d="M -37 95 Q -28 72 -19 56" fill="none"/>
-                  <path id="skirt-r" d="M 19 56 Q 28 72 37 95" fill="none"/>
+                  <path id="skirt-l" d="M -48.1 102.7 C -38.8 91.7 -38.6 77 -36.1 63.5" fill="none"/>
+                  <path id="skirt-r" d="M 37.6 68.7 C 39.2 79 40 89.4 45.8 98.4" fill="none"/>
                 </defs>
                 <text class="foundry" aria-hidden="true"><textPath href="#skirt-l" startOffset="50%" text-anchor="middle">ASYNCIFY</textPath></text>
                 <text class="foundry" aria-hidden="true"><textPath href="#skirt-r" startOffset="50%" text-anchor="middle">ENGINE</textPath></text>
