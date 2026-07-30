@@ -248,6 +248,17 @@
                 <span class="eng-kicker">the bridge</span>
                 <p class="eng-caption">…and the world answers back.</p>
               </div>
+              <!-- The sixth caption is the bridge's second sentence: the
+                   answer does not just get recorded, it changes what happens
+                   next. Its own block because "the world answers" and "the
+                   engine acts on the answer" are two claims, and phase D has
+                   the room for both (CAP_AT in engine.ts). -->
+              <div class="eng-cap">
+                <span class="eng-kicker">the condition</span>
+                <p class="eng-caption">
+                  The engine listens back — opened means the reminder never fires.
+                </p>
+              </div>
             </div>
 
             <p class="eng-stat" id="eng-stat">at-least-once · idempotent · observable end to end</p>
@@ -318,6 +329,19 @@
                        the markup where it ends up, so the scrub can only ever
                        move it BY something). Written by engine.ts. -->
                   <path id="g-flood-label" d="M 0 0" />
+                  <!-- The "opened" receipt's way home. It leaves the EMAIL
+                       tick on the timeline strip — the strip is the record,
+                       and this is the engine reading its own record — drops
+                       down the clear corridor at x 282 (right of the ladder,
+                       left of the chassis), then turns in along y 162 and
+                       lands on the ladder's junction. Routed under the
+                       "delivered" receipt (which bottoms out at y 137) and
+                       over nothing else: the whole quadrant left of x 300 and
+                       above y 286 is empty in the finale. -->
+                  <path
+                    id="g-opened"
+                    d="M 340 58 C 296 58 282 100 282 138 C 282 156 260 162 230 162 L 102 162"
+                  />
                 </g>
 
                 <!-- ── the timeline strip (phase D, the bridge) ──────────── -->
@@ -328,6 +352,74 @@
                     delivered · opened
                   </text>
                   <g id="strip-ticks"></g>
+                </g>
+
+                <!-- ── the skip-if-opened workflow (phase D, the bridge) ────
+                     A two-step workflow, drawn in the schematic's own
+                     line-work: two boxes on one vertical wire, with a gate on
+                     the wire that feeds step 2. Same vocabulary as the meter
+                     at x 790 — a hairline across a flow, drawn outward from
+                     its own middle — turned ninety degrees because this flow
+                     runs down instead of across.
+
+                     WHERE. The column is x 88, which is the app box's own
+                     centre line: the workflow belongs to the app, and putting
+                     it anywhere else would have made it a seventh mechanism
+                     instead of a thing the app declares. The quadrant it sits
+                     in (x < 300, y < 286) is the only region of the finished
+                     schematic that is completely empty — the strip starts at
+                     x 300, the chassis at x 250 / y 176, the app box at y 286
+                     — and it is also clear of every return guide, all six of
+                     which stay right of x 340.
+
+                     Geometry is mirrored by SKIP_* in engine.ts, which
+                     asserts the one relation that has to hold (the gate
+                     between the waiting dot and the step it guards) and
+                     writes the gate bar and its two jamb ticks from those
+                     constants, so the bar can never land off its own posts. -->
+                <g class="eng-l-skip">
+                  <!-- The inlet. Short, like #w-api-split — a workflow has a
+                       trigger, and the step-1 packet has to come from
+                       somewhere rather than appear inside the box. -->
+                  <path class="eng-wire" id="skip-in" d="M 102 100 L 102 120" />
+                  <!-- Each step is a channel terminal's anatomy at the
+                       ladder's scale: a box, a status dot at the left inset,
+                       a left-aligned label after it. Not a centred label —
+                       the step-1 packet arrives at the box's own rim and a
+                       centred label is exactly what is under that rim. The
+                       two dots are also what the FINISHED drawing says on its
+                       own: step 1 green, step 2 idle, gate shut. -->
+                  <rect class="eng-box" id="skip-step-1" x="18" y="120" width="168" height="26" rx="6" />
+                  <circle class="eng-term-dot" id="skip-dot-1" cx="34" cy="133" r="3.5" />
+                  <text class="eng-label" id="skip-lbl-1" x="48" y="133" dominant-baseline="central">step 1 · email</text>
+                  <!-- The rung. Step 1 hands to step 2 down this wire; the
+                       junction at y 162 is where the "opened" receipt lands
+                       and the gate below it is what that landing shuts. -->
+                  <path class="eng-wire" id="skip-wire" d="M 102 146 L 102 214" />
+                  <!-- The gate bar and its two jamb ticks: `d` and coords are
+                       written by engine.ts from SKIP_GATE_*. The bar rests at
+                       drawSVG "50% 50%" (nothing at all, with butt caps) and
+                       snaps to "0% 100%" the instant the receipt lands. -->
+                  <g id="skip-jambs"></g>
+                  <path class="eng-gate" id="skip-gate" d="M 0 0" />
+                  <rect class="eng-box" id="skip-step-2" x="18" y="214" width="168" height="26" rx="6" />
+                  <circle class="eng-term-dot eng-dot-idle" id="skip-dot-2" cx="34" cy="227" r="3.5" />
+                  <text class="eng-label" id="skip-lbl-2" x="48" y="227" dominant-baseline="central">step 2 · in-app</text>
+                  <!-- The receipt hands over to a permanent mark, same as the
+                       timeline strip and the dead-letter siding: what the
+                       engine heard has to still be on screen for a reader who
+                       arrives after the motion. -->
+                  <circle class="eng-strip-dot" id="skip-junction" cx="102" cy="162" r="3.5" />
+                  <!-- One line each, no stray whitespace: both are
+                       start-anchored, so SVG's collapsed indentation would
+                       shift them by a character. -->
+                  <text class="eng-receipt" id="skip-delivered" x="198" y="137">delivered</text>
+                  <text class="eng-engrave" id="lbl-skip" x="18" y="86">CONDITIONS · SKIP-IF-OPENED</text>
+                  <!-- Not amber. Nothing failed here — the engine knew
+                       something and acted on it, which is the opposite of the
+                       dead-letter siding. Neutral ink, same 15u stamp as
+                       "evt-1042 · already delivered · skipped". -->
+                  <text class="eng-stamp eng-s-skip" id="skip-stamp" x="18" y="262">skipped · already opened</text>
                 </g>
 
                 <!-- ── the app ───────────────────────────────────────────── -->
@@ -589,8 +681,15 @@
                 <text class="eng-stamp eng-s-202" id="stamp-202" x="338" y="262" text-anchor="middle">
                   202 · 8ms
                 </text>
+                <!-- "already seen" was the engine's private bookkeeping;
+                     "already delivered · skipped" is what the caller actually
+                     gets told, and it is the whole of idempotency in one
+                     line. At 15u mono the string is ~348u wide, so it runs
+                     428 → 776: clear of the gate (x 790) and 30u above the
+                     queue box's top edge (y 296), with 11u of black between
+                     its baseline and the "queue" label below it. -->
                 <text class="eng-stamp eng-s-dupe" id="stamp-dupe" x="428" y="266">
-                  evt-1042 · already seen
+                  evt-1042 · already delivered · skipped
                 </text>
                 <text
                   class="eng-stamp eng-stamp-amber eng-s-retry"
@@ -604,7 +703,14 @@
                 <text class="eng-cue eng-s-fail" id="aside-failover" x="1055" y="198" text-anchor="middle">
                   their outage, not yours
                 </text>
-                <text class="eng-cue eng-s-digest" id="aside-digest" x="690" y="278" text-anchor="middle">
+                <!-- The count moved from y 278 to y 346 so the engraved name
+                     can have the band above the spine. The two now BRACKET
+                     the beat: the name in the 32u corridor between the p0 and
+                     p1 queue boxes, the count in the matching corridor
+                     between p1 and p2, and the envelope forms on the spine
+                     between them. There is no third option — the corridors
+                     are 32u and two 12–13u rows will not share one. -->
+                <text class="eng-cue eng-s-digest" id="aside-digest" x="690" y="346" text-anchor="middle">
                   7 events · 1 email
                 </text>
 
@@ -622,6 +728,28 @@
                 <!-- One line, no stray whitespace: `text-anchor: end` would
                      otherwise measure a trailing space and shift the label. -->
                 <text class="eng-engrave" id="aside-eda" x="836" y="214" text-anchor="end">EVENT-DRIVEN ARCHITECTURE</text>
+
+                <!-- Two more names of patterns, same engraving, same reason:
+                     the mechanism is on screen doing the thing, so the word
+                     for it is stamped where it happens rather than written in
+                     the caption rail.
+
+                     DIGEST sits in the 32u corridor between the p0 and p1
+                     queue boxes (264 → 296), centred over the run the seven
+                     events collapse along. It could not go anywhere nearer
+                     the envelope: at x 690 every latitude above this one is
+                     taken — the queue box at 236, the EDA engraving's own row
+                     at 214, the chassis header at 202, the chassis wall at
+                     176 — and two engraved rows 14u apart read as one
+                     two-line inscription rather than as two marks.
+
+                     IDEMPOTENCY is left-aligned on the dedupe stamp's own x,
+                     17u above it, over the api outlet where the duplicate
+                     stops. Unlike the other two it LEAVES with its stamp:
+                     dedupe is the one mechanism in the scene with nothing
+                     left in the finished anatomy to hang a name on. -->
+                <text class="eng-engrave" id="lbl-digest" x="690" y="284" text-anchor="middle">DIGEST</text>
+                <text class="eng-engrave eng-s-idem" id="lbl-idem" x="428" y="238">IDEMPOTENCY</text>
 
                 <!-- The digest envelope. Seven events collapse into it; it is
                      the only glyph in the scene that is not a box or a line. -->

@@ -1003,6 +1003,13 @@ html {
   fill: var(--green);
 }
 
+/* Step 2 of the workflow ladder never fires, so its status dot is the one
+   status dot in the scene that is still at idle ink in the FINISHED drawing.
+   That is the whole beat, said by a 3.5u circle: one green, one not. */
+.eng-dot-idle {
+  fill: var(--text-faint);
+}
+
 /* The one amber fill on the site. It is a failure waiting for replay, which is
    exactly and only what amber is for (BRAND §2). */
 .eng-dlq-mark {
@@ -1094,15 +1101,29 @@ html {
   opacity: 0;
 }
 
-.eng-card-figure[data-phase="all"] .eng-engrave {
+.eng-card-figure[data-phase="all"] .eng-engrave,
+.eng-card-figure[data-phase="f"] .eng-engrave {
   opacity: 1;
+}
+
+/* IDEMPOTENCY is the one engraving that does NOT survive into the finished
+   anatomy — it leaves with the dedupe stamp it names, because by phase B's
+   end there is nothing left on screen for it to label. The whole-drawing
+   figure has to match that live finale, so it is put back to 0 here and
+   turned on only for the card that shows the mechanism. Order matters: this
+   sits after the rule above and carries the same specificity. */
+.eng-card-figure[data-phase="all"] .eng-s-idem {
+  opacity: 0;
 }
 
 .eng-card-figure[data-phase="a"] .eng-s-429,
 .eng-card-figure[data-phase="b"] .eng-s-202,
 .eng-card-figure[data-phase="b"] .eng-s-dupe,
+.eng-card-figure[data-phase="b"] .eng-s-idem,
 .eng-card-figure[data-phase="c"] .eng-s-retry,
-.eng-card-figure[data-phase="c"] .eng-s-fail {
+.eng-card-figure[data-phase="c"] .eng-s-fail,
+.eng-card-figure[data-phase="all"] .eng-s-skip,
+.eng-card-figure[data-phase="f"] .eng-s-skip {
   opacity: 1;
 }
 
@@ -1135,7 +1156,22 @@ html {
 .eng-card-figure[data-phase="a"] .eng-l-alt,
 .eng-card-figure[data-phase="b"] .eng-l-alt,
 .eng-card-figure[data-phase="d"] .eng-l-alt,
-.eng-card-figure[data-phase="e"] .eng-l-alt {
+.eng-card-figure[data-phase="e"] .eng-l-alt,
+/* The skip-if-opened card is a close-up of one corner: everything else in
+   the schematic is either outside its window or, in the chassis's case,
+   one stray wall line crossing it. */
+.eng-card-figure[data-phase="f"] .eng-l-block,
+.eng-card-figure[data-phase="f"] .eng-l-prov,
+.eng-card-figure[data-phase="f"] .eng-l-term,
+.eng-card-figure[data-phase="f"] .eng-l-retry,
+.eng-card-figure[data-phase="f"] .eng-l-dlq,
+.eng-card-figure[data-phase="f"] .eng-l-strip {
+  display: none;
+}
+
+/* The workflow ladder belongs to exactly two figures: its own close-up, and
+   the whole anatomy. Every other card is a window onto a different corner. */
+.eng-card-figure:not([data-phase="f"]):not([data-phase="all"]) .eng-l-skip {
   display: none;
 }
 

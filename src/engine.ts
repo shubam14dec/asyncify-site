@@ -33,7 +33,10 @@
                        to six channels — the junction where it does so is
                        engraved with the name of the pattern — receipts
                        cascade, the camera pulls back, and the receipts travel
-                       back up the wires onto a timeline.
+                       back up the wires onto a timeline. Then one of those
+                       receipts is READ: an "opened" walks off the strip into
+                       a two-step workflow, shuts the gate on step 2, and the
+                       reminder that was queued behind it never launches.
 
    THE RULES THIS FILE OBEYS
    ─────────────────────────
@@ -63,12 +66,18 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 /* ── The scrub window ──────────────────────────────────────────────────────
    The pin consumes PIN_HEIGHTS extra viewport heights of scroll on top of the
-   100dvh the section already occupies. 3.5 puts the four phases at roughly
-   0.63 / 0.84 / 0.91 / 1.12 viewport-heights of scroll each: enough that a
-   trackpad flick does not skip a micro-beat, short enough that a reader who
-   is not sold by phase B can get out in two flicks. Below ~2.5 the dedupe and
-   digest beats read as glitches; above ~5 the section overstays. */
-const PIN_HEIGHTS = 3.5;
+   100dvh the section already occupies. The number that actually matters is
+   SCROLL PER TIMELINE UNIT, and it is PIN_HEIGHTS / TL_END = 0.035 viewport
+   heights: enough that a trackpad flick does not skip a micro-beat, short
+   enough that a reader who is not sold by phase B can get out in two flicks.
+   Below ~0.025 the dedupe and digest beats read as glitches; above ~0.05 the
+   section overstays.
+
+   3.92 over 112 units is the same 0.035 that 3.5 over 100 was, so phases A–C
+   consume exactly the scroll they always did and the skip-if-opened beat is
+   pure addition at the end. The four phases now run 0.63 / 0.84 / 0.91 /
+   1.54 viewport-heights. */
+const PIN_HEIGHTS = 3.92;
 
 /** Scrub catch-up, in seconds. 0.55 is enough to smooth a notched mouse wheel
  *  into continuous motion without the schematic feeling like it is on elastic.
@@ -76,14 +85,21 @@ const PIN_HEIGHTS = 3.5;
  *  diagram keeps moving after the reader has stopped, which reads as lag. */
 const SCRUB = 0.55;
 
-/* Phase boundaries, in timeline units. The timeline is exactly 100 units long,
-   so a unit IS a percent of the pinned scroll and every beat time below can be
-   read straight off the storyboard. */
+/* Phase boundaries, in timeline units. A unit is 1/TL_END of the pinned
+   scroll, and — this is the part that has to stay true — a unit is a FIXED
+   amount of scroll, because PIN_HEIGHTS is kept proportional to TL_END above.
+   So every beat time below can be read straight off the storyboard and the
+   ones written before the timeline was lengthened still mean what they meant.
+
+   TL_END was 100 until the skip-if-opened beat needed 12 units at the end of
+   phase D that could not be taken from anywhere else: D's other four beats
+   (lanes, digest, fan-out, bridge) already overlap each other, and squeezing
+   them is squeezing the argument. */
 const PHASE_A = 0;
 const PHASE_B = 18;
 const PHASE_C = 42;
 const PHASE_D = 68;
-const TL_END = 100;
+const TL_END = 112;
 
 /* ── The request flood (phase A — the abuse) ───────────────────────────────
    Three packets in a line is traffic. FLOOD_A_N is the count at which a
@@ -355,13 +371,91 @@ const OTP_DUR = 2.4;
 /** How many events collapse into one digest, and the aside that says so. */
 const DIGEST_N = 7;
 
+/* ── The skip-if-opened workflow (phase D — the bridge's second sentence) ──
+   Two steps on one vertical wire, with a gate on the wire that feeds step 2.
+   The reader has already watched six receipts land on the timeline strip;
+   this beat takes ONE of them back off the strip and shows it changing what
+   happens next. That is the difference between a log and a control loop, and
+   it is the only thing in the scene that runs right-to-left on purpose.
+
+   THE COLUMN is stacked directly over the app box (x 30–146), in its own
+   vertical corridor and nothing else's: a workflow is something the app
+   declares, and putting it anywhere else in the frame would have made it a
+   seventh mechanism instead. The quadrant it lives in — x < 300, y < 286,
+   with the box's left edge 12u left of the app's — is the only part of the
+   finished schematic that is completely empty: the strip starts at x 300, the chassis
+   at x 250 / y 176, the app box at y 286. It is also clear of all six return
+   guides, which stay right of x 340 (their control points are the strip tick
+   x's, and STRIP_TICK_X[0] is 340).
+
+   THE LADDER, top to bottom, and why each gap is the size it is:
+
+       86   CONDITIONS · SKIP-IF-OPENED   engraved, 13u caps
+      100   inlet stub starts             20u, same order as #w-api-split
+      120   ┌ ● step 1 · email ─────┐     26u box, status dot at the left
+      146   └───────────────────────┘     inset — a channel terminal's own
+                                          anatomy at this scale
+      162   ● junction                    16u below step 1 — where the
+                                          "opened" receipt lands
+      180   ○ waiting packet              18u below the junction, 3.4u radius
+      192   ══ gate ══                    12u below the packet: far enough
+                                          that the bar closing under it reads
+                                          as a bar and not as a collision
+      214   ┌ ○ step 2 · in-app ────┐     22u below the gate
+      240   └───────────────────────┘
+      262   skipped · already opened      15u stamp, left-aligned on the
+                                          engraving, 24u clear of the app box
+
+   THE BOXES are 168u and their labels are LEFT-aligned after a status dot,
+   which is not a style choice: the step-1 packet arrives at the box's own
+   rim the way every fan-out packet arrives at a terminal's, and a centred
+   14u label is exactly what sits under that rim. It cost one screenshot to
+   find out. The dots also make the drawing say the whole beat with nothing
+   moving — step 1 green, step 2 idle ink, gate shut.
+
+   THE GATE is the meter at x 790 turned ninety degrees: a hairline across a
+   flow, resting at drawSVG "50% 50%" and snapping to "0% 100%". Both are
+   endpoints that survive the non-scaling-stroke dash law (DESIGN §3) — zero
+   and everything are the same number in screen space as in user space — so
+   this is one of the few things in the scene that CAN be a drawSVG tween
+   rather than a cross-fade. 36u wide against a 168u box: wide enough to read
+   as a barrier, narrow enough not to read as a third step. */
+const SKIP_X = 102;
+const SKIP_BOX_W = 168;
+const SKIP_BOX_H = 26;
+/** Where the step's status dot sits, and where its packet stops: 16u in from
+ *  the box's left edge, and on the box's own top rim. The two are 68u apart
+ *  and that is the point — the traveller lands on the wall, the record
+ *  lights up inside, exactly as at the six channel terminals. */
+const SKIP_DOT_X = 34;
+const SKIP_RIM_Y = 120;
+/** Centre y of step 1 and step 2. */
+const SKIP_STEP_Y = [133, 227] as const;
+const SKIP_JUNCTION_Y = 162;
+/** Where the packet that will never launch stands: step 2's mouth. */
+const SKIP_MOUTH_Y = 180;
+const SKIP_GATE_Y = 192;
+/** Half the bar's span, and how far its two jamb ticks reach either side of
+ *  it. The jambs are what make the OPEN gate a mark rather than nothing —
+ *  two posts with the wire running between them — so the bar has somewhere
+ *  to arrive from and the reader knows a gate was always there. */
+const SKIP_GATE_HALF = 18;
+const SKIP_JAMB_HALF = 5;
+
 /* ── The camera ───────────────────────────────────────────────────────────
    Each keyframe is "put scene point (fx,fy) in the middle of the frame at
-   zoom z". The zoom range is deliberately narrow: 0.92–1.22. A schematic that
+   zoom z". The zoom range is deliberately narrow: 0.88–1.26. A schematic that
    pushes in hard stops being a schematic and becomes a slideshow, and the
    reader loses the map. The one big move is the last one — pulling back under
    1 is what makes the finale read as "and here is all of it at once".
-   fy is measured against the frame centre (310), fx against (600). */
+   fy is measured against the frame centre (310), fx against (600).
+
+   D4 → D5 → D6 is wide, then close, then widest, and the middle move is what
+   earns the last one: the reader watches six receipts land across the full
+   width, is taken in to one 140u box in the corner to see what the engine
+   DOES with one of them, and is then pulled further back than the scene has
+   ever been. Without D5 the ladder would be 129px wide carrying 13u type on a
+   1200px frame — in shot, and unreadable. */
 const CAM: { at: number; dur: number; z: number; fx: number; fy: number }[] = [
   { at: 18.0, dur: 3.0, z: 1.08, fx: 590, fy: 302 }, // B — the engine assembling
   { at: 42.0, dur: 3.0, z: 0.98, fx: 634, fy: 384 }, // C1 — the retry rail
@@ -370,14 +464,26 @@ const CAM: { at: number; dur: number; z: number; fx: number; fy: number }[] = [
   { at: 68.0, dur: 2.4, z: 1.14, fx: 640, fy: 318 }, // D1 — the three lanes
   { at: 81.0, dur: 2.2, z: 1.22, fx: 620, fy: 306 }, // D2 — the digest
   { at: 87.6, dur: 2.4, z: 1.06, fx: 820, fy: 310 }, // D3 — the fan-out
-  { at: 95.2, dur: 2.4, z: 0.92, fx: 606, fy: 306 }, // D4 — the whole anatomy
+  { at: 95.2, dur: 2.4, z: 0.92, fx: 606, fy: 306 }, // D4 — the receipts landing
+  /* D5 — the workflow ladder. Framed so the ladder (x 18–263) sits left of
+     centre and the strip's email tick at x 340, where the "opened" receipt
+     leaves from, is still in shot: 300 ± 600/1.26 covers x −176…776, and
+     168 ± 310/1.26 covers y −78…414. */
+  { at: 100.2, dur: 2.6, z: 1.26, fx: 300, fy: 168 },
+  /* D6 — the whole anatomy, which now runs from the ladder at x 18 to the
+     rail entry at x 1150, and from the strip at y 34 to the dlq aside at
+     y 612. 584 ± 682 and 323 ± 352 clears both with air at every edge. */
+  { at: 109.6, dur: 2.4, z: 0.88, fx: 584, fy: 323 },
 ];
 const CAM_START = { z: 1, fx: 600, fy: 310 };
 
 /* ── Caption swaps ───────────────────────────────────────────────────────
-   Timeline unit each caption owns the rail from. The last two are both inside
-   phase D: the priority-lane beat and the bridge are different sentences. */
-const CAP_AT = [0, PHASE_B, PHASE_C, PHASE_D, 95.5];
+   Timeline unit each caption owns the rail from. The last three are all
+   inside phase D: the priority lanes, the bridge, and what the engine does
+   with what comes back over it are three different sentences. The bridge
+   still owns 4.5 units (95.5 → 100), exactly as it did before the timeline
+   was lengthened; the condition owns 12 (100 → 112). */
+const CAP_AT = [0, PHASE_B, PHASE_C, PHASE_D, 95.5, 100.0];
 const CAP_FADE = 1.6;
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -462,6 +568,7 @@ const CARD_VIEW = [
   { phase: "c", cap: 2, box: "360 498 600 134" }, // the backoff rail and the siding
   { phase: "d", cap: 3, box: "700 20 500 592" }, // the six channels, delivered
   { phase: "e", cap: 4, box: "280 22 560 118" }, // the timeline the receipts land on
+  { phase: "f", cap: 5, box: "4 66 268 210" }, // the workflow ladder, gate shut
 ] as const;
 
 const COLOR = {
@@ -622,6 +729,19 @@ export function createEngineScene(): EngineScene {
   if (FLOOD_A_REFUSE >= FLOOD_A_PITCH) {
     throw new Error("[engine] FLOOD_A_REFUSE never overtakes the flood");
   }
+  /* And the third contract: a gate only means anything if it is between the
+     thing that wants to move and the thing it wants to move into. Slide the
+     bar above the waiting packet and the packet is standing on the wrong side
+     of it — the beat still animates, and it says the opposite of what it
+     means. Slide it below step 2's top edge and it is drawn inside the box.
+     Both are one edited constant away, and neither is visible in a diff. */
+  if (
+    SKIP_MOUTH_Y <= SKIP_JUNCTION_Y ||
+    SKIP_GATE_Y <= SKIP_MOUTH_Y ||
+    SKIP_GATE_Y >= SKIP_STEP_Y[1] - SKIP_BOX_H / 2
+  ) {
+    throw new Error("[engine] skip gate is not between the waiting packet and the step it guards");
+  }
 
   /** The QUEUE_SLOTS − 1 dividers of one lane, ruled between its walls. */
   const slotLines: SVGLineElement[][] = QUEUE_Y.map((cy, lane) => {
@@ -728,6 +848,60 @@ export function createEngineScene(): EngineScene {
     const landed = svgEl("circle", { class: "eng-strip-dot", cx: tx, cy: STRIP_Y, r: 3.5 });
     stripTicksG.appendChild(landed);
     stripDots.push(landed);
+  });
+
+  /* ── the workflow ladder's gate ─────────────────────────────────────────
+     Three marks that have to share one x and one y: the bar, and the two
+     jamb ticks it closes between. Authored here rather than in the markup
+     for the same reason the queue's dividers are — the failure mode of doing
+     it by hand is a bar that shuts past its own posts, which looks like a
+     rendering bug rather than like a gate.
+
+     The two ladder boxes ARE in the markup (they are boxes, not repeats), so
+     the one thing that can drift is their centres against SKIP_STEP_Y. */
+  const skipStep1 = q<SVGRectElement>(svg, "#skip-step-1");
+  const skipStep2 = q<SVGRectElement>(svg, "#skip-step-2");
+  [skipStep1, skipStep2].forEach((rect, i) => {
+    const w = Number(rect.getAttribute("width"));
+    const h = Number(rect.getAttribute("height"));
+    const cx = Number(rect.getAttribute("x")) + w / 2;
+    const cy = Number(rect.getAttribute("y")) + h / 2;
+    const dot = q<SVGCircleElement>(svg, `#skip-dot-${i + 1}`);
+    if (
+      w !== SKIP_BOX_W ||
+      h !== SKIP_BOX_H ||
+      cx !== SKIP_X ||
+      cy !== SKIP_STEP_Y[i] ||
+      Number(dot.getAttribute("cx")) !== SKIP_DOT_X ||
+      Number(dot.getAttribute("cy")) !== SKIP_STEP_Y[i]
+    ) {
+      throw new Error(`[engine] skip step ${i + 1} does not match SKIP_X / SKIP_STEP_Y / SKIP_*`);
+    }
+  });
+  /* The packet has to stop ON the box's rim, not near it: the whole handoff
+     reads as "arrived at step 1" only if the traveller and the wall are the
+     same line. */
+  if (SKIP_RIM_Y !== SKIP_STEP_Y[0] - SKIP_BOX_H / 2) {
+    throw new Error("[engine] SKIP_RIM_Y is not step 1's top edge");
+  }
+
+  const skipGate = q<SVGPathElement>(svg, "#skip-gate");
+  skipGate.setAttribute(
+    "d",
+    `M ${SKIP_X - SKIP_GATE_HALF} ${SKIP_GATE_Y} L ${SKIP_X + SKIP_GATE_HALF} ${SKIP_GATE_Y}`,
+  );
+
+  const skipJambsG = q<SVGGElement>(svg, "#skip-jambs");
+  const skipJambs: SVGLineElement[] = [-SKIP_GATE_HALF, SKIP_GATE_HALF].map((dx) => {
+    const line = svgEl("line", {
+      class: "eng-strip-tick",
+      x1: SKIP_X + dx,
+      y1: SKIP_GATE_Y - SKIP_JAMB_HALF,
+      x2: SKIP_X + dx,
+      y2: SKIP_GATE_Y + SKIP_JAMB_HALF,
+    });
+    skipJambsG.appendChild(line);
+    return line;
   });
 
   /* ── geometry measured off the hand-authored rails ─────────────────────── */
@@ -897,6 +1071,12 @@ export function createEngineScene(): EngineScene {
     fanIn: newDot(),
     fan: Array.from({ length: 6 }, () => newDot()),
     back: Array.from({ length: 6 }, () => newDot(3.4)),
+    /* The ladder's three. All 3.4u — the receipt size, not the packet size:
+       the ladder is a 140u box, and a 4.5u dot standing in it would be a
+       different scale of object from everything else in that corner. */
+    step1: newDot(3.4),
+    waiting: newDot(3.4),
+    opened: newDot(3.4),
   };
 
   /* ── the pristine clone ────────────────────────────────────────────────
@@ -970,7 +1150,22 @@ export function createEngineScene(): EngineScene {
   const asideFailover = q<SVGTextElement>(svg, "#aside-failover");
   const asideDigest = q<SVGTextElement>(svg, "#aside-digest");
   const asideEda = q<SVGTextElement>(svg, "#aside-eda");
+  const lblDigest = q<SVGTextElement>(svg, "#lbl-digest");
+  const lblIdem = q<SVGTextElement>(svg, "#lbl-idem");
   const digestEnv = q<SVGGElement>(svg, "#digest-env");
+
+  /* The workflow ladder. `skipStep1/2`, `skipGate` and `skipJambs` are
+     already in hand from the generated-DOM section above. */
+  const skipIn = q<SVGPathElement>(svg, "#skip-in");
+  const skipWire = q<SVGPathElement>(svg, "#skip-wire");
+  const skipLbl1 = q<SVGTextElement>(svg, "#skip-lbl-1");
+  const skipLbl2 = q<SVGTextElement>(svg, "#skip-lbl-2");
+  const skipDots = [1, 2].map((i) => q<SVGCircleElement>(svg, `#skip-dot-${i}`));
+  const skipJunction = q<SVGCircleElement>(svg, "#skip-junction");
+  const skipDelivered = q<SVGTextElement>(svg, "#skip-delivered");
+  const lblSkip = q<SVGTextElement>(svg, "#lbl-skip");
+  const skipStamp = q<SVGTextElement>(svg, "#skip-stamp");
+  const gOpened = q<SVGPathElement>(svg, "#g-opened");
 
   const dep1 = q<SVGPathElement>(svg, "#g-dep-1");
   const dep2 = q<SVGPathElement>(svg, "#g-dep-2");
@@ -983,7 +1178,15 @@ export function createEngineScene(): EngineScene {
    *  while its own border is still being drawn. The fill fades in behind the
    *  trace instead — same move the bell makes with the clapper ball, and the
    *  same reason: the drawing is a line drawing first. */
-  const boxRects: SVGRectElement[] = [appBox, apiBox, ...provRects, dlqBox, ...termRects];
+  const boxRects: SVGRectElement[] = [
+    appBox,
+    apiBox,
+    ...provRects,
+    dlqBox,
+    ...termRects,
+    skipStep1,
+    skipStep2,
+  ];
 
   /** Everything that gets traced rather than faded in. */
   const strokeParts: SVGGeometryElement[] = [
@@ -1013,6 +1216,10 @@ export function createEngineScene(): EngineScene {
     stripLine,
     ...fanWires,
     ...termRects,
+    skipIn,
+    skipWire,
+    skipStep1,
+    skipStep2,
   ];
 
   /** Everything that only ever fades. */
@@ -1045,7 +1252,19 @@ export function createEngineScene(): EngineScene {
     asideFailover,
     asideDigest,
     asideEda,
+    lblDigest,
+    lblIdem,
     digestEnv,
+    /* The workflow ladder's marks. The gate BAR is not here — it is a
+       drawSVG, not a fade, and it rests at "50% 50%" rather than at 0. */
+    ...skipJambs,
+    skipLbl1,
+    skipLbl2,
+    ...skipDots,
+    skipJunction,
+    skipDelivered,
+    lblSkip,
+    skipStamp,
     /* Phase A's two flags and the two frayed ends. All four are marks the
        stylesheet paints in their finished state and restState hides, same as
        every other fade — which is also why the still cards get them free. */
@@ -1089,11 +1308,18 @@ export function createEngineScene(): EngineScene {
     gsap.set(progressFill, { scaleY: 0 });
 
     gsap.set(strokeParts, { drawSVG: "0% 0%" });
-    gsap.set(gate, { drawSVG: "50% 50%" });
+    /* The two gates in the scene rest COLLAPSED ONTO THEIR OWN MIDDLE rather
+       than at zero, because both of them grow outward from there: the meter
+       widens from 44u to its full 164u when the queue splits, and the
+       workflow's bar snaps out to its jambs when the "opened" lands. */
+    gsap.set([gate, skipGate], { drawSVG: "50% 50%" });
     gsap.set(boxRects, { fillOpacity: 0 });
     gsap.set(fadeParts, { opacity: 0 });
     gsap.set(provGroups, { opacity: 1 });
-    gsap.set(termDots, { fill: COLOR.faint });
+    /* Every status dot starts at idle ink, including the workflow's two. The
+       stylesheet paints step 1's green (it delivers) and step 2's faint (it
+       never does); rest is where both are still waiting to be told. */
+    gsap.set([...termDots, ...skipDots], { fill: COLOR.faint });
     gsap.set(provRects, { stroke: COLOR.hairline });
     /* Packets are invisible at rest, and PARKED ON THE APP'S OUTLET rather
        than left at the scene origin. The opacity is what actually hides them;
@@ -1715,11 +1941,17 @@ export function createEngineScene(): EngineScene {
     const DUPE_STOP_X = 406;
     fadeIn(dB.dupe, DUPE_T, 0.3);
     ft(dB.dupe, { x: APP_OUT_X, y: SPINE_Y }, { x: DUPE_STOP_X, duration: 1.1 }, DUPE_T);
+    /* The name of the mechanism lands just BEFORE the receipt that proves
+       it: the engraving says what is about to happen, the stamp says it
+       happened. Both leave together at 40.6 — see the note on #lbl-idem in
+       index.html for why this is the one engraving that does not stay. */
+    fadeIn(lblIdem, DUPE_T + 0.8, 1.2, 0.9);
     fadeIn(stampDupe, DUPE_T + 1.2, 0.9);
     ft(dB.dupe, { scale: 1 }, { scale: 0.5, duration: 1.4, ease: "power2.in" }, DUPE_T + 1.3);
     ft(dB.dupe, { fill: COLOR.greenDim }, { fill: COLOR.faint, duration: 0.8 }, DUPE_T + 1.3);
     fadeOut(dB.dupe, DUPE_T + 1.4, 1.2);
     fadeOut(stampDupe, 40.6, 1.2);
+    fadeOut(lblIdem, 40.6, 1.2, 0.9);
 
     /* ══════════════════════════════════════════════════════════════════════
        PHASE C — THE ASSURANCE   (42 → 68)
@@ -1861,6 +2093,12 @@ export function createEngineScene(): EngineScene {
       fadeOut(dot, 83.2 + i * 0.05, 0.4);
     });
     ft(digestEnv, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.8, ease: "power2.out" }, 83.2);
+    /* Name above the spine, count below it, envelope on it. The engraving
+       does NOT leave with the count: like EVENT-DRIVEN ARCHITECTURE it names
+       a mechanism that is still in the finished anatomy — the queue it
+       collapses into is right there — so by the finale the reader is looking
+       at a diagram with the words for its own parts cut into it. */
+    fadeIn(lblDigest, 83.4, 1.2, 0.9);
     fadeIn(asideDigest, 83.6, 0.9);
     run(digestEnv, dep0, 84.8, 1.9, { ease: "power1.inOut" });
     ft(digestEnv, { stroke: COLOR.greenDim }, { stroke: COLOR.green, duration: 0.2 }, 86.7);
@@ -1927,7 +2165,107 @@ export function createEngineScene(): EngineScene {
     });
 
     fadeIn(stripLegend, 98.6, 0.9);
-    fadeIn(stat, 97.4, 1.4);
+
+    /* ── D5: skip-if-opened ──────────────────────────────────────────────
+       The bridge's second sentence. Six receipts have just landed on the
+       strip; this beat takes ONE of them back off it and shows it changing
+       what happens next, which is the difference between a log and a control
+       loop. Everything here runs right-to-left and top-to-bottom in a corner
+       the schematic has never used — see the SKIP_* block for why that
+       corner, and why the ladder is on the app box's own centre line.
+
+       The whole beat is 12 units and it is the reason TL_END moved from 100
+       to 112. Nothing before it shifted: PIN_HEIGHTS moved with TL_END, so
+       every earlier beat consumes exactly the scroll it always did. */
+    const SKIP_T0 = 100.4;
+
+    /* The ladder draws in the order it is read — inlet, step 1, the rung
+       between them, step 2 — and the gate's two posts arrive LAST. The gate
+       is what the beat is about, and it should turn up once the reader
+       already knows what it is sitting on. */
+    draw(skipIn, SKIP_T0, 0.8);
+    drawBox(skipStep1, SKIP_T0 + 0.3, 1.4);
+    fadeIn(lblSkip, SKIP_T0 + 0.6, 1.4, 0.9);
+    fadeIn([skipLbl1, skipDots[0]!], SKIP_T0 + 1.2, 0.9);
+    draw(skipWire, SKIP_T0 + 1.4, 1.0);
+    drawBox(skipStep2, SKIP_T0 + 2.0, 1.4);
+    fadeIn([skipLbl2, skipDots[1]!], SKIP_T0 + 2.6, 0.9);
+    fadeIn(skipJambs, SKIP_T0 + 3.0, 0.8, 1, 0.12);
+
+    /* Step 1 fires: a dedicated packet down the inlet onto the box's rim,
+       and step 1's own status dot lights inside it. Exactly the handoff the
+       six channel terminals make in D3 — the traveller stops at the wall,
+       the record is what turns green — and a receipt that stays behind. */
+    const SKIP_SEND = SKIP_T0 + 3.6; // 104.0
+    const SKIP_ARRIVE = SKIP_SEND + 0.9;
+    ft(dD.step1, { opacity: 0, x: SKIP_X, y: 100 }, { opacity: 1, duration: 0.35 }, SKIP_SEND);
+    ft(dD.step1, { y: 100 }, { y: SKIP_RIM_Y, duration: 0.9, ease: "power2.out" }, SKIP_SEND);
+    deliver(dD.step1, SKIP_ARRIVE);
+    ft(skipDots[0]!, { fill: COLOR.faint }, { fill: COLOR.green, duration: 0.14 }, SKIP_ARRIVE);
+    ft(skipDots[0]!, { scale: 1 }, { scale: 1.4, duration: 0.22, ease: "power2.out" }, SKIP_ARRIVE);
+    ft(
+      skipDots[0]!,
+      { scale: 1.4 },
+      { scale: 1, duration: 0.26, ease: "power2.inOut" },
+      SKIP_ARRIVE + 0.22,
+    );
+    fadeIn(skipDelivered, SKIP_SEND + 1.2, 0.9);
+
+    /* And step 2's packet takes its place at the mouth. It has to be ON
+       SCREEN, in the lane, ready — otherwise "the reminder never fires" is
+       something the reader is told rather than something they watch not
+       happen. */
+    ft(
+      dD.waiting,
+      { opacity: 0, x: SKIP_X, y: SKIP_MOUTH_Y },
+      { opacity: 1, duration: 0.4 },
+      SKIP_SEND + 2.0,
+    );
+
+    /* The receipt comes back — off the strip's EMAIL tick, which is the
+       first of the six that just landed there. Green the whole way, because
+       an open IS an arrival and green is what arrivals are (BRAND §2). */
+    const SKIP_OPEN_T0 = SKIP_SEND + 2.6; // 106.6
+    const SKIP_OPEN_DUR = 1.7;
+    /** When it reaches the junction. The gate, the dissolve and the stamp
+     *  are all written against this, so the consequence moves as one if the
+     *  travel is retimed. */
+    const SKIP_LAND = SKIP_OPEN_T0 + SKIP_OPEN_DUR; // 108.3
+
+    ft(dD.opened, { opacity: 0, fill: COLOR.green }, { opacity: 1, duration: 0.3 }, SKIP_OPEN_T0);
+    run(dD.opened, gOpened, SKIP_OPEN_T0, SKIP_OPEN_DUR, { ease: "power2.inOut" });
+    /* Same handoff as the timeline strip and the dead-letter siding: the
+       traveller goes, the mark it left stays. What the engine heard has to
+       still be on screen for a reader who arrives after the motion. */
+    fadeIn(skipJunction, SKIP_LAND - 0.1, 0.3);
+    fadeOut(dD.opened, SKIP_LAND, 0.3);
+
+    /* And at that instant the gate. 0.24 units under power3.out is a SNAP —
+       a condition does not ease shut — and it is a drawSVG rather than a
+       cross-fade because "50% 50%" → "0% 100%" is one of the three ranges a
+       non-scaling stroke can actually express (DESIGN §3). */
+    ft(
+      skipGate,
+      { drawSVG: "50% 50%" },
+      { drawSVG: GATE_FULL, duration: 0.24, ease: "power3.out" },
+      SKIP_LAND,
+    );
+
+    /* The packet that was waiting does not launch. Note for note the dedupe
+       dissolve from phase B — dim to faint, shrink under power2.in, fade —
+       because it is note for note the same claim: the engine already knew. */
+    ft(dD.waiting, { fill: COLOR.greenDim }, { fill: COLOR.faint, duration: 0.7 }, SKIP_LAND + 0.3);
+    ft(dD.waiting, { scale: 1 }, { scale: 0.5, duration: 1.2, ease: "power2.in" }, SKIP_LAND + 0.3);
+    fadeOut(dD.waiting, SKIP_LAND + 0.4, 1.1);
+
+    /* Neutral ink, and that is the whole point of the beat. Nothing failed
+       here — amber would turn a decision into an incident. */
+    fadeIn(skipStamp, SKIP_LAND + 0.45, 0.85);
+
+    /* The closing line lands under the last camera move, not fourteen units
+       before it: it is the caption for the whole anatomy, and the whole
+       anatomy is not on screen until D6 has pulled back. */
+    fadeIn(stat, 110.2, 1.4);
   }
 
   /* ════════════════════════════════════════════════════════════════════════
