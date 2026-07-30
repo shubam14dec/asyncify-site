@@ -19,7 +19,7 @@ All tokens live in `src/styles.css` under `:root`. Never hardcode a hex in a com
 | `--text-dim` | `#a1a1a1` | Secondary text, sublines, nav links. |
 | `--text-faint` | `#6e6e6e` | Receipts, timestamps, idle status dots, captions. |
 | `--green` | `#3dd68c` | **THE accent.** Rationed — see §2. |
-| `--green-dim` | `#2ba36c` | The accent *at rest*. Only for a green element that lives on screen permanently — currently just the clapper dot. |
+The clapper is neutral ink (#d6d6d6) with a pure-white strike flash — green was deliberately vetoed (rationing law).
 | `--green-soft` | `rgba(61,214,140,0.25)` | `::selection` only. |
 | `--amber` | `#ffb224` | Retry / backoff moments only. Never decoration, never success. |
 
