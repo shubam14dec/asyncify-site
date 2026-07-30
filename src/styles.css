@@ -1,0 +1,608 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   asyncify.org
+   Tokens are the contract in BRAND.md. Behaviour is the contract in DESIGN.md.
+   No shadows. No gradients on text. One accent, rationed.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── color ladder ─────────────────────────────────────────────────────── */
+  --canvas: #0a0a0a;
+  --surface: #111111;
+  --hairline: #262626;
+  --hairline-strong: #3f3f3f;
+  --text: #ededed;
+  --text-dim: #a1a1a1;
+  --text-faint: #6e6e6e;
+
+  /* ── the one accent (BRAND.md §2 — rationing law) ─────────────────────── */
+  --green: #3dd68c;
+  --green-soft: rgba(61, 214, 140, 0.25);
+  --amber: #ffb224;
+
+  /* ── type ─────────────────────────────────────────────────────────────── */
+  --sans:
+    "Geist Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* ── shape + space ────────────────────────────────────────────────────── */
+  --r-chip: 6px;
+  --r-card: 16px;
+  --page-max: 1080px;
+  --page-pad: 24px;
+
+  /* ── easing (DESIGN.md §3) ────────────────────────────────────────────── */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* expo-ish out, the house curve */
+  --ease-out-soft: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --page-pad: 32px;
+  }
+}
+
+/* ── reset ──────────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--canvas);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--canvas);
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+h1,
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+::selection {
+  background: var(--green-soft);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: none;
+  /* The only sanctioned box-shadow on this site: flat, no blur, focus only. */
+  box-shadow: 0 0 0 2px rgba(61, 214, 140, 0.35);
+  border-radius: var(--r-chip);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── scrollbar ──────────────────────────────────────────────────────────── */
+
+html {
+  scrollbar-color: var(--hairline) var(--canvas);
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--canvas);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--hairline);
+  border: 3px solid var(--canvas);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--hairline-strong);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   HERO
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.hero {
+  position: relative;
+  display: grid;
+  /* nav │ flexible stage band │ copy │ scroll hint */
+  grid-template-rows: auto 1fr auto auto;
+  min-height: 100dvh;
+  padding: 20px var(--page-pad) clamp(16px, 2.6vh, 28px);
+  overflow: hidden; /* the ripple grows past the mouth; clip it at the edges */
+}
+
+.stage-spacer {
+  /* Floor for the scene band. Every other row in this grid is sized in vh so
+     the hero fits the viewport at any height — this is the last resort that
+     stops the bell being crushed on a very short window. */
+  min-height: 200px;
+}
+
+/* ── nav ────────────────────────────────────────────────────────────────── */
+
+.nav {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  max-width: var(--page-max);
+  width: 100%;
+  margin: 0 auto;
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+/* The delivered-dot, used as the brand mark. The one sanctioned green that
+   is not a delivery moment — because it *is* the delivery moment, at rest. */
+.brand-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  opacity: 0.9;
+  animation: brand-pulse 3s ease-in-out infinite;
+}
+
+@keyframes brand-pulse {
+  0%,
+  100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--text-dim);
+}
+
+.nav-links a {
+  transition: color 180ms ease;
+}
+
+.nav-sep {
+  color: var(--hairline-strong);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .nav-links a:hover {
+    color: var(--text);
+  }
+}
+
+/* ── the scene (SVG) ────────────────────────────────────────────────────── */
+
+.scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.thread {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Bell line-art. non-scaling-stroke keeps the hairline honest at any scale,
+   so "1.25px" in BRAND.md is literally 1.25 CSS pixels on screen. */
+.b-line {
+  fill: none;
+  stroke: var(--text);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.b-silhouette {
+  stroke-width: 1.25;
+}
+
+.b-detail {
+  stroke-width: 1;
+  stroke: #d6d6d6; /* one notch back from --text: line-weight hierarchy */
+}
+
+.b-glint {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 1;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0;
+}
+
+.ripple {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 1.25;
+  vector-effect: non-scaling-stroke;
+  opacity: 0;
+}
+
+.sig {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.pkt {
+  fill: var(--green);
+  opacity: 0;
+}
+
+/* ── bell hit target ────────────────────────────────────────────────────── */
+
+.bell-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: var(--r-chip);
+  cursor: pointer;
+  touch-action: pan-y; /* let vertical scroll through; we own horizontal drag */
+  -webkit-tap-highlight-color: transparent;
+  opacity: 0; /* invisible, but focusable and hit-testable */
+  transition: opacity 160ms ease;
+}
+
+.bell-btn:focus-visible {
+  opacity: 1;
+  box-shadow: inset 0 0 0 1px rgba(61, 214, 140, 0.5);
+}
+
+/* ── channel chips ──────────────────────────────────────────────────────── */
+
+.chips {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.chip-slot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  /* transform is owned by layout(); never animate it. */
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 28px;
+  padding: 0 11px 0 9px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-chip);
+  background: var(--surface);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-faint);
+  /* Explicit origin: the dot pops from its own centre, nowhere else. */
+  transform-origin: 50% 50%;
+}
+
+.receipt {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0;
+}
+
+/* ── copy block ─────────────────────────────────────────────────────────── */
+
+.copy {
+  position: relative;
+  z-index: 3;
+  max-width: var(--page-max);
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.headline {
+  font-family: var(--sans);
+  font-weight: 400;
+  /* Display type is capped by viewport HEIGHT as well as width. Without the
+     vh term an 80px headline eats the bell's band on a laptop and pushes the
+     buttons below the fold. 8.2vh ⇒ ~55px at 674px tall, ~78px at 950px. */
+  font-size: clamp(2rem, min(5vw, 8.2vh), 4.75rem);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  text-wrap: balance;
+  margin: 0 auto;
+  max-width: 15ch;
+}
+
+.subline {
+  margin: clamp(12px, 2vh, 20px) auto 0;
+  max-width: 52ch;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--text-dim);
+  text-wrap: pretty;
+}
+
+@media (min-width: 768px) {
+  .subline {
+    font-size: 18px;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-top: clamp(20px, 3.4vh, 32px);
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 18px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-chip);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--text);
+  transition:
+    border-color 180ms ease,
+    transform 140ms var(--ease-out);
+}
+
+.btn-ghost:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-ghost:hover {
+    border-color: var(--text);
+  }
+}
+
+.btn-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 40px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--text-dim);
+  transition:
+    color 180ms ease,
+    transform 140ms var(--ease-out);
+}
+
+.btn-text:active {
+  transform: scale(0.97);
+}
+
+.btn-text .arrow {
+  font-size: 13px;
+  transition: transform 200ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-text:hover {
+    color: var(--text);
+  }
+  .btn-text:hover .arrow {
+    transform: translate(1.5px, -1.5px);
+  }
+}
+
+/* ── scroll hint ────────────────────────────────────────────────────────── */
+
+.hint-wrap {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  padding-top: clamp(16px, 3vh, 36px);
+}
+
+/* A 1px line that drains downward. Not a chevron, not a mouse, not a bounce. */
+.scroll-hint {
+  position: relative;
+  width: 1px;
+  height: clamp(28px, 4vh, 40px);
+  background: #1c1c1c;
+  overflow: hidden;
+}
+
+.scroll-hint::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--text-faint);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 48%, transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 48%, transparent 100%);
+  -webkit-mask-size: 100% 30px;
+  mask-size: 100% 30px;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  animation: hint-drain 2900ms cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+@keyframes hint-drain {
+  from {
+    -webkit-mask-position: 0 -30px;
+    mask-position: 0 -30px;
+  }
+  to {
+    /* 100% of a 30px mask in an Npx box = N−30px; +30px puts the mask's top
+       exactly on the box's bottom edge, whatever the clamped height is. */
+    -webkit-mask-position: 0 calc(100% + 30px);
+    mask-position: 0 calc(100% + 30px);
+  }
+}
+
+/* ── entrance gating ────────────────────────────────────────────────────── */
+
+/* Everything that the entrance timeline owns starts hidden, set here rather
+   than in JS so there is no flash before the module boots. */
+.nav,
+.copy,
+.hint-wrap,
+.chips {
+  opacity: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   REDUCED MOTION — a designed still state, not a disabled one.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-dot {
+    animation: none;
+    opacity: 0.9;
+  }
+
+  .scroll-hint::after {
+    animation: none;
+    -webkit-mask-position: 0 5px;
+    mask-position: 0 5px;
+  }
+
+  .b-glint {
+    opacity: 0.55; /* the glint holds instead of travelling */
+  }
+
+  .btn-text .arrow,
+  .btn-ghost,
+  .btn-text {
+    transition-property: border-color, color;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MOBILE
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+  .hero {
+    padding-bottom: 20px;
+  }
+
+  .stage-spacer {
+    min-height: 300px; /* chips take two rows down here — more band needed */
+  }
+
+  .headline {
+    max-width: 13ch;
+  }
+
+  .subline {
+    font-size: 16px;
+    max-width: 40ch;
+  }
+
+  .actions {
+    gap: 14px;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SCENES 2–5 — next slice.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+#scene-engine,
+#scene-two-way,
+#scene-agents,
+#scene-cta {
+  display: none;
+}

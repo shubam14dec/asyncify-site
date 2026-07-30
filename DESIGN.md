@@ -1,0 +1,124 @@
+# asyncify — Design rules
+
+`BRAND.md` says what the tokens are. This file says how to behave with them.
+
+---
+
+## 1. Elevation
+
+| Do | Don't |
+| --- | --- |
+| Raise with color: `--canvas` → `--surface`, then a `--hairline` border. | Add a `box-shadow`. There are no shadows on this site. |
+| Signal hover by moving `--hairline` → `--hairline-strong` or `--text`. | Signal hover by tinting the background green. |
+| Group with a 1px divider or with space. | Wrap everything in a card. Nested cards are always wrong. |
+
+Focus rings are the only exception to the no-shadow rule: `box-shadow: 0 0 0 2px rgba(61,214,140,.35)`
+with zero blur, on `:focus-visible` only.
+
+## 2. Color
+
+| Do | Don't |
+| --- | --- |
+| Keep green for emission, delivery, and the one final CTA (BRAND §2). | Use green as a heading color, link color, or hover tint. |
+| Use the gray ladder for every non-accent decision. | Introduce a new gray because "this one needed to be slightly lighter". |
+| Use amber only for retry / backoff / degraded. | Use amber as a second accent for visual interest. |
+| `::selection { background: rgba(61,214,140,.25); }` | Leave the browser's default blue selection on a near-black page. |
+
+Scrollbar: 10px track on `--canvas`, thumb `--hairline` → `--hairline-strong` on hover, no
+arrows. `scrollbar-color` for Firefox, `::-webkit-scrollbar-*` for the rest.
+
+## 3. Motion
+
+**Every animation must answer "what does this communicate?" in one sentence.** Hierarchy,
+storytelling, feedback, or state change. "It looked cool" is not an answer — delete it.
+
+### Durations
+
+| Kind | Duration | Ease |
+| --- | --- | --- |
+| Press feedback (`:active`) | 100–160ms | `ease-out` |
+| Hover, color, border | 150–200ms | `ease` |
+| Micro UI (chip pop, receipt fade, dot flip) | 150–250ms | `expo.out` / `cubic-bezier(.16,1,.3,1)` |
+| Entrance sequences | ≤ 1.3s total | `expo.out`, staggered 30–60ms |
+| Story beats (the ring, a scene reveal) | may run 0.9–3s | `expo.out` at the head, `power1.inOut` for travel |
+| Ambient loops (sway, glint, scroll hint) | 3–7s | `sine.inOut` / `linear` |
+
+### Laws
+
+- **No bounce, no elastic, no `back.out`. Ever.** Overshoot on a hairline dark UI reads as
+  a bug. The one sanctioned overshoot is the delivered-dot's `1.4× → 1` pop-settle, and it is
+  a scale on a 6px circle, authored as two `power2` tweens — not an elastic ease.
+- **Never `ease-in` on anything a user triggered.** It delays the frame the user is watching.
+- **Never animate layout.** `transform` and `opacity` only, plus SVG `stroke-dashoffset`,
+  `stroke`, and `d`-free path draws. No `width`, `height`, `top`, `margin`, `padding`.
+- **Never `transition: all`.** Name the properties.
+- **Never animate from `scale(0)`.** `0.9`–`0.95` plus opacity. Things do not appear from nothing.
+- **Transform origins are explicit.** A bell rotates from its thread pivot, not its center. A
+  clapper rotates from its yoke. A ripple grows from the mouth. Every `svgOrigin` /
+  `transform-origin` in this codebase is written out and commented.
+- **Interruptible beats restart cleanly.** A repeatable sequence (the ring) kills its timeline
+  and resets every element it touches before rebuilding. No half-drawn paths left on screen.
+- **Physics is simulated, not faked.** Where an object should feel like an object (the bell on
+  its thread), run a real damped-oscillator integration on `gsap.ticker` with named, commented
+  constants — not a keyframed swing.
+
+### `prefers-reduced-motion`
+
+Reduced motion is a **designed still state**, not a disabled one. The rule: the user must
+still receive every piece of information the motion carried, delivered by opacity and color
+instead of position and time.
+
+| Full motion | Reduced motion |
+| --- | --- |
+| Thread draws, bell traces itself, headline words rise | Everything cross-fades in, 400ms |
+| Bell sways, clapper lags, rim glint travels | Bell is still. Glint holds at a low static opacity. |
+| Cursor pendulum physics | Not started. `gsap.ticker` callback is never registered. |
+| Ring: clapper strike, ripple, paths draw, dots travel | Paths, green dots, and receipts fade in at once (200ms), hold, fade out |
+| Scroll hint drains on a loop | Static 1px line at rest opacity |
+
+Detect once with `matchMedia('(prefers-reduced-motion: reduce)')` and branch at the top of the
+scene, not with `if (reduced)` scattered inside tweens.
+
+## 4. Typography behavior
+
+- Headlines are **balanced**: `text-wrap: balance`. Sublines are `text-wrap: pretty`.
+- Display type never exceeds 2 lines at desktop. If it does, the font size is wrong, not the copy.
+- Tracking floor is `-0.02em` at display, `0` at body. Never letterspace body text.
+- Numbers are `tabular-nums` everywhere so a receipt changing from `98ms` to `214ms` does not
+  shift the layout.
+
+## 5. Interaction
+
+- Every pressable element has `:active { transform: scale(.97) }` with a 140ms `ease-out`
+  transition on `transform` only.
+- Hover effects are gated behind `@media (hover: hover) and (pointer: fine)` so a tap on
+  mobile does not leave a stuck hover state.
+- Every interactive element has a visible `:focus-visible` ring. Keyboard users get the same
+  affordances: the bell is a `<button>`-role element and rings on `Enter` / `Space`.
+- Touch targets are ≥ 40px. The bell's hit path is deliberately larger than its outline.
+
+## 6. Performance budget
+
+| Metric | Budget |
+| --- | --- |
+| JS, gzipped | **< 150 KB** |
+| CSS, gzipped | < 12 KB |
+| Frame rate during the hero ring | 60fps on a mid-tier laptop |
+| Console errors / warnings | 0 |
+| Layout-triggering animated properties | 0 |
+
+Fonts are self-hosted woff2, `font-display: swap`, latin subset only. Only the weights listed
+in BRAND §3 are imported. GSAP plugins are imported individually (`gsap/DrawSVGPlugin`), never
+`gsap/all`.
+
+## 7. Anti-patterns (hard bans on this site)
+
+- Gradient text.
+- Colored side-stripes (`border-left: 3px solid …`) on cards, callouts, or list items.
+- Glassmorphism / `backdrop-filter` as decoration.
+- A tracked-uppercase eyebrow over every section. At most one per three sections.
+- A bouncing scroll chevron. The hero uses a draining 1px line.
+- Div-based fake screenshots and fake terminal windows.
+- Three equal feature cards as a page structure.
+- Infinite micro-animations on informational content.
+- Section numbers (01 / 02 / 03) where the order carries no meaning.

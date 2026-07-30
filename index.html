@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>asyncify — the delivery engine for every channel</title>
+    <meta
+      name="description"
+      content="One API call, delivered to email, sms, push, in-app, telegram and slack — with per-channel receipts, and agents that answer back."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+
+  <body>
+    <main>
+      <!-- ─────────────────────────────────────────────────────────────────
+           SCENE 1 — THE BELL.  "Your product has something to say."
+           Grid rows: nav / flexible stage band / copy / scroll hint.
+           The SVG scene and the chip layer are absolutely positioned over
+           the whole hero; layout() in main.ts measures the band between the
+           top edge and the copy block and places the bell + chips inside it,
+           so the two layers can never collide with the type.
+           ───────────────────────────────────────────────────────────────── -->
+      <section class="hero" id="hero">
+        <header class="nav">
+          <a class="wordmark" href="/" aria-label="asyncify, home">
+            asyncify<span class="brand-dot" aria-hidden="true"></span>
+          </a>
+          <nav class="nav-links" aria-label="Primary">
+            <a href="/docs">Docs</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <a href="https://github.com/" rel="noreferrer">GitHub</a>
+          </nav>
+        </header>
+
+        <!-- Flexible band. Empty on purpose: the scene is painted over it. -->
+        <div class="stage-spacer" aria-hidden="true"></div>
+
+        <svg
+          class="scene"
+          id="scene"
+          aria-hidden="true"
+          focusable="false"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <!-- Signal paths + travelling packets. Built by buildSignals() so the
+               channel list lives in exactly one place (main.ts CHANNELS). -->
+          <g id="signals"></g>
+
+          <!-- The ring. Lives in stage coordinates (not inside the bell group)
+               so it never inherits the bell's swing or squash. -->
+          <circle id="ripple" class="ripple" cx="0" cy="0" r="0" />
+
+          <!-- 1px thread from the top edge of the viewport to the bell pivot. -->
+          <path id="thread" class="thread" d="" />
+
+          <!-- bell-root  : translate(centreX, pivotY) scale(s)   — set by layout()
+               bell-swing : rotate(angle) about (0,0)             — the thread pivot
+               bell-flex  : scale(sx,sy)  about (0,0)             — the strike squash
+               All three origins are (0,0) = the point the thread attaches to. -->
+          <g id="bell-root">
+            <g id="bell-swing">
+              <g id="bell-flex">
+                <!-- Clapper is drawn first so the rim line reads in front of it.
+                     Rotates about (0,26) — the yoke, not the bell pivot. -->
+                <g id="clapper">
+                  <path class="b-line b-detail" id="c-shaft" d="M 0 26 C 0.7 46 -0.5 74 0.3 90" />
+                  <circle class="b-line b-detail" id="c-ball" cx="0.3" cy="99" r="9.5" />
+                </g>
+
+                <g id="bell-art">
+                  <!-- crown loop. Bottom lands on the cap's apex (y≈16.3) so the
+                       two read as one continuous piece of metal, not two shapes. -->
+                  <path
+                    class="b-line b-silhouette"
+                    id="b-crown"
+                    d="M 0 0 C -7.8 1.4 -8.6 14.6 -0.2 16.4 C 8 14.8 7.4 1.6 0 0 Z"
+                  />
+                  <!-- Left profile. Three segments, smooth at both joins:
+                         shoulder — leaves the apex horizontally and swells to
+                                    x −25.5 (51% of the mouth) by y 38
+                         waist    — near-vertical, only reaching −35.6 by y 80
+                         flare    — opens hard to −49.6 in the last 28 units
+                       That late flare is the entire silhouette. Widen the waist
+                       and it becomes a lampshade; narrow it and it becomes a
+                       tent. Both were tried. -->
+                  <path
+                    class="b-line b-silhouette"
+                    id="b-side-l"
+                    d="M -0.6 17.4 C -8 17.7 -19.5 24.5 -25.5 37.8 C -31 49.8 -33.6 65 -35.6 80 C -37.4 91.6 -41.6 101.4 -49.6 108.4"
+                  />
+                  <!-- Right profile. Waist reaches 36.2 against the left's 35.6,
+                       and the mouth 50.2 against 49.6: a cast bell is not mirror-
+                       symmetric and neither is a drawn line. The two halves meet
+                       at the apex with horizontal tangents, so the dome reads as
+                       one continuous line under the crown. -->
+                  <path
+                    class="b-line b-silhouette"
+                    id="b-side-r"
+                    d="M 0.6 17.2 C 8.4 17.6 20.2 24.2 26.1 37.6 C 31.6 49.6 34.2 65 36.2 80 C 38 91.6 42.2 101.2 50.2 108"
+                  />
+                  <!-- mouth: sags to y≈113.8 at centre -->
+                  <path
+                    class="b-line b-silhouette"
+                    id="b-mouth"
+                    d="M -49.6 108.4 C -31 115.8 30.4 115.4 50.2 108"
+                  />
+                  <!-- lip curls: 4u flicks that stop the rim from ending flat -->
+                  <path
+                    class="b-line b-detail"
+                    id="b-lip-l"
+                    d="M -49.6 108.4 C -50.9 109.9 -51.7 111.1 -52.3 112.6"
+                  />
+                  <path
+                    class="b-line b-detail"
+                    id="b-lip-r"
+                    d="M 50.2 108 C 51.5 109.5 52.3 110.7 52.9 112.2"
+                  />
+                  <!-- clapper yoke (static — belongs to the bell, not the clapper) -->
+                  <path
+                    class="b-line b-detail"
+                    id="b-yoke"
+                    d="M -3.6 25.2 C -1.2 22.9 1.4 22.9 3.6 25.4"
+                  />
+                  <!-- rim glint: the one green line at rest. Travels every ~7s. -->
+                  <path
+                    class="b-glint"
+                    id="b-glint"
+                    d="M 13.6 114.6 C 26.2 114.3 38.8 112.4 47.4 109"
+                  />
+                </g>
+              </g>
+            </g>
+          </g>
+        </svg>
+
+        <!-- Channel chips + receipts. HTML, not SVG, so the mono text stays
+             crisp at every viewport. Positioned in the same pixel space as the
+             SVG (viewBox == pixel size), so the paths land exactly on them. -->
+        <div class="chips" id="chips"></div>
+
+        <!-- Keyboard/AT target for the bell. Sized and placed over the artwork
+             by layout(); also the pointer target for touch-drag swinging. -->
+        <button class="bell-btn" id="bell-btn" type="button" aria-label="Ring the bell"></button>
+
+        <div class="copy" id="copy">
+          <h1 class="headline" id="headline">Your product has something to say.</h1>
+          <p class="subline">
+            The delivery engine for every channel — and the agents that answer back.
+          </p>
+          <div class="actions">
+            <!-- Ghost only. The one green CTA on this site lives at the bottom
+                 of the page, in scene 5 (#scene-cta). See BRAND.md §2. -->
+            <a class="btn-ghost" href="/docs">Get started</a>
+            <a class="btn-text" href="https://github.com/" rel="noreferrer">
+              GitHub <span class="arrow" aria-hidden="true">↗</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="hint-wrap" aria-hidden="true">
+          <div class="scroll-hint"></div>
+        </div>
+      </section>
+
+      <!-- Scenes 2–5 land in the next slice. Markers only. -->
+      <section id="scene-engine"></section>
+      <section id="scene-two-way"></section>
+      <section id="scene-agents"></section>
+      <section id="scene-cta"></section>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
