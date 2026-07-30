@@ -53,6 +53,13 @@ storytelling, feedback, or state change. "It looked cool" is not an answer — d
   `stroke`, and `d`-free path draws. No `width`, `height`, `top`, `margin`, `padding`.
 - **Never `transition: all`.** Name the properties.
 - **Never animate from `scale(0)`.** `0.9`–`0.95` plus opacity. Things do not appear from nothing.
+- **Anything that rests at `drawSVG: "0% 0%"` must have `stroke-linecap: butt`.** A zero-length
+  dash with a *round* cap is not nothing — SVG paints it as a filled circle of stroke-width
+  diameter at the path's start point. A scene whose rest state is "nothing drawn yet" therefore
+  starts with one stray dot per undrawn stroke, scattered wherever those paths happen to begin.
+  At 1–1.25px, `butt` and `round` are visually identical, so this costs nothing. (Cost us a
+  bug report on scene 2: ~20 dots, one of them floating above the schematic on the
+  not-yet-drawn timeline strip.)
 - **Transform origins are explicit.** A bell rotates from its thread pivot, not its center. A
   clapper rotates from its yoke. A ripple grows from the mouth. Every `svgOrigin` /
   `transform-origin` in this codebase is written out and commented.

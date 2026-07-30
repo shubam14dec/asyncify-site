@@ -287,9 +287,12 @@
                      two different things: a route that starts at the queue's
                      head has no business being a visible line back to it. -->
                 <g class="eng-guides" id="eng-guides">
-                  <path id="g-dep-0" d="M 760 310 L 840 310 C 896 310 904 150 960 150" />
-                  <path id="g-dep-1" d="M 760 310 L 960 310" />
-                  <path id="g-dep-2" d="M 760 310 L 840 310 C 896 310 904 470 960 470" />
+                  <!-- Departures leave the HEAD SLOT (x 773, the rightmost
+                       cell of the queue box) and pass through the meter at
+                       790 on their way out. -->
+                  <path id="g-dep-0" d="M 773 310 L 840 310 C 896 310 904 150 960 150" />
+                  <path id="g-dep-1" d="M 773 310 L 960 310" />
+                  <path id="g-dep-2" d="M 773 310 L 840 310 C 896 310 904 470 960 470" />
                   <!-- app → p0 lane → gate → email provider (the otp overtake) -->
                   <path
                     id="g-lane-p0"
@@ -368,7 +371,19 @@
 
                   <path class="eng-wire" id="w-api-split" d="M 390 310 L 412 310" />
                   <path class="eng-wire" id="sp-p1" d="M 412 310 L 444 310" />
-                  <path class="eng-rail-line" id="lane-p1" d="M 444 310 L 790 310" />
+                  <!-- The approach. The lane is now only the run-up to the
+                       queue box; the queue itself is the box below. -->
+                  <path class="eng-rail-line" id="lane-p1" d="M 444 310 L 586 310" />
+
+                  <!-- ── the queue ────────────────────────────────────────
+                       A box with six cells, not a line with dots on it. The
+                       tail is the left edge, the head is the right edge — and
+                       the right edge is exactly where the meter stands, so
+                       the queue's mouth and the thing that opens it are the
+                       same line. Geometry is mirrored by QUEUE_* in
+                       engine.ts; the dividers are generated from there. -->
+                  <rect class="eng-queue" id="queue-p1" x="586" y="296" width="204" height="28" rx="6" />
+                  <g class="eng-slots" id="slots-p1"></g>
 
                   <!-- The meter. One path, drawn outward from its own middle:
                        a 44u gate in phases B–C, opened to the full 164u when
@@ -381,14 +396,22 @@
                   </text>
                   <path class="eng-wire" id="w-gate-wall" d="M 790 310 L 840 310" />
 
-                  <text class="eng-aside eng-lbl-queue" id="lbl-queue" x="452" y="298">queue</text>
+                  <!-- Sits over the box's tail, because the box is the queue.
+                       It hands over to `p1` when the lane splits. -->
+                  <text class="eng-aside eng-lbl-queue" id="lbl-queue" x="586" y="286">queue</text>
 
-                  <!-- priority lanes — phase D only -->
+                  <!-- priority lanes — phase D only. Same slotted vocabulary,
+                       three rails instead of one: whatever the queue is, p0
+                       and p2 are that too. -->
                   <g class="eng-l-lanes">
                     <path class="eng-wire" id="sp-p0" d="M 412 310 C 428 310 428 250 444 250" />
-                    <path class="eng-rail-line" id="lane-p0" d="M 444 250 L 790 250" />
+                    <path class="eng-rail-line" id="lane-p0" d="M 444 250 L 586 250" />
                     <path class="eng-wire" id="sp-p2" d="M 412 310 C 428 310 428 370 444 370" />
-                    <path class="eng-rail-line" id="lane-p2" d="M 444 370 L 790 370" />
+                    <path class="eng-rail-line" id="lane-p2" d="M 444 370 L 586 370" />
+                    <rect class="eng-queue" id="queue-p0" x="586" y="236" width="204" height="28" rx="6" />
+                    <g class="eng-slots" id="slots-p0"></g>
+                    <rect class="eng-queue" id="queue-p2" x="586" y="356" width="204" height="28" rx="6" />
+                    <g class="eng-slots" id="slots-p2"></g>
                     <text class="eng-aside" id="lbl-p0" x="452" y="238">p0 · otp</text>
                     <text class="eng-aside" id="lbl-p1" x="452" y="298">p1</text>
                     <text class="eng-aside" id="lbl-p2" x="452" y="392">p2 · marketing</text>
@@ -449,11 +472,16 @@
                   <!-- Leaves the provider that just refused, swings down onto a
                        siding below the chassis, walks left through the backoff
                        ticks, and climbs back into the queue. A retry is a
-                       re-enqueue; the rail has to end where the queue starts. -->
+                       re-enqueue; the rail has to end where the queue starts —
+                       and now that the queue is a box with cells, "where it
+                       starts" means the TAIL, on the approach lane at x 574,
+                       just short of the tail wall. Landing further right would
+                       drop a retried message into the middle of the queue and
+                       make the rail pierce the box's floor on the way in. -->
                   <path
                     class="eng-rail-line"
                     id="retry-rail"
-                    d="M 1150 333 C 1184 344 1192 404 1192 462 C 1192 508 1164 536 1124 536 L 668 536 C 616 536 606 424 622 350 C 626 332 632 314 644 310"
+                    d="M 1150 333 C 1184 344 1192 404 1192 462 C 1192 508 1164 536 1124 536 L 598 536 C 546 536 536 424 552 350 C 556 332 562 314 574 310"
                   />
                   <g id="retry-ticks"></g>
                 </g>
@@ -518,6 +546,21 @@
                 <text class="eng-cue eng-s-digest" id="aside-digest" x="690" y="278" text-anchor="middle">
                   7 events · 1 email
                 </text>
+
+                <!-- The name of the pattern, engraved at the fan-out.
+                     PLACEMENT, since every direction out of the junction is
+                     taken: the six wires radiate from (840,310) and stay
+                     bundled for ~60u, so there is no clear air right of it;
+                     the meter is a full-height line at x 790 and the chassis
+                     wall is a full-height line at x 840, so nothing wide can
+                     cross the junction's own latitude either. The one empty
+                     corridor is ABOVE the meter (y < 228) and inside the
+                     chassis (x < 840) — so the label is right-anchored to end
+                     on the junction's own x, directly over the outlet it
+                     names, and clears every line in the scene. -->
+                <!-- One line, no stray whitespace: `text-anchor: end` would
+                     otherwise measure a trailing space and shift the label. -->
+                <text class="eng-engrave" id="aside-eda" x="836" y="214" text-anchor="end">EVENT-DRIVEN ARCHITECTURE</text>
 
                 <!-- The digest envelope. Seven events collapse into it; it is
                      the only glyph in the scene that is not a box or a line. -->

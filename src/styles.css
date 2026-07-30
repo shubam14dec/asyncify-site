@@ -799,11 +799,25 @@ html {
   vector-effect: non-scaling-stroke;
 }
 
+/* ── why every stroke below is `stroke-linecap: butt` ─────────────────────
+   The whole scene rests at `drawSVG: "0% 0%"` (and the meter at "50% 50%"),
+   which is a ZERO-LENGTH dash. A zero-length dash with a ROUND cap is not
+   nothing — SVG paints it as a filled circle of stroke-width diameter at the
+   path's start point. With 40-odd undrawn strokes that is 20+ little dots
+   scattered over the canvas before the reader has scrolled a pixel: one on
+   the timeline strip at (300,58), floating well above the schematic with no
+   line under it, two more on the p0/p2 lane heads, a cluster at the fan-out
+   junction. They read exactly like packets parked in mid-air.
+
+   `butt` is the fix and it is free: the spec says a zero-length subpath with
+   a butt cap is not rendered at all, and at a 1–1.25px non-scaling stroke a
+   butt cap is visually identical to a round one. Do not put `round` back. */
+
 .eng-wire {
   fill: none;
   stroke: var(--hairline-strong);
   stroke-width: 1;
-  stroke-linecap: round;
+  stroke-linecap: butt;
   vector-effect: non-scaling-stroke;
 }
 
@@ -817,7 +831,28 @@ html {
   fill: none;
   stroke: var(--hairline-strong);
   stroke-width: 1.25;
-  stroke-linecap: round;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ── the queue, drawn as a queue ─────────────────────────────────────────
+   Same weight as `.eng-rail-line`, because it IS the rail — a lane with
+   walls. The right wall sits under the meter, so the queue's mouth and the
+   thing that opens it are the same line. */
+.eng-queue {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Slot dividers. A step down the ladder from the walls: the box is the
+   structure, the slots are the ruling inside it. */
+.eng-slot {
+  stroke: var(--hairline);
+  stroke-width: 1;
+  stroke-linecap: butt;
   vector-effect: non-scaling-stroke;
 }
 
@@ -825,7 +860,7 @@ html {
   fill: none;
   stroke: var(--text-faint);
   stroke-width: 1.25;
-  stroke-linecap: round;
+  stroke-linecap: butt;
   vector-effect: non-scaling-stroke;
 }
 
@@ -834,7 +869,7 @@ html {
 .eng-tick {
   stroke: var(--amber);
   stroke-width: 1;
-  stroke-linecap: round;
+  stroke-linecap: butt;
   vector-effect: non-scaling-stroke;
 }
 
@@ -885,6 +920,20 @@ html {
   font-family: var(--mono);
   font-size: 12px;
   letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+/* The one engraved caption in the scene: the name of the pattern the fan-out
+   junction is an instance of. Caps and wide tracking, the same move as the
+   bell's foundry inscription — a thing stamped into the diagram rather than
+   written on it. font-size is in viewBox units, so 13u lands at ~11px at the
+   scene's usual on-screen scale (~0.86) and never gets bigger than ~12px at
+   the closest camera. */
+.eng-engrave {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
   fill: var(--text-faint);
 }
 
@@ -989,11 +1038,19 @@ html {
   display: none;
 }
 
-/* Every event stamp is a moment, and a still card shows only its own. */
+/* Every event stamp is a moment, and a still card shows only its own. The
+   junction engraving is not a moment, but it names a mechanism that only
+   exists once the fan-out is drawn — so it shows on the whole-anatomy figure
+   and on no close-up. */
 .eng-card-figure .eng-stamp,
 .eng-card-figure .eng-cue,
+.eng-card-figure .eng-engrave,
 .eng-card-figure .eng-env {
   opacity: 0;
+}
+
+.eng-card-figure[data-phase="all"] .eng-engrave {
+  opacity: 1;
 }
 
 .eng-card-figure[data-phase="a"] .eng-s-429,

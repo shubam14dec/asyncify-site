@@ -9,17 +9,22 @@
                        simply vanishes, because networks do that.
      B  THE ABSORBER   the engine draws itself between the app and the
                        providers. The same burst is accepted in 8ms, BUFFERS
-                       in the queue, and is metered out on an even beat.
-                       Ragged in, rhythmic out — that is the whole argument.
+                       in a six-slot queue — entering at the tail, stepping
+                       forward a slot every time the head departs — and is
+                       metered out on an even beat. Ragged in, rhythmic out;
+                       that is the whole argument, and the slots are what
+                       make it countable.
                        Then a duplicate arrives and is stamped, not sent.
      C  THE ASSURANCE  a 429 on a paced packet loops onto the retry rail and
                        waits, visibly, at 1s · 4s · 16s. A provider goes dark
                        and the next packet takes the secondary wire. A packet
                        that exhausts its retries parks on a dead-letter
                        siding, in plain sight, still there.
-     D  THE SCALE      the queue splits into p0/p1/p2 and one otp overtakes a
-                       flood of marketing. Seven events collapse into one
-                       envelope. One event fans out to six channels, receipts
+     D  THE SCALE      the queue splits into three slotted rails, p0/p1/p2,
+                       and one otp overtakes a flood of marketing. Seven
+                       events collapse into one envelope. One event fans out
+                       to six channels — the junction where it does so is
+                       engraved with the name of the pattern — receipts
                        cascade, the camera pulls back, and the receipts travel
                        back up the wires onto a timeline.
 
@@ -82,12 +87,36 @@ const TL_END = 100;
 const BURST_OFFSETS = [0, 0.24, 0.4, 1.02, 1.16, 1.26];
 /** Timeline units between two releases. Even, always. */
 const METER_PERIOD = 0.85;
-/** Queue slot spacing, in scene units, and the head of the queue (the slot the
- *  next release leaves from). Six slots at 34u fill 170u of the 346u lane —
- *  the queue must look like it has room left, or it reads as a bottleneck
- *  rather than a buffer. */
-const QUEUE_HEAD_X = 760;
+
+/* ── The queue, as a queue ────────────────────────────────────────────────
+   A lane with dots parked on it is a picture of six things waiting. A BOX
+   WITH CELLS is a picture of a queue: the reader can count the free slots,
+   see a message take one, and see the whole column step forward when the head
+   leaves. That last part is the buffering argument — ragged in, rhythmic out
+   — and it only reads if the slots are drawn.
+
+   The box runs from QUEUE_X0 (the tail, where the approach lane ends) to
+   QUEUE_X1 (the head, which is exactly the meter's x — the queue's mouth and
+   the thing that opens it are the same line). QUEUE_SLOTS cells of QUEUE_SLOT
+   each fill it exactly, so QUEUE_X1 − QUEUE_X0 === QUEUE_SLOTS · QUEUE_SLOT
+   is not a coincidence to be maintained by hand: it is asserted below.
+
+   Six slots for six burst packets: the queue fills to the brim and no
+   further, which is the most a buffer can say for itself in one picture. */
+const QUEUE_SLOTS = 6;
 const QUEUE_SLOT = 34;
+const QUEUE_X0 = 586;
+const QUEUE_X1 = 790;
+/** Cell height, and how far the dividers stop short of the walls. A hairline
+ *  that touches both walls cuts the box into six boxes; a hairline inset 5u
+ *  reads as ruling inside one box, which is what a queue is. */
+const QUEUE_H = 28;
+const QUEUE_INSET = 5;
+/** The three lanes' centre lines. p1 alone in phases B–C; all three from D. */
+const QUEUE_Y = [250, 310, 370];
+/** The head of the queue — the centre of the rightmost cell, and the point
+ *  every departure guide (#g-dep-*) starts from. */
+const QUEUE_HEAD_X = QUEUE_X1 - QUEUE_SLOT / 2;
 
 /* ── The backoff (phase C) ────────────────────────────────────────────────
    Tick positions are given in scene x, not in path fractions: the rail's
@@ -211,10 +240,19 @@ const DLQ_CY = 576;
  *  then rejected looks like. MUST match the head of #retry-rail. */
 const RAIL_ENTRY_X = 1150;
 const RAIL_ENTRY_Y = 333;
+/** Where the retry rail lets a packet back out: on the approach lane, just
+ *  short of the queue's tail wall. MUST match the tail of #retry-rail. A retry
+ *  goes to the BACK of the queue — it is a re-enqueue, not a queue-jump — so
+ *  the packet then slides the whole length of the box to the head, which is
+ *  also the only way the reader sees that it went back in at all. */
+const RAIL_EXIT_X = 574;
 
 /** The gate's drawSVG range in its short state. The path is 164u tall and the
- *  gate is 44u in phases B–C, so 22u each side of centre = 50% ± 13.4%. */
-const GATE_SHORT = "37% 63%";
+ *  gate is 52u in phases B–C, so 26u each side of centre = 50% ± 15.9%. 52
+ *  and not 44: the queue box's head wall now sits on exactly this x, and a
+ *  gate shorter than QUEUE_H + ~20 disappears behind it. It has to overhang
+ *  the mouth it meters by enough to read as a separate thing. */
+const GATE_SHORT = "34% 66%";
 const GATE_FULL = "0% 100%";
 
 /** Packet radius. 4.5u ≈ 4px on screen: the hero's delivered-dot, same size. */
@@ -326,10 +364,36 @@ export function createEngineScene(): EngineScene {
 
   /* ════════════════════════════════════════════════════════════════════════
      GENERATED DOM
-     Six terminals, six fan wires, six return guides, six timeline ticks and
-     three backoff ticks. All parametric — the channel list lives in exactly
-     one place, same as the hero's chips.
+     Six terminals, six fan wires, six return guides, six timeline ticks,
+     three backoff ticks and three sets of queue-slot dividers. All parametric
+     — the channel list lives in exactly one place, same as the hero's chips,
+     and the queue's cell pitch lives only in QUEUE_SLOT.
      ════════════════════════════════════════════════════════════════════════ */
+
+  /* The box in index.html and the slot arithmetic here have to agree, and the
+     cheapest way to guarantee that is to refuse to boot if they do not. */
+  if (QUEUE_X1 - QUEUE_X0 !== QUEUE_SLOTS * QUEUE_SLOT) {
+    throw new Error("[engine] queue box width does not divide into QUEUE_SLOTS");
+  }
+
+  /** The QUEUE_SLOTS − 1 dividers of one lane, ruled between its walls. */
+  const slotLines: SVGLineElement[][] = QUEUE_Y.map((cy, lane) => {
+    const g = q<SVGGElement>(svg, `#slots-p${lane}`);
+    const lines: SVGLineElement[] = [];
+    for (let k = 1; k < QUEUE_SLOTS; k++) {
+      const x = QUEUE_X0 + k * QUEUE_SLOT;
+      const line = svgEl("line", {
+        class: "eng-slot",
+        x1: x,
+        y1: cy - QUEUE_H / 2 + QUEUE_INSET,
+        x2: x,
+        y2: cy + QUEUE_H / 2 - QUEUE_INSET,
+      });
+      g.appendChild(line);
+      lines.push(line);
+    }
+    return lines;
+  });
 
   const termRects: SVGRectElement[] = [];
   const termDots: SVGCircleElement[] = [];
@@ -545,6 +609,9 @@ export function createEngineScene(): EngineScene {
   const wGateWall = q<SVGPathElement>(svg, "#w-gate-wall");
   const lblQueue = q<SVGTextElement>(svg, "#lbl-queue");
 
+  /** The three slotted boxes, indexed the same way as QUEUE_Y / slotLines. */
+  const queueBoxes = [0, 1, 2].map((i) => q<SVGRectElement>(svg, `#queue-p${i}`));
+
   const spP0 = q<SVGPathElement>(svg, "#sp-p0");
   const laneP0 = q<SVGPathElement>(svg, "#lane-p0");
   const spP2 = q<SVGPathElement>(svg, "#sp-p2");
@@ -572,6 +639,7 @@ export function createEngineScene(): EngineScene {
   const stampRetry = q<SVGTextElement>(svg, "#stamp-retry");
   const asideFailover = q<SVGTextElement>(svg, "#aside-failover");
   const asideDigest = q<SVGTextElement>(svg, "#aside-digest");
+  const asideEda = q<SVGTextElement>(svg, "#aside-eda");
   const digestEnv = q<SVGGElement>(svg, "#digest-env");
 
   const dep1 = q<SVGPathElement>(svg, "#g-dep-1");
@@ -597,6 +665,8 @@ export function createEngineScene(): EngineScene {
     wApiSplit,
     spP1,
     laneP1,
+    ...queueBoxes,
+    ...slotLines.flat(),
     wGateWall,
     spP0,
     laneP0,
@@ -642,6 +712,7 @@ export function createEngineScene(): EngineScene {
     stampRetry,
     asideFailover,
     asideDigest,
+    asideEda,
     digestEnv,
   ];
 
@@ -685,8 +756,23 @@ export function createEngineScene(): EngineScene {
     gsap.set(provGroups, { opacity: 1 });
     gsap.set(termDots, { fill: COLOR.faint });
     gsap.set(provRects, { stroke: COLOR.hairline });
-    gsap.set(allDots, { opacity: 0, fill: COLOR.greenDim, scale: 1, transformOrigin: "50% 50%" });
-    gsap.set(digestEnv, { x: 760, y: SPINE_Y, scale: 1, transformOrigin: "50% 50%" });
+    /* Packets are invisible at rest, and PARKED ON THE APP'S OUTLET rather
+       than left at the scene origin. The opacity is what actually hides them;
+       the position is the insurance. A circle authored at cx/cy 0 (which they
+       must be, so motionPath's align needs no offset arithmetic) sits at the
+       viewBox's top-left corner until something moves it — so the failure mode
+       of ANY future beat that forgets to place a packet before showing it is a
+       green dot floating above the schematic, attached to nothing. Parked on
+       the outlet, the same mistake puts it on the wire, where it belongs. */
+    gsap.set(allDots, {
+      opacity: 0,
+      fill: COLOR.greenDim,
+      scale: 1,
+      x: APP_OUT_X,
+      y: SPINE_Y,
+      transformOrigin: "50% 50%",
+    });
+    gsap.set(digestEnv, { x: QUEUE_HEAD_X, y: SPINE_Y, scale: 1, transformOrigin: "50% 50%" });
     camState.z = CAM_START.z;
     camState.fx = CAM_START.fx;
     camState.fy = CAM_START.fy;
@@ -959,18 +1045,35 @@ export function createEngineScene(): EngineScene {
     fadeIn(apiLabel, 22.4, 1.0);
     draw(wAppApi, 22.2, 1.2);
     draw([wApiSplit, spP1], 23.0, 0.8);
-    draw(laneP1, 23.4, 1.6);
-    ft(gate, { drawSVG: "50% 50%" }, { drawSVG: GATE_SHORT, duration: 1.0, ease: "power2.out" }, 24.6);
-    draw(wGateWall, 25.0, 0.8);
-    draw(provWires, 25.4, 2.0, 0.4);
-    fadeIn([lblQueue, gateLabel], 25.8, 1.0, 1, 0.15);
+    draw(laneP1, 23.4, 1.0);
+
+    /* The queue builds in the order it would be read: the box first, then the
+       cells ruled into it left to right, so the reader watches six places to
+       stand appear before anything arrives to stand in them. Both are done by
+       25.9, and the first packet does not reach a slot until 29.3. */
+    draw(queueBoxes[1]!, 24.1, 1.4);
+    draw(slotLines[1]!, 24.9, 0.6, 0.1);
+
+    ft(gate, { drawSVG: "50% 50%" }, { drawSVG: GATE_SHORT, duration: 1.0, ease: "power2.out" }, 25.2);
+    draw(wGateWall, 25.6, 0.8);
+    draw(provWires, 26.0, 2.0, 0.4);
+    fadeIn([lblQueue, gateLabel], 26.2, 1.0, 1, 0.15);
 
     /* The same burst, absorbed. Arrivals are ragged (BURST_OFFSETS, two
        clumps); departures are a metronome (METER_PERIOD). The queue advances
        one slot every time the head leaves. */
     const BURST_T0 = 27.4;
     const LEG_APP_API = 0.85;
-    const LEG_API_SLOT = 1.05;
+    /** api → the TAIL cell, then tail → the deepest cell still free. Two legs
+     *  and not one, because a message that materialises in the middle of the
+     *  box has not joined a queue — it has to come in at the back and walk
+     *  forward past the cells that are already taken. The first burst arrives
+     *  at an empty queue, so packet 0 walks the whole box; packet 5 stops
+     *  where it entered. Everything is settled by 30.6, and the meter does not
+     *  release until 31.2. */
+    const LEG_API_TAIL = 0.62;
+    const LEG_TAIL_SLOT = 0.45;
+    const QUEUE_TAIL_X = QUEUE_X0 + QUEUE_SLOT / 2;
     const DEPART_T0 = 31.2;
     const LEG_DEPART = 2.05;
 
@@ -986,13 +1089,20 @@ export function createEngineScene(): EngineScene {
       ft(
         dot,
         { x: API_CX },
-        { x: slotX, duration: LEG_API_SLOT, ease: "power2.out" },
+        { x: QUEUE_TAIL_X, duration: LEG_API_TAIL, ease: "power2.out" },
         t + LEG_APP_API,
+      );
+      ft(
+        dot,
+        { x: QUEUE_TAIL_X },
+        { x: slotX, duration: LEG_TAIL_SLOT, ease: "power2.inOut" },
+        t + LEG_APP_API + LEG_API_TAIL,
       );
 
       /* Every packet ahead of it that leaves moves it one slot forward. This
          is the buffering — six dots standing still on a rail is a picture of
-         a queue, six dots shuffling up as the head departs is a queue. */
+         a queue, six dots shuffling up a cell at a time as the head departs
+         is a queue. */
       for (let d = 0; d < i; d++) {
         const from = QUEUE_HEAD_X - (i - d) * QUEUE_SLOT;
         ft(
@@ -1067,9 +1177,9 @@ export function createEngineScene(): EngineScene {
     /* Back into the queue, re-metered, delivered. */
     run(R, retryRail, cursor, 1.5, { start: segFrom, end: 1, ease: "power2.out" });
     ft(R, { fill: COLOR.amber }, { fill: COLOR.greenDim, duration: 0.6 }, cursor + 1.1);
-    ft(R, { x: 644, y: SPINE_Y }, { x: QUEUE_HEAD_X, duration: 0.7 }, cursor + 1.5);
-    run(R, dep1, cursor + 2.2, 2.0, { ease: "power1.inOut" });
-    deliver(R, cursor + 4.2);
+    ft(R, { x: RAIL_EXIT_X, y: SPINE_Y }, { x: QUEUE_HEAD_X, duration: 1.0 }, cursor + 1.5);
+    run(R, dep1, cursor + 2.5, 2.0, { ease: "power1.inOut" });
+    deliver(R, cursor + 4.5);
 
     fadeOut(stampRetry, cursor + 1.6, 1.0);
     ft(provRects[1]!, { stroke: COLOR.amber }, { stroke: COLOR.hairline, duration: 1.0 }, cursor + 1.6);
@@ -1130,7 +1240,14 @@ export function createEngineScene(): EngineScene {
        ══════════════════════════════════════════════════════════════════════ */
 
     /* ── D1: priority lanes ──────────────────────────────────────────────── */
-    draw([spP0, laneP0, spP2, laneP2], PHASE_D, 2.0, 0.3);
+    /* The split inherits the queue's own vocabulary: two more slotted boxes,
+       same cell pitch, same ruling, above and below the one already there. A
+       priority lane that looked like a plain rail would be claiming to be a
+       different kind of thing, and it is not — it is the same queue, three
+       times, with a meter that now spans all three. */
+    draw([spP0, laneP0, spP2, laneP2], PHASE_D, 1.6, 0.3);
+    draw([queueBoxes[0]!, queueBoxes[2]!], 69.0, 1.4, 0.2);
+    draw([...slotLines[0]!, ...slotLines[2]!], 69.4, 0.6, 0.06);
     ft(gate, { drawSVG: GATE_SHORT }, { drawSVG: GATE_FULL, duration: 1.4, ease: "power2.out" }, 69.6);
     fadeOut(lblQueue, 70.0, 1.0);
     fadeIn([lblP1, lblP0, lblP2], 70.4, 1.0, 1, 0.16);
@@ -1153,7 +1270,7 @@ export function createEngineScene(): EngineScene {
     dD.digest.forEach((dot, i) => {
       const x0 = 470 + i * 30;
       ft(dot, { opacity: 0, x: x0, y: SPINE_Y }, { opacity: 1, duration: 0.5 }, 81.0 + i * 0.08);
-      ft(dot, { x: x0 }, { x: 760, duration: 1.5, ease: "power2.in" }, 82.0 + i * 0.06);
+      ft(dot, { x: x0 }, { x: QUEUE_HEAD_X, duration: 1.5, ease: "power2.in" }, 82.0 + i * 0.06);
       fadeOut(dot, 83.2 + i * 0.05, 0.4);
     });
     ft(digestEnv, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.8, ease: "power2.out" }, 83.2);
@@ -1173,6 +1290,12 @@ export function createEngineScene(): EngineScene {
     drawBox(termRects, 89.4, 1.4, 0.18);
     fadeIn(termLabels, 90.0, 0.9, 1, 0.14);
     fadeIn(termDots, 90.0, 0.9, 1, 0.14);
+
+    /* The junction gets its name the moment it does the thing the name is for.
+       It does not leave again: by the end of the scene the reader is looking at
+       the whole anatomy, and this is the word for the shape of it. 0.9 rather
+       than 1 keeps it engraved rather than printed. */
+    fadeIn(asideEda, 89.8, 1.4, 0.9);
 
     fadeIn(dD.fanIn, 91.0, 0.3);
     run(dD.fanIn, gFanIn, 91.0, 2.2, { ease: "power1.inOut" });
