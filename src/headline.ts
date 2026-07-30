@@ -156,14 +156,14 @@ const RES_WAVE_SPEED = 2000;
  *  and 0.47° at RES_KICK = 11, which was too quiet to register against six
  *  signal paths drawing out of the bell at the same time. Under 1° is still
  *  1.6px of travel at the tip of a 190px word: a shiver, not a dance. */
-const RES_KICK = 15;
+const RES_KICK = 26;
 
 /** Amplitude falloff: kick × e^(−dist/RES_FALLOFF). 420px means the outermost
  *  word of the real line (168px out) still gets 67% of the kick, and a much
  *  wider headline at 350px would get 44%. Faster falloff and the wave dies
  *  before it reaches the ends of the line, which reads as a bug rather than
  *  as distance. */
-const RES_FALLOFF = 420;
+const RES_FALLOFF = 540;
 
 /* ══════════════════════════════════════════════════════════════════════════
    IMPLEMENTATION
