@@ -4,10 +4,12 @@
    One schematic, pinned, scrubbed over three and a half viewport heights, in
    four phases:
 
-     A  THE PROBLEM    fire-and-forget. Fourteen requests arrive at one
-                       provider as a clump, with TOO MANY REQUESTS riding above
-                       them the whole way; the provider answers 429 and they
-                       fall off the wire and die. Then the wire itself fails:
+     A  THE PROBLEM    fire-and-forget. Fourteen requests run one wire at one
+                       provider, nose to tail, with TOO MANY REQUESTS riding
+                       above the train the whole way; the provider answers 429
+                       to the first of them and they fall off the wire and die
+                       in the order they arrived, the nose already falling
+                       while the tail is still flying in. Then the wire itself fails:
                        a segment of the push link flickers, dissolves into a
                        gap with frayed ends, and the next packet teeters on the
                        broken edge and tumbles through it. Nothing retries,
@@ -91,56 +93,128 @@ const TL_END = 100;
    into one amber smudge.
 
    The shape is doing the work, not the number. A stream of evenly spaced dots
-   is a picture of traffic no matter how long it is; a CLUMP is a picture of a
-   flood. So the spread comes from FLOOD_A_CLUMP — a one-behind-the-other convoy (11u pitch, ±2u jitter)
-   applied as each circle's OWN cx/cy, which survives the flight because these
-   packets run their motionPath with `raw` (path coordinates straight into
-   x/y, the circle's own offset riding on top). Nearest neighbours sit ~8.5u
-   apart against a 7.6u diameter, so the clump reads as touching without
-   fusing.
+   with air between them is a picture of traffic no matter how long it is; a
+   CONVOY — fourteen packets nose to tail, one solid amber thing moving down
+   one wire — is a picture of a flood.
 
-   The launch stagger is deliberately tiny. 0.003 units over a ~900u wire
-   covered in FLOOD_A_DUR is ~2u of separation per packet — 26u across the
-   whole clump — which is just enough that it stretches as it accelerates
-   instead of moving like a plate, and not enough to turn it back into a
-   queue. Arrivals therefore span 10.00 → 10.04: they hit as one event. */
+   That convoy comes from exactly ONE thing: WHEN each packet leaves. Every
+   packet rides the same curve, end to end, in the same FLOOD_A_DUR, at the
+   same rate; packet i simply departs FLOOD_A_PITCH after packet i−1. Spacing
+   that is path-TIME is spacing that lies on the path — which is the whole
+   reason this replaced fixed [dx,dy] offsets on the circles. Those were added
+   to a point on a CURVE in screen space, so the lead packet sat on the wire
+   and the other thirteen hung off it.
+
+   The arithmetic. The email wire is 833u of arc, covered in FLOOD_A_DUR, so a
+   pitch of P timeline units puts
+
+       833 · P / FLOOD_A_DUR   units of wire between neighbours.
+
+   0.0264 over 2.0 gives 11.0u — the same pitch the offsets were authored
+   with, now measured along the curve instead of across the frame. Against a
+   7.6u packet diameter that is 3.4u of black between dots: touching to the
+   eye, never fusing. The train spans 13 · 11 = 143u of wire, a sixth of the
+   run, and measures 136–143u the whole way across (it is only the wire's own
+   curvature that moves it inside that band).
+
+   Ease "none", and that is load-bearing rather than a default. Under any
+   accelerating ease the gap between two packets is proportional to the speed
+   at that instant, so a train tuned to 143u at the provider is 15u wide at
+   the app's outlet — fourteen dots inside two diameters, one amber smudge.
+   A constant rate is the only thing that makes a path-time convoy hold its
+   shape for a whole flight.
+
+   The price, paid gladly: the flood no longer lands as one event. What
+   happens to it instead is below. */
 const FLOOD_A_N = 14;
 const FLOOD_A_R = 3.8;
 const FLOOD_A_T0 = 8.0;
 const FLOOD_A_DUR = 2.0;
-const FLOOD_A_STAGGER = 0.003;
-/** When the clump reaches the provider. Everything in the exchange — the
- *  amber box, the 429, the label leaving — is written against this. */
+/** Path-time separation between neighbours, in timeline units — 11.0u of
+ *  wire at this duration. The bracket is narrow: below ~0.018 the fourteen
+ *  fuse into one dash, above ~0.035 the convoy opens into a queue and phase A
+ *  starts arguing against phase B instead of setting it up. */
+const FLOOD_A_PITCH = 0.0264;
+/** When the FRONT of the train reaches the provider. Everything in the
+ *  exchange — the amber box, the 429, the label leaving — is written against
+ *  this, because a refusal answers the first packet, not the last. */
 const FLOOD_A_HIT = FLOOD_A_T0 + FLOOD_A_DUR;
-/** Offsets from the packet's point on the wire, in scene units. Authored, not
- *  rolled: a flood whose shape changes when you scroll back up is a flood
- *  nobody believes (same rule as RECEIPT_MS). */
-const FLOOD_A_CLUMP: readonly (readonly [number, number])[] = [
-  [-71, 0],
-  [-60, 2],
-  [-49, -2],
-  [-38, 0],
-  [-27, -2],
-  [-16, 2],
-  [-5, 0],
-  [6, 2],
-  [17, -2],
-  [28, 0],
-  [39, -2],
-  [50, 2],
-  [61, 0],
-  [72, 2],
-];
-/** How far a refused packet drops before it is gone. Each packet's own clump
- *  offset is added, so the front of the clump falls furthest and the fourteen
- *  do not come off the wire like one plate. */
+
+/* ── The refusal, and where it catches each packet ─────────────────────────
+   The first version of the convoy let all fourteen packets run the wire to
+   its END. They did — and then they sat on the same coordinate, because a
+   path has only one last point. Fourteen packets became one dot at the
+   provider's edge, and a phase built to say "look how many" spent its
+   loudest beat showing one. A convoy has to die where it is standing.
+
+   So the 429 is a thing that TRAVELS, and it travels the other way. It
+   leaves the provider when the nose arrives and runs back down the wire at
+   FLOOD_A_REFUSE per packet — faster than the packets are running forward,
+   which is the only reason it ever reaches the tail. Packet i is stopped
+   where it is caught, so its flight is the fraction of the wire it got:
+
+       reach_i = 1 − i · (FLOOD_A_PITCH − FLOOD_A_REFUSE) / FLOOD_A_DUR
+       time_i  = FLOOD_A_DUR · reach_i        ← same rate as everyone else
+       hit_i   = FLOOD_A_HIT + i · FLOOD_A_REFUSE
+
+   Nothing about the flight changes: the same start point, the same rate, the
+   same 11u pitch. Only the last instant of it does. At 0.004 the refusal
+   overtakes the convoy by 9.3u a packet, so the fourteen come to rest as a
+   121u line pressed up against the provider — slightly tighter than they
+   flew, which is what a queue running into a closed door looks like — and
+   the last one never touches the box at all. It was refused 115u out.
+
+   FLOOD_A_REFUSE has a ceiling of FLOOD_A_PITCH and gets nowhere near it:
+   at the ceiling the 429 travels at exactly the packets' speed, never gains
+   on them, and the whole train piles onto the endpoint again. Half of it
+   (0.013) already squeezes the line to 5.5u and the dots start fusing. */
+const FLOOD_A_REFUSE = 0.004;
+
+/* ── The deaths ────────────────────────────────────────────────────────────
+   Fourteen packets that leave the wire together leave it like a plate, and a
+   plate is one event. These leave it nose first: FLOOD_A_DIE after being
+   refused, plus FLOOD_A_DIE_STEP for every place further back in the train.
+   The nose is 0.26 units into its fall before the tail lets go, which at
+   this gravity is a 14u lead — so the flood peels off the wire as a diagonal
+   rather than dropping as a bar, and for the whole of that beat there are
+   packets still stuck amber on the wire above packets that are already gone.
+   That is the pressure phase A is for.
+
+   Every spread is read off the packet's index, never rolled, so a scroll
+   back up finds the same fourteen falls (same rule as RECEIPT_MS). The nose
+   falls furthest — it has been dead longest by the time the tail lets go —
+   and each step back down the train takes FLOOD_A_FALL_STEP off the drop.
+   The DURATION is then derived from that drop rather than authored, because
+   `power2.in` over a distance D in a time T is exactly constant acceleration
+   2D/T²: scaling T by √(D/FLOOD_A_FALL) gives all fourteen packets ONE
+   gravity. Fourteen different falls, one physics. */
 const FLOOD_A_FALL = 96;
+const FLOOD_A_FALL_STEP = 5;
+/** How long the shortest drop (the tail's, FLOOD_A_FALL) takes. Every other
+ *  packet's time comes off this by √(distance), above. */
+const FLOOD_A_FALL_DUR = 1.7;
+/** The beat between being refused and coming off the wire — for the nose,
+ *  and then one step more for every packet behind it. Long enough that the
+ *  amber registers as the cause of the fall rather than as part of it. */
+const FLOOD_A_DIE = 0.16;
+const FLOOD_A_DIE_STEP = 0.02;
 
 /* ── The traveling label ───────────────────────────────────────────────────
    "TOO MANY REQUESTS" is not written on the packets and it is not parked at
-   the provider waiting for them: it RIDES the clump. It runs its own lane —
-   the email wire's curve, lifted clear of it — at exactly the clump's pace,
+   the provider waiting for them: it RIDES the train. It runs its own lane —
+   the email wire's curve, lifted clear of it — at exactly the train's pace,
    so it hangs above the flood for the whole flight and arrives with it.
+
+   It has to hang over the BODY of the convoy, not over its nose, and the lane
+   does that retarget by itself — which is why it still leaves at FLOOD_A_T0,
+   with the nose, now that the packets behind the nose are behind it in TIME.
+   The lane is 681u of arc against the wire's 833u, so at matched progress the
+   label trails the nose by 59u as the train clears the app and by 160u where
+   it parks. Read against an 11u pitch that is the 5th packet, then the 7th,
+   then the 10th: the banner enters over the front of the mob and is walked
+   back through it, which is what banners over mobs do. Timing it off the mid
+   packet instead would start it 58u further back and it would spend the whole
+   flight behind the tail.
 
    Where it lands is the whole beat, and it took two tries. The label is ~148u
    wide and the 429 stamp's own left edge is at ~959, so landing it at 875 put
@@ -149,7 +223,7 @@ const FLOOD_A_FALL = 96;
    one line. They are a call and an answer, and an answer has to arrive from
    somewhere else. 800 leaves 85u of black between them — call on the left,
    answer over the provider — at the cost of the label finishing 160u behind
-   the clump, which is the right thing to pay: a banner trails the mob. */
+   the nose, which is the right thing to pay: a banner trails the mob. */
 const FLAG_FLOOD_AT: readonly [number, number] = [800, 100];
 const FLAG_FLOOD_LANE: readonly (readonly [number, number])[] = [
   [146, 276],
@@ -532,11 +606,21 @@ export function createEngineScene(): EngineScene {
     throw new Error("[engine] queue box width does not divide into QUEUE_SLOTS");
   }
 
-  /* Same contract, one phase earlier: the flood's count and the flood's shape
-     are two constants that describe one thing, and a fifteenth clump offset
-     with FLOOD_A_N left at 14 would silently drop a packet. */
-  if (FLOOD_A_CLUMP.length !== FLOOD_A_N) {
-    throw new Error("[engine] FLOOD_A_CLUMP does not have FLOOD_A_N entries");
+  /* Same contract, one phase earlier. The flood's shape now lives entirely in
+     three numbers that have to agree, and the way they stop agreeing is the
+     train getting longer than the wire it rides: at a pitch of
+     FLOOD_A_DUR/(FLOOD_A_N−1) the tail departs after the nose has already
+     been refused, and phase A stops being a flood arriving and becomes a
+     queue departing — which is phase B's line, not phase A's. */
+  if ((FLOOD_A_N - 1) * FLOOD_A_PITCH >= FLOOD_A_DUR) {
+    throw new Error("[engine] FLOOD_A_PITCH strings the flood out longer than its own flight");
+  }
+  /* And the 429 has to be able to catch the train it is chasing. At or above
+     the packets' own pitch it never gains on them and all fourteen pile onto
+     the wire's last point, which is the bug this pair of constants exists to
+     make impossible to reintroduce. */
+  if (FLOOD_A_REFUSE >= FLOOD_A_PITCH) {
+    throw new Error("[engine] FLOOD_A_REFUSE never overtakes the flood");
   }
 
   /** The QUEUE_SLOTS − 1 dividers of one lane, ruled between its walls. */
@@ -785,16 +869,15 @@ export function createEngineScene(): EngineScene {
 
   const allDots: SVGCircleElement[] = [];
 
-  /** One packet. At the origin by default, so that a motionPath's align lands
-   *  its centre exactly on the path point and a later `x` tween can move it in
-   *  scene coordinates without any offset arithmetic.
-   *
-   *  `ox`/`oy` are the one exception: the phase-A flood's clump shape lives in
-   *  the circles themselves, and those packets fly with `raw` motionPaths
-   *  (no align) so the offset rides along instead of being normalised away —
-   *  which is exactly what `alignOrigin` would do to it. */
-  function newDot(r = DOT_R, ox = 0, oy = 0): SVGCircleElement {
-    const c = svgEl("circle", { class: "eng-dot", cx: ox, cy: oy, r });
+  /** One packet. ALWAYS at the origin — no exceptions, and that is a rule
+   *  rather than a convenience. A motionPath's align lands the centre of a
+   *  circle authored at 0,0 exactly on the path point, and a later `x`/`y`
+   *  tween then moves it in scene coordinates with no offset arithmetic. A
+   *  packet carrying its own cx/cy is a packet whose position is the sum of a
+   *  point on a CURVE and a fixed screen displacement, which is a point next
+   *  to the curve — the phase-A flood spent one commit proving it. */
+  function newDot(r = DOT_R): SVGCircleElement {
+    const c = svgEl("circle", { class: "eng-dot", cx: 0, cy: 0, r });
     dotsG.appendChild(c);
     allDots.push(c);
     return c;
@@ -802,7 +885,7 @@ export function createEngineScene(): EngineScene {
 
   const dA = {
     solo: newDot(),
-    flood: FLOOD_A_CLUMP.map(([ox, oy]) => newDot(FLOOD_A_R, ox, oy)),
+    flood: Array.from({ length: FLOOD_A_N }, () => newDot(FLOOD_A_R)),
     lost: newDot(),
   };
   const dB = { queue: Array.from({ length: 6 }, () => newDot()), dupe: newDot() };
@@ -1194,9 +1277,12 @@ export function createEngineScene(): EngineScene {
      *  #eng-cam with no transform of its own, so the two forms put a centred
      *  element in exactly the same place — but `alignOrigin` measures the
      *  target's bounding box and centres THAT on the path, which silently
-     *  cancels any offset the element was authored with. The phase-A flood's
-     *  clump lives in its circles' cx/cy, and the traveling label is authored
-     *  at its landing point; both need the offset to survive the flight. */
+     *  cancels any offset the element was authored with. The traveling label
+     *  is the one thing in the scene that needs its offset to survive the
+     *  flight — it is authored at its landing point and its lane is written
+     *  as displacements from there — so it is the one thing that runs `raw`.
+     *  Packets never do: they are circles at the origin and `align` puts
+     *  their centres on the stroke. */
     function run(
       dot: Element,
       path: SVGPathElement,
@@ -1304,37 +1390,58 @@ export function createEngineScene(): EngineScene {
     deliver(dA.solo, 7.8);
 
     /* ── the flood ─────────────────────────────────────────────────────────
-       Fourteen at the same provider, arriving as one clump. `raw` because the
-       clump's shape is the circles' own cx/cy — see run(). */
+       Fourteen at the same provider, nose to tail. Every one of them starts
+       at the same end of the same wire and runs it at the same RATE — the
+       convoy is one number, FLOOD_A_PITCH, applied to the moment they leave.
+       They differ in one other thing, and only at the end: how far they get
+       before the 429 meets them (FLOOD_A_REFUSE), which sets each one's
+       duration so that the rate stays shared. Nothing here displaces a packet
+       from the curve, so nothing here can lift one off it. */
+    /** The wire's own arc length, asked of the wire rather than recomputed
+     *  from a copy of its `d`. Every halt point below is read off the same
+     *  object the packets are flying, so a packet and the place it stops
+     *  cannot drift apart — the contract the push wire gets from W_PUSH. */
+    const emailLen = wEmail.getTotalLength();
+
     dA.flood.forEach((dot, i) => {
-      const t = FLOOD_A_T0 + i * FLOOD_A_STAGGER;
-      const [ox, oy] = FLOOD_A_CLUMP[i]!;
+      const t = FLOOD_A_T0 + i * FLOOD_A_PITCH;
+      /* How much of the wire this packet gets before the 429 coming the other
+         way reaches it — and, the rate being shared, how long that takes.
+         See FLOOD_A_REFUSE. */
+      const reach = 1 - (i * (FLOOD_A_PITCH - FLOOD_A_REFUSE)) / FLOOD_A_DUR;
+      const hit = t + FLOOD_A_DUR * reach;
+      const halt = wEmail.getPointAtLength(reach * emailLen);
 
       fadeIn(dot, t, 0.35);
-      run(dot, wEmail, t, FLOOD_A_DUR, { ease: "power1.in", raw: true });
+      run(dot, wEmail, t, FLOOD_A_DUR * reach, { end: reach });
 
-      /* It refuses. The packet goes amber, then falls off the wire under
-         gravity — power2.in, because that is what falling is. The distance
-         and the duration are read off the packet's own place in the clump, so
-         fourteen packets come off the wire as fourteen packets: the ones at
-         the front of the clump fall furthest, and no two take the same time
-         to do it. Derived rather than rolled, for the same reason the clump
-         itself is authored — a scroll back up must find the same fall. */
-      const hit = t + FLOOD_A_DUR;
+      /* Refused where it stands. The packet goes amber, waits its turn — one
+         FLOOD_A_DIE_STEP longer than the packet ahead of it — and then comes
+         off the wire under gravity: power2.in, because that is what falling
+         is, from ITS OWN point on the curve instead of from a shared one.
+         The distance and the duration are read off the packet's place in the
+         train (one gravity, fourteen different drops), derived rather than
+         rolled, so a scroll back up finds the same fourteen falls. */
+      const drop = FLOOD_A_FALL + (FLOOD_A_N - 1 - i) * FLOOD_A_FALL_STEP;
+      const go = hit + FLOOD_A_DIE + i * FLOOD_A_DIE_STEP;
       ft(dot, { fill: COLOR.greenDim }, { fill: COLOR.amber, duration: 0.2 }, hit);
       ft(
         dot,
-        { y: PROV_Y[0]! },
-        { y: PROV_Y[0]! + FLOOD_A_FALL + ox, duration: 1.9 + oy * 0.02, ease: "power2.in" },
-        hit + 0.18,
+        { y: halt.y },
+        {
+          y: halt.y + drop,
+          duration: FLOOD_A_FALL_DUR * Math.sqrt(drop / FLOOD_A_FALL),
+          ease: "power2.in",
+        },
+        go,
       );
-      fadeOut(dot, hit + 0.5, 1.5);
+      fadeOut(dot, go + 0.3, 1.5);
     });
 
-    /* The complaint, riding the clump. Same start, same duration, same ease
-       as the packets under it, on a lane that is their wire lifted clear —
-       so it is not following them, it is one of them. */
-    run(flagFlood, gFloodLabel, FLOOD_A_T0, FLOOD_A_DUR, { ease: "power1.in", raw: true });
+    /* The complaint, riding the train. Same start as its nose, same duration,
+       same rate, on a lane that is their wire lifted clear — so it is not
+       following them, it is one of them. */
+    run(flagFlood, gFloodLabel, FLOOD_A_T0, FLOOD_A_DUR, { raw: true });
     fadeIn(flagFlood, FLOOD_A_T0 + 0.3, 0.5);
 
     /* And the provider answers. 0.35 units after the label lands, not with
