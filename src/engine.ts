@@ -437,13 +437,12 @@ const RECOVER_HOLD = 0.7;
    it, and one hesitation added anywhere in the lap would put a second kind of
    stillness on screen and make the ticks stop meaning anything.
 
-   The provider is a parameter and the road back out of the column is too,
-   because the two packets that ride this loop are refused at different boxes:
-   the recovery packet at email, which leaves down the outside of the column
-   (#g-prov-out), and the ladder packet at sms, whose own bottom-right corner
-   IS the rail's head. What does not vary is the shape — same six legs, same
-   order, same rates — so that the only thing the reader is asked to notice
-   between the two beats is how it ends. */
+   The PROVIDER is a parameter, because the two packets that ride this loop are
+   refused at different boxes — the recovery packet at email, the ladder packet
+   at sms — and each therefore leaves by its own box's corner onto its own
+   on-ramp. Everything else is fixed: same six legs, same order, same rates, so
+   that the only thing the reader is asked to notice between the two beats is
+   how each one ends. */
 const RETRY_LEG = {
   /** the tick → the rail's exit on the approach lane */
   out: 0.62,
@@ -460,8 +459,11 @@ const RETRY_LEG = {
   refuse: 0.22,
   /** across the provider and out of its far corner onto the rail's head */
   drop: 0.32,
-  /** the rail's head → the tick this refusal has earned */
+  /** a provider's on-ramp → the tick this refusal has earned. `in` is the sms
+   *  on-ramp's 484u; the email on-ramp is the rail's own head, 175u further up
+   *  the column, and takes `inFar` so both descents run at the same rate. */
   in: 0.84,
+  inFar: 1.05,
 } as const;
 
 
@@ -497,22 +499,22 @@ const DLQ_PARK_X = [500, 518] as const;
    mind rather than like it was pushed back. */
 const BOUNCE_BACK = 0.055;
 
-/* ── The email provider's road down to the rail (phase C) ─────────────────
-   Both packets that are turned away at the EMAIL provider leave the column
-   this way: the one whose provider is down, and the one whose address is
-   wrong. It uses the same vocabulary a refused packet already uses — cross
-   the box that rejected you, drop out of its far corner — and then BOWS
-   OUTSIDE the sms provider on the way down to the retry rail's head, which
-   happens to be the sms box's own bottom-right corner.
+/* ── Getting OFF a provider and onto the rail (phase C) ──────────────────
+   Every refused packet leaves the same way: across the box that rejected it,
+   out of that box's bottom-right corner, onto the backoff rail running down
+   the outside of the column. One move, one vocabulary, whichever provider
+   said no.
 
-   The bow is the whole reason this is a path and not a two-leg x/y tween like
-   the sms drop. Straight down from (1150,173) to (1150,333) runs the packet
-   along the sms box's right EDGE for its last 46u, and a packet sliding down
-   the side of another provider is a reader watching a failover — which is the
-   one thing this scene no longer says and must not appear to. At 1180 the
-   packet clears that edge by ~19u at the corner and stays inside the frame
-   (the rail itself bulges further, to 1192). */
-const PROV_BOW_X = 1180;
+   That is only true because the rail now runs the whole height of the column.
+   It used to start at the sms box's corner, so an EMAIL refusal had to fly its
+   own invisible curve down past the sms provider to reach it — a packet on no
+   road at all, threading the gap beside a box it had nothing to do with. The
+   fix was not a better curve for the packet; it was drawing the road. See the
+   note on #retry-rail.
+
+   PROV_HALF_H is the provider box's own half-height, and it is what turns
+   "this box's centre" into "this box's corner". */
+const PROV_HALF_H = 23;
 
 /* ── The flood (phase D) ──────────────────────────────────────────────────
    FLOOD_N faint packets pour down p2 with a FLOOD_GAP head start each, taking
@@ -733,9 +735,12 @@ const DLQ_CY = 576;
  *  only lane clear of the push-provider box is outside the column's right
  *  edge. A refused packet therefore crosses its provider and drops out of the
  *  far corner, which also happens to be what a request that was accepted and
- *  then rejected looks like. MUST match the head of #retry-rail. */
-const RAIL_ENTRY_X = 1150;
-const RAIL_ENTRY_Y = 333;
+ *  then rejected looks like. MUST match the head of #retry-rail — which is
+ *  now the EMAIL box's corner rather than the sms box's, because the rail
+ *  starts at the top of the column and every provider joins it somewhere
+ *  below. Asserted against the provider geometry at boot. */
+const RAIL_HEAD_X = 1150;
+const RAIL_HEAD_Y = 173;
 /** Where the retry rail lets a packet back out: on the approach lane, just
  *  short of the queue's tail wall. MUST match the tail of #retry-rail. A retry
  *  goes to the BACK of the queue — it is a re-enqueue, not a queue-jump — so
@@ -819,6 +824,28 @@ function fracNearX(path: SVGPathElement, targetX: number, minY: number): number 
     const p = path.getPointAtLength(total * f);
     if (p.y < minY) continue;
     const d = Math.abs(p.x - targetX);
+    if (d < bestD) {
+      bestD = d;
+      best = f;
+    }
+  }
+  return best;
+}
+
+/** The fraction of `path` whose point is nearest y = `targetY`, considering
+ *  only the part of the path above y = `maxY`. The x-wise twin above places
+ *  things on the rail's horizontal RUN; this one places them on its DESCENT,
+ *  which is where each provider joins it. */
+function fracNearY(path: SVGPathElement, targetY: number, maxY: number): number {
+  const total = path.getTotalLength();
+  const STEPS = 400;
+  let best = 0;
+  let bestD = Infinity;
+  for (let i = 0; i <= STEPS; i++) {
+    const f = i / STEPS;
+    const p = path.getPointAtLength(total * f);
+    if (p.y > maxY) continue;
+    const d = Math.abs(p.y - targetY);
     if (d < bestD) {
       bestD = d;
       best = f;
@@ -1165,6 +1192,32 @@ export function createEngineScene(): EngineScene {
     backoffLabels.push(label);
   });
 
+  /* Where each provider drops onto the rail: the point level with its own
+     box's bottom-right corner. Email's is the rail's head by construction —
+     the rail is authored to start there — and every other provider's is found
+     on the descent, so nothing else has to know the rail's control points.
+
+     The search is fenced to the part of the rail above y 420, which is the
+     descent and nothing else. Below that the rail turns and runs left, and a
+     provider's y would match a second time on the climb back to the queue. */
+  const railOn = [0, 1].map((i) => {
+    const frac = i === 0 ? 0 : fracNearY(retryRail, PROV_Y[i]! + PROV_HALF_H, 420);
+    return { frac, p: pointAt(retryRail, frac) };
+  });
+
+  /* The rail's authored head and the email box's corner are one point written
+     in two files. They drift the moment anyone nudges the provider column, and
+     the failure is a packet that jumps sideways as it leaves the box — which
+     reads as a rendering artefact rather than as a mistake, and so goes
+     unreported. */
+  if (
+    Math.abs(railOn[0]!.p.x - RAIL_HEAD_X) > 0.5 ||
+    Math.abs(railOn[0]!.p.y - RAIL_HEAD_Y) > 0.5 ||
+    RAIL_HEAD_Y !== PROV_Y[0]! + PROV_HALF_H
+  ) {
+    throw new Error("[engine] the retry rail does not start on the email provider's corner");
+  }
+
   /* The dead-letter siding starts exactly on the rail, past the last tick. */
   const dlqFrac = fracNearX(retryRail, DLQ_BRANCH_X, 524);
   {
@@ -1175,19 +1228,6 @@ export function createEngineScene(): EngineScene {
         `L ${DLQ_RIGHT} ${DLQ_CY}`,
     );
   }
-
-  /* The email provider's road out of the column, written from the same
-     geometry every other beat reads: it starts where a packet stops at the
-     email provider, leaves by that box's far corner (which is the rail
-     entry's own x — the two columns line up), bows out past the sms box, and
-     lands exactly on the head of the retry rail. See PROV_BOW_X for why it
-     bows rather than falling straight. */
-  const gProvOut = q<SVGPathElement>(svg, "#g-prov-out");
-  gProvOut.setAttribute(
-    "d",
-    `M ${PROV_X} ${PROV_Y[0]!} L ${RAIL_ENTRY_X} ${PROV_Y[0]! + 23} ` +
-      `C ${PROV_BOW_X} 208 ${PROV_BOW_X} 296 ${RAIL_ENTRY_X} ${RAIL_ENTRY_Y}`,
-  );
 
   /* ── the push wire, cut into the pieces that break ──────────────────────
      One curve (W_PUSH), five paths off it, and one guide that is still the
@@ -1378,6 +1418,7 @@ export function createEngineScene(): EngineScene {
   const stampDupe = q<SVGTextElement>(svg, "#stamp-dupe");
   const stampRetry = q<SVGTextElement>(svg, "#stamp-retry");
   const stampInvalid = q<SVGTextElement>(svg, "#stamp-invalid");
+  const stampOutage = q<SVGTextElement>(svg, "#stamp-outage");
   const asideRecovered = q<SVGTextElement>(svg, "#aside-recovered");
   const asidePerm = q<SVGTextElement>(svg, "#aside-perm");
   const asideDigest = q<SVGTextElement>(svg, "#aside-digest");
@@ -1481,6 +1522,7 @@ export function createEngineScene(): EngineScene {
     stampDupe,
     stampRetry,
     stampInvalid,
+    stampOutage,
     asideRecovered,
     asidePerm,
     asideDigest,
@@ -2244,12 +2286,36 @@ export function createEngineScene(): EngineScene {
       return at + hold;
     }
 
-    /** The rail's head → tick `i`. Decelerating, because it is arriving at a
-     *  place it has to stand. Walks straight past any earlier tick without
-     *  lighting it: the wait it has earned is the one it stops on. */
-    function railToTick(dot: Element, at: number, i: number, tempo = 1): number {
-      const dur = RETRY_LEG.in * tempo;
-      run(dot, retryRail, at, dur, { start: 0, end: backoffFrac[i]!, ease: "power2.out" });
+    /** Down the rail from `prov`'s on-ramp to tick `i`. Decelerating, because
+     *  it is arriving at a place it has to stand. Walks straight past any
+     *  earlier tick without lighting it: the wait it has earned is the one it
+     *  stops on.
+     *
+     *  `dur` is explicit rather than derived because the two on-ramps are at
+     *  different heights — email joins at the rail's head and sms 175u further
+     *  down — so a shared duration would run the email packet visibly faster
+     *  down the same rail, and the reader would read a rate difference as a
+     *  difference in urgency. Same rate, different distance, different time. */
+    function railToTick(dot: Element, at: number, i: number, prov: number, dur: number): number {
+      run(dot, retryRail, at, dur, {
+        start: railOn[prov]!.frac,
+        end: backoffFrac[i]!,
+        ease: "power2.out",
+      });
+      return at + dur;
+    }
+
+    /** Across the box that refused it and out of that box's bottom-right
+     *  corner, onto the rail. The one move every refusal in this phase makes,
+     *  whichever provider said no. */
+    function ontoRail(dot: Element, at: number, prov: number, dur: number): number {
+      const on = railOn[prov]!;
+      ft(
+        dot,
+        { x: PROV_X, y: PROV_Y[prov]! },
+        { x: on.p.x, y: on.p.y, duration: dur, ease: "power1.inOut" },
+        at,
+      );
       return at + dur;
     }
 
@@ -2270,9 +2336,8 @@ export function createEngineScene(): EngineScene {
         strike: number;
         refused: boolean;
         tempo?: number;
-        /** The road back down to the rail's head. Omitted for a packet
-         *  refused at sms, whose own bottom-right corner IS that head. */
-        exit?: SVGPathElement;
+        /** Which box answers, and therefore which on-ramp it leaves by. */
+        prov: number;
       },
     ): number {
       const k = o.tempo ?? 1;
@@ -2289,15 +2354,7 @@ export function createEngineScene(): EngineScene {
       if (!o.refused) return hit;
       refuse(hit, true);
       const back = hit + RETRY_LEG.refuse * k;
-      if (o.exit) run(dot, o.exit, back, RETRY_LEG.drop * k, { ease: "power1.inOut" });
-      else
-        ft(
-          dot,
-          { x: PROV_X, y: SPINE_Y },
-          { x: RAIL_ENTRY_X, y: RAIL_ENTRY_Y, duration: RETRY_LEG.drop * k, ease: "power1.inOut" },
-          back,
-        );
-      return back + RETRY_LEG.drop * k;
+      return ontoRail(dot, back, o.prov, RETRY_LEG.drop * k);
     }
 
     /* ── the rail everything in this phase runs on ───────────────────────── */
@@ -2337,36 +2394,48 @@ export function createEngineScene(): EngineScene {
     ft(provGroups[0]!, { opacity: 0.26 }, { opacity: 0.5, duration: 0.1 }, BOUNCE_AT);
     ft(provGroups[0]!, { opacity: 0.5 }, { opacity: 0.26, duration: 0.34 }, BOUNCE_AT + 0.1);
     ft(provRects[0]!, { stroke: COLOR.amber }, { stroke: COLOR.hairline, duration: 0.5 }, BOUNCE_AT + 0.25);
+    /* And the outage gets its NAME, at the moment it happens. Without it the
+       reader watches a packet bounce off a dimmed box and has to infer the
+       word; the only place the scene said it out loud was in the receipt at
+       the far end, which is a payoff for a diagnosis that was never made. It
+       holds for as long as the provider is down and leaves as the box comes
+       back — a state, not a moment. */
+    fadeIn(stampOutage, BOUNCE_AT + 0.1, 0.7);
 
     /* The recoil, then a beat of nothing. The pause is what turns a rebound
        into a refusal — the packet has to be seen stopped and amber before
        anything happens to it. */
     run(A, dep0, BOUNCE_AT + 0.04, 0.34, { start: 1, end: 1 - BOUNCE_BACK, ease: "power2.out" });
 
-    /* And the engine takes it away: back past the closed door and down the
-       outside of the column onto the rail. The two moves run back to back with
-       no pause between them precisely so the return does not read as a second
-       attempt — an attempt is a thing that STOPS at the box, and this one goes
-       straight through. */
+    /* And the engine takes it away: back past the closed door, across the box
+       and out of its far corner onto the rail — whose head IS that corner, so
+       the packet is on a drawn road from the instant it leaves. The moves run
+       back to back with no pause between them precisely so the return does not
+       read as a second attempt: an attempt is a thing that STOPS at the box,
+       and this one goes straight through. */
     run(A, dep0, 49.3, 0.3, { start: 1 - BOUNCE_BACK, end: 1, ease: "power1.inOut" });
-    run(A, gProvOut, 49.6, 0.9, { ease: "power1.inOut" });
+    const A_ON = ontoRail(A, 49.6, 0, 0.45);
 
-    /* One wait, at 1s — the same tick the ladder's first lap will use. */
-    const A_GO = waitAt(0, railToTick(A, 50.5, 0), RECOVER_HOLD);
-
-    /* The provider comes back WHILE the packet is on its way to it. That
-       ordering is the whole beat: recovery is not something the retry causes,
-       it is something the retry is there to catch. A box that lit up on
-       contact would be saying the packet fixed it. */
-    ft(provGroups[0]!, { opacity: 0.26 }, { opacity: 1, duration: 1.0 }, 52.9);
-    ft(A, { fill: COLOR.amber }, { fill: COLOR.greenDim, duration: 0.5 }, 53.2);
+    /* One wait, at 1s — the same tick the ladder's first lap will use. The
+       descent is the long one: from the rail's head, past the whole column. */
+    const A_GO = waitAt(0, railToTick(A, A_ON, 0, 0, RETRY_LEG.inFar), RECOVER_HOLD);
 
     const A_LAND = retryLap(A, A_GO, {
       from: backoffFrac[0]!,
       dep: dep0,
       strike: RETRY_LEG.strikeFar,
       refused: false,
+      prov: 0,
     });
+
+    /* The provider comes back WHILE the packet is on its way to it, and the
+       label goes out with the dimming. That ordering is the whole beat:
+       recovery is not something the retry causes, it is something the retry is
+       there to catch. A box that lit up on contact would be saying the packet
+       fixed it. */
+    ft(provGroups[0]!, { opacity: 0.26 }, { opacity: 1, duration: 1.0 }, A_LAND - 1.08);
+    fadeOut(stampOutage, A_LAND - 1.08, 1.0);
+    ft(A, { fill: COLOR.amber }, { fill: COLOR.greenDim, duration: 0.5 }, A_LAND - 0.73);
     deliver(A, A_LAND);
     /* The receipt for the beat, and it lands after the delivery rather than at
        the bounce: read at the knock it would be a promise, and the point is
@@ -2402,23 +2471,17 @@ export function createEngineScene(): EngineScene {
     const L_HIT = 59.6;
     refuse(L_HIT, false);
     ft(L, { fill: COLOR.greenDim }, { fill: COLOR.amber, duration: 0.3 }, L_HIT + 0.1);
-    ft(
-      L,
-      { x: PROV_X, y: SPINE_Y },
-      { x: RAIL_ENTRY_X, y: RAIL_ENTRY_Y, duration: 0.45, ease: "power1.inOut" },
-      L_HIT + 0.15,
-    );
-
-    let lc = L_HIT + 0.6;
+    let lc = ontoRail(L, L_HIT + 0.15, 1, 0.45);
     for (let i = 0; i < 3; i++) {
       const k = LADDER_TEMPO[i]!;
-      lc = waitAt(i, railToTick(L, lc, i, k), LADDER_HOLD[i]!);
+      lc = waitAt(i, railToTick(L, lc, i, 1, RETRY_LEG.in * k), LADDER_HOLD[i]!);
       lc = retryLap(L, lc, {
         from: backoffFrac[i]!,
         dep: dep1,
         strike: RETRY_LEG.strike,
         refused: true,
         tempo: k,
+        prov: 1,
       });
     }
 
@@ -2428,7 +2491,7 @@ export function createEngineScene(): EngineScene {
        both ends and slower than C3's identical-looking run: that one is a
        packet that was never going to stop, this one is a packet that has run
        out of places to. */
-    run(L, retryRail, lc, 1.5, { end: dlqFrac, ease: "power1.inOut" });
+    run(L, retryRail, lc, 1.5, { start: railOn[1]!.frac, end: dlqFrac, ease: "power1.inOut" });
     run(L, dlqRail, lc + 1.5, 1.1, { ease: "power2.out" });
     /* And parks DEEPEST in the box — the first arrival goes furthest in, so
        the one that follows it in C3 has the mouth to stand in. No fade-out
@@ -2471,25 +2534,27 @@ export function createEngineScene(): EngineScene {
     ft(P, { fill: COLOR.greenDim }, { fill: COLOR.amber, duration: 0.3 }, 72.8);
     fadeIn(asidePerm, 73.0, 1.0);
 
-    run(P, gProvOut, 73.5, 1.0, { ease: "power1.inOut" });
+    ontoRail(P, 73.5, 0, 0.45);
     /* Ease "none", and it is load-bearing rather than a default: a packet that
        eases along this rail is a packet pausing, and pausing on this rail is
        the one thing this packet never does. Constant rate, three dark ticks,
-       straight onto the siding. */
-    run(P, retryRail, 74.5, 1.6, { end: dlqFrac, ease: "none" });
-    fadeOut(stampInvalid, 75.6, 1.0);
-    run(P, dlqRail, 76.1, 1.0, { ease: "power2.out" });
-    fadeOut(asidePerm, 76.6, 1.2);
+       straight onto the siding — and it rides the SAME drawn road the outage
+       packet rode, from the same corner, which is what makes "this one never
+       stops" a comparison rather than an assertion. */
+    run(P, retryRail, 73.95, 1.9, { start: railOn[0]!.frac, end: dlqFrac, ease: "none" });
+    fadeOut(stampInvalid, 75.3, 1.0);
+    run(P, dlqRail, 75.85, 1.0, { ease: "power2.out" });
+    fadeOut(asidePerm, 76.35, 1.2);
     /* Parked at the mouth, beside the one that spent everything it had. Two
        marks, two reasons, one siding — and both still there in the finale. */
     ft(
       P,
       { x: DLQ_RIGHT, y: DLQ_CY },
       { x: DLQ_PARK_X[1]!, duration: 0.5, ease: "power2.out" },
-      77.1,
+      76.85,
     );
-    fadeIn(dlqMarks[1]!, 77.7, 0.5);
-    fadeOut(P, 77.8, 0.4);
+    fadeIn(dlqMarks[1]!, 77.45, 0.5);
+    fadeOut(P, 77.55, 0.4);
 
     /* ══════════════════════════════════════════════════════════════════════
        PHASE D — THE SCALE   (80 → 124)

@@ -304,16 +304,6 @@
                   <path id="g-dep-0" d="M 773 310 L 840 310 C 896 310 904 150 960 150" />
                   <path id="g-dep-1" d="M 773 310 L 960 310" />
                   <path id="g-dep-2" d="M 773 310 L 840 310 C 896 310 904 470 960 470" />
-                  <!-- The email provider's road down to the retry rail:
-                       across the box that refused it, out of that box's far
-                       corner, and down the OUTSIDE of the column to the rail's
-                       head. Both packets that are turned away at email use it
-                       — the one whose provider is down and the one whose
-                       address is wrong — because being turned away is being
-                       turned away and the way out is a property of the COLUMN,
-                       not of the reason. Written by engine.ts from the
-                       provider geometry; see PROV_BOW_X. -->
-                  <path id="g-prov-out" d="M 0 0" />
                   <!-- app → p0 lane → gate → email provider (the otp overtake) -->
                   <path
                     id="g-lane-p0"
@@ -638,19 +628,36 @@
 
                 <!-- ── the retry rail ────────────────────────────────────── -->
                 <g class="eng-l-retry">
-                  <!-- Leaves the provider that just refused, swings down onto a
-                       siding below the chassis, walks left through the backoff
-                       ticks, and climbs back into the queue. A retry is a
-                       re-enqueue; the rail has to end where the queue starts —
-                       and now that the queue is a box with cells, "where it
-                       starts" means the TAIL, on the approach lane at x 574,
-                       just short of the tail wall. Landing further right would
-                       drop a retried message into the middle of the queue and
-                       make the rail pierce the box's floor on the way in. -->
+                  <!-- The backoff rail serves the WHOLE provider column, and
+                       that is why it starts where it does: at the EMAIL
+                       provider's bottom-right corner, running down the outside
+                       of the column past sms and push with 42-45u of black
+                       between it and every box, then onto a siding below the
+                       chassis, left through the backoff ticks, and back into
+                       the queue.
+
+                       It used to start at the sms box's corner, and a packet
+                       refused at EMAIL therefore flew an invisible route down
+                       past the sms provider to reach it — which looked exactly
+                       like what it was, a packet cutting through a box it had
+                       no business near, on a road that was not drawn. A rail
+                       that every provider can drop onto has to be a rail that
+                       runs past every provider.
+
+                       A retry is a re-enqueue, so the rail has to END where the
+                       queue starts — and now that the queue is a box with
+                       cells, "where it starts" means the TAIL, on the approach
+                       lane at x 574, just short of the tail wall. Landing
+                       further right would drop a retried message into the
+                       middle of the queue and make the rail pierce the box's
+                       floor on the way in.
+
+                       Head and tail are both mirrored by constants in
+                       engine.ts and asserted at boot. -->
                   <path
                     class="eng-rail-line"
                     id="retry-rail"
-                    d="M 1150 333 C 1184 344 1192 404 1192 462 C 1192 508 1164 536 1124 536 L 598 536 C 546 536 536 424 552 350 C 556 332 562 314 574 310"
+                    d="M 1150 173 C 1198 210 1198 330 1192 462 C 1192 508 1164 536 1124 536 L 598 536 C 546 536 536 424 552 350 C 556 332 562 314 574 310"
                   />
                   <g id="retry-ticks"></g>
                 </g>
@@ -732,6 +739,21 @@
                      delivery rather than at the bounce: read at the knock it
                      would be a promise, and the whole point is that the reader
                      watches the promise being kept first. -->
+                <!-- The outage, named AT the outage. The bounce and the dark
+                     box say something is wrong with the provider; this says
+                     which thing, in the same slot and the same ink the 429
+                     uses, because it is the same kind of fact. It goes up when
+                     the packet is knocked back and comes down as the box comes
+                     back — it is the state, not the moment. -->
+                <text
+                  class="eng-stamp eng-stamp-amber eng-s-recover"
+                  id="stamp-outage"
+                  x="1055"
+                  y="106"
+                  text-anchor="middle"
+                >
+                  provider outage
+                </text>
                 <text class="eng-cue eng-s-recover" id="aside-recovered" x="1055" y="198" text-anchor="middle">
                   their outage · retried · delivered
                 </text>
