@@ -16,9 +16,11 @@
 
   /* ── the one accent (BRAND.md §2 — rationing law) ─────────────────────── */
   --green: #3dd68c;
-  /* The accent at rest. Used only by the clapper dot, which sits on screen
-     permanently and would otherwise burn a hole in a near-black page — and
-     which needs somewhere to go when it flashes to full green at the strike. */
+  /* The accent at rest. Used by anything green that lives on screen
+     permanently or is *in flight* rather than delivered — the clapper dot, and
+     every travelling packet in scene 2. Both need somewhere to go when they
+     flash to full green at the moment of delivery. */
+  --green-dim: #2ba36c;
   --green-soft: rgba(61, 214, 140, 0.25);
   --amber: #ffb224;
 
@@ -72,7 +74,11 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+  /* `clip`, not `hidden`. `overflow-x: hidden` computes `overflow-y` to `auto`,
+     which turns <body> into a scroll container — and a ScrollTrigger pin
+     measured against the window then fights a second scroller. `clip` cuts the
+     same horizontal overflow without ever creating one. */
+  overflow-x: clip;
 }
 
 h1,
@@ -634,13 +640,407 @@ html {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   SCENES 2–5 — next slice.
+   SCENES 3–5 — next slice.
    ══════════════════════════════════════════════════════════════════════════ */
 
-#scene-engine,
 #scene-two-way,
 #scene-agents,
 #scene-cta {
+  display: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SCENE 2 — THE ENGINE
+   ──────────────────────────────────────────────────────────────────────────
+   Read this file as the schematic's FINISHED state. Every rule below paints
+   the diagram as it looks at the end of the scroll: drawn, labelled, green
+   where a message arrived. engine.ts pushes it back to its start state and
+   scrubs it forward — which is why the reduced-motion and mobile fallbacks
+   are clones of the same markup with (almost) no JS applied to them.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+#scene-engine {
+  position: relative;
+  display: block;
+}
+
+/* The pinned frame. Fixed caption rail, then the schematic. Nothing in here
+   scrolls — the timeline does. */
+.eng-pin {
+  position: relative;
+  display: grid;
+  grid-template-columns: clamp(240px, 24vw, 380px) 1fr;
+  align-items: center;
+  gap: clamp(16px, 3vw, 48px);
+  height: 100dvh;
+  padding: 0 var(--page-pad);
+  /* Faded up by the entry ScrollTrigger, so the scene materialises on the way
+     in rather than being parked under the hero fully lit. */
+  opacity: 0;
+}
+
+/* `.eng-pin` sets display, so it out-specifies the UA's `[hidden]` rule. The
+   still fallbacks swap the two halves of this section with `hidden`, so this
+   has to be said explicitly or the pin stays on screen underneath them. */
+.eng-pin[hidden] {
+  display: none;
+}
+
+.eng-rail {
+  position: relative;
+  align-self: center;
+}
+
+/* All five captions occupy the same box, so a swap is a crossfade in place
+   and never a reflow of the rail. min-height is the tallest caption at the
+   narrowest rail — measured, not guessed; below it the progress line jumps. */
+.eng-caps {
+  position: relative;
+  min-height: 148px;
+}
+
+.eng-cap {
+  position: absolute;
+  inset: 0 0 auto 0;
+  opacity: 0;
+}
+
+.eng-kicker {
+  display: block;
+  margin-bottom: 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: var(--text-faint);
+}
+
+/* Sized so every caption fits in two lines at the rail's own width — the
+   brief is two lines, and a third is a font-size error, not a copy error. */
+.eng-caption {
+  margin: 0;
+  font-size: clamp(15px, 1.15vw, 19px);
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-wrap: pretty;
+}
+
+.eng-stat {
+  margin: 24px 0 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  color: var(--text-faint);
+  opacity: 0;
+}
+
+/* The one moving thing in the rail. A pinned section takes the scrollbar away
+   from the reader; this hands the information back. */
+.eng-progress {
+  position: relative;
+  width: 1px;
+  height: 72px;
+  margin-top: 32px;
+  background: #1c1c1c;
+}
+
+.eng-progress-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--text-faint);
+  transform: scaleY(0);
+  transform-origin: 50% 0%;
+}
+
+.eng-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-width: 0; /* a grid child must be allowed to be narrower than its SVG */
+}
+
+.eng-svg {
+  width: 100%;
+  height: min(100%, 78vh);
+  /* The camera scales past the viewBox on the zoomed-in phases. Clip there,
+     not at the section edge, or the schematic slides under the caption rail. */
+  overflow: hidden;
+}
+
+/* ── the schematic's ink ─────────────────────────────────────────────────
+   Three line weights, exactly as BRAND §4: 1.25 for the rails a packet runs
+   on, 1 for everything structural, and non-scaling-stroke on all of it so the
+   camera can move without the hairlines getting fat. */
+
+/* Flight guides. In the render tree (so they share the camera's matrix — see
+   index.html) but painting nothing at all. */
+.eng-guides {
+  fill: none;
+  stroke: none;
+  pointer-events: none;
+}
+
+.eng-box {
+  fill: var(--surface);
+  stroke: var(--hairline);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.eng-chassis {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.eng-wire {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The alternate route. One step back down the ladder, because it is the road
+   not normally taken. */
+.eng-wire-alt {
+  stroke: var(--hairline);
+}
+
+.eng-rail-line {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.eng-gate {
+  fill: none;
+  stroke: var(--text-faint);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Backoff ticks. Amber is sanctioned here and nowhere else in this scene:
+   this rail IS retry (BRAND §2). */
+.eng-tick {
+  stroke: var(--amber);
+  stroke-width: 1;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.eng-tick-label {
+  font-family: var(--mono);
+  font-size: 12px;
+  fill: var(--amber);
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.eng-strip-tick {
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* font-size inside a viewBox is user units, so these numbers are the same
+   numbers the geometry is written in. At the scene's usual on-screen scale
+   (~0.9) a 14u label lands at ~12.5 CSS px — BRAND §3's chip-label size. */
+.eng-label {
+  font-family: var(--mono);
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  fill: var(--text-dim);
+}
+
+.eng-aside {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+.eng-stamp {
+  font-family: var(--mono);
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-dim);
+}
+
+.eng-stamp-amber {
+  fill: var(--amber);
+}
+
+.eng-cue {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+.eng-receipt {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-faint);
+}
+
+/* The travelling packet IS the bell's clapper ball: the same delivered-dot,
+   dimmed while it is only in flight, full --green at the instant it lands.
+   A packet that was born green has nothing left to say on arrival. */
+.eng-dot {
+  fill: var(--green-dim);
+  opacity: 0;
+}
+
+.eng-term-dot,
+.eng-strip-dot {
+  fill: var(--green);
+}
+
+/* The one amber fill on the site. It is a failure waiting for replay, which is
+   exactly and only what amber is for (BRAND §2). */
+.eng-dlq-mark {
+  fill: var(--amber);
+}
+
+.eng-env {
+  fill: none;
+  stroke: var(--green-dim);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SCENE 2 — THE STILL STATE  (< 768px, and prefers-reduced-motion)
+   No pin, no scrub. Mobile gets four small cards, one per phase, each a
+   window onto the same schematic. Reduced motion gets the finished anatomy
+   once, plus the four captions as a quiet list. Same information, delivered
+   by layout instead of by time (DESIGN §3).
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.eng-still {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: clamp(56px, 9vh, 112px) var(--page-pad);
+}
+
+.eng-still[hidden] {
+  display: none;
+}
+
+.eng-still-lede {
+  max-width: 34ch;
+  margin: 0 0 clamp(32px, 5vh, 56px);
+  font-size: clamp(1.5rem, 3.4vw, 2.25rem);
+  font-weight: 400;
+  line-height: 1.14;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  text-wrap: balance;
+}
+
+.eng-card {
+  padding-top: clamp(28px, 4vh, 44px);
+  border-top: 1px solid var(--hairline);
+}
+
+.eng-card + .eng-card {
+  margin-top: clamp(28px, 4vh, 44px);
+}
+
+.eng-card .eng-kicker {
+  margin-bottom: 10px;
+}
+
+.eng-card .eng-caption {
+  max-width: 48ch;
+}
+
+.eng-card-figure {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.eng-card-figure .eng-svg {
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+
+.eng-still .eng-stat {
+  margin-top: clamp(32px, 5vh, 56px);
+  opacity: 1;
+}
+
+/* Nothing travels in a still frame, so nothing is in flight. */
+.eng-card-figure .eng-l-dots {
+  display: none;
+}
+
+/* Every event stamp is a moment, and a still card shows only its own. */
+.eng-card-figure .eng-stamp,
+.eng-card-figure .eng-cue,
+.eng-card-figure .eng-env {
+  opacity: 0;
+}
+
+.eng-card-figure[data-phase="a"] .eng-s-429,
+.eng-card-figure[data-phase="b"] .eng-s-202,
+.eng-card-figure[data-phase="b"] .eng-s-dupe,
+.eng-card-figure[data-phase="c"] .eng-s-retry,
+.eng-card-figure[data-phase="c"] .eng-s-fail {
+  opacity: 1;
+}
+
+/* Layers that only exist for part of the story. `a` is the only phase with
+   direct wires; `d` is the only phase where the providers have been replaced
+   by the six channel terminals. */
+.eng-card-figure:not([data-phase="a"]) .eng-l-direct,
+.eng-card-figure[data-phase="a"] .eng-l-block,
+.eng-card-figure[data-phase="a"] .eng-l-retry,
+.eng-card-figure[data-phase="a"] .eng-l-dlq,
+.eng-card-figure[data-phase="b"] .eng-l-retry,
+.eng-card-figure[data-phase="b"] .eng-l-dlq,
+.eng-card-figure[data-phase="d"] .eng-l-retry,
+.eng-card-figure[data-phase="d"] .eng-l-dlq,
+.eng-card-figure[data-phase="e"] .eng-l-retry,
+.eng-card-figure[data-phase="e"] .eng-l-dlq,
+.eng-card-figure[data-phase="a"] .eng-l-lanes,
+.eng-card-figure[data-phase="b"] .eng-l-lanes,
+.eng-card-figure[data-phase="c"] .eng-l-lanes,
+.eng-card-figure[data-phase="a"] .eng-l-term,
+.eng-card-figure[data-phase="b"] .eng-l-term,
+.eng-card-figure[data-phase="c"] .eng-l-term,
+.eng-card-figure[data-phase="a"] .eng-l-strip,
+.eng-card-figure[data-phase="b"] .eng-l-strip,
+.eng-card-figure[data-phase="c"] .eng-l-strip,
+.eng-card-figure[data-phase="d"] .eng-l-strip,
+.eng-card-figure[data-phase="d"] .eng-l-prov,
+.eng-card-figure[data-phase="e"] .eng-l-prov,
+.eng-card-figure[data-phase="all"] .eng-l-prov,
+.eng-card-figure[data-phase="a"] .eng-l-alt,
+.eng-card-figure[data-phase="b"] .eng-l-alt,
+.eng-card-figure[data-phase="d"] .eng-l-alt,
+.eng-card-figure[data-phase="e"] .eng-l-alt {
+  display: none;
+}
+
+/* The lane label doubles up once the queue has split; one of the two always
+   has to go. */
+.eng-card-figure[data-phase="all"] .eng-lbl-queue,
+.eng-card-figure[data-phase="d"] .eng-lbl-queue {
   display: none;
 }
 

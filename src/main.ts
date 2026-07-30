@@ -17,14 +17,16 @@ import "./styles.css";
 import { gsap } from "gsap";
 import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 
 import { createBellScene } from "./bell";
+import { createEngineScene } from "./engine";
 import { createHangingHeadline } from "./headline";
 
 /* Individual imports, never `gsap/all` — that pulls every plugin into the
    bundle. Budget is in DESIGN.md §6. */
-gsap.registerPlugin(DrawSVGPlugin, MotionPathPlugin, SplitText);
+gsap.registerPlugin(DrawSVGPlugin, MotionPathPlugin, ScrollTrigger, SplitText);
 
 /* GSAP defaults, so nothing in this codebase can accidentally ship a linear
    0.5s tween. The house curve is expo-out. */
@@ -46,6 +48,12 @@ const scene = createBellScene({
   onEntranceComplete: () => headline.activate(),
   onRing: (x, y) => headline.resonate(x, y),
 });
+
+/* Scene 2 is independent of the hero — it neither reads from it nor writes to
+   it. It also owns its own media gating (gsap.matchMedia), because the choice
+   between a pinned scrub and a still figure depends on viewport width as well
+   as on the motion preference, and width can change after boot. */
+const engine = createEngineScene();
 
 /* The entrance runs once. Waiting for the first font frame avoids the
    headline re-flowing underneath a mid-flight SplitText. */
@@ -75,5 +83,6 @@ if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     scene.destroy();
     headline.destroy();
+    engine.destroy();
   });
 }

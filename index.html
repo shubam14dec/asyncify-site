@@ -192,8 +192,353 @@
         </div>
       </section>
 
-      <!-- Scenes 2–5 land in the next slice. Markers only. -->
-      <section id="scene-engine"></section>
+      <!-- ─────────────────────────────────────────────────────────────────
+           SCENE 2 — THE ENGINE.  "Absorb the burst. Pace their limits."
+           A pinned, scrubbed pipeline in four phases: the problem, the
+           absorber, the assurance, the scale. Layout is two columns — a fixed
+           caption rail on the left, one continuous schematic on the right.
+
+           The schematic below is the ANATOMY only: every box, wire and rail
+           that exists at the end of the scene is authored here once, in a
+           1200×620 coordinate system, and CSS renders it in its FINISHED
+           state. engine.ts then pushes it back to its start state (undrawn,
+           transparent) and scrubs it forward. That ordering is what makes the
+           reduced-motion / mobile fallbacks free: a clone of this markup, with
+           no JS applied, already *is* the finished diagram.
+
+           Repeating parts (six channel terminals, the backoff ticks, the
+           timeline ticks, every travelling dot) are generated in engine.ts so
+           the channel list lives in exactly one place — same split as the hero.
+           ───────────────────────────────────────────────────────────────── -->
+      <section id="scene-engine" aria-labelledby="eng-heading">
+        <h2 class="sr-only" id="eng-heading">
+          The engine: absorb the burst, pace the providers, retry, fail over, and never drop a
+          message.
+        </h2>
+
+        <div class="eng-pin" id="eng-pin">
+          <!-- Caption rail. Five blocks stacked in the same box; the scrub
+               crossfades between them, so only ever one is legible. -->
+          <div class="eng-rail">
+            <div class="eng-caps" id="eng-caps">
+              <div class="eng-cap">
+                <span class="eng-kicker">the problem</span>
+                <p class="eng-caption">
+                  Providers rate-limit. Networks drop. Fire-and-forget means gone forever.
+                </p>
+              </div>
+              <div class="eng-cap">
+                <span class="eng-kicker">the absorber</span>
+                <p class="eng-caption">
+                  Absorb the burst. Pace their limits. Send twice, deliver once.
+                </p>
+              </div>
+              <div class="eng-cap">
+                <span class="eng-kicker">the assurance</span>
+                <p class="eng-caption">
+                  Retries, failover, and nothing ever dropped — failures wait for replay, not
+                  the void.
+                </p>
+              </div>
+              <div class="eng-cap">
+                <span class="eng-kicker">the scale</span>
+                <p class="eng-caption">A million promos never delay a login code.</p>
+              </div>
+              <div class="eng-cap">
+                <span class="eng-kicker">the bridge</span>
+                <p class="eng-caption">…and the world answers back.</p>
+              </div>
+            </div>
+
+            <p class="eng-stat" id="eng-stat">at-least-once · idempotent · observable end to end</p>
+
+            <!-- How much of the pin is left. A pinned section owes the reader
+                 this; it is the only reason anything in the rail moves. -->
+            <div class="eng-progress" aria-hidden="true">
+              <span class="eng-progress-fill" id="eng-progress-fill"></span>
+            </div>
+          </div>
+
+          <div class="eng-stage">
+            <svg
+              class="eng-svg"
+              id="eng-svg"
+              viewBox="0 0 1200 620"
+              preserveAspectRatio="xMidYMid meet"
+              aria-hidden="true"
+              focusable="false"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <!-- One camera group. Every phase frames its own beat by moving
+                   this, and the finale pulls it back to 0.86 to show the whole
+                   anatomy at once. Scale only ever multiplies geometry, never
+                   stroke width — every line below is non-scaling-stroke. -->
+              <g id="eng-cam">
+                <!-- Flight guides. Rendered into nothing (no fill, no stroke),
+                     but RENDERED — and inside the camera, which is the whole
+                     point. MotionPath's `align` corrects for the difference
+                     between the guide's screen matrix and the packet's, so a
+                     guide parked in <defs> (which never inherits #eng-cam)
+                     drags every packet off its route by exactly whatever the
+                     camera is doing at the time. They belong in here, in the
+                     packets' own coordinate space.
+
+                     A packet's ROUTE and the wire the reader sees are still
+                     two different things: a route that starts at the queue's
+                     head has no business being a visible line back to it. -->
+                <g class="eng-guides" id="eng-guides">
+                  <path id="g-dep-0" d="M 760 310 L 840 310 C 896 310 904 150 960 150" />
+                  <path id="g-dep-1" d="M 760 310 L 960 310" />
+                  <path id="g-dep-2" d="M 760 310 L 840 310 C 896 310 904 470 960 470" />
+                  <!-- app → p0 lane → gate → email provider (the otp overtake) -->
+                  <path
+                    id="g-lane-p0"
+                    d="M 146 310 L 412 310 C 428 310 428 250 444 250 L 790 250 C 814 250 820 292 840 310 C 896 310 904 150 960 150"
+                  />
+                  <!-- app → p2 lane → gate → sms provider (the marketing flood) -->
+                  <path
+                    id="g-lane-p2"
+                    d="M 146 310 L 412 310 C 428 310 428 370 444 370 L 790 370 C 814 370 820 328 840 310 L 960 310"
+                  />
+                  <!-- app → the fan-out junction, for the finale's one event -->
+                  <path id="g-fan-in" d="M 146 310 L 840 310" />
+                </g>
+
+                <!-- ── the timeline strip (phase D, the bridge) ──────────── -->
+                <g class="eng-l-strip">
+                  <path class="eng-wire" id="strip-line" d="M 300 58 L 820 58" />
+                  <text class="eng-aside" id="strip-label" x="300" y="34">timeline</text>
+                  <text class="eng-aside" id="strip-legend" x="820" y="34" text-anchor="end">
+                    delivered · opened
+                  </text>
+                  <g id="strip-ticks"></g>
+                </g>
+
+                <!-- ── the app ───────────────────────────────────────────── -->
+                <g class="eng-l-app">
+                  <rect class="eng-box" id="app-box" x="30" y="286" width="116" height="48" rx="6" />
+                  <text
+                    class="eng-label"
+                    id="app-label"
+                    x="88"
+                    y="310"
+                    text-anchor="middle"
+                    dominant-baseline="central"
+                  >
+                    your app
+                  </text>
+                </g>
+
+                <!-- ── phase A: fire-and-forget, straight at the providers ── -->
+                <g class="eng-l-direct" id="eng-direct">
+                  <path class="eng-wire" id="w-direct-0" d="M 146 310 C 420 310 620 150 960 150" />
+                  <path class="eng-wire" id="w-direct-1" d="M 146 310 L 960 310" />
+                  <path class="eng-wire" id="w-direct-2" d="M 146 310 C 420 310 620 470 960 470" />
+                </g>
+
+                <!-- ── the engine ────────────────────────────────────────── -->
+                <g class="eng-l-block">
+                  <!-- The chassis is cut to what it actually contains: the
+                       gate's full 164u travel plus ~50u of air each side. A
+                       taller box looks like an empty room, which is the
+                       opposite of the claim the phase is making. -->
+                  <rect
+                    class="eng-chassis"
+                    id="chassis"
+                    x="250"
+                    y="176"
+                    width="590"
+                    height="270"
+                    rx="16"
+                  />
+                  <text class="eng-aside" id="chassis-label" x="268" y="202">asyncify · engine</text>
+
+                  <path class="eng-wire" id="w-app-api" d="M 146 310 L 286 310" />
+                  <rect class="eng-box" id="api-box" x="286" y="288" width="104" height="44" rx="6" />
+                  <text
+                    class="eng-label"
+                    id="api-label"
+                    x="338"
+                    y="310"
+                    text-anchor="middle"
+                    dominant-baseline="central"
+                  >
+                    api
+                  </text>
+
+                  <path class="eng-wire" id="w-api-split" d="M 390 310 L 412 310" />
+                  <path class="eng-wire" id="sp-p1" d="M 412 310 L 444 310" />
+                  <path class="eng-rail-line" id="lane-p1" d="M 444 310 L 790 310" />
+
+                  <!-- The meter. One path, drawn outward from its own middle:
+                       a 44u gate in phases B–C, opened to the full 164u when
+                       the queue splits into three lanes in phase D. Growing a
+                       drawSVG range beats crossfading two paths — there is only
+                       ever one gate, and it visibly widens. -->
+                  <path class="eng-gate" id="gate" d="M 790 228 L 790 392" />
+                  <text class="eng-aside" id="gate-label" x="790" y="412" text-anchor="middle">
+                    meter
+                  </text>
+                  <path class="eng-wire" id="w-gate-wall" d="M 790 310 L 840 310" />
+
+                  <text class="eng-aside eng-lbl-queue" id="lbl-queue" x="452" y="298">queue</text>
+
+                  <!-- priority lanes — phase D only -->
+                  <g class="eng-l-lanes">
+                    <path class="eng-wire" id="sp-p0" d="M 412 310 C 428 310 428 250 444 250" />
+                    <path class="eng-rail-line" id="lane-p0" d="M 444 250 L 790 250" />
+                    <path class="eng-wire" id="sp-p2" d="M 412 310 C 428 310 428 370 444 370" />
+                    <path class="eng-rail-line" id="lane-p2" d="M 444 370 L 790 370" />
+                    <text class="eng-aside" id="lbl-p0" x="452" y="238">p0 · otp</text>
+                    <text class="eng-aside" id="lbl-p1" x="452" y="298">p1</text>
+                    <text class="eng-aside" id="lbl-p2" x="452" y="392">p2 · marketing</text>
+                  </g>
+                </g>
+
+                <!-- ── the providers ─────────────────────────────────────── -->
+                <g class="eng-l-prov" id="eng-providers">
+                  <path class="eng-wire" id="w-prov-0" d="M 840 310 C 896 310 904 150 960 150" />
+                  <path class="eng-wire" id="w-prov-1" d="M 840 310 L 960 310" />
+                  <path class="eng-wire" id="w-prov-2" d="M 840 310 C 896 310 904 470 960 470" />
+
+                  <!-- The secondary wire. `d` is computed in engine.ts off the
+                       primary route's own 55% point, so the crossover leaves
+                       the wire it peels off along that wire's tangent. -->
+                  <path class="eng-wire eng-wire-alt eng-l-alt" id="w-failover" d="M 0 0" />
+
+                  <g id="prov-0">
+                    <rect class="eng-box" x="960" y="127" width="190" height="46" rx="6" />
+                    <text
+                      class="eng-label"
+                      x="1055"
+                      y="150"
+                      text-anchor="middle"
+                      dominant-baseline="central"
+                    >
+                      email provider
+                    </text>
+                  </g>
+                  <g id="prov-1">
+                    <rect class="eng-box" x="960" y="287" width="190" height="46" rx="6" />
+                    <text
+                      class="eng-label"
+                      x="1055"
+                      y="310"
+                      text-anchor="middle"
+                      dominant-baseline="central"
+                    >
+                      sms provider
+                    </text>
+                  </g>
+                  <g id="prov-2">
+                    <rect class="eng-box" x="960" y="447" width="190" height="46" rx="6" />
+                    <text
+                      class="eng-label"
+                      x="1055"
+                      y="470"
+                      text-anchor="middle"
+                      dominant-baseline="central"
+                    >
+                      push provider
+                    </text>
+                  </g>
+                </g>
+
+                <!-- ── the retry rail ────────────────────────────────────── -->
+                <g class="eng-l-retry">
+                  <!-- Leaves the provider that just refused, swings down onto a
+                       siding below the chassis, walks left through the backoff
+                       ticks, and climbs back into the queue. A retry is a
+                       re-enqueue; the rail has to end where the queue starts. -->
+                  <path
+                    class="eng-rail-line"
+                    id="retry-rail"
+                    d="M 1150 333 C 1184 344 1192 404 1192 462 C 1192 508 1164 536 1124 536 L 668 536 C 616 536 606 424 622 350 C 626 332 632 314 644 310"
+                  />
+                  <g id="retry-ticks"></g>
+                </g>
+
+                <!-- ── the dead-letter siding ────────────────────────────── -->
+                <g class="eng-l-dlq">
+                  <!-- `d` computed in engine.ts so the junction sits exactly on
+                       the retry rail, past the last backoff tick. -->
+                  <path class="eng-rail-line" id="dlq-rail" d="M 0 0" />
+                  <rect class="eng-box" id="dlq-box" x="376" y="556" width="156" height="40" rx="6" />
+                  <text
+                    class="eng-label"
+                    id="dlq-label"
+                    x="454"
+                    y="576"
+                    text-anchor="middle"
+                    dominant-baseline="central"
+                  >
+                    dead letter
+                  </text>
+                  <text class="eng-aside" id="dlq-aside" x="454" y="612" text-anchor="middle">
+                    awaiting replay
+                  </text>
+                  <!-- The parked failure. A mark, not the packet that carried
+                       it — same handoff as the timeline strip, and for the same
+                       reason: what is on this siding has to still be there for
+                       a reader who arrives after the motion. -->
+                  <circle class="eng-dlq-mark" id="dlq-mark" cx="516" cy="576" r="4.5" />
+                </g>
+
+                <!-- ── the six channel terminals (generated) ──────────────── -->
+                <g class="eng-l-term" id="eng-terminals"></g>
+
+                <!-- ── stamps and asides ─────────────────────────────────── -->
+                <text
+                  class="eng-stamp eng-stamp-amber eng-s-429"
+                  id="stamp-429"
+                  x="1055"
+                  y="106"
+                  text-anchor="middle"
+                >
+                  429 Too Many Requests
+                </text>
+                <text class="eng-stamp eng-s-202" id="stamp-202" x="338" y="262" text-anchor="middle">
+                  202 · 8ms
+                </text>
+                <text class="eng-stamp eng-s-dupe" id="stamp-dupe" x="428" y="266">
+                  evt-1042 · already seen
+                </text>
+                <text
+                  class="eng-stamp eng-stamp-amber eng-s-retry"
+                  id="stamp-retry"
+                  x="1055"
+                  y="358"
+                  text-anchor="middle"
+                >
+                  429 · retry
+                </text>
+                <text class="eng-cue eng-s-fail" id="aside-failover" x="1055" y="198" text-anchor="middle">
+                  their outage, not yours
+                </text>
+                <text class="eng-cue eng-s-digest" id="aside-digest" x="690" y="278" text-anchor="middle">
+                  7 events · 1 email
+                </text>
+
+                <!-- The digest envelope. Seven events collapse into it; it is
+                     the only glyph in the scene that is not a box or a line. -->
+                <g class="eng-env" id="digest-env">
+                  <rect x="-13" y="-9" width="26" height="18" rx="2" />
+                  <path d="M -13 -9 L 0 2 L 13 -9" />
+                </g>
+
+                <!-- Travelling packets. Generated, and always painted last. -->
+                <g class="eng-l-dots" id="eng-dots"></g>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Reduced motion and < 768px land here instead: no pin, no scrub.
+             engine.ts fills this with still clones of the schematic above. -->
+        <div class="eng-still" id="eng-still" hidden></div>
+      </section>
+
+      <!-- Scenes 3–5 land in the next slice. Markers only. -->
       <section id="scene-two-way"></section>
       <section id="scene-agents"></section>
       <section id="scene-cta"></section>
