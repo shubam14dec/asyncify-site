@@ -2737,11 +2737,11 @@ export function createEngineScene(): EngineScene {
     // The priority flags travel WITH their messages (user call) — same guides,
     // same clock, lifted off the stroke by their wrapper groups.
     fadeIn(flagHi, OTP_T0, 0.4);
-    run(flagHi, gLaneP0, OTP_T0, OTP_DUR, { ease: "none" });
+    run(flagHi, gLaneP0, OTP_T0, OTP_DUR, { ease: "none", raw: true });
     fadeOut(flagHi, OTP_T0 + OTP_DUR, 0.4);
     const loT = FLOOD_T0 + 5 * FLOOD_GAP; // rides the flood's mid-dot
     fadeIn(flagLo, loT, 0.4);
-    run(flagLo, gLaneP2, loT, FLOOD_DUR, { ease: "none" });
+    run(flagLo, gLaneP2, loT, FLOOD_DUR, { ease: "none", raw: true });
     fadeOut(flagLo, loT + FLOOD_DUR, 0.5);
 
     /* ── D2: digest ──────────────────────────────────────────────────────── */
