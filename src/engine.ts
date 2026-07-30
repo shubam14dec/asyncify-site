@@ -2079,7 +2079,7 @@ export function createEngineScene(): EngineScene {
 
     /** When the segment starts arguing. Everything below is written against
      *  it, so the whole break moves as one if the phase is retimed. */
-    const DROP_T0 = 12.6;
+    const DROP_T0 = 9.0; // overlapped with the flood (user call): two disasters, one world; peaks staggered ~2.6u
 
     /* Two stutters. A link does not go down cleanly, it flickers first — and
        the flicker is what makes the reader look at the wire instead of at the
@@ -2124,7 +2124,7 @@ export function createEngineScene(): EngineScene {
        — so the reader watches it commit to a wire that is already failing,
        which is the whole feeling of a network drop. The route is the WHOLE
        curve (#g-direct-2): a route does not break, only the line does. */
-    const DROP_PKT_T0 = 12.9;
+    const DROP_PKT_T0 = 9.3;
     const DROP_PKT_DUR = 1.5;
     /** When it reaches the severed edge, and where. */
     const DROP_EDGE_AT = DROP_PKT_T0 + DROP_PKT_DUR;
@@ -2204,7 +2204,7 @@ export function createEngineScene(): EngineScene {
        than as a caption somebody added afterwards. Then it settles faint and
        stays for the rest of the phase, because unlike the 429 nobody is going
        to tell you about this one twice. */
-    const DROP_LBL_AT = 15.3;
+    const DROP_LBL_AT = 11.7;
     ft(flagDrop, { opacity: 0 }, { opacity: 0.95, duration: 0.1 }, DROP_LBL_AT);
     ft(flagDrop, { opacity: 0.95 }, { opacity: 0, duration: 0.12 }, DROP_LBL_AT + 0.1);
     ft(flagDrop, { opacity: 0 }, { opacity: 1, duration: 0.1 }, DROP_LBL_AT + 0.32);
