@@ -127,7 +127,6 @@ const PATH_STAGGER = 0.06;
 const PKT_DUR = [0.62, 0.55, 0.71, 0.58, 0.75, 0.66];
 /** Draw/arrive order: centre pair first, then outward. Reads as a spray. */
 const PKT_ORDER = [2, 3, 1, 4, 0, 5];
-const HOLD_AFTER_LAST = 1.6;
 const AUTO_RING_DELAY_MS = 2200;
 
 /** When the ring's pressure wave leaves the bell, in seconds from t=0. This is
@@ -400,13 +399,6 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
   function paintStamp(): void {
   }
 
-  function bumpStamp(): void {
-    try {
-    } catch {
-      /* non-fatal: the number still counts up for this session */
-    }
-    paintStamp();
-  }
 
   paintStamp();
 
@@ -685,8 +677,6 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     ringTl = null;
     resetSignals();
     randomiseReceipts();
-    // One event, one number — user click, auto-ring and reduced motion alike.
-    bumpStamp();
 
     if (reducedMotion) {
       ringStill();
@@ -812,18 +802,10 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
       );
     });
 
-    /* 6 ── hold, then take it all back down. Paths drain toward the bell
-           (drawSVG end retreats to the start), so the frame empties in the
-           opposite direction to how it filled. */
-    const out = lastArrival + 0.28 + HOLD_AFTER_LAST;
-    tl.to(receiptEls, { opacity: 0, duration: 0.24, stagger: 0.03, ease: "power2.in" }, out);
-    tl.to(
-      sigEls,
-      { drawSVG: "0% 0%", duration: 0.42, stagger: 0.04, ease: "power2.inOut" },
-      out + 0.06,
-    );
-    tl.to(dotEls, { backgroundColor: COLOR.faint, duration: 0.3, stagger: 0.03 }, out + 0.1);
-    tl.to(chipEls, { borderColor: COLOR.hairline, duration: 0.3, stagger: 0.03 }, out + 0.1);
+    /* 6 ── PERSIST (user decision): the delivered state stays on screen —
+           paths, green dots, receipts all remain as the standing proof of
+           delivery. A re-ring resets them at its own t=0 (the quick reset
+           below) and replays the full journey from the bell. */
   }
 
   /** Reduced-motion ring: the same information, delivered by opacity only. */
@@ -842,7 +824,7 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
       .to(dotEls, { backgroundColor: COLOR.green, duration: 0.2, ease: "none" }, 0)
       .to(chipEls, { borderColor: COLOR.hairlineStrong, duration: 0.2, ease: "none" }, 0)
       .to(receiptEls, { opacity: 1, duration: 0.2, ease: "none" }, 0.05)
-      .to([...receiptEls, ...sigEls], { opacity: 0, duration: 0.3, ease: "none" }, 2.1)
+      // persists (user decision) — reset happens at the next ring
       .to(dotEls, { backgroundColor: COLOR.faint, duration: 0.3, ease: "none" }, 2.1)
       .to(chipEls, { borderColor: COLOR.hairline, duration: 0.3, ease: "none" }, 2.1);
   }
