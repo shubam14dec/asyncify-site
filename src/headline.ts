@@ -56,7 +56,7 @@ const WORD_D = 5.2;
 /** Hard amplitude ceiling, in degrees. This is the brief, not a safety net:
  *  above ~1.5° the reader notices the motion instead of the sentence. At a
  *  300px word that is ±3.9px of vertical travel at the far end. */
-const WORD_MAX_DEG = 2.2;
+const WORD_MAX_DEG = 2.8;
 
 /** Velocity ceiling. 16 deg/s ⇒ peak ≈ 16/ω ≈ 1.56°, i.e. just past the angle
  *  wall — so this clamp is what actually enforces the ceiling in normal use,
@@ -156,14 +156,14 @@ const RES_WAVE_SPEED = 2000;
  *  and 0.47° at RES_KICK = 11, which was too quiet to register against six
  *  signal paths drawing out of the bell at the same time. Under 1° is still
  *  1.6px of travel at the tip of a 190px word: a shiver, not a dance. */
-const RES_KICK = 26;
+const RES_KICK = 38;
 
 /** Amplitude falloff: kick × e^(−dist/RES_FALLOFF). 420px means the outermost
  *  word of the real line (168px out) still gets 67% of the kick, and a much
  *  wider headline at 350px would get 44%. Faster falloff and the wave dies
  *  before it reaches the ends of the line, which reads as a bug rather than
  *  as distance. */
-const RES_FALLOFF = 540;
+const RES_FALLOFF = 640;
 
 /* ══════════════════════════════════════════════════════════════════════════
    IMPLEMENTATION
