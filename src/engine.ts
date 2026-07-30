@@ -457,12 +457,18 @@ const RETRY_LEG = {
   strikeFar: 0.8,
   /** how long the provider takes to say no */
   refuse: 0.22,
-  /** across the provider and out of its far corner onto the rail's head */
+  /** across the provider and out of its far corner. The rail's head IS the
+   *  email box's corner, so for email this leg ends ON the rail; every
+   *  provider below it then rides its own on-ramp stub across the black gap,
+   *  and that ride is timed at THIS leg's rate rather than given a constant of
+   *  its own — one number cannot describe two connectors of different lengths,
+   *  and a rate can. See `ontoRail`. */
   drop: 0.32,
   /** a provider's on-ramp → the tick this refusal has earned. `in` is the sms
-   *  on-ramp's 484u; the email on-ramp is the rail's own head, 175u further up
-   *  the column, and takes `inFar` so both descents run at the same rate. */
-  in: 0.84,
+   *  on-ramp's 458u; the email on-ramp is the rail's own head, 199u further up
+   *  the column, and takes `inFar` so both descents run at the same rate:
+   *  458/0.73 = 628 u/s against 657/1.05 = 626. */
+  in: 0.73,
   inFar: 1.05,
 } as const;
 
@@ -512,9 +518,38 @@ const BOUNCE_BACK = 0.055;
    fix was not a better curve for the packet; it was drawing the road. See the
    note on #retry-rail.
 
-   PROV_HALF_H is the provider box's own half-height, and it is what turns
-   "this box's centre" into "this box's corner". */
+   Lengthening the rail moved that debt rather than paying it off. The rail
+   runs OUTSIDE the column, so from the day it started at the email corner
+   every box below email was on the wrong side of 44u of black — and the sms
+   429s, which are the most-watched packets in the phase, spent it in flight
+   over nothing. Same bug, one box down, and it took a reader to see it. The
+   answer is the same answer: draw the road. See ON_RAMP_DROP.
+
+   PROV_HALF_H and PROV_W are the provider box's own half-height and width,
+   and together they are what turns "this box's centre" into "this box's
+   bottom-right corner". */
 const PROV_HALF_H = 23;
+const PROV_W = 190;
+
+/* ── The on-ramp (phase C) ────────────────────────────────────────────────
+   "Every refused packet leaves the same way" is only true if every provider
+   can REACH the rail, and only email's corner is on it — the rail is authored
+   to start there. The rail keeps 42-45u of black between itself and every box
+   below (see the note on #retry-rail), which is what stops the column reading
+   as one striped object, and which is also a gap. A gap a packet crosses is a
+   gap that has to be DRAWN: that is the whole lesson of this phase, and the
+   sms box was still failing it after the rail was lengthened.
+
+   ON_RAMP_DROP is how far BELOW its box's own corner an on-ramp merges, and
+   it is not zero. Where the stub reaches the rail the rail is running within
+   1.5° of straight down, so a connector arriving level with the corner would
+   have to arrive HORIZONTALLY — a tee across a road, taken at a right angle
+   by everything that used it. 28u of fall is enough for the connector to turn
+   the packet through ninety degrees and hand it over already pointing the way
+   the rail goes. Below ~18 the turn is a corner rather than a merge; above
+   ~40 the stub stops reading as this box's on-ramp and starts reading as a
+   second rail beside the first. */
+const ON_RAMP_DROP = 28;
 
 /* ── The flood (phase D) ──────────────────────────────────────────────────
    FLOOD_N faint packets pour down p2 with a FLOOD_GAP head start each, taking
@@ -833,10 +868,24 @@ function fracNearX(path: SVGPathElement, targetX: number, minY: number): number 
 }
 
 /** The fraction of `path` whose point is nearest y = `targetY`, considering
- *  only the part of the path above y = `maxY`. The x-wise twin above places
+ *  only the part of the path right of x = `minX`. The x-wise twin above places
  *  things on the rail's horizontal RUN; this one places them on its DESCENT,
- *  which is where each provider joins it. */
-function fracNearY(path: SVGPathElement, targetY: number, maxY: number): number {
+ *  which is where each provider joins it.
+ *
+ *  The fence is on X, and it used to be on Y — which is the difference between
+ *  this function being correct and this function being a coin toss. The retry
+ *  rail is a LOOP: it comes down outside the provider column, runs left under
+ *  the chassis, and climbs back to the queue — and the climb passes through
+ *  every y the descent does. Fenced by y, both branches are candidates, the
+ *  two nearest samples are ~3u apart on a 1196u path, and the winner is
+ *  decided by whichever the browser's own path flattening happens to land
+ *  closer. It came up tails: the sms on-ramp resolved to (556, 333) on the
+ *  CLIMB, so a refused sms packet flew the whole width of the schematic to an
+ *  on-ramp beside the queue and then ran the rail BACKWARDS to its tick —
+ *  both of the things this phase's own comments say never happen. The descent
+ *  is the only part of the rail right of the provider column, so an x fence
+ *  separates the two branches outright instead of by a rounding error. */
+function fracNearY(path: SVGPathElement, targetY: number, minX: number): number {
   const total = path.getTotalLength();
   const STEPS = 400;
   let best = 0;
@@ -844,7 +893,7 @@ function fracNearY(path: SVGPathElement, targetY: number, maxY: number): number 
   for (let i = 0; i <= STEPS; i++) {
     const f = i / STEPS;
     const p = path.getPointAtLength(total * f);
-    if (p.y > maxY) continue;
+    if (p.x < minX) continue;
     const d = Math.abs(p.y - targetY);
     if (d < bestD) {
       bestD = d;
@@ -857,6 +906,21 @@ function fracNearY(path: SVGPathElement, targetY: number, maxY: number): number 
 function pointAt(path: SVGPathElement, frac: number): { x: number; y: number } {
   const p = path.getPointAtLength(path.getTotalLength() * frac);
   return { x: p.x, y: p.y };
+}
+
+/** The unit tangent of `path` at `frac`, sampled 3u either side of the point.
+ *  What it is for: merging a connector into a rail at the RAIL's own angle
+ *  rather than at a guess, so the join has no kink in it and nothing but the
+ *  rail has to know the rail's control points. */
+function tangentAt(path: SVGPathElement, frac: number): { x: number; y: number } {
+  const total = path.getTotalLength();
+  const l = total * frac;
+  const a = path.getPointAtLength(Math.max(0, l - 3));
+  const b = path.getPointAtLength(Math.min(total, l + 3));
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const m = Math.hypot(dx, dy) || 1;
+  return { x: dx / m, y: dy / m };
 }
 
 /* ── cutting a cubic into pieces ─────────────────────────────────────────
@@ -1192,18 +1256,50 @@ export function createEngineScene(): EngineScene {
     backoffLabels.push(label);
   });
 
-  /* Where each provider drops onto the rail: the point level with its own
-     box's bottom-right corner. Email's is the rail's head by construction —
-     the rail is authored to start there — and every other provider's is found
-     on the descent, so nothing else has to know the rail's control points.
+  /* Where each provider gets onto the rail, and how it crosses the black to
+     get there. `corner` is the box's own bottom-right corner — the point every
+     refusal leaves by — and `p` is where that box joins the rail. For EMAIL
+     they are one point, because the rail is authored to start there. Every
+     provider below it is a gap away, and the gap is a drawn `stub`: the
+     choreography rides it, and `stubLen` is what it costs to ride, so the
+     packet can be charged the same RATE for it as for the crossing before it.
 
-     The search is fenced to the part of the rail above y 420, which is the
-     descent and nothing else. Below that the rail turns and runs left, and a
-     provider's y would match a second time on the climb back to the queue. */
+     Only the boxes that actually refuse something get one. Nothing in the
+     scene is ever refused at push, so push has no on-ramp — a road drawn for
+     a journey no packet makes is decoration, and this scene does not do
+     decoration. */
   const railOn = [0, 1].map((i) => {
-    const frac = i === 0 ? 0 : fracNearY(retryRail, PROV_Y[i]! + PROV_HALF_H, 420);
-    return { frac, p: pointAt(retryRail, frac) };
+    const corner = { x: PROV_X + PROV_W, y: PROV_Y[i]! + PROV_HALF_H };
+    if (i === 0) {
+      return { frac: 0, p: pointAt(retryRail, 0), corner, stub: null, stubLen: 0 };
+    }
+
+    const frac = fracNearY(retryRail, corner.y + ON_RAMP_DROP, PROV_X);
+    const p = pointAt(retryRail, frac);
+    /* The connector leaves the corner HORIZONTALLY — the packet has just
+       crossed the box on a shallow line and is taken out sideways before it is
+       turned — and arrives on the rail's own tangent, measured off the rail
+       rather than assumed. 0.55 of each axis is the circular-arc handle, which
+       is what keeps a flat spot out of the middle of the turn. */
+    const t = tangentAt(retryRail, frac);
+    const fall = p.y - corner.y;
+    const stub = q<SVGPathElement>(svg, `#onramp-${i}`);
+    stub.setAttribute(
+      "d",
+      cubicD([
+        [corner.x, corner.y],
+        [corner.x + (p.x - corner.x) * 0.55, corner.y],
+        [p.x - t.x * fall * 0.55, p.y - t.y * fall * 0.55],
+        [p.x, p.y],
+      ]),
+    );
+    return { frac, p, corner, stub, stubLen: stub.getTotalLength() };
   });
+
+  /** The on-ramps that exist, for the draw. */
+  const onRamps = railOn
+    .map((o) => o.stub)
+    .filter((s): s is SVGPathElement => s !== null);
 
   /* The rail's authored head and the email box's corner are one point written
      in two files. They drift the moment anyone nudges the provider column, and
@@ -1213,9 +1309,22 @@ export function createEngineScene(): EngineScene {
   if (
     Math.abs(railOn[0]!.p.x - RAIL_HEAD_X) > 0.5 ||
     Math.abs(railOn[0]!.p.y - RAIL_HEAD_Y) > 0.5 ||
+    RAIL_HEAD_X !== PROV_X + PROV_W ||
     RAIL_HEAD_Y !== PROV_Y[0]! + PROV_HALF_H
   ) {
     throw new Error("[engine] the retry rail does not start on the email provider's corner");
+  }
+
+  /* And an on-ramp has to be a STUB: a short connector, on the descent, going
+     the way the column goes. This is the assertion the last bug would have
+     tripped — the sms on-ramp had resolved 600u away on the rail's climb back
+     to the queue, and the only symptom was a packet crossing the schematic
+     over nothing, which reads as a missing line rather than as a wrong number.
+     ~90u is generous: the real one is 58. */
+  for (const on of railOn) {
+    if (on.stub && (on.p.x < on.corner.x || on.p.y < on.corner.y || on.stubLen > 90)) {
+      throw new Error("[engine] a provider's on-ramp is not a short stub on the rail's descent");
+    }
   }
 
   /* The dead-letter siding starts exactly on the rail, past the last tick. */
@@ -1483,6 +1592,7 @@ export function createEngineScene(): EngineScene {
     ...provWires,
     ...provRects,
     retryRail,
+    ...onRamps,
     dlqRail,
     dlqBox,
     stripLine,
@@ -2307,16 +2417,40 @@ export function createEngineScene(): EngineScene {
 
     /** Across the box that refused it and out of that box's bottom-right
      *  corner, onto the rail. The one move every refusal in this phase makes,
-     *  whichever provider said no. */
+     *  whichever provider said no — except that only EMAIL's corner is on the
+     *  rail. Every provider below it is an on-ramp away, so the move has two
+     *  legs there: the crossing, and the stub.
+     *
+     *  `dur` is the CROSSING's, and the stub is paid for at the crossing's own
+     *  rate — the two boxes are the same size, so email and sms cross 191u in
+     *  the same time, and sms then spends what its extra 58u is worth. Timed
+     *  the other way, with one duration covering both legs, the sms packet
+     *  would clear its box 22% faster than the email packet clears the
+     *  identical box next to it, and a packet that hurries out of a room is a
+     *  packet that is running away from something.
+     *
+     *  The eases are what make two tweens one motion: the crossing starts from
+     *  a packet standing still at the box that just refused it, so it
+     *  accelerates; the stub holds that speed; and the descent that follows
+     *  (railToTick, power2.out) leaves at speed. Nothing decelerates at the
+     *  corner, because nothing STOPS at the corner. */
     function ontoRail(dot: Element, at: number, prov: number, dur: number): number {
       const on = railOn[prov]!;
       ft(
         dot,
         { x: PROV_X, y: PROV_Y[prov]! },
-        { x: on.p.x, y: on.p.y, duration: dur, ease: "power1.inOut" },
+        {
+          x: on.corner.x,
+          y: on.corner.y,
+          duration: dur,
+          ease: on.stub ? "power1.in" : "power1.inOut",
+        },
         at,
       );
-      return at + dur;
+      if (!on.stub) return at + dur;
+      const ride = dur * (on.stubLen / Math.hypot(on.corner.x - PROV_X, on.corner.y - PROV_Y[prov]!));
+      run(dot, on.stub, at + dur, ride, { ease: "none" });
+      return at + dur + ride;
     }
 
     /** One lap of the circuit: leave the tick, re-enter the queue at its head,
@@ -2359,6 +2493,14 @@ export function createEngineScene(): EngineScene {
 
     /* ── the rail everything in this phase runs on ───────────────────────── */
     draw(retryRail, PHASE_C, 3.2);
+    /* The on-ramps draw as the rail's own trace sweeps past them — not with it
+       and not after it. The rail is drawn power2.out over 3.2 units, so its
+       head is level with the sms box (frac 0.17 of 1196u) at 0.06 of the ease,
+       which is 0.19 units in. Started at PHASE_C the stub would hang in the
+       black for a beat, a connector to a rail that had not arrived; left until
+       the rail finished it would read as an afterthought bolted on. Either way
+       the road is complete a full 14 units before the ladder rides it. */
+    draw(onRamps, PHASE_C + 0.2, 0.5);
     fadeIn(backoffTicks, 44.2, 0.9, 0.85, 0.2);
     fadeIn(backoffLabels, 44.4, 0.9, 1, 0.2);
 

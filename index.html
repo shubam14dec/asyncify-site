@@ -659,6 +659,23 @@
                     id="retry-rail"
                     d="M 1150 173 C 1198 210 1198 330 1192 462 C 1192 508 1164 536 1124 536 L 598 536 C 546 536 536 424 552 350 C 556 332 562 314 574 310"
                   />
+                  <!-- The sms provider's ON-RAMP, `d` computed in engine.ts so
+                       it starts on the box's own corner and merges into the
+                       rail at the rail's own angle.
+
+                       The 42-45u of black the rail keeps between itself and
+                       every box is what makes the column readable, and it is
+                       also a gap a refused packet has to cross. Email does not
+                       need one: the rail STARTS on its corner. Sms does, and
+                       until this line existed its 429s left the box and flew
+                       that gap over nothing at all — the same undrawn-road bug
+                       the rail was lengthened to fix, one box further down.
+
+                       There is no push on-ramp, and that is not an oversight:
+                       nothing in the scene is ever refused at push, so a stub
+                       there would be a road drawn for a journey no packet
+                       makes. It gets one the day a packet needs it. -->
+                  <path class="eng-rail-line" id="onramp-1" d="M 0 0" />
                   <g id="retry-ticks"></g>
                 </g>
 
