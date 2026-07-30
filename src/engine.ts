@@ -1472,6 +1472,8 @@ export function createEngineScene(): EngineScene {
   const wSms = q<SVGPathElement>(svg, "#w-direct-1");
 
   const flagFlood = q<SVGTextElement>(svg, "#flag-flood");
+  const flagHi = q<SVGTextElement>(svg, "#flag-hi");
+  const flagLo = q<SVGTextElement>(svg, "#flag-lo");
   const flagDrop = q<SVGTextElement>(svg, "#flag-drop");
   const gFloodLabel = q<SVGPathElement>(svg, "#g-flood-label");
 
@@ -1727,6 +1729,7 @@ export function createEngineScene(): EngineScene {
        is written in offsets from where the markup already puts it, so zero is
        its home and rest means "not moved". */
     gsap.set(flagFlood, { x: 0, y: 0 });
+    gsap.set([flagHi, flagLo], { opacity: 0 });
     /* The push wire's middle three pieces are hidden by drawSVG above, but the
        break drives their OPACITY as well — the segment flickers, the two edges
        hand over to their dashed twins. Rest has to put that back or a rewind
@@ -2731,6 +2734,15 @@ export function createEngineScene(): EngineScene {
     fadeIn(dD.otp, OTP_T0, 0.4);
     run(dD.otp, gLaneP0, OTP_T0, OTP_DUR, { ease: "none" });
     deliver(dD.otp, OTP_T0 + OTP_DUR);
+    // The priority flags travel WITH their messages (user call) — same guides,
+    // same clock, lifted off the stroke by their wrapper groups.
+    fadeIn(flagHi, OTP_T0, 0.4);
+    run(flagHi, gLaneP0, OTP_T0, OTP_DUR, { ease: "none" });
+    fadeOut(flagHi, OTP_T0 + OTP_DUR, 0.4);
+    const loT = FLOOD_T0 + 5 * FLOOD_GAP; // rides the flood's mid-dot
+    fadeIn(flagLo, loT, 0.4);
+    run(flagLo, gLaneP2, loT, FLOOD_DUR, { ease: "none" });
+    fadeOut(flagLo, loT + FLOOD_DUR, 0.5);
 
     /* ── D2: digest ──────────────────────────────────────────────────────── */
     dD.digest.forEach((dot, i) => {
