@@ -236,8 +236,8 @@
               <div class="eng-cap">
                 <span class="eng-kicker">the assurance</span>
                 <p class="eng-caption">
-                  Retries, failover, and nothing ever dropped — failures wait for replay, not
-                  the void.
+                  Retry with backoff. Fail over mid-attempt. A bad address never retries — it
+                  parks for replay, not for the void.
                 </p>
               </div>
               <div class="eng-cap">
@@ -304,6 +304,12 @@
                   <path id="g-dep-0" d="M 773 310 L 840 310 C 896 310 904 150 960 150" />
                   <path id="g-dep-1" d="M 773 310 L 960 310" />
                   <path id="g-dep-2" d="M 773 310 L 840 310 C 896 310 904 470 960 470" />
+                  <!-- The permanent failure's road out of the provider
+                       column: across the box that rejected it, out of that
+                       box's far corner, and down the OUTSIDE of the column to
+                       the retry rail's head. Written by engine.ts from the
+                       provider geometry — see PERM_BOW_X. -->
+                  <path id="g-perm" d="M 0 0" />
                   <!-- app → p0 lane → gate → email provider (the otp overtake) -->
                   <path
                     id="g-lane-p0"
@@ -645,10 +651,18 @@
                        the retry rail, past the last backoff tick. -->
                   <path class="eng-rail-line" id="dlq-rail" d="M 0 0" />
                   <rect class="eng-box" id="dlq-box" x="376" y="556" width="156" height="40" rx="6" />
+                  <!-- Centred at 430, not at the box's own 454: the siding
+                       now parks TWO wagons at its mouth (DLQ_PARK_X 500/518),
+                       and a centred 92u label would sit under the deeper of
+                       them. Label at the far end, arrivals at the near end —
+                       which is what a siding looks like. The whole row is
+                       10u · 92u · 17u · 27u · 10u across a 156u box; there is
+                       no slack left in it, which is why the label's centre is
+                       a number and not a guess. -->
                   <text
                     class="eng-label"
                     id="dlq-label"
-                    x="454"
+                    x="430"
                     y="576"
                     text-anchor="middle"
                     dominant-baseline="central"
@@ -658,11 +672,15 @@
                   <text class="eng-aside" id="dlq-aside" x="454" y="612" text-anchor="middle">
                     awaiting replay
                   </text>
-                  <!-- The parked failure. A mark, not the packet that carried
-                       it — same handoff as the timeline strip, and for the same
-                       reason: what is on this siding has to still be there for
-                       a reader who arrives after the motion. -->
-                  <circle class="eng-dlq-mark" id="dlq-mark" cx="516" cy="576" r="4.5" />
+                  <!-- The parked failures. Marks, not the packets that carried
+                       them — same handoff as the timeline strip, and for the
+                       same reason: what is on this siding has to still be there
+                       for a reader who arrives after the motion. Two of them,
+                       because phase C parks two different KINDS of failure
+                       here: one that spent every retry it had, and one that was
+                       never eligible for a retry at all. -->
+                  <circle class="eng-dlq-mark" id="dlq-mark" cx="500" cy="576" r="4.5" />
+                  <circle class="eng-dlq-mark" id="dlq-mark-2" cx="518" cy="576" r="4.5" />
                 </g>
 
                 <!-- ── the six channel terminals (generated) ──────────────── -->
@@ -702,6 +720,30 @@
                 </text>
                 <text class="eng-cue eng-s-fail" id="aside-failover" x="1055" y="198" text-anchor="middle">
                   their outage, not yours
+                </text>
+                <!-- The permanent failure. Amber, because it IS pain (BRAND
+                     §2 rations amber to retry / backoff / degraded, and a
+                     message that will never be deliverable is the degraded
+                     case) — but the PROVIDER's box stays hairline through the
+                     whole beat, which is the entire nuance: nothing is wrong
+                     with the provider, the address is wrong.
+
+                     It reuses the 429's slot above the email provider and the
+                     failover cue's slot below it. Neither is on screen when
+                     this one is: the 429 belongs to phase A, and "their
+                     outage, not yours" has been gone for seven units by the
+                     time this answers it. -->
+                <text
+                  class="eng-stamp eng-stamp-amber eng-s-perm"
+                  id="stamp-invalid"
+                  x="1055"
+                  y="106"
+                  text-anchor="middle"
+                >
+                  invalid address
+                </text>
+                <text class="eng-cue eng-s-perm" id="aside-perm" x="1055" y="198" text-anchor="middle">
+                  permanent · no retry, no failover
                 </text>
                 <!-- The count moved from y 278 to y 346 so the engraved name
                      can have the band above the spine. The two now BRACKET
