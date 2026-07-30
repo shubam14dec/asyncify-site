@@ -66,6 +66,14 @@
               <g id="bell-flex">
                 <!-- Clapper is drawn first so the rim line reads in front of it.
                      Rotates about (0,26) — the yoke, not the bell pivot. -->
+                <!-- Foundry inscription — bells carry their maker's name cast
+                     into the metal (Liberty Bell: "Pass and Stow"). Ours reads
+                     ASYNCIFY · ENGINE: the bell IS the product. Static brand
+                     mark, engraved tone, rides the swing. -->
+                <defs><path id="foundry-arc" d="M -24 72 Q 0 79 24 72" fill="none"/></defs>
+                <text class="foundry" aria-hidden="true">
+                  <textPath href="#foundry-arc" startOffset="50%" text-anchor="middle">ASYNCIFY&#8201;&#183;&#8201;ENGINE</textPath>
+                </text>
                 <g id="clapper">
                   <path class="b-line b-detail" id="c-shaft" d="M 0 26 C 0.7 46 -0.5 74 0.3 90" />
                   <!-- The clapper ball IS the delivered-dot. It is the only

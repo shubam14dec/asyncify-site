@@ -643,3 +643,13 @@ html {
 #scene-cta {
   display: none;
 }
+
+/* Foundry inscription on the bell's waist — engraved, not printed:
+   faint ink, wide tracking, mono caps. Discovered on approach. */
+.foundry {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-size: 3.6px; /* bell-local units */
+  letter-spacing: 0.14em;
+  fill: #6e6e6e;
+  opacity: 0.75;
+}
