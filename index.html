@@ -544,6 +544,11 @@
                        drawSVG range beats crossfading two paths — there is only
                        ever one gate, and it visibly widens. -->
                   <path class="eng-gate" id="gate" d="M 794 228 L 794 392" />
+                  <!-- Phase-B meter: a dedicated short path, because a partial
+                       drawSVG range on #gate breaks under non-scaling-stroke
+                       (the dasharray screen-space law) and rendered off-centre
+                       against the queue box. Full-range draws only. -->
+                  <path class="eng-gate" id="gate-short" d="M 794 284 L 794 336" />
                   <text class="eng-aside" id="gate-label" x="790" y="412" text-anchor="middle">
                     meter
                   </text>

@@ -788,7 +788,6 @@ const RAIL_EXIT_X = 574;
  *  and not 44: the queue box's head wall now sits on exactly this x, and a
  *  gate shorter than QUEUE_H + ~20 disappears behind it. It has to overhang
  *  the mouth it meters by enough to read as a separate thing. */
-const GATE_SHORT = "34% 66%";
 const GATE_FULL = "0% 100%";
 
 /** Packet radius. 4.5u ≈ 4px on screen: the hero's delivered-dot, same size. */
@@ -1486,6 +1485,7 @@ export function createEngineScene(): EngineScene {
   const spP1 = q<SVGPathElement>(svg, "#sp-p1");
   const laneP1 = q<SVGPathElement>(svg, "#lane-p1");
   const gate = q<SVGPathElement>(svg, "#gate");
+  const gateShort = q<SVGPathElement>(svg, "#gate-short");
   const gateLabel = q<SVGTextElement>(svg, "#gate-label");
   const wGateWall = q<SVGPathElement>(svg, "#w-gate-wall");
   const lblQueue = q<SVGTextElement>(svg, "#lbl-queue");
@@ -1699,7 +1699,8 @@ export function createEngineScene(): EngineScene {
        than at zero, because both of them grow outward from there: the meter
        widens from 44u to its full 164u when the queue splits, and the
        workflow's bar snaps out to its jambs when the "opened" lands. */
-    gsap.set([gate, skipGate], { drawSVG: "50% 50%" });
+    gsap.set([gate, skipGate, gateShort], { drawSVG: "50% 50%" });
+    gsap.set(gateShort, { opacity: 1 });
     gsap.set(boxRects, { fillOpacity: 0 });
     gsap.set(fadeParts, { opacity: 0 });
     gsap.set(provGroups, { opacity: 1 });
@@ -2255,7 +2256,9 @@ export function createEngineScene(): EngineScene {
     draw(queueBoxes[1]!, 24.1, 1.4);
     draw(slotLines[1]!, 24.9, 0.6, 0.1);
 
-    ft(gate, { drawSVG: "50% 50%" }, { drawSVG: GATE_SHORT, duration: 1.0, ease: "power2.out" }, 25.2);
+    // Screen-space dasharray law: end only on 0%/100%/50-50 — the short meter
+    // is its own full-range path, so it lands exactly centred on the queue.
+    ft(gateShort, { drawSVG: "50% 50%" }, { drawSVG: "0% 100%", duration: 1.0, ease: "power2.out" }, 25.2);
     draw(wGateWall, 25.6, 0.8);
     draw(provWires, 26.0, 2.0, 0.4);
     fadeIn([lblQueue, gateLabel], 26.2, 1.0, 1, 0.15);
@@ -2717,7 +2720,8 @@ export function createEngineScene(): EngineScene {
     draw([spP0, laneP0, spP2, laneP2], PHASE_D, 1.6, 0.3);
     draw([queueBoxes[0]!, queueBoxes[2]!], 81.0, 1.4, 0.2);
     draw([...slotLines[0]!, ...slotLines[2]!], 81.4, 0.6, 0.06);
-    ft(gate, { drawSVG: GATE_SHORT }, { drawSVG: GATE_FULL, duration: 1.4, ease: "power2.out" }, 81.6);
+    ft(gate, { drawSVG: "50% 50%" }, { drawSVG: GATE_FULL, duration: 1.4, ease: "power2.out" }, 81.6);
+    fadeOut(gateShort, 81.9, 0.5); // the full meter grows through it
     fadeOut(lblQueue, 82.0, 1.0);
     fadeIn([lblP1, lblP0, lblP2], 82.4, 1.0, 1, 0.16);
 
