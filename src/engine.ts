@@ -25,9 +25,12 @@
      C  THE ASSURANCE  three failures, three different endings, and they have
                        to read as three different mechanisms:
                          · RETRY — a 429 on a paced packet loops onto the
-                           retry rail and waits, visibly, at 1s · 4s · 16s,
-                           then goes back into the queue and delivers. A LATER
-                           attempt.
+                           retry rail, waits at 1s, GOES BACK ROUND AND TRIES
+                           AGAIN, is refused again, waits at 4s, tries again,
+                           and that one is delivered. Wait-then-attempt, never
+                           wait-then-wait: a backoff whose attempt is not drawn
+                           is three stops on a road, which is a picture of a
+                           message being delayed rather than retried.
                          · FAILOVER — a provider goes dark, the packet flies
                            all the way to it, BOUNCES off it, and reroutes
                            along the secondary wire to the next provider. The
@@ -41,10 +44,12 @@
                            not retry (it runs the rail past 1s · 4s · 16s
                            without lighting one of them) — it goes straight to
                            the dead-letter siding.
-                       Between the second and the third, a packet that spends
-                       all three backoffs and still fails rolls off the end of
-                       the rail and parks on the siding, in plain sight, still
-                       there. The permanent one parks beside it.
+                       Between the second and the third, a packet that runs the
+                       whole ladder — 1s, try, 4s, try, 16s, try — and is
+                       refused a fourth time has nothing left to wait on, so it
+                       rolls off the end of the rail and parks on the siding,
+                       in plain sight, still there. The permanent one parks
+                       beside it, having attempted exactly once.
      D  THE SCALE      the queue splits into three slotted rails, p0/p1/p2,
                        and one otp overtakes a flood of marketing. Seven
                        events collapse into one envelope. One event fans out
@@ -91,12 +96,13 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
    Below ~0.025 the dedupe and digest beats read as glitches; above ~0.05 the
    section overstays.
 
-   4.34 over 124 units is the same 0.035 that 3.5 over 100 and 3.92 over 112
-   were, so every beat consumes exactly the scroll it always did and both
-   later beats — skip-if-opened, then the permanent-error nuance — are pure
-   addition. The four phases now run 0.63 / 0.84 / 1.33 / 1.54
-   viewport-heights. */
-const PIN_HEIGHTS = 4.34;
+   4.55 over 130 units is the same 0.035 that 3.5 over 100, 3.92 over 112 and
+   4.34 over 124 were, so every beat consumes exactly the scroll it always did
+   and every later beat — skip-if-opened, the permanent-error nuance, then the
+   retry cycle — is pure addition. The four phases now run 0.63 / 0.84 / 1.54 /
+   1.54 viewport-heights: C and D are the same length, and they should be, as
+   they are the two halves of the argument. */
+const PIN_HEIGHTS = 4.55;
 
 /** Scrub catch-up, in seconds. 0.55 is enough to smooth a notched mouse wheel
  *  into continuous motion without the schematic feeling like it is on elastic.
@@ -115,24 +121,34 @@ const SCRUB = 0.55;
    (lanes, digest, fan-out, bridge) already overlap each other, and squeezing
    them is squeezing the argument.
 
-   It moved again, 112 → 124, for the same reason one phase earlier. Phase C
-   grew by C_ADD: the failover packet now flies to the dark provider and
-   bounces off it instead of turning away short of it (+1.5), and the
-   permanent-error beat is a whole new mechanism (+10.5). Neither could be
-   taken out of C's existing beats — the retry rail's three waits ARE the
-   backoff argument, and the dead-letter packet had to be given its own three
-   waits so that "it spent everything it had" is something the reader watches
-   rather than infers.
+   It has moved twice more since, both times for the same reason one phase
+   earlier, and both times by growing C_ADD:
+
+     +12  the failover packet flies to the dark provider and bounces off it
+          instead of turning away short of it, and the permanent-error beat
+          arrives as a whole new mechanism.
+     +6   the two retry packets stopped being packets that WAIT and became
+          packets that wait and then TRY AGAIN. Five wait-then-attempt cycles
+          (two for C1, three for C3) at RETRY_CYCLE apiece is most of it; the
+          rest is C3's fourth and final refusal, which is what earns the
+          siding. This one is not decoration: without the attempt, "backoff"
+          was drawn as three stops on a road.
+
+   Phase C paid for some of that itself — C1's own beat came out SHORTER than
+   the version it replaced, because a cycle at these rates costs less than the
+   two slow rail legs and the long return it used to make — so C2, C3 and C4
+   all start earlier inside the phase than they did.
 
    Phase D is written in absolute times and every one of them moved by exactly
-   C_ADD. Nothing about phase D's own shape changed; if a number in it looks
-   twelve too big against an old screenshot, this is why. */
+   C_ADD. Nothing about phase D's own shape has ever changed; if a number in
+   it looks eighteen too big against an old screenshot, this is why. */
 const PHASE_A = 0;
 const PHASE_B = 18;
 const PHASE_C = 42;
-/** How much phase C grew for the bounce and the permanent-error beat. Phase D
- *  and TL_END moved by this and nothing else did. */
-const C_ADD = 12;
+/** How much phase C has grown, in total, for the bounce, the permanent-error
+ *  beat and the retry cycle. Phase D and TL_END moved by this and nothing
+ *  else did. */
+const C_ADD = 18;
 const PHASE_D = 68 + C_ADD;
 const TL_END = 112 + C_ADD;
 
@@ -370,6 +386,59 @@ const QUEUE_HEAD_X = QUEUE_X1 - QUEUE_SLOT / 2;
 const BACKOFF_X = [880, 800, 720];
 const BACKOFF_LABEL = ["1s", "4s", "16s"];
 const BACKOFF_HOLD = [0.7, 1.0, 1.4];
+
+/* ── The retry CYCLE (phase C) ────────────────────────────────────────────
+   A backoff is not a rest stop, and the first version of this beat drew it as
+   one: the packet came down the rail, stopped at 1s, stopped at 4s, stopped
+   at 16s, and went back into the queue. Three stops on a road is a picture of
+   a message being DELAYED. A retry is a wait and then an ATTEMPT, and the
+   attempt was the half that was missing — which also made the dead-letter
+   packet unreadable, because "it spent everything it had" needs something to
+   have been spent ON.
+
+   One cycle, always in the same direction — no stretch of rail is ever run
+   backwards, because a road that a packet reverses down stops being a road:
+
+     the tick it waited on ──rail──▶ the rail's exit ──▶ the queue's head
+        (the re-enqueue: a retry goes to the BACK of the queue, same as the
+         rail has always said)
+     ──dep1──▶ the provider                 THE ATTEMPT
+     ──▶ refused (amber knock) ──▶ across the box, out of its far corner
+     ──rail──▶ the NEXT tick                THE NEXT WAIT, longer than the last
+
+   The RATES matter, but not in the way a first pass assumes. A lap covers
+   ~1450u of wire and a wait covers none, so in TIME the lap is always the
+   longer of the two and no tuning will change that. What has to be true is
+   that the lap never feels like a JOURNEY: every leg below is the shortest it
+   can be and still be followed at 0.035 viewport-heights a unit, and the six
+   of them run back to back with no pause anywhere inside them. The only place
+   in the whole cycle where the packet is STILL is the tick. Standing still is
+   what a backoff looks like; everything else is the engine getting on with
+   it, and one hesitation added anywhere in the lap would put a second kind of
+   stillness on screen and make the ticks stop meaning anything.
+
+   The last leg is the only one that changes between the two packets that use
+   this: C1's third attempt is answered green, C3's fourth is answered amber
+   with no tick left to walk to. */
+const RETRY_LEG = {
+  /** the tick → the rail's exit on the approach lane */
+  out: 0.62,
+  /** the exit → the queue's head. A retry is a re-enqueue. */
+  enqueue: 0.46,
+  /** the queue's head → the provider. THE ATTEMPT. */
+  strike: 0.58,
+  /** how long the provider takes to say no */
+  refuse: 0.22,
+  /** across the provider and out of its far corner onto the rail's head */
+  drop: 0.32,
+  /** the rail's head → the tick this refusal has earned */
+  in: 0.84,
+} as const;
+
+/** C1's holds, shortened for C3. Same order, same growth, half the dwell: by
+ *  its turn the reader has been taught this rhythm, and a second full-length
+ *  rendition of it is a lesson repeated rather than a story continued. */
+const DLQ_HOLD = [0.45, 0.55, 0.7];
 /** Where the dead-letter siding leaves the retry rail: past the last tick,
  *  because a packet only reaches it having spent every backoff it had. */
 const DLQ_BRANCH_X = 700;
@@ -537,34 +606,45 @@ const SKIP_JAMB_HALF = 5;
    1200px frame — in shot, and unreadable. */
 const CAM: { at: number; dur: number; z: number; fx: number; fy: number }[] = [
   { at: 18.0, dur: 3.0, z: 1.08, fx: 590, fy: 302 }, // B — the engine assembling
-  { at: 42.0, dur: 3.0, z: 0.98, fx: 634, fy: 384 }, // C1 — the retry rail
+  /* C1 — the retry CYCLE, and the frame has to hold the whole loop, because
+     the loop is the beat: the queue's head (773,310), the provider it strikes
+     (960,310), the rail's head (1150,333) and its own bulge at x 1192, and
+     the three ticks down at y 536. 634 ± 600/0.98 covers x 22…1246 and
+     384 ± 310/0.98 covers y 68…700, which is all of it with air. A camera
+     that followed the packet instead would be a camera that hides the
+     circuit. */
+  { at: 42.0, dur: 3.0, z: 0.98, fx: 634, fy: 384 },
   /* C2 — the bounce. Centred on the dark provider rather than on the fork,
      because the fork is no longer where the beat happens: 930 ± 600/1.22
      covers x 438…1422 and 232 ± 310/1.22 covers y −22…486, which holds the
      queue's head (773,310), the provider the packet knocks on (960,150), the
      cue under it (1055,198) and where the secondary wire lands (1000,287). */
-  { at: 58.4, dur: 2.2, z: 1.22, fx: 930, fy: 232 },
-  { at: 64.8, dur: 2.4, z: 0.98, fx: 720, fy: 430 }, // C3 — the dead-letter siding
+  { at: 55.5, dur: 2.2, z: 1.22, fx: 930, fy: 232 },
+  /* C3 — the exhausted packet's own circuit, which is C1's plus one more lap
+     and an ending. Same reason as C1 for the wide frame, and it also has to
+     hold the siding and the dead-letter box the fourth refusal sends it to:
+     720 ± 612 covers x 108…1332, 430 ± 316 covers y 114…746. */
+  { at: 60.9, dur: 2.4, z: 0.98, fx: 720, fy: 430 },
   /* C4 — the permanent error, which is the one beat in the scene that has to
      hold the provider column and the siding in ONE frame: the stamp lands at
      y 106 and the packet it names parks at y 576. At z 1.0, 880 ± 600 covers
      x 280…1480 and 330 ± 310 covers y 20…640 — the stamp, the cue, the road
      out at x 1180, all three backoff ticks it does not stop at, the siding,
      and the dlq aside at y 612. Any closer and one end falls off. */
-  { at: 71.0, dur: 2.6, z: 1.0, fx: 880, fy: 330 },
-  { at: 80.0, dur: 2.4, z: 1.14, fx: 640, fy: 318 }, // D1 — the three lanes
-  { at: 93.0, dur: 2.2, z: 1.22, fx: 620, fy: 306 }, // D2 — the digest
-  { at: 99.6, dur: 2.4, z: 1.06, fx: 820, fy: 310 }, // D3 — the fan-out
-  { at: 107.2, dur: 2.4, z: 0.92, fx: 606, fy: 306 }, // D4 — the receipts landing
+  { at: 77.0, dur: 2.6, z: 1.0, fx: 880, fy: 330 },
+  { at: 86.0, dur: 2.4, z: 1.14, fx: 640, fy: 318 }, // D1 — the three lanes
+  { at: 99.0, dur: 2.2, z: 1.22, fx: 620, fy: 306 }, // D2 — the digest
+  { at: 105.6, dur: 2.4, z: 1.06, fx: 820, fy: 310 }, // D3 — the fan-out
+  { at: 113.2, dur: 2.4, z: 0.92, fx: 606, fy: 306 }, // D4 — the receipts landing
   /* D5 — the workflow ladder. Framed so the ladder (x 18–263) sits left of
      centre and the strip's email tick at x 340, where the "opened" receipt
      leaves from, is still in shot: 300 ± 600/1.26 covers x −176…776, and
      168 ± 310/1.26 covers y −78…414. */
-  { at: 112.2, dur: 2.6, z: 1.26, fx: 300, fy: 168 },
+  { at: 118.2, dur: 2.6, z: 1.26, fx: 300, fy: 168 },
   /* D6 — the whole anatomy, which now runs from the ladder at x 18 to the
      rail entry at x 1150, and from the strip at y 34 to the dlq aside at
      y 612. 584 ± 682 and 323 ± 352 clears both with air at every edge. */
-  { at: 121.6, dur: 2.4, z: 0.88, fx: 584, fy: 323 },
+  { at: 127.6, dur: 2.4, z: 0.88, fx: 584, fy: 323 },
 ];
 const CAM_START = { z: 1, fx: 600, fy: 310 };
 
@@ -572,15 +652,15 @@ const CAM_START = { z: 1, fx: 600, fy: 310 };
    Timeline unit each caption owns the rail from. The last three are all
    inside phase D: the priority lanes, the bridge, and what the engine does
    with what comes back over it are three different sentences. The bridge
-   still owns 4.5 units (107.5 → 112), exactly as it did before the timeline
-   was lengthened twice; the condition owns 12 (112 → 124).
+   still owns 4.5 units (113.5 → 118), exactly as it did before the timeline
+   was lengthened three times; the condition owns 12 (118 → 130).
 
-   "The assurance" is now the longest-held caption in the scene — 38 units,
-   1.33 viewport-heights — and it stays one caption on purpose: retry,
+   "The assurance" is now the longest-held caption in the scene — 44 units,
+   1.54 viewport-heights — and it stays one caption on purpose: retry,
    failover and permanent are three answers to the SAME question, and cutting
    them into three cards would turn one argument into three claims. The
    caption names all three so the reader has the frame before the beats. */
-const CAP_AT = [0, PHASE_B, PHASE_C, PHASE_D, 107.5, 112.0];
+const CAP_AT = [0, PHASE_B, PHASE_C, PHASE_D, 113.5, 118.0];
 const CAP_FADE = 1.6;
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -826,6 +906,22 @@ export function createEngineScene(): EngineScene {
   if (FLOOD_A_REFUSE >= FLOOD_A_PITCH) {
     throw new Error("[engine] FLOOD_A_REFUSE never overtakes the flood");
   }
+  /* The retry cycle's own contract, and it is the argument rather than the
+     geometry. The ONE thing 1s · 4s · 16s says is that each wait is longer
+     than the last, and the only thing on screen that says it is how long the
+     packet stands on each tick — the labels are text, and text is not what
+     the reader is watching. A ladder that stopped growing would still animate
+     perfectly, still hit every tick, and would be saying "the engine waits a
+     bit, three times", which is not backoff. Both ladders, because C3's are
+     shortened by hand and shortening is exactly how the order gets lost. */
+  for (const ladder of [BACKOFF_HOLD, DLQ_HOLD]) {
+    for (let i = 1; i < ladder.length; i++) {
+      if (ladder[i]! <= ladder[i - 1]!) {
+        throw new Error("[engine] a backoff ladder stopped growing — that is not a backoff");
+      }
+    }
+  }
+
   /* And the third contract: a gate only means anything if it is between the
      thing that wants to move and the thing it wants to move into. Slide the
      bar above the waiting packet and the packet is standing on the wrong side
@@ -2083,18 +2179,20 @@ export function createEngineScene(): EngineScene {
     fadeOut(lblIdem, 40.6, 1.2, 0.9);
 
     /* ══════════════════════════════════════════════════════════════════════
-       PHASE C — THE ASSURANCE   (42 → 80)
+       PHASE C — THE ASSURANCE   (42 → 86)
        ──────────────────────────────────────────────────────────────────────
        Four failures, and the reader has to be able to tell them apart from
        the motion alone:
 
-         C1  retry        429 → rail → 1s · 4s · 16s → back into the queue →
-                          delivered.               A LATER attempt.
+         C1  retry        429 → rail → wait 1s → TRY → 429 → wait 4s → TRY →
+                          delivered.               Two waits, three attempts.
          C2  failover     dark provider → the packet BOUNCES off it → back to
                           the fork → secondary wire → delivered at the next
                           provider.                The SAME attempt.
-         C3  exhausted    429 → rail → all three waits spent → off the end of
-                          the rail → parked.       Every attempt, used up.
+         C3  exhausted    the same circuit, one lap further: 1s · try · 4s ·
+                          try · 16s · try, refused a fourth time with no tick
+                          left to walk to → off the end of the rail → parked.
+                                                   Every attempt, used up.
          C4  permanent    healthy provider, bad address → the secondary wire
                           greys out, untaken → the rail run at a constant rate
                           with no tick lit → parked beside C3's.
@@ -2103,10 +2201,76 @@ export function createEngineScene(): EngineScene {
        The three of them that end at a provider all leave it the same way and
        that is deliberate: the vocabulary of a failure is fixed, and what
        varies is what the packet does with it. C2 never reaches the rail at
-       all, C3 stops three times on it, C4 stops nowhere.
+       all; C1 goes round the loop twice and C3 three times; C4 crosses the
+       rail once, stopping nowhere, which is only legible BECAUSE the other
+       two have just been seen stopping.
+
+       See RETRY_LEG for the shape of one lap and why its legs are so short.
        ══════════════════════════════════════════════════════════════════════ */
 
-    /* ── C1: retry with backoff ──────────────────────────────────────────── */
+    /* ── the two marks a refusal makes ─────────────────────────────────────
+       The provider's box goes amber and the stamp names the code. The FIRST
+       refusal of a packet gets the long form; every repeat gets the knock —
+       shorter, same vocabulary as the failover bounce — because by then the
+       reader knows what amber on that box means and a full-length stamp on
+       every lap would turn a rhythm into a stutter. */
+    function refuse(at: number, repeat: boolean): void {
+      const hold = repeat ? 0.34 : 0.7;
+      ft(provRects[1]!, { stroke: COLOR.hairline }, { stroke: COLOR.amber, duration: repeat ? 0.14 : 0.4 }, at);
+      ft(provRects[1]!, { stroke: COLOR.amber }, { stroke: COLOR.hairline, duration: repeat ? 0.5 : 0.7 }, at + hold);
+      fadeIn(stampRetry, at + 0.05, repeat ? 0.4 : 0.8);
+      fadeOut(stampRetry, at + hold + 0.2, repeat ? 0.5 : 0.8);
+    }
+
+    /** The wait itself: the tick the packet is standing on lights while it
+     *  stands there. Without it the reader sees a dot that stopped, not a dot
+     *  that is waiting — and the light going out is the starting gun for the
+     *  attempt that follows. */
+    function waitAt(i: number, at: number, hold: number): number {
+      ft(backoffTicks[i]!, { opacity: 0.85 }, { opacity: 1, duration: 0.2 }, at);
+      ft(backoffTicks[i]!, { opacity: 1 }, { opacity: 0.85, duration: 0.3 }, at + hold - 0.3);
+      return at + hold;
+    }
+
+    /** The rail's head → tick `i`. Decelerating, because it is arriving at a
+     *  place it has to stand. Walks straight past any earlier tick without
+     *  lighting it: the wait it has earned is the one it stops on. */
+    function railToTick(dot: Element, at: number, i: number): number {
+      run(dot, retryRail, at, RETRY_LEG.in, { start: 0, end: backoffFrac[i]!, ease: "power2.out" });
+      return at + RETRY_LEG.in;
+    }
+
+    /** One lap: leave the tick, re-enter the queue at its head, and strike the
+     *  provider. `refused` is false only for a lap that ends in delivery, and
+     *  even then the DELIVERING is left to the caller — what a successful
+     *  attempt looks like belongs to the beat, not to the loop. Returns the
+     *  time the packet is back on the rail's head, or, for the lap that
+     *  succeeds, the time it lands. */
+    function retryLap(dot: Element, at: number, fromFrac: number, refused: boolean): number {
+      run(dot, retryRail, at, RETRY_LEG.out, { start: fromFrac, end: 1, ease: "power1.inOut" });
+      ft(
+        dot,
+        { x: RAIL_EXIT_X, y: SPINE_Y },
+        { x: QUEUE_HEAD_X, duration: RETRY_LEG.enqueue, ease: "power1.inOut" },
+        at + RETRY_LEG.out,
+      );
+      const strike = at + RETRY_LEG.out + RETRY_LEG.enqueue;
+      run(dot, dep1, strike, RETRY_LEG.strike, { ease: "power1.inOut" });
+      const hit = strike + RETRY_LEG.strike;
+      if (!refused) return hit;
+      refuse(hit, true);
+      /* Across the provider and out of its far corner — the same move the
+         first refusal makes, and the reason the rail starts where it does. */
+      ft(
+        dot,
+        { x: PROV_X, y: SPINE_Y },
+        { x: RAIL_ENTRY_X, y: RAIL_ENTRY_Y, duration: RETRY_LEG.drop, ease: "power1.inOut" },
+        hit + RETRY_LEG.refuse,
+      );
+      return hit + RETRY_LEG.refuse + RETRY_LEG.drop;
+    }
+
+    /* ── C1: retry — wait, then try again ────────────────────────────────── */
     draw(retryRail, PHASE_C, 3.2);
     fadeIn(backoffTicks, 44.2, 0.9, 0.85, 0.2);
     fadeIn(backoffLabels, 44.4, 0.9, 1, 0.2);
@@ -2117,65 +2281,60 @@ export function createEngineScene(): EngineScene {
     ft(R, { x: API_CX }, { x: QUEUE_HEAD_X, duration: 1.2, ease: "power2.out" }, 44.1);
     run(R, dep1, 45.8, 2.2, { ease: "power1.inOut" });
 
-    /* Refused. Amber, stamped, and onto the rail. */
-    ft(provRects[1]!, { stroke: COLOR.hairline }, { stroke: COLOR.amber, duration: 0.4 }, 48.0);
-    fadeIn(stampRetry, 48.1, 0.9);
-    ft(R, { fill: COLOR.greenDim }, { fill: COLOR.amber, duration: 0.3 }, 48.2);
+    /* Attempt 1, refused in full. Amber, stamped, and onto the rail — the rail
+       begins at the provider's bottom-RIGHT corner, so a refused packet
+       crosses the box that rejected it and drops out of the far side. */
+    const R_HIT = 48.0;
+    refuse(R_HIT, false);
+    ft(R, { fill: COLOR.greenDim }, { fill: COLOR.amber, duration: 0.3 }, R_HIT + 0.2);
+    ft(
+      R,
+      { x: PROV_X, y: SPINE_Y },
+      { x: RAIL_ENTRY_X, y: RAIL_ENTRY_Y, duration: 0.45, ease: "power1.inOut" },
+      R_HIT + 0.3,
+    );
 
-    /* The waits. Each hold is longer than the last (BACKOFF_HOLD), and the
-       tick the packet is sitting on lights up while it waits — otherwise the
-       reader sees a dot that stopped, not a dot that is waiting. */
-    /* The rail begins at the provider's bottom-left corner, not at its inlet:
-       a refused packet drops out of the bottom of the box onto the siding. */
-    ft(R, { x: PROV_X, y: SPINE_Y }, { x: RAIL_ENTRY_X, y: RAIL_ENTRY_Y, duration: 0.5, ease: "power1.inOut" }, 48.3);
+    /* 1s · try · 4s · try. Two waits and two more attempts: three in all,
+       which is the shortest run that shows a backoff GROWING and still ends
+       on a success the reader has been made to wait for. A third wait would
+       show the same thing a third time, and 16s belongs to C3 — the packet
+       that gets all the way to the end of the ladder is the one that does not
+       come back. */
+    let rc = R_HIT + 0.75;
+    rc = waitAt(0, railToTick(R, rc, 0), BACKOFF_HOLD[0]!);
+    rc = retryLap(R, rc, backoffFrac[0]!, true);
+    rc = waitAt(1, railToTick(R, rc, 1), BACKOFF_HOLD[1]!);
 
-    let cursor = 48.8;
-    let segFrom = 0;
-    backoffFrac.forEach((f, i) => {
-      const leg = i === 0 ? 1.2 : 0.62;
-      run(R, retryRail, cursor, leg, { start: segFrom, end: f, ease: "power1.inOut" });
-      cursor += leg;
-      const hold = BACKOFF_HOLD[i]!;
-      ft(backoffTicks[i]!, { opacity: 0.85 }, { opacity: 1, duration: 0.2 }, cursor);
-      ft(backoffTicks[i]!, { opacity: 1 }, { opacity: 0.85, duration: 0.3 }, cursor + hold - 0.3);
-      cursor += hold;
-      segFrom = f;
-    });
-
-    /* Back into the queue, re-metered, delivered. */
-    run(R, retryRail, cursor, 1.5, { start: segFrom, end: 1, ease: "power2.out" });
-    ft(R, { fill: COLOR.amber }, { fill: COLOR.greenDim, duration: 0.6 }, cursor + 1.1);
-    ft(R, { x: RAIL_EXIT_X, y: SPINE_Y }, { x: QUEUE_HEAD_X, duration: 1.0 }, cursor + 1.5);
-    run(R, dep1, cursor + 2.5, 2.0, { ease: "power1.inOut" });
-    deliver(R, cursor + 4.5);
-
-    fadeOut(stampRetry, cursor + 1.6, 1.0);
-    ft(provRects[1]!, { stroke: COLOR.amber }, { stroke: COLOR.hairline, duration: 1.0 }, cursor + 1.6);
+    /* And this one is answered. The amber comes off on the way in — it was
+       the failure it was carrying, and it is not carrying it any more. */
+    const R_LAND = retryLap(R, rc, backoffFrac[1]!, false);
+    ft(R, { fill: COLOR.amber }, { fill: COLOR.greenDim, duration: 0.5 }, R_LAND - 0.75);
+    deliver(R, R_LAND);
 
     /* ── C2: failover — the bounce and the reroute ───────────────────────── */
-    draw(failWire, 56.6, 1.6);
+    draw(failWire, 53.7, 1.6);
 
     /* The email provider goes dark. Three quick steps, not a fade: an outage
        is not a dimmer switch. */
-    ft(provGroups[0]!, { opacity: 1 }, { opacity: 0.2, duration: 0.14 }, 58.6);
-    ft(provGroups[0]!, { opacity: 0.2 }, { opacity: 0.85, duration: 0.12 }, 58.8);
-    ft(provGroups[0]!, { opacity: 0.85 }, { opacity: 0.16, duration: 0.16 }, 59.0);
-    ft(provGroups[0]!, { opacity: 0.16 }, { opacity: 0.26, duration: 0.5 }, 59.3);
+    ft(provGroups[0]!, { opacity: 1 }, { opacity: 0.2, duration: 0.14 }, 55.7);
+    ft(provGroups[0]!, { opacity: 0.2 }, { opacity: 0.85, duration: 0.12 }, 55.9);
+    ft(provGroups[0]!, { opacity: 0.85 }, { opacity: 0.16, duration: 0.16 }, 56.1);
+    ft(provGroups[0]!, { opacity: 0.16 }, { opacity: 0.26, duration: 0.5 }, 56.4);
 
     /** When the packet touches the dark provider. Every mark in the beat — the
      *  blink, the recoil, the cue — is written against this, because the whole
      *  beat is a consequence of one contact. */
-    const BOUNCE_AT = 62.3;
+    const BOUNCE_AT = 59.4;
 
     const F = dC.fail;
-    fadeIn(F, 58.8, 0.3);
-    ft(F, { x: APP_OUT_X, y: SPINE_Y }, { x: API_CX, duration: 0.7 }, 58.8);
-    ft(F, { x: API_CX }, { x: QUEUE_HEAD_X, duration: 0.9, ease: "power2.out" }, 59.5);
+    fadeIn(F, 55.9, 0.3);
+    ft(F, { x: APP_OUT_X, y: SPINE_Y }, { x: API_CX, duration: 0.7 }, 55.9);
+    ft(F, { x: API_CX }, { x: QUEUE_HEAD_X, duration: 0.9, ease: "power2.out" }, 56.6);
     /* All the way to the provider, and accelerating into it. `power1.in` is
        the one place in the scene an ease-in is right: this is not a frame the
        reader triggered, it is an object arriving, and an object arriving
        speeds up. */
-    run(F, dep0, 60.6, 1.7, { end: 1, ease: "power1.in" });
+    run(F, dep0, 57.7, 1.7, { end: 1, ease: "power1.in" });
 
     /* CONTACT. The packet goes amber, and the dark box answers with one amber
        knock — up from its outage opacity, not to full, so the flicker reads as
@@ -2199,62 +2358,73 @@ export function createEngineScene(): EngineScene {
     /* And the SAME packet takes the other road. Back down its own route to the
        fork, then out along the secondary wire — one attempt, two providers,
        which is exactly what a provider chain is. */
-    run(F, dep0, 62.95, 0.5, { start: 1 - BOUNCE_BACK, end: FAILOVER_SPLIT, ease: "power1.in" });
-    run(F, failWire, 63.45, 1.2, { ease: "power1.out" });
+    run(F, dep0, 60.05, 0.5, { start: 1 - BOUNCE_BACK, end: FAILOVER_SPLIT, ease: "power1.in" });
+    run(F, failWire, 60.55, 1.2, { ease: "power1.out" });
     /* Amber is the failure it is carrying, and it stops carrying it once it is
        committed to a provider that is answering. Back to rest green before
        deliver()'s fromTo needs it there. */
-    ft(F, { fill: COLOR.amber }, { fill: COLOR.greenDim, duration: 0.5 }, 63.7);
-    deliver(F, 64.65);
-    fadeOut(asideFailover, 66.6, 1.2);
+    ft(F, { fill: COLOR.amber }, { fill: COLOR.greenDim, duration: 0.5 }, 60.8);
+    deliver(F, 61.75);
+    fadeOut(asideFailover, 63.7, 1.2);
 
     /* The provider comes back. It was their outage, not a deletion. */
-    ft(provGroups[0]!, { opacity: 0.26 }, { opacity: 1, duration: 1.4 }, 67.2);
+    ft(provGroups[0]!, { opacity: 0.26 }, { opacity: 1, duration: 1.4 }, 64.3);
 
     /* ── C3: retries exhausted → the dead-letter siding ──────────────────── */
-    draw(dlqRail, 64.2, 2.0);
-    drawBox(dlqBox, 64.5, 2.0);
+    draw(dlqRail, 61.4, 2.0);
+    drawBox(dlqBox, 61.7, 2.0);
 
     /* Same provider as C1, because there is only one retry rail and it starts
        where it starts — and the same 429 stamp, because it is the same
-       refusal. What is different is the ending.
+       refusal. What is different is the ending, and the ending only means
+       anything if the ladder in front of it is CLIMBED.
 
-       This packet SPENDS its three waits and still fails. It used to run the
-       rail straight through in one 1.5-unit sweep, which reads as "it did not
-       try" — the exact sentence C4 was later built to own. So it stops at
-       every tick, at holds visibly shorter than C1's: the reader has already
-       been taught this rhythm, and a second full-length rendition of it is a
-       lesson repeated rather than a story continued. Three stops and then no
-       fourth tick to stop at is what "exhausted" looks like. */
+       So this is C1's circuit with one more lap on it: 1s · try · 4s · try ·
+       16s · try, and the fourth refusal has no tick left to walk to. The
+       holds are DLQ_HOLD — shorter than C1's, because the reader has already
+       been taught this rhythm and a second full-length rendition of it is a
+       lesson repeated rather than a story continued — but the laps are the
+       same laps, at the same rates, so what the reader is counting is the
+       number of them.
+
+       An earlier version had this packet run the rail straight through in one
+       sweep, stopping nowhere. That reads as "it did not try", which is the
+       exact sentence C4 was built to own, and it left "exhausted" as
+       something the caption asserted rather than something the schematic
+       showed. */
     const L = dC.dlq;
-    fadeIn(L, 63.4, 0.3);
-    ft(L, { x: APP_OUT_X, y: SPINE_Y }, { x: API_CX, duration: 0.7 }, 63.4);
-    ft(L, { x: API_CX }, { x: QUEUE_HEAD_X, duration: 0.9, ease: "power2.out" }, 64.1);
-    run(L, dep1, 65.2, 1.5, { ease: "power1.inOut" });
-    ft(provRects[1]!, { stroke: COLOR.hairline }, { stroke: COLOR.amber, duration: 0.4 }, 66.7);
-    fadeIn(stampRetry, 66.75, 0.9);
-    ft(L, { fill: COLOR.greenDim }, { fill: COLOR.amber, duration: 0.3 }, 66.8);
-    ft(L, { x: PROV_X, y: SPINE_Y }, { x: RAIL_ENTRY_X, y: RAIL_ENTRY_Y, duration: 0.5, ease: "power1.inOut" }, 66.8);
+    fadeIn(L, 60.6, 0.3);
+    ft(L, { x: APP_OUT_X, y: SPINE_Y }, { x: API_CX, duration: 0.7 }, 60.6);
+    ft(L, { x: API_CX }, { x: QUEUE_HEAD_X, duration: 0.9, ease: "power2.out" }, 61.3);
+    run(L, dep1, 62.4, 1.4, { ease: "power1.inOut" });
 
-    /** C1's holds, shortened. Same order, same growth, half the dwell. */
-    const DLQ_HOLD = [0.45, 0.55, 0.7];
-    let dlqCursor = 67.4;
-    let dlqFrom = 0;
-    backoffFrac.forEach((f, i) => {
-      const leg = i === 0 ? 0.9 : 0.5;
-      run(L, retryRail, dlqCursor, leg, { start: dlqFrom, end: f, ease: "power1.inOut" });
-      dlqCursor += leg;
-      const hold = DLQ_HOLD[i]!;
-      ft(backoffTicks[i]!, { opacity: 0.85 }, { opacity: 1, duration: 0.2 }, dlqCursor);
-      ft(backoffTicks[i]!, { opacity: 1 }, { opacity: 0.85, duration: 0.3 }, dlqCursor + hold - 0.3);
-      dlqCursor += hold;
-      dlqFrom = f;
-    });
+    /* Attempt 1, refused in full, exactly as C1's was. */
+    const L_HIT = 63.8;
+    refuse(L_HIT, false);
+    ft(L, { fill: COLOR.greenDim }, { fill: COLOR.amber, duration: 0.3 }, L_HIT + 0.1);
+    ft(
+      L,
+      { x: PROV_X, y: SPINE_Y },
+      { x: RAIL_ENTRY_X, y: RAIL_ENTRY_Y, duration: 0.45, ease: "power1.inOut" },
+      L_HIT + 0.15,
+    );
 
-    /* Past the last tick there is nowhere left to wait, so the rail hands it
-       to the siding. */
-    run(L, retryRail, dlqCursor, 0.8, { start: dlqFrom, end: dlqFrac, ease: "power1.inOut" });
-    run(L, dlqRail, dlqCursor + 0.8, 1.1, { ease: "power2.out" });
+    /* Three laps. Every one of them ends in a refusal, and the third one ends
+       standing on 16s with the ladder behind it. */
+    let lc = L_HIT + 0.75;
+    for (let i = 0; i < 3; i++) {
+      lc = waitAt(i, railToTick(L, lc, i), DLQ_HOLD[i]!);
+      lc = retryLap(L, lc, backoffFrac[i]!, true);
+    }
+
+    /* The fourth refusal is the one that matters: there is no fourth tick, so
+       the rail carries it PAST all three — none of them lighting, because
+       there is nothing left to wait for — and hands it to the siding. Slower
+       than C4's identical-looking run and eased at both ends: that one is a
+       packet that was never going to stop, this one is a packet that has run
+       out of places to. */
+    run(L, retryRail, lc, 1.5, { end: dlqFrac, ease: "power1.inOut" });
+    run(L, dlqRail, lc + 1.5, 1.1, { ease: "power2.out" });
     /* And parks DEEPEST in the box — the first arrival goes furthest in, so
        the one that follows it in C4 has the mouth to stand in. No fade-out
        anywhere for what it leaves behind: it is still on screen at the end of
@@ -2263,15 +2433,13 @@ export function createEngineScene(): EngineScene {
       L,
       { x: DLQ_RIGHT, y: DLQ_CY },
       { x: DLQ_PARK_X[0]!, duration: 0.6, ease: "power2.out" },
-      dlqCursor + 1.9,
+      lc + 2.6,
     );
-    ft(provRects[1]!, { stroke: COLOR.amber }, { stroke: COLOR.hairline, duration: 1.2 }, 69.0);
-    fadeOut(stampRetry, 69.0, 1.0);
-    fadeIn([dlqLabel, dlqAside], 69.0, 1.1, 1, 0.2);
+    fadeIn([dlqLabel, dlqAside], lc - 1.4, 1.1, 1, 0.2);
     /* The packet hands over to a permanent mark, same as the receipts do on
        the timeline strip. Nothing on this siding depends on having watched. */
-    fadeIn(dlqMarks[0]!, dlqCursor + 2.6, 0.5);
-    fadeOut(L, dlqCursor + 2.7, 0.4);
+    fadeIn(dlqMarks[0]!, lc + 3.3, 0.5);
+    fadeOut(L, lc + 3.4, 0.4);
 
     /* ── C4: the permanent error — the nuance ────────────────────────────── */
     /* Everything above is the provider's fault. This one is the MESSAGE's, and
@@ -2291,44 +2459,44 @@ export function createEngineScene(): EngineScene {
            and C3 both stopped at all three; this one has no attempt left to
            make because it never had a second one. */
     const P = dC.perm;
-    fadeIn(P, 71.0, 0.3);
-    ft(P, { x: APP_OUT_X, y: SPINE_Y }, { x: API_CX, duration: 0.7 }, 71.0);
-    ft(P, { x: API_CX }, { x: QUEUE_HEAD_X, duration: 0.9, ease: "power2.out" }, 71.7);
+    fadeIn(P, 75.9, 0.3);
+    ft(P, { x: APP_OUT_X, y: SPINE_Y }, { x: API_CX, duration: 0.7 }, 75.9);
+    ft(P, { x: API_CX }, { x: QUEUE_HEAD_X, duration: 0.9, ease: "power2.out" }, 76.6);
     /* Straight past the fork, on the road whose fork the reader has just
        watched be taken, to a provider at full opacity. */
-    run(P, dep0, 72.8, 1.4, { ease: "power1.inOut" });
+    run(P, dep0, 77.7, 1.4, { ease: "power1.inOut" });
 
-    fadeIn(stampInvalid, 74.25, 0.7);
-    ft(P, { fill: COLOR.greenDim }, { fill: COLOR.amber, duration: 0.3 }, 74.3);
+    fadeIn(stampInvalid, 79.15, 0.7);
+    ft(P, { fill: COLOR.greenDim }, { fill: COLOR.amber, duration: 0.3 }, 79.2);
     /* The road not taken, saying so. Dimming an already-hairline stroke to a
        fifth is close to erasing it, which is the point — for the length of
        this beat the crossover is not an option. */
-    ft(failWire, { opacity: 1 }, { opacity: 0.2, duration: 0.35 }, 74.45);
-    fadeIn(asidePerm, 74.65, 1.0);
+    ft(failWire, { opacity: 1 }, { opacity: 0.2, duration: 0.35 }, 79.35);
+    fadeIn(asidePerm, 79.55, 1.0);
 
-    run(P, gPerm, 75.1, 1.0, { ease: "power1.inOut" });
+    run(P, gPerm, 80.0, 1.0, { ease: "power1.inOut" });
     /* Ease "none", and it is load-bearing rather than a default: a packet that
        eases along this rail is a packet pausing, and pausing on this rail is
        the one thing this packet never does. Constant rate, three dark ticks,
        straight onto the siding. */
-    run(P, retryRail, 76.1, 1.6, { end: dlqFrac, ease: "none" });
-    ft(failWire, { opacity: 0.2 }, { opacity: 1, duration: 1.0 }, 76.9);
-    fadeOut(stampInvalid, 77.4, 1.0);
-    run(P, dlqRail, 77.7, 1.0, { ease: "power2.out" });
-    fadeOut(asidePerm, 78.2, 1.2);
+    run(P, retryRail, 81.0, 1.6, { end: dlqFrac, ease: "none" });
+    ft(failWire, { opacity: 0.2 }, { opacity: 1, duration: 1.0 }, 81.8);
+    fadeOut(stampInvalid, 82.3, 1.0);
+    run(P, dlqRail, 82.6, 1.0, { ease: "power2.out" });
+    fadeOut(asidePerm, 83.1, 1.2);
     /* Parked at the mouth, beside the one that spent everything it had. Two
        marks, two reasons, one siding — and both still there in the finale. */
     ft(
       P,
       { x: DLQ_RIGHT, y: DLQ_CY },
       { x: DLQ_PARK_X[1]!, duration: 0.5, ease: "power2.out" },
-      78.7,
+      83.6,
     );
-    fadeIn(dlqMarks[1]!, 79.3, 0.5);
-    fadeOut(P, 79.4, 0.4);
+    fadeIn(dlqMarks[1]!, 84.2, 0.5);
+    fadeOut(P, 84.3, 0.4);
 
     /* ══════════════════════════════════════════════════════════════════════
-       PHASE D — THE SCALE   (80 → 124)
+       PHASE D — THE SCALE   (86 → 130)
        ══════════════════════════════════════════════════════════════════════ */
 
     /* ── D1: priority lanes ──────────────────────────────────────────────── */
@@ -2338,11 +2506,11 @@ export function createEngineScene(): EngineScene {
        different kind of thing, and it is not — it is the same queue, three
        times, with a meter that now spans all three. */
     draw([spP0, laneP0, spP2, laneP2], PHASE_D, 1.6, 0.3);
-    draw([queueBoxes[0]!, queueBoxes[2]!], 81.0, 1.4, 0.2);
-    draw([...slotLines[0]!, ...slotLines[2]!], 81.4, 0.6, 0.06);
-    ft(gate, { drawSVG: GATE_SHORT }, { drawSVG: GATE_FULL, duration: 1.4, ease: "power2.out" }, 81.6);
-    fadeOut(lblQueue, 82.0, 1.0);
-    fadeIn([lblP1, lblP0, lblP2], 82.4, 1.0, 1, 0.16);
+    draw([queueBoxes[0]!, queueBoxes[2]!], 87.0, 1.4, 0.2);
+    draw([...slotLines[0]!, ...slotLines[2]!], 87.4, 0.6, 0.06);
+    ft(gate, { drawSVG: GATE_SHORT }, { drawSVG: GATE_FULL, duration: 1.4, ease: "power2.out" }, 87.6);
+    fadeOut(lblQueue, 88.0, 1.0);
+    fadeIn([lblP1, lblP0, lblP2], 88.4, 1.0, 1, 0.16);
 
     dD.flood.forEach((dot, i) => {
       const t = FLOOD_T0 + i * FLOOD_GAP;
@@ -2361,46 +2529,46 @@ export function createEngineScene(): EngineScene {
     /* ── D2: digest ──────────────────────────────────────────────────────── */
     dD.digest.forEach((dot, i) => {
       const x0 = 470 + i * 30;
-      ft(dot, { opacity: 0, x: x0, y: SPINE_Y }, { opacity: 1, duration: 0.5 }, 93.0 + i * 0.08);
-      ft(dot, { x: x0 }, { x: QUEUE_HEAD_X, duration: 1.5, ease: "power2.in" }, 94.0 + i * 0.06);
-      fadeOut(dot, 95.2 + i * 0.05, 0.4);
+      ft(dot, { opacity: 0, x: x0, y: SPINE_Y }, { opacity: 1, duration: 0.5 }, 99.0 + i * 0.08);
+      ft(dot, { x: x0 }, { x: QUEUE_HEAD_X, duration: 1.5, ease: "power2.in" }, 100.0 + i * 0.06);
+      fadeOut(dot, 101.2 + i * 0.05, 0.4);
     });
-    ft(digestEnv, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.8, ease: "power2.out" }, 95.2);
+    ft(digestEnv, { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.8, ease: "power2.out" }, 101.2);
     /* Name above the spine, count below it, envelope on it. The engraving
        does NOT leave with the count: like EVENT-DRIVEN ARCHITECTURE it names
        a mechanism that is still in the finished anatomy — the queue it
        collapses into is right there — so by the finale the reader is looking
        at a diagram with the words for its own parts cut into it. */
-    fadeIn(lblDigest, 95.4, 1.2, 0.9);
-    fadeIn(asideDigest, 95.6, 0.9);
-    run(digestEnv, dep0, 96.8, 1.9, { ease: "power1.inOut" });
-    ft(digestEnv, { stroke: COLOR.greenDim }, { stroke: COLOR.green, duration: 0.2 }, 98.7);
-    fadeOut(digestEnv, 99.0, 0.8);
-    fadeOut(asideDigest, 99.0, 1.0);
+    fadeIn(lblDigest, 101.4, 1.2, 0.9);
+    fadeIn(asideDigest, 101.6, 0.9);
+    run(digestEnv, dep0, 102.8, 1.9, { ease: "power1.inOut" });
+    ft(digestEnv, { stroke: COLOR.greenDim }, { stroke: COLOR.green, duration: 0.2 }, 104.7);
+    fadeOut(digestEnv, 105.0, 0.8);
+    fadeOut(asideDigest, 105.0, 1.0);
 
     /* ── D3: the fan-out ─────────────────────────────────────────────────── */
     /* The providers hand over to the channels they exist to reach. They leave
        before the terminals arrive rather than crossfading with them — the two
        columns share x, and half a box on top of half a box is mush. */
-    fadeOut([...provGroups, ...provWires, failWire], 99.8, 1.3);
+    fadeOut([...provGroups, ...provWires, failWire], 105.8, 1.3);
 
-    draw(fanWires, 101.2, 1.6, 0.14);
-    drawBox(termRects, 101.4, 1.4, 0.18);
-    fadeIn(termLabels, 102.0, 0.9, 1, 0.14);
-    fadeIn(termDots, 102.0, 0.9, 1, 0.14);
+    draw(fanWires, 107.2, 1.6, 0.14);
+    drawBox(termRects, 107.4, 1.4, 0.18);
+    fadeIn(termLabels, 108.0, 0.9, 1, 0.14);
+    fadeIn(termDots, 108.0, 0.9, 1, 0.14);
 
     /* The junction gets its name the moment it does the thing the name is for.
        It does not leave again: by the end of the scene the reader is looking at
        the whole anatomy, and this is the word for the shape of it. 0.9 rather
        than 1 keeps it engraved rather than printed. */
-    fadeIn(asideEda, 101.8, 1.4, 0.9);
+    fadeIn(asideEda, 107.8, 1.4, 0.9);
 
-    fadeIn(dD.fanIn, 103.0, 0.3);
-    run(dD.fanIn, gFanIn, 103.0, 2.2, { ease: "power1.inOut" });
-    fadeOut(dD.fanIn, 105.1, 0.2);
+    fadeIn(dD.fanIn, 109.0, 0.3);
+    run(dD.fanIn, gFanIn, 109.0, 2.2, { ease: "power1.inOut" });
+    fadeOut(dD.fanIn, 111.1, 0.2);
 
     dD.fan.forEach((dot, i) => {
-      const t = 105.2 + i * 0.09;
+      const t = 111.2 + i * 0.09;
       fadeIn(dot, t, 0.2);
       run(dot, fanWires[i]!, t, 1.35, { ease: "power1.inOut" });
       const arrive = t + 1.35;
@@ -2423,12 +2591,12 @@ export function createEngineScene(): EngineScene {
     });
 
     /* ── D4: the bridge ──────────────────────────────────────────────────── */
-    draw(stripLine, 107.0, 1.5);
-    fadeIn(stripLabel, 107.4, 0.9);
-    fadeIn(stripTicks, 107.6, 0.8, 1, 0.1);
+    draw(stripLine, 113.0, 1.5);
+    fadeIn(stripLabel, 113.4, 0.9);
+    fadeIn(stripTicks, 113.6, 0.8, 1, 0.1);
 
     dD.back.forEach((dot, i) => {
-      const t = 108.6 + i * 0.16;
+      const t = 114.6 + i * 0.16;
       ft(dot, { opacity: 0, fill: COLOR.green }, { opacity: 1, duration: 0.3 }, t);
       run(dot, backGuides[i]!, t, 1.6, { ease: "power2.inOut" });
       /* The packet hands its receipt to the strip and goes; the mark it leaves
@@ -2437,7 +2605,7 @@ export function createEngineScene(): EngineScene {
       fadeOut(dot, t + 1.6, 0.3);
     });
 
-    fadeIn(stripLegend, 110.6, 0.9);
+    fadeIn(stripLegend, 116.6, 0.9);
 
     /* ── D5: skip-if-opened ──────────────────────────────────────────────
        The bridge's second sentence. Six receipts have just landed on the
@@ -2448,11 +2616,11 @@ export function createEngineScene(): EngineScene {
        corner, and why the ladder is on the app box's own centre line.
 
        The whole beat is 12 units and it is the reason TL_END first moved from
-       100 to 112. Nothing before it shifted then; when phase C later grew by
-       C_ADD, everything here shifted with it and nothing here changed shape.
-       PIN_HEIGHTS moved with TL_END both times, so every beat in the scene
-       consumes exactly the scroll it always did. */
-    const SKIP_T0 = 112.4;
+       100 to 112. Nothing before it shifted then; every time phase C has since
+       grown, everything here shifted with it by exactly C_ADD and nothing here
+       changed shape. PIN_HEIGHTS moved with TL_END each time, so every beat in
+       the scene consumes exactly the scroll it always did. */
+    const SKIP_T0 = 118.4;
 
     /* The ladder draws in the order it is read — inlet, step 1, the rung
        between them, step 2 — and the gate's two posts arrive LAST. The gate
@@ -2471,7 +2639,7 @@ export function createEngineScene(): EngineScene {
        and step 1's own status dot lights inside it. Exactly the handoff the
        six channel terminals make in D3 — the traveller stops at the wall,
        the record is what turns green — and a receipt that stays behind. */
-    const SKIP_SEND = SKIP_T0 + 3.6; // 116.0
+    const SKIP_SEND = SKIP_T0 + 3.6; // 122.0
     const SKIP_ARRIVE = SKIP_SEND + 0.9;
     ft(dD.step1, { opacity: 0, x: SKIP_X, y: 100 }, { opacity: 1, duration: 0.35 }, SKIP_SEND);
     ft(dD.step1, { y: 100 }, { y: SKIP_RIM_Y, duration: 0.9, ease: "power2.out" }, SKIP_SEND);
@@ -2500,12 +2668,12 @@ export function createEngineScene(): EngineScene {
     /* The receipt comes back — off the strip's EMAIL tick, which is the
        first of the six that just landed there. Green the whole way, because
        an open IS an arrival and green is what arrivals are (BRAND §2). */
-    const SKIP_OPEN_T0 = SKIP_SEND + 2.6; // 118.6
+    const SKIP_OPEN_T0 = SKIP_SEND + 2.6; // 124.6
     const SKIP_OPEN_DUR = 1.7;
     /** When it reaches the junction. The gate, the dissolve and the stamp
      *  are all written against this, so the consequence moves as one if the
      *  travel is retimed. */
-    const SKIP_LAND = SKIP_OPEN_T0 + SKIP_OPEN_DUR; // 120.3
+    const SKIP_LAND = SKIP_OPEN_T0 + SKIP_OPEN_DUR; // 126.3
 
     ft(dD.opened, { opacity: 0, fill: COLOR.green }, { opacity: 1, duration: 0.3 }, SKIP_OPEN_T0);
     run(dD.opened, gOpened, SKIP_OPEN_T0, SKIP_OPEN_DUR, { ease: "power2.inOut" });
@@ -2540,7 +2708,7 @@ export function createEngineScene(): EngineScene {
     /* The closing line lands under the last camera move, not fourteen units
        before it: it is the caption for the whole anatomy, and the whole
        anatomy is not on screen until D6 has pulled back. */
-    fadeIn(stat, 122.2, 1.4);
+    fadeIn(stat, 128.2, 1.4);
   }
 
   /* ════════════════════════════════════════════════════════════════════════
