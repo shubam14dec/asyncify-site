@@ -254,7 +254,7 @@ export interface BellSceneOptions {
    *  now. The argument is the mouth's x in client pixels — the origin any
    *  downstream wave should radiate from. Fires for the auto-ring too, and
    *  never under reduced motion. */
-  onRing?: (originClientX: number) => void;
+  onRing?: (originClientX: number, originClientY?: number) => void;
 }
 
 export interface BellScene {
@@ -736,7 +736,7 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
              mouth is; what resonates with it is not its problem. */
     tl.call(
       () => {
-        opts.onRing?.(heroRect.left + mouthX);
+        opts.onRing?.(heroRect.left + mouthX, heroRect.top + mouthY);
       },
       undefined,
       RESONANCE_LEAD,

@@ -56,14 +56,14 @@ const WORD_D = 5.2;
 /** Hard amplitude ceiling, in degrees. This is the brief, not a safety net:
  *  above ~1.5° the reader notices the motion instead of the sentence. At a
  *  300px word that is ±3.9px of vertical travel at the far end. */
-const WORD_MAX_DEG = 1.5;
+const WORD_MAX_DEG = 2.2;
 
 /** Velocity ceiling. 16 deg/s ⇒ peak ≈ 16/ω ≈ 1.56°, i.e. just past the angle
  *  wall — so this clamp is what actually enforces the ceiling in normal use,
  *  and WORD_MAX_DEG only catches pathological input (a resize mid-swing, a
  *  ring landing on top of a flick). Clamping velocity rather than angle is
  *  what keeps a hard flick looking damped instead of looking *stopped*. */
-const WORD_MAX_VEL = 16;
+const WORD_MAX_VEL = 24;
 
 /** Snap-to-rest thresholds. Below these the word is set to exactly 0 and its
  *  inline transform is REMOVED — not written as rotate(0deg). Removing it
@@ -105,7 +105,7 @@ const WORD_RADIUS = 104;
 
 /** Reference speed: what a deliberate but unhurried sweep across the headline
  *  measures. At exactly this speed the drive is 1× (untouched). */
-const WORD_VEL_REF = 1400;
+const WORD_VEL_REF = 900;
 /** Saturation speed. 3200 px/s is about as fast as a cursor crosses a laptop
  *  screen; the drive tops out at 3200/1400 = 2.3×. */
 const WORD_VEL_CAP = 3200;
@@ -126,7 +126,7 @@ const WORD_VEL_CAP = 3200;
  *  That 0.17 → 0.82 → 1.5 spread IS the interaction. The discount factors are
  *  estimates off the damped-oscillator step response, not exact — this is the
  *  first constant to hand-tune with real eyes. */
-const WORD_TRANSFER = 0.055;
+const WORD_TRANSFER = 0.085;
 
 /* ── Ring resonance ───────────────────────────────────────────────────────
    The bell rings; a pressure wave leaves its mouth and crosses the headline.
@@ -182,6 +182,7 @@ interface Word {
   b: number;
   /** Page-space x of the word's centre. The resonance wave's ruler. */
   cx: number;
+  cy: number;
   angle: number;
   vel: number;
   /** Whether an inline transform is currently written. See WORD_REST_DEG. */
@@ -195,7 +196,7 @@ export interface HangingHeadline {
   /** Hand the words over to physics. Called when the entrance has landed. */
   activate(): void;
   /** A ring happened at this client x: send the wave out from it. */
-  resonate(originClientX: number): void;
+  resonate(originClientX: number, originClientY?: number): void;
   destroy(): void;
 }
 
@@ -238,6 +239,7 @@ export function createHangingHeadline(opts: HangingHeadlineOptions): HangingHead
     r: 0,
     b: 0,
     cx: 0,
+    cy: 0,
     angle: 0,
     vel: 0,
     styled: false,
@@ -284,6 +286,7 @@ export function createHangingHeadline(opts: HangingHeadlineOptions): HangingHead
       w.r = box.right + curScrollX;
       w.b = box.bottom + curScrollY;
       w.cx = (w.l + w.r) / 2;
+      w.cy = (w.t + w.b) / 2;
       if (w.l < l) l = w.l;
       if (w.t < t) t = w.t;
       if (w.r > r) r = w.r;
@@ -431,7 +434,7 @@ export function createHangingHeadline(opts: HangingHeadlineOptions): HangingHead
 
   /* ── the wave ──────────────────────────────────────────────────────────── */
 
-  function resonate(originClientX: number): void {
+  function resonate(originClientX: number, originClientY?: number): void {
     if (!active) return;
 
     // A second ring restarts the wave rather than layering a second one on
@@ -440,9 +443,15 @@ export function createHangingHeadline(opts: HangingHeadlineOptions): HangingHead
     resCalls.length = 0;
 
     const ox = originClientX + curScrollX;
+    const oy = originClientY; // client-space; word cy is page-space minus scrollY below
 
     for (const w of words) {
-      const dist = Math.abs(w.cx - ox);
+      // 2D distance from the bell's mouth: the wave radiates like sound,
+      // reaching the upper line first — not a flat horizontal sweep.
+      const dist =
+        oy === undefined
+          ? Math.abs(w.cx - ox)
+          : Math.hypot(w.cx - ox, w.cy - (oy + window.scrollY));
       const kick = RES_KICK * Math.exp(-dist / RES_FALLOFF);
       // Outward from the bell's centreline. A word straddling it goes right.
       const dir = w.cx < ox ? -1 : 1;

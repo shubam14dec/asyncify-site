@@ -44,7 +44,7 @@ const scene = createBellScene({
   reducedMotion,
   headlineWords: headline.words,
   onEntranceComplete: () => headline.activate(),
-  onRing: (originClientX) => headline.resonate(originClientX),
+  onRing: (x, y) => headline.resonate(x, y),
 });
 
 /* The entrance runs once. Waiting for the first font frame avoids the
