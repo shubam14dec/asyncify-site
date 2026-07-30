@@ -153,16 +153,16 @@ const BELL_CHIP_CLEARANCE = 56;
 /** Half-width of the chip row, as a fraction of the viewport. Wider than
  *  ~0.34 and the fan's aspect ratio (spread ÷ drop) gets so extreme that no
  *  amount of control-point work makes the paths read as curves. */
-const CHIP_SPREAD_RATIO = 0.33;
-const CHIP_SPREAD_MAX = 420;
+const CHIP_SPREAD_RATIO = 0.40;
+const CHIP_SPREAD_MAX = 520;
 /** A taller bell eats the vertical drop the fan has to work with. Rather than
  *  shrink the bell back, narrow the fan: a path whose horizontal run is more
  *  than ~5× its vertical drop cannot be made to read as a curve by any amount
  *  of control-point work. This is what keeps the +30% bell honest on a short
  *  laptop window; on a normal-height monitor the cap never engages. */
-const FAN_MAX_ASPECT = 5;
+const FAN_MAX_ASPECT = 6.5;
 /** …but never narrower than this, or the six chips crowd into each other. */
-const FAN_MIN_SPREAD = 300;
+const FAN_MIN_SPREAD = 380;
 /** Upper bound on the mouth→chip gap. Without it, a very tall monitor parks
  *  the chips 480px below the bell with nothing in between. */
 const CHIP_GAP_MAX_SHARE = 0.3;
