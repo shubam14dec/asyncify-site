@@ -19,6 +19,7 @@ All tokens live in `src/styles.css` under `:root`. Never hardcode a hex in a com
 | `--text-dim` | `#a1a1a1` | Secondary text, sublines, nav links. |
 | `--text-faint` | `#6e6e6e` | Receipts, timestamps, idle status dots, captions. |
 | `--green` | `#3dd68c` | **THE accent.** Rationed — see §2. |
+| `--green-dim` | `#2ba36c` | The accent *at rest*. Only for a green element that lives on screen permanently — currently just the clapper dot. |
 | `--green-soft` | `rgba(61,214,140,0.25)` | `::selection` only. |
 | `--amber` | `#ffb224` | Retry / backoff moments only. Never decoration, never success. |
 
@@ -43,8 +44,18 @@ across the entire site:
    `delivered · 214ms` receipt, a success state in a later scene.
 3. **The single final CTA** at the bottom of the page. One green button on the whole site.
 
-The brand mark dot after the wordmark is the one sanctioned exception: it *is* the
-delivered-dot, used as identity.
+Two identity uses are sanctioned, and only these two:
+
+- **The brand mark dot** after the wordmark. It *is* the delivered-dot, used as identity.
+- **The clapper ball** in the hero bell. The clapper is the thing that causes delivery, so the
+  delivered-dot doing that job is the rationing law being *illustrated*, not bent. It is the
+  only filled shape in the bell drawing, which is also what stops the clapper shaft from
+  reading as a plumb line.
+
+Both live on screen permanently, so both sit at `--green-dim` and only reach full `--green`
+at an actual delivery moment: the clapper flashes to `#3dd68c` with a 1.3× pop on the strike
+and settles back over 500ms. **A green that is always at full strength has nothing left to
+say when something is actually delivered.** That is the whole point of `--green-dim`.
 
 **Green is never:** a heading, a link, an underline, a border on a normal element, a
 gradient stop, a hover state, an icon tint, a bullet, or a divider. If you are reaching for

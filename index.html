@@ -68,7 +68,11 @@
                      Rotates about (0,26) — the yoke, not the bell pivot. -->
                 <g id="clapper">
                   <path class="b-line b-detail" id="c-shaft" d="M 0 26 C 0.7 46 -0.5 74 0.3 90" />
-                  <circle class="b-line b-detail" id="c-ball" cx="0.3" cy="99" r="9.5" />
+                  <!-- The clapper ball IS the delivered-dot. It is the only
+                       filled shape in the whole drawing, which is what gives
+                       the shaft something to hang. Dimmed green at rest so
+                       full #3dd68c has somewhere to go at the strike. -->
+                  <circle class="c-ball" id="c-ball" cx="0.3" cy="99" r="9.5" />
                 </g>
 
                 <g id="bell-art">
@@ -131,6 +135,30 @@
                     id="b-glint"
                     d="M 13.6 114.6 C 26.2 114.3 38.8 112.4 47.4 109"
                   />
+
+                  <!-- Maker's stamp. Sits on the LEFT lower waist rather than
+                       centred because the clapper shaft runs down x≈0 and would
+                       strike through the middle of the number. Off-centre also
+                       reads more like a foundry mark and less like a label.
+                       font-size is set per-layout in bell.ts: the text is inside
+                       the scaled bell group, so a fixed CSS px value would need
+                       dividing by bellScale anyway. -->
+                  <defs>
+                    <!-- Sits at y≈71–77. The clapper ball sweeps a band around
+                         y 92–99 out to x≈−30 at full throw; its top edge reaches
+                         y≈83, so this arc clears it by ~6 units and the strike
+                         never paints over the number. -->
+                    <path
+                      id="stamp-arc"
+                      d="M -33.5 71.5 C -25 76 -14.5 77.6 -2.5 77"
+                      fill="none"
+                    />
+                  </defs>
+                  <text class="stamp" id="stamp">
+                    <textPath href="#stamp-arc" startOffset="50%" text-anchor="middle">
+                      evt-000000
+                    </textPath>
+                  </text>
                 </g>
               </g>
             </g>
@@ -149,7 +177,7 @@
         <div class="copy" id="copy">
           <h1 class="headline" id="headline">Your product has something to say.</h1>
           <p class="subline">
-            The delivery engine for every channel — and the agents that answer back.
+            The delivery engine for every channel, and the agents that answer back.
           </p>
           <div class="actions">
             <!-- Ghost only. The one green CTA on this site lives at the bottom

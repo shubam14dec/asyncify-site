@@ -134,15 +134,34 @@ const PKT_ORDER = [2, 3, 1, 4, 0, 5];
 const HOLD_AFTER_LAST = 1.6;
 const AUTO_RING_DELAY_MS = 2200;
 
+/* ── Maker's stamp ────────────────────────────────────────────────────────
+   An event counter engraved on the bell's waist. It is meant to be found,
+   not read: at 55% of --text-faint on near-black it is barely above the
+   noise floor until you lean in. */
+const STAMP_KEY = "asyncify-rings";
+const STAMP_DIGITS = 6;
+/** Local units at scale 1. The stamp lives inside the scaled bell group, so
+ *  layout() converts this into a per-scale px value clamped to STAMP_PX_*. */
+const STAMP_LOCAL_SIZE = 4.1;
+const STAMP_PX_MIN = 7;
+const STAMP_PX_MAX = 9;
+/** Length of #stamp-arc in bell-local units. Geist Mono advances 0.6em per
+ *  character and `evt-000000` is 10 characters, so the text can never be
+ *  allowed past ARC × 0.9 ÷ 6 units of font-size or it runs off the end of the
+ *  path — which is what happens on a very short mobile window, where the bell
+ *  hits its minimum size and STAMP_PX_MIN would otherwise win. */
+const STAMP_ARC_UNITS = 31;
+const STAMP_MAX_LOCAL = (STAMP_ARC_UNITS * 0.9) / (STAMP_DIGITS + 4) / 0.6;
+
 /* ── Composition ──────────────────────────────────────────────────────────
    The scene band is whatever vertical space is left between the top edge of
    the viewport and the copy block, measured at runtime. These are its shares. */
-/** Bell height as a fraction of the band, then clamped. 0.40 rather than the
- *  0.46 the bell would like: the fan needs vertical room below the mouth or
- *  the six paths flatten into whiskers. */
-const BELL_BAND_SHARE = 0.4;
+/** Bell height as a fraction of the band, then clamped. The bell is the hero;
+ *  the fan below it is protected by FAN_MAX_ASPECT rather than by starving the
+ *  bell of size. */
+const BELL_BAND_SHARE = 0.52;
 const BELL_MIN_PX = 132;
-const BELL_MAX_PX = 250;
+const BELL_MAX_PX = 325;
 /** How far below the top edge the thread ends (= the bell's pivot). */
 const PIVOT_BAND_SHARE = 0.09;
 const PIVOT_MIN_PX = 42;
@@ -154,6 +173,18 @@ const BELL_CHIP_CLEARANCE = 56;
  *  amount of control-point work makes the paths read as curves. */
 const CHIP_SPREAD_RATIO = 0.33;
 const CHIP_SPREAD_MAX = 420;
+/** A taller bell eats the vertical drop the fan has to work with. Rather than
+ *  shrink the bell back, narrow the fan: a path whose horizontal run is more
+ *  than ~5× its vertical drop cannot be made to read as a curve by any amount
+ *  of control-point work. This is what keeps the +30% bell honest on a short
+ *  laptop window; on a normal-height monitor the cap never engages. */
+const FAN_MAX_ASPECT = 5;
+/** …but never narrower than this, or the six chips crowd into each other. */
+const FAN_MIN_SPREAD = 300;
+/** Upper bound on the mouth→chip gap. Without it, a very tall monitor parks
+ *  the chips 480px below the bell with nothing in between. */
+const CHIP_GAP_MAX_SHARE = 0.3;
+const CHIP_GAP_MAX_PX = 260;
 /** Arc depth as a fraction of the chip spread's half-width. Below ~0.10 a
  *  wide row of chips reads as a wonky line, not as an arc. */
 const CHIP_ARC_RATIO = 0.12;
@@ -184,6 +215,9 @@ const BELL = {
   MOUTH_HALF: 50,
   /** the clapper's yoke — its rotation origin */
   CLAP_PIVOT_Y: 26,
+  /** clapper ball centre — must match #c-ball in index.html */
+  CLAP_BALL_CX: 0.3,
+  CLAP_BALL_CY: 99,
   /** widest point of the silhouette, including the lip curls — for the hit box */
   BODY_HALF: 54,
   /** ripple radius at scale 1, in bell-local units */
@@ -197,6 +231,7 @@ const CHANNELS = ["email", "sms", "push", "in-app", "telegram", "slack"] as cons
 
 const COLOR = {
   green: "#3dd68c",
+  greenDim: "#2ba36c",
   faint: "#6e6e6e",
   hairline: "#262626",
   hairlineStrong: "#3f3f3f",
@@ -253,7 +288,10 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
   const bellSwing = q<SVGGElement>(scene, "#bell-swing");
   const bellFlex = q<SVGGElement>(scene, "#bell-flex");
   const clapper = q<SVGGElement>(scene, "#clapper");
+  const clapBall = q<SVGCircleElement>(scene, "#c-ball");
   const glint = q<SVGPathElement>(scene, "#b-glint");
+  const stamp = q<SVGTextElement>(scene, "#stamp");
+  const stampRun = q<SVGTextPathElement>(scene, "#stamp textPath");
 
   /** Draw order for the entrance trace. Reads like a hand: loop, cap, both
    *  shoulders, the rim, the lip flicks, then the guts. */
@@ -356,6 +394,38 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
   let userHasRung = false;
   let autoRingTimer = 0;
 
+  /* ── maker's stamp counter ─────────────────────────────────────────────── */
+
+  /** localStorage can throw outright (Safari private mode, blocked storage) —
+   *  a decorative counter must never take the hero down with it. */
+  function readRingCount(): number {
+    try {
+      const raw = window.localStorage.getItem(STAMP_KEY);
+      const n = raw === null ? 0 : Number.parseInt(raw, 10);
+      return Number.isFinite(n) && n >= 0 ? n : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  let ringCount = readRingCount();
+
+  function paintStamp(): void {
+    stampRun.textContent = `evt-${String(ringCount).padStart(STAMP_DIGITS, "0")}`;
+  }
+
+  function bumpStamp(): void {
+    ringCount += 1;
+    try {
+      window.localStorage.setItem(STAMP_KEY, String(ringCount));
+    } catch {
+      /* non-fatal: the number still counts up for this session */
+    }
+    paintStamp();
+  }
+
+  paintStamp();
+
   /* ════════════════════════════════════════════════════════════════════════
      LAYOUT
      ════════════════════════════════════════════════════════════════════════ */
@@ -377,7 +447,7 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
 
     pivotY = clamp(bandBottom * PIVOT_BAND_SHARE, PIVOT_MIN_PX, PIVOT_MAX_PX);
     const targetH = isMobile
-      ? clamp(bandBottom * 0.34, 112, 190)
+      ? clamp(bandBottom * 0.42, 118, 240)
       : clamp(bandBottom * BELL_BAND_SHARE, BELL_MIN_PX, BELL_MAX_PX);
     bellScale = targetH / BELL.H;
     bellPxH = targetH;
@@ -387,6 +457,13 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
 
     bellRoot.setAttribute("transform", `translate(${cx} ${pivotY}) scale(${bellScale})`);
     thread.setAttribute("d", `M ${cx} 0 L ${cx} ${pivotY}`);
+
+    /* Stamp: aim for STAMP_LOCAL_SIZE units so it always occupies the same
+       fraction of the bell, hold it inside a legible px range, then hard-cap
+       the local size so the text can never overrun the stamp arc. */
+    const stampPx = clamp(STAMP_LOCAL_SIZE * bellScale, STAMP_PX_MIN, STAMP_PX_MAX);
+    const stampLocal = Math.min(stampPx / bellScale, STAMP_MAX_LOCAL);
+    stamp.style.fontSize = `${stampLocal.toFixed(3)}px`;
 
     ripple.setAttribute("cx", String(mouthX));
     ripple.setAttribute("cy", String(mouthY));
@@ -425,8 +502,18 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
          chips sit on a circle centred on the bell's mouth: the chip directly
          below the bell is the one furthest from it. That also keeps the six
          flight paths close to the same length, so the packets land together. */
-      const halfSpread = Math.min(W * CHIP_SPREAD_RATIO, CHIP_SPREAD_MAX);
       const fixedBlock = CHIP_H + CHIP_GAP + RECEIPT_H;
+      const wantSpread = Math.min(W * CHIP_SPREAD_RATIO, CHIP_SPREAD_MAX);
+      const wantArc = clamp(wantSpread * CHIP_ARC_RATIO, 16, CHIP_ARC_MAX);
+
+      // How much vertical drop the outermost path will actually get, assuming
+      // the full spread. If that makes the fan too flat to read as curves,
+      // narrow the fan rather than shrink the bell.
+      const provisionalDrop = bandBottom - fixedBlock - wantArc - mouthY;
+      const halfSpread = Math.min(
+        wantSpread,
+        Math.max(FAN_MIN_SPREAD, provisionalDrop * FAN_MAX_ASPECT),
+      );
 
       // Depth of the arc, then trimmed to whatever room is actually left
       // between the bell and the headline. Flatten the arc before crowding
@@ -437,10 +524,14 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
         Math.max(12, room - fixedBlock),
       );
 
-      // The chip block is anchored to the bottom of the band, i.e. it sits
-      // directly above the headline, and the bell breathes into whatever is
-      // left above it.
-      const outerY = bandBottom - fixedBlock - arcDrop;
+      // Anchored to the bottom of the band — the chips sit directly above the
+      // headline and the bell breathes into whatever is left — but never more
+      // than CHIP_GAP_MAX below the mouth, so a tall monitor does not open a
+      // void between the two.
+      const outerY = Math.min(
+        bandBottom - fixedBlock - arcDrop,
+        mouthY + clamp(bandBottom * CHIP_GAP_MAX_SHARE, 96, CHIP_GAP_MAX_PX),
+      );
 
       for (let i = 0; i < CHANNELS.length; i++) {
         const t = -1 + i * 0.4; // -1, -0.6, -0.2, 0.2, 0.6, 1
@@ -599,6 +690,12 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     gsap.set(dotEls, { backgroundColor: COLOR.faint, scale: 1 });
     gsap.set(chipEls, { borderColor: COLOR.hairline });
     gsap.set(ripple, { opacity: 0, scale: 1 });
+    gsap.set(clapBall, {
+      fill: COLOR.greenDim,
+      stroke: COLOR.greenDim,
+      scale: 1,
+      svgOrigin: `${BELL.CLAP_BALL_CX} ${BELL.CLAP_BALL_CY}`,
+    });
     flex.sx = 1;
     flex.sy = 1;
   }
@@ -612,6 +709,8 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     ringTl = null;
     resetSignals();
     randomiseReceipts();
+    // One event, one number — user click, auto-ring and reduced motion alike.
+    bumpStamp();
 
     if (reducedMotion) {
       ringStill();
@@ -638,6 +737,29 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     tl.to(flex, { sx: 1.02, sy: 0.98, duration: 0.06, ease: "power2.out" }, 0.055)
       .to(flex, { sx: 0.99, sy: 1.01, duration: 0.06, ease: "power2.inOut" }, 0.115)
       .to(flex, { sx: 1, sy: 1, duration: 0.06, ease: "power2.out" }, 0.175);
+
+    /* 1c ── the delivered-dot fires on contact: full #3dd68c and a 1.3× pop,
+            then it settles back to its resting dim over half a second. This is
+            the moment the whole accent budget exists for. Origin is the ball's
+            own centre in bell-local space. */
+    tl.to(
+      clapBall,
+      {
+        fill: COLOR.green,
+        stroke: COLOR.green,
+        scale: 1.3,
+        duration: 0.09,
+        ease: "power2.out",
+        svgOrigin: `${BELL.CLAP_BALL_CX} ${BELL.CLAP_BALL_CY}`,
+      },
+      0.055,
+    )
+      .to(clapBall, { scale: 1, duration: 0.16, ease: "power2.inOut" }, 0.145)
+      .to(
+        clapBall,
+        { fill: COLOR.greenDim, stroke: COLOR.greenDim, duration: 0.5, ease: "power1.inOut" },
+        0.34,
+      );
 
     /* 2 ── one green ring out of the mouth. Non-scaling-stroke keeps it a
            1.25px hairline the whole way out, which is the difference between
@@ -718,6 +840,13 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     ringTl = tl;
     tl.set(sigEls, { drawSVG: "0% 100%", opacity: 0 })
       .to(sigEls, { opacity: 1, duration: 0.2, ease: "none" }, 0)
+      // The delivered-dot still fires — colour only, no pop, no scale.
+      .to(clapBall, { fill: COLOR.green, stroke: COLOR.green, duration: 0.2, ease: "none" }, 0)
+      .to(
+        clapBall,
+        { fill: COLOR.greenDim, stroke: COLOR.greenDim, duration: 0.4, ease: "none" },
+        1.1,
+      )
       .to(dotEls, { backgroundColor: COLOR.green, duration: 0.2, ease: "none" }, 0)
       .to(chipEls, { borderColor: COLOR.hairlineStrong, duration: 0.2, ease: "none" }, 0)
       .to(receiptEls, { opacity: 1, duration: 0.2, ease: "none" }, 0.05)
@@ -772,6 +901,10 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     gsap.set(thread, { drawSVG: "0% 0%" });
     gsap.set(bellDrawOrder, { drawSVG: "0% 0%" });
     gsap.set(glint, { drawSVG: "0% 0%", opacity: 0 });
+    // The dot's outline is traced by the stagger below; its fill arrives after,
+    // so the bell is a line drawing first and gains its one solid last.
+    gsap.set(clapBall, { fillOpacity: 0 });
+    gsap.set(stamp, { opacity: 0 });
 
     const split = new SplitText(headline, { type: "words", wordsClass: "hl-word" });
 
@@ -789,6 +922,11 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
       { drawSVG: "0% 100%", duration: 0.42, stagger: 0.032, ease: "expo.out" },
       0.3,
     );
+
+    // …then the dot fills, and the stamp surfaces last — an engraving you were
+    // never told about.
+    tl.to(clapBall, { fillOpacity: 1, duration: 0.34, ease: "power2.out" }, 0.86);
+    tl.to(stamp, { opacity: 0.55, duration: 0.55, ease: "power2.out" }, 1.02);
 
     // headline, word by word: 12px rise + fade, 40ms apart
     tl.set(copy, { opacity: 1 }, 0.55);

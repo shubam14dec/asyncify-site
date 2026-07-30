@@ -16,6 +16,10 @@
 
   /* ── the one accent (BRAND.md §2 — rationing law) ─────────────────────── */
   --green: #3dd68c;
+  /* The accent at rest. Used only by the clapper dot, which sits on screen
+     permanently and would otherwise burn a hole in a near-black page — and
+     which needs somewhere to go when it flashes to full green at the strike. */
+  --green-dim: #2ba36c;
   --green-soft: rgba(61, 214, 140, 0.25);
   --amber: #ffb224;
 
@@ -264,6 +268,28 @@ html {
 .b-detail {
   stroke-width: 1;
   stroke: #d6d6d6; /* one notch back from --text: line-weight hierarchy */
+}
+
+/* The clapper ball: the only filled shape in the drawing. It is the brand's
+   delivered-dot doing double duty as the thing that makes the bell ring —
+   which is exactly what the rationing law permits (BRAND.md §2). */
+.c-ball {
+  fill: var(--green-dim);
+  stroke: var(--green-dim);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Maker's stamp. font-size is written by layout(); everything else is here. */
+.stamp {
+  font-family: var(--mono);
+  font-weight: 400;
+  fill: var(--text-faint);
+  opacity: 0.55;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .b-glint {
