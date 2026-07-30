@@ -236,8 +236,8 @@
               <div class="eng-cap">
                 <span class="eng-kicker">the assurance</span>
                 <p class="eng-caption">
-                  Retry with backoff. Fail over mid-attempt. A bad address never retries — it
-                  parks for replay, not for the void.
+                  Back off, retry, recover. Out of attempts, park for replay. A bad address
+                  never retries at all.
                 </p>
               </div>
               <div class="eng-cap">
@@ -304,12 +304,16 @@
                   <path id="g-dep-0" d="M 773 310 L 840 310 C 896 310 904 150 960 150" />
                   <path id="g-dep-1" d="M 773 310 L 960 310" />
                   <path id="g-dep-2" d="M 773 310 L 840 310 C 896 310 904 470 960 470" />
-                  <!-- The permanent failure's road out of the provider
-                       column: across the box that rejected it, out of that
-                       box's far corner, and down the OUTSIDE of the column to
-                       the retry rail's head. Written by engine.ts from the
-                       provider geometry — see PERM_BOW_X. -->
-                  <path id="g-perm" d="M 0 0" />
+                  <!-- The email provider's road down to the retry rail:
+                       across the box that refused it, out of that box's far
+                       corner, and down the OUTSIDE of the column to the rail's
+                       head. Both packets that are turned away at email use it
+                       — the one whose provider is down and the one whose
+                       address is wrong — because being turned away is being
+                       turned away and the way out is a property of the COLUMN,
+                       not of the reason. Written by engine.ts from the
+                       provider geometry; see PROV_BOW_X. -->
+                  <path id="g-prov-out" d="M 0 0" />
                   <!-- app → p0 lane → gate → email provider (the otp overtake) -->
                   <path
                     id="g-lane-p0"
@@ -583,10 +587,16 @@
                   <path class="eng-wire" id="w-prov-1" d="M 840 310 L 960 310" />
                   <path class="eng-wire" id="w-prov-2" d="M 840 310 C 896 310 904 470 960 470" />
 
-                  <!-- The secondary wire. `d` is computed in engine.ts off the
-                       primary route's own 55% point, so the crossover leaves
-                       the wire it peels off along that wire's tangent. -->
-                  <path class="eng-wire eng-wire-alt eng-l-alt" id="w-failover" d="M 0 0" />
+                  <!-- There is no secondary wire here, and its absence is the
+                       correction. A crossover from the email provider down to
+                       the sms provider drew a message changing CHANNEL when
+                       its provider went down, and nothing in the product does
+                       that: a chain is a list of providers for ONE channel, so
+                       an email that cannot be sent by provider A is retried at
+                       an email provider, never sent as an sms. The scene now
+                       says the true thing instead — the outage is waited out
+                       on the backoff rail and the same provider is tried
+                       again. -->
 
                   <g id="prov-0">
                     <rect class="eng-box" x="960" y="127" width="190" height="46" rx="6" />
@@ -718,8 +728,12 @@
                 >
                   429 · retry
                 </text>
-                <text class="eng-cue eng-s-fail" id="aside-failover" x="1055" y="198" text-anchor="middle">
-                  their outage, not yours
+                <!-- The receipt for the outage beat, and it lands AFTER the
+                     delivery rather than at the bounce: read at the knock it
+                     would be a promise, and the whole point is that the reader
+                     watches the promise being kept first. -->
+                <text class="eng-cue eng-s-recover" id="aside-recovered" x="1055" y="198" text-anchor="middle">
+                  their outage · retried · delivered
                 </text>
                 <!-- The permanent failure. Amber, because it IS pain (BRAND
                      §2 rations amber to retry / backoff / degraded, and a
@@ -729,10 +743,10 @@
                      with the provider, the address is wrong.
 
                      It reuses the 429's slot above the email provider and the
-                     failover cue's slot below it. Neither is on screen when
-                     this one is: the 429 belongs to phase A, and "their
-                     outage, not yours" has been gone for seven units by the
-                     time this answers it. -->
+                     outage cue's slot below it. Neither is on screen when this
+                     one is: the 429 belongs to phase A, and the outage beat's
+                     receipt has been gone for fifteen units by the time this
+                     answers it. -->
                 <text
                   class="eng-stamp eng-stamp-amber eng-s-perm"
                   id="stamp-invalid"
@@ -743,7 +757,7 @@
                   invalid address
                 </text>
                 <text class="eng-cue eng-s-perm" id="aside-perm" x="1055" y="198" text-anchor="middle">
-                  permanent · no retry, no failover
+                  permanent · no retry
                 </text>
                 <!-- The count moved from y 278 to y 346 so the engraved name
                      can have the band above the spine. The two now BRACKET

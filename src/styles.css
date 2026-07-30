@@ -821,11 +821,6 @@ html {
   vector-effect: non-scaling-stroke;
 }
 
-/* The alternate route. One step back down the ladder, because it is the road
-   not normally taken. */
-.eng-wire-alt {
-  stroke: var(--hairline);
-}
 
 .eng-rail-line {
   fill: none;
@@ -1121,7 +1116,7 @@ html {
 .eng-card-figure[data-phase="b"] .eng-s-dupe,
 .eng-card-figure[data-phase="b"] .eng-s-idem,
 .eng-card-figure[data-phase="c"] .eng-s-retry,
-.eng-card-figure[data-phase="c"] .eng-s-fail,
+.eng-card-figure[data-phase="c"] .eng-s-recover,
 .eng-card-figure[data-phase="all"] .eng-s-skip,
 .eng-card-figure[data-phase="f"] .eng-s-skip {
   opacity: 1;
@@ -1153,10 +1148,6 @@ html {
 .eng-card-figure[data-phase="d"] .eng-l-prov,
 .eng-card-figure[data-phase="e"] .eng-l-prov,
 .eng-card-figure[data-phase="all"] .eng-l-prov,
-.eng-card-figure[data-phase="a"] .eng-l-alt,
-.eng-card-figure[data-phase="b"] .eng-l-alt,
-.eng-card-figure[data-phase="d"] .eng-l-alt,
-.eng-card-figure[data-phase="e"] .eng-l-alt,
 /* The skip-if-opened card is a close-up of one corner: everything else in
    the schematic is either outside its window or, in the chassis's case,
    one stray wall line crossing it. */
