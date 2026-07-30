@@ -2614,7 +2614,10 @@ export function createEngineScene(): EngineScene {
     refuse(L_HIT, false);
     ft(L, { fill: COLOR.greenDim }, { fill: COLOR.amber, duration: 0.3 }, L_HIT + 0.1);
     let lc = ontoRail(L, L_HIT + 0.15, 1, 0.45);
-    for (let i = 0; i < 3; i++) {
+    // Two waited laps (1s, 4s) — the user's call: three read as padding. The
+    // 16s tick stays on the rail as geometry; the exhausted packet passes it
+    // unlit on its way out, which still reads as "no attempts left".
+    for (let i = 0; i < 2; i++) {
       const k = LADDER_TEMPO[i]!;
       lc = waitAt(i, railToTick(L, lc, i, 1, RETRY_LEG.in * k), LADDER_HOLD[i]!);
       lc = retryLap(L, lc, {
@@ -2627,9 +2630,9 @@ export function createEngineScene(): EngineScene {
       });
     }
 
-    /* The fourth refusal is the one that matters: there is no fourth tick, so
-       the rail carries it PAST all three — none of them lighting, because
-       there is nothing left to wait for — and hands it to the siding. Eased at
+    /* The third refusal is the one that matters: no further wait is granted,
+       so the rail carries it past the remaining tick — unlit, nothing left to
+       wait for — and hands it to the siding. Eased at
        both ends and slower than C3's identical-looking run: that one is a
        packet that was never going to stop, this one is a packet that has run
        out of places to. */
