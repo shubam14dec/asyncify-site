@@ -20,6 +20,7 @@ import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { SplitText } from "gsap/SplitText";
 
 import { createBellScene } from "./bell";
+import { createHangingHeadline } from "./headline";
 
 /* Individual imports, never `gsap/all` — that pulls every plugin into the
    bundle. Budget is in DESIGN.md §6. */
@@ -30,8 +31,21 @@ gsap.registerPlugin(DrawSVGPlugin, MotionPathPlugin, SplitText);
 gsap.defaults({ ease: "power2.out", duration: 0.4 });
 
 const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+const reducedMotion = motionQuery.matches;
 
-const scene = createBellScene({ reducedMotion: motionQuery.matches });
+/* Two hero collaborators, wired here rather than to each other: the headline
+   owns its word boxes and their physics, the bell owns the story beats, and
+   neither imports the other. The bell's entrance borrows the words; the bell's
+   ring tells the composition root where the pressure wave started, and the
+   headline decides what that means for type. */
+const headline = createHangingHeadline({ reducedMotion });
+
+const scene = createBellScene({
+  reducedMotion,
+  headlineWords: headline.words,
+  onEntranceComplete: () => headline.activate(),
+  onRing: (originClientX) => headline.resonate(originClientX),
+});
 
 /* The entrance runs once. Waiting for the first font frame avoids the
    headline re-flowing underneath a mid-flight SplitText. */
@@ -58,5 +72,8 @@ if (document.fonts?.status === "loaded") {
 /* Vite HMR: tear the scene down so ticker callbacks and listeners do not
    accumulate across edits. */
 if (import.meta.hot) {
-  import.meta.hot.dispose(() => scene.destroy());
+  import.meta.hot.dispose(() => {
+    scene.destroy();
+    headline.destroy();
+  });
 }

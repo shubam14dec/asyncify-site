@@ -13,7 +13,7 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 import { gsap } from "gsap";
-import { SplitText } from "gsap/SplitText";
+import { acquirePointer, type PointerHandle } from "./pointer";
 
 /* ══════════════════════════════════════════════════════════════════════════
    TUNING CONSTANTS  —  change these, not the code below
@@ -92,7 +92,11 @@ const SWAY_CLAP_LAG = 0.9; // 0.9 s of 6 s = 15% phase behind
 /* ── Cursor coupling (BEAT 2) ─────────────────────────────────────────────
    Momentum transfer is applied as a RATE on the ticker, not as an impulse per
    mousemove event — otherwise a high-polling-rate mouse deposits ten times
-   the energy of a low-polling-rate one for the identical gesture. */
+   the energy of a low-polling-rate one for the identical gesture.
+
+   The velocity estimate itself (sliding window, staleness) lives in
+   pointer.ts, because the headline's words are brushed by the same cursor and
+   the two scenes must agree on what "fast" means. */
 
 /** Influence radius = this × the bell's on-screen height. 1.7 means a bell
  *  ~170px tall is felt from ~290px away: close enough that the reaction feels
@@ -105,14 +109,6 @@ const POINTER_RADIUS_K = 1.7;
  *  3000 × 0.9 × 0.18 × 0.10 ≈ 49 deg/s ⇒ ~11° peak. A lazy drift past at
  *  600 px/s deposits ~2°. That spread is the whole feel of the interaction. */
 const POINTER_TRANSFER = 0.18;
-
-/** If no pointermove for this long, treat pointer velocity as zero. Without
- *  it, a cursor parked next to the bell keeps pushing on stale samples. */
-const POINTER_STALE_MS = 90;
-
-/** How many recent samples the velocity estimate averages over. 5 smooths out
- *  single-frame jitter without adding perceptible lag. */
-const POINTER_SAMPLES = 5;
 
 /* ── Drag (touch, and mouse-down drag) ────────────────────────────────────── */
 const DRAG_DEG_PER_PX = 0.12; // 150px of drag ⇒ 18°, the full range
@@ -133,6 +129,13 @@ const PKT_DUR = [0.62, 0.55, 0.71, 0.58, 0.75, 0.66];
 const PKT_ORDER = [2, 3, 1, 4, 0, 5];
 const HOLD_AFTER_LAST = 1.6;
 const AUTO_RING_DELAY_MS = 2200;
+
+/** When the ring's pressure wave leaves the bell, in seconds from t=0. This is
+ *  the same instant the green ripple leaves the mouth (see the RIPPLE tween
+ *  below) — one event, two renderings of it: a circle expanding through space
+ *  and a shiver passing through the type. Fire it at the strike (0.055) and it
+ *  reads as a separate, earlier thing. */
+const RESONANCE_LEAD = 0.09;
 
 
 /* ── Composition ──────────────────────────────────────────────────────────
@@ -240,6 +243,18 @@ function q<T extends Element>(root: ParentNode, sel: string): T {
 export interface BellSceneOptions {
   /** When true: no ticker, no physics, no travel. See DESIGN.md §3. */
   reducedMotion: boolean;
+  /** The H1's per-word boxes, already split by the headline scene. The
+   *  entrance tweens these; who owns them afterwards is not this file's
+   *  business. Empty under reduced motion, where the copy cross-fades whole. */
+  headlineWords?: readonly Element[];
+  /** The entrance has landed (t = 1.30s). Whoever wants the headline back
+   *  gets it here. */
+  onEntranceComplete?: () => void;
+  /** A ring is happening, and its pressure wave is leaving the mouth right
+   *  now. The argument is the mouth's x in client pixels — the origin any
+   *  downstream wave should radiate from. Fires for the auto-ring too, and
+   *  never under reduced motion. */
+  onRing?: (originClientX: number) => void;
 }
 
 export interface BellScene {
@@ -354,10 +369,10 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
   const flex = { sx: 1, sy: 1 };
 
   /* ── pointer state ─────────────────────────────────────────────────────── */
-  const samples: { x: number; t: number }[] = [];
-  let pointerVX = 0;
+  /** Position and velocity come from the shared tracker (pointer.ts); only
+   *  the bell's own proximity weighting is computed here. */
+  let pointer: PointerHandle | null = null;
   let pointerProx = 0;
-  let lastMoveT = -1e9;
 
   /* ── drag state ────────────────────────────────────────────────────────── */
   let dragging = false;
@@ -531,11 +546,12 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
       bellAngle = dragAngle;
       bellVel = 0;
     } else {
-      if (performance.now() - lastMoveT > POINTER_STALE_MS) pointerVX = 0;
       // Cursor momentum, applied as a rate so the result is independent of
-      // mouse polling frequency.
-      if (pointerVX !== 0 && pointerProx > 0) {
-        bellVel += pointerVX * pointerProx * POINTER_TRANSFER * dt;
+      // mouse polling frequency. `vx` is already zero once the pointer has
+      // been still for POINTER_STALE_MS — see pointer.ts.
+      const vx = pointer ? pointer.vx : 0;
+      if (vx !== 0 && pointerProx > 0) {
+        bellVel += vx * pointerProx * POINTER_TRANSFER * dt;
       }
       // θ'' = −K·θ − D·θ'   (semi-implicit Euler: velocity first, then angle)
       bellVel += (-BELL_K * bellAngle - BELL_D * bellVel) * dt;
@@ -575,18 +591,12 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
      POINTER
      ════════════════════════════════════════════════════════════════════════ */
 
-  function onPointerMove(e: PointerEvent): void {
-    const now = performance.now();
-    samples.push({ x: e.clientX, t: now });
-    if (samples.length > POINTER_SAMPLES) samples.shift();
-    const first = samples[0]!;
-    const span = (now - first.t) / 1000;
-    pointerVX = span > 0.004 ? (e.clientX - first.x) / span : 0;
-    lastMoveT = now;
+  function onPointerMove(): void {
+    if (!pointer) return;
 
     // Proximity to the bell's visual centre-of-mass (~55% down the body).
-    const px = e.clientX - heroRect.left;
-    const py = e.clientY - heroRect.top;
+    const px = pointer.clientX - heroRect.left;
+    const py = pointer.clientY - heroRect.top;
     const bcx = cx;
     const bcy = pivotY + BELL.H * 0.55 * bellScale;
     const dist = Math.hypot(px - bcx, py - bcy);
@@ -594,7 +604,7 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     pointerProx = smoothstep(clamp(1 - dist / radius, 0, 1));
 
     if (dragging) {
-      const dxp = e.clientX - dragStartX;
+      const dxp = pointer.clientX - dragStartX;
       dragMoved = Math.max(dragMoved, Math.abs(dxp));
       dragAngle = clamp(dragStartAngle + dxp * DRAG_DEG_PER_PX, -DRAG_MAX_DEG, DRAG_MAX_DEG);
     }
@@ -610,7 +620,9 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     dragStartAngle = bellAngle;
     dragAngle = bellAngle;
     dragMoved = 0;
-    samples.length = 0;
+    // The samples from before the grab belong to the approach, not to the
+    // gesture; handing them to the throw would fling the bell on contact.
+    pointer?.reset();
     bellBtn.setPointerCapture(e.pointerId);
   }
 
@@ -623,7 +635,8 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
       // Released mid-drag: hand the gesture's velocity to the sim so the bell
       // keeps going instead of stopping dead in the hand.
       suppressClick = true;
-      bellVel = clamp(pointerVX * DRAG_DEG_PER_PX, -BELL_MAX_VEL, BELL_MAX_VEL);
+      const vx = pointer ? pointer.vx : 0;
+      bellVel = clamp(vx * DRAG_DEG_PER_PX, -BELL_MAX_VEL, BELL_MAX_VEL);
     }
   }
 
@@ -717,6 +730,17 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
         { fill: COLOR.clapRest, stroke: COLOR.clapRest, duration: 0.5, ease: "power1.inOut" },
         0.34,
       );
+
+    /* 1d ── the same instant, told again in type: the pressure wave leaves
+             the mouth and crosses the headline. The bell knows only where its
+             mouth is; what resonates with it is not its problem. */
+    tl.call(
+      () => {
+        opts.onRing?.(heroRect.left + mouthX);
+      },
+      undefined,
+      RESONANCE_LEAD,
+    );
 
     /* 2 ── one green ring out of the mouth. Non-scaling-stroke keeps it a
            1.25px hairline the whole way out, which is the difference between
@@ -862,7 +886,12 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     // so the bell is a line drawing first and gains its one solid last.
     gsap.set(clapBall, { fillOpacity: 0 });
 
-    const split = new SplitText(headline, { type: "words", wordsClass: "hl-word" });
+    /* The headline arrived pre-split (see headline.ts): the entrance borrows
+       the same word boxes the physics will own from 1.30s on, so nothing is
+       created or destroyed under the reader mid-sentence. Fall back to the
+       whole H1 if nobody split it — the rise still reads, just as one block. */
+    const heroWords: readonly Element[] =
+      opts.headlineWords && opts.headlineWords.length > 0 ? opts.headlineWords : [headline];
 
     const tl = gsap.timeline();
     entranceTl = tl;
@@ -885,7 +914,7 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     // headline, word by word: 12px rise + fade, 40ms apart
     tl.set(copy, { opacity: 1 }, 0.55);
     tl.fromTo(
-      split.words,
+      heroWords,
       { y: 12, opacity: 0 },
       { y: 0, opacity: 1, duration: 0.55, stagger: 0.04, ease: "expo.out" },
       0.55,
@@ -905,11 +934,12 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     tl.to(chipsLayer, { opacity: 1, duration: 0.5, ease: "power2.out" }, 0.8);
     tl.to(hintWrap, { opacity: 1, duration: 0.6, ease: "power2.out" }, 1.0);
 
-    // 1.30s: last word has landed. Unwrap the split so the headline is plain
-    // selectable text again, and hand the rim over to the idle glint loop.
+    // 1.30s: last word has landed. Hand the words over to their own physics
+    // and the rim over to the idle glint loop. The entrance owns nothing from
+    // here.
     tl.call(
       () => {
-        split.revert();
+        opts.onEntranceComplete?.();
         startGlint();
       },
       undefined,
@@ -964,7 +994,9 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
   bellBtn.addEventListener("click", onClick);
 
   if (!reducedMotion) {
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    // One shared window listener for the whole page; the handle is what makes
+    // it possible to drop it again in destroy().
+    pointer = acquirePointer(onPointerMove);
     bellBtn.addEventListener("pointerdown", onPointerDown);
     bellBtn.addEventListener("pointerup", onPointerUp);
     bellBtn.addEventListener("pointercancel", onPointerUp);
@@ -980,7 +1012,8 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
   function destroy(): void {
     ro.disconnect();
     window.removeEventListener("scroll", onScroll);
-    window.removeEventListener("pointermove", onPointerMove);
+    pointer?.release();
+    pointer = null;
     bellBtn.removeEventListener("click", onClick);
     bellBtn.removeEventListener("pointerdown", onPointerDown);
     bellBtn.removeEventListener("pointerup", onPointerUp);

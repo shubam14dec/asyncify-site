@@ -430,6 +430,17 @@ html {
   max-width: 15ch;
 }
 
+/* Each word of the headline hangs from its own invisible thread. The thread
+   is tied to the TOP CENTRE of the word's box — 50% 0% — which is why the
+   word swings under the line above it rather than pivoting about its middle
+   like a propeller. SplitText supplies the boxes (display:inline-block,
+   position:relative); headline.ts supplies the angle. Declared here and not
+   in JS so the origin is right on the very first frame the physics writes,
+   and so there is one place to look for it. */
+.hl-word {
+  transform-origin: 50% 0%;
+}
+
 .subline {
   margin: clamp(12px, 2vh, 20px) auto 0;
   max-width: 52ch;
