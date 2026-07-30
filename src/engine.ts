@@ -92,7 +92,7 @@ const TL_END = 100;
 
    The shape is doing the work, not the number. A stream of evenly spaced dots
    is a picture of traffic no matter how long it is; a CLUMP is a picture of a
-   flood. So the spread comes from FLOOD_A_CLUMP — a fixed 49 × 23u scatter
+   flood. So the spread comes from FLOOD_A_CLUMP — a one-behind-the-other convoy (11u pitch, ±2u jitter)
    applied as each circle's OWN cx/cy, which survives the flight because these
    packets run their motionPath with `raw` (path coordinates straight into
    x/y, the circle's own offset riding on top). Nearest neighbours sit ~8.5u
@@ -116,20 +116,20 @@ const FLOOD_A_HIT = FLOOD_A_T0 + FLOOD_A_DUR;
  *  rolled: a flood whose shape changes when you scroll back up is a flood
  *  nobody believes (same rule as RECEIPT_MS). */
 const FLOOD_A_CLUMP: readonly (readonly [number, number])[] = [
-  [-25, -1],
-  [-19, -10],
-  [-18, 8],
-  [-12, -4],
-  [-10, 9],
-  [-6, -12],
-  [-4, 1],
-  [1, -7],
-  [2, 6],
-  [7, -2],
-  [9, 11],
-  [12, -9],
-  [17, 3],
-  [24, -3],
+  [-71, 0],
+  [-60, 2],
+  [-49, -2],
+  [-38, 0],
+  [-27, -2],
+  [-16, 2],
+  [-5, 0],
+  [6, 2],
+  [17, -2],
+  [28, 0],
+  [39, -2],
+  [50, 2],
+  [61, 0],
+  [72, 2],
 ];
 /** How far a refused packet drops before it is gone. Each packet's own clump
  *  offset is added, so the front of the clump falls furthest and the fourteen
