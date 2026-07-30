@@ -19,7 +19,6 @@
   /* The accent at rest. Used only by the clapper dot, which sits on screen
      permanently and would otherwise burn a hole in a near-black page — and
      which needs somewhere to go when it flashes to full green at the strike. */
-  --green-dim: #2ba36c;
   --green-soft: rgba(61, 214, 140, 0.25);
   --amber: #ffb224;
 

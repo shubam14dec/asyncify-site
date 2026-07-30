@@ -134,24 +134,6 @@ const PKT_ORDER = [2, 3, 1, 4, 0, 5];
 const HOLD_AFTER_LAST = 1.6;
 const AUTO_RING_DELAY_MS = 2200;
 
-/* ── Maker's stamp ────────────────────────────────────────────────────────
-   An event counter engraved on the bell's waist. It is meant to be found,
-   not read: at 55% of --text-faint on near-black it is barely above the
-   noise floor until you lean in. */
-const STAMP_KEY = "asyncify-rings";
-const STAMP_DIGITS = 6;
-/** Local units at scale 1. The stamp lives inside the scaled bell group, so
- *  layout() converts this into a per-scale px value clamped to STAMP_PX_*. */
-const STAMP_LOCAL_SIZE = 4.1;
-const STAMP_PX_MIN = 7;
-const STAMP_PX_MAX = 9;
-/** Length of #stamp-arc in bell-local units. Geist Mono advances 0.6em per
- *  character and `evt-000000` is 10 characters, so the text can never be
- *  allowed past ARC × 0.9 ÷ 6 units of font-size or it runs off the end of the
- *  path — which is what happens on a very short mobile window, where the bell
- *  hits its minimum size and STAMP_PX_MIN would otherwise win. */
-const STAMP_ARC_UNITS = 31;
-const STAMP_MAX_LOCAL = (STAMP_ARC_UNITS * 0.9) / (STAMP_DIGITS + 4) / 0.6;
 
 /* ── Composition ──────────────────────────────────────────────────────────
    The scene band is whatever vertical space is left between the top edge of
@@ -231,7 +213,7 @@ const CHANNELS = ["email", "sms", "push", "in-app", "telegram", "slack"] as cons
 
 const COLOR = {
   green: "#3dd68c",
-  greenDim: "#2ba36c",
+  clapRest: "#d6d6d6",
   faint: "#6e6e6e",
   hairline: "#262626",
   hairlineStrong: "#3f3f3f",
@@ -290,8 +272,6 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
   const clapper = q<SVGGElement>(scene, "#clapper");
   const clapBall = q<SVGCircleElement>(scene, "#c-ball");
   const glint = q<SVGPathElement>(scene, "#b-glint");
-  const stamp = q<SVGTextElement>(scene, "#stamp");
-  const stampRun = q<SVGTextPathElement>(scene, "#stamp textPath");
 
   /** Draw order for the entrance trace. Reads like a hand: loop, cap, both
    *  shoulders, the rim, the lip flicks, then the guts. */
@@ -394,30 +374,14 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
   let userHasRung = false;
   let autoRingTimer = 0;
 
-  /* ── maker's stamp counter ─────────────────────────────────────────────── */
 
-  /** localStorage can throw outright (Safari private mode, blocked storage) —
-   *  a decorative counter must never take the hero down with it. */
-  function readRingCount(): number {
-    try {
-      const raw = window.localStorage.getItem(STAMP_KEY);
-      const n = raw === null ? 0 : Number.parseInt(raw, 10);
-      return Number.isFinite(n) && n >= 0 ? n : 0;
-    } catch {
-      return 0;
-    }
-  }
 
-  let ringCount = readRingCount();
 
   function paintStamp(): void {
-    stampRun.textContent = `evt-${String(ringCount).padStart(STAMP_DIGITS, "0")}`;
   }
 
   function bumpStamp(): void {
-    ringCount += 1;
     try {
-      window.localStorage.setItem(STAMP_KEY, String(ringCount));
     } catch {
       /* non-fatal: the number still counts up for this session */
     }
@@ -458,12 +422,6 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     bellRoot.setAttribute("transform", `translate(${cx} ${pivotY}) scale(${bellScale})`);
     thread.setAttribute("d", `M ${cx} 0 L ${cx} ${pivotY}`);
 
-    /* Stamp: aim for STAMP_LOCAL_SIZE units so it always occupies the same
-       fraction of the bell, hold it inside a legible px range, then hard-cap
-       the local size so the text can never overrun the stamp arc. */
-    const stampPx = clamp(STAMP_LOCAL_SIZE * bellScale, STAMP_PX_MIN, STAMP_PX_MAX);
-    const stampLocal = Math.min(stampPx / bellScale, STAMP_MAX_LOCAL);
-    stamp.style.fontSize = `${stampLocal.toFixed(3)}px`;
 
     ripple.setAttribute("cx", String(mouthX));
     ripple.setAttribute("cy", String(mouthY));
@@ -691,8 +649,8 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     gsap.set(chipEls, { borderColor: COLOR.hairline });
     gsap.set(ripple, { opacity: 0, scale: 1 });
     gsap.set(clapBall, {
-      fill: COLOR.greenDim,
-      stroke: COLOR.greenDim,
+      fill: COLOR.clapRest,
+      stroke: COLOR.clapRest,
       scale: 1,
       svgOrigin: `${BELL.CLAP_BALL_CX} ${BELL.CLAP_BALL_CY}`,
     });
@@ -738,15 +696,14 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
       .to(flex, { sx: 0.99, sy: 1.01, duration: 0.06, ease: "power2.inOut" }, 0.115)
       .to(flex, { sx: 1, sy: 1, duration: 0.06, ease: "power2.out" }, 0.175);
 
-    /* 1c ── the delivered-dot fires on contact: full #3dd68c and a 1.3× pop,
-            then it settles back to its resting dim over half a second. This is
-            the moment the whole accent budget exists for. Origin is the ball's
+    /* 1c ── the ball flashes pure white on contact with a 1.3× pop, then
+            settles back to its resting neutral — the strike as light, no color. Origin is the ball's
             own centre in bell-local space. */
     tl.to(
       clapBall,
       {
-        fill: COLOR.green,
-        stroke: COLOR.green,
+        fill: "#ffffff",
+        stroke: "#ffffff",
         scale: 1.3,
         duration: 0.09,
         ease: "power2.out",
@@ -757,7 +714,7 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
       .to(clapBall, { scale: 1, duration: 0.16, ease: "power2.inOut" }, 0.145)
       .to(
         clapBall,
-        { fill: COLOR.greenDim, stroke: COLOR.greenDim, duration: 0.5, ease: "power1.inOut" },
+        { fill: COLOR.clapRest, stroke: COLOR.clapRest, duration: 0.5, ease: "power1.inOut" },
         0.34,
       );
 
@@ -841,10 +798,10 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     tl.set(sigEls, { drawSVG: "0% 100%", opacity: 0 })
       .to(sigEls, { opacity: 1, duration: 0.2, ease: "none" }, 0)
       // The delivered-dot still fires — colour only, no pop, no scale.
-      .to(clapBall, { fill: COLOR.green, stroke: COLOR.green, duration: 0.2, ease: "none" }, 0)
+      .to(clapBall, { fill: "#ffffff", stroke: "#ffffff", duration: 0.2, ease: "none" }, 0)
       .to(
         clapBall,
-        { fill: COLOR.greenDim, stroke: COLOR.greenDim, duration: 0.4, ease: "none" },
+        { fill: COLOR.clapRest, stroke: COLOR.clapRest, duration: 0.4, ease: "none" },
         1.1,
       )
       .to(dotEls, { backgroundColor: COLOR.green, duration: 0.2, ease: "none" }, 0)
@@ -904,7 +861,6 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     // The dot's outline is traced by the stagger below; its fill arrives after,
     // so the bell is a line drawing first and gains its one solid last.
     gsap.set(clapBall, { fillOpacity: 0 });
-    gsap.set(stamp, { opacity: 0 });
 
     const split = new SplitText(headline, { type: "words", wordsClass: "hl-word" });
 
@@ -923,10 +879,8 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
       0.3,
     );
 
-    // …then the dot fills, and the stamp surfaces last — an engraving you were
     // never told about.
     tl.to(clapBall, { fillOpacity: 1, duration: 0.34, ease: "power2.out" }, 0.86);
-    tl.to(stamp, { opacity: 0.55, duration: 0.55, ease: "power2.out" }, 1.02);
 
     // headline, word by word: 12px rise + fade, 40ms apart
     tl.set(copy, { opacity: 1 }, 0.55);

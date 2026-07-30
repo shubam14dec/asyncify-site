@@ -135,30 +135,6 @@
                     id="b-glint"
                     d="M 13.6 114.6 C 26.2 114.3 38.8 112.4 47.4 109"
                   />
-
-                  <!-- Maker's stamp. Sits on the LEFT lower waist rather than
-                       centred because the clapper shaft runs down x≈0 and would
-                       strike through the middle of the number. Off-centre also
-                       reads more like a foundry mark and less like a label.
-                       font-size is set per-layout in bell.ts: the text is inside
-                       the scaled bell group, so a fixed CSS px value would need
-                       dividing by bellScale anyway. -->
-                  <defs>
-                    <!-- Sits at y≈71–77. The clapper ball sweeps a band around
-                         y 92–99 out to x≈−30 at full throw; its top edge reaches
-                         y≈83, so this arc clears it by ~6 units and the strike
-                         never paints over the number. -->
-                    <path
-                      id="stamp-arc"
-                      d="M -33.5 71.5 C -25 76 -14.5 77.6 -2.5 77"
-                      fill="none"
-                    />
-                  </defs>
-                  <text class="stamp" id="stamp">
-                    <textPath href="#stamp-arc" startOffset="50%" text-anchor="middle">
-                      evt-000000
-                    </textPath>
-                  </text>
                 </g>
               </g>
             </g>
