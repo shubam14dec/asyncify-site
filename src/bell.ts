@@ -736,6 +736,8 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
              mouth is; what resonates with it is not its problem. */
     tl.call(
       () => {
+        // The inscription catches light as the bell sounds.
+        gsap.fromTo(".foundry", { opacity: 0.4 }, { opacity: 1, duration: 0.28, yoyo: true, repeat: 1, ease: "power1.inOut" });
         opts.onRing?.(heroRect.left + mouthX, heroRect.top + mouthY);
       },
       undefined,

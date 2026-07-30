@@ -651,5 +651,5 @@ html {
   font-size: 3.6px; /* bell-local units */
   letter-spacing: 0.14em;
   fill: #6e6e6e;
-  opacity: 0.75;
+  opacity: 0.4; /* engraved-faint; the ring lights it */
 }
