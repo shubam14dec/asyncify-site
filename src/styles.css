@@ -1280,9 +1280,12 @@ html {
   min-width: 0; /* a grid child must be allowed to be narrower than its SVG */
 }
 
+/* The camera pushes past the viewBox on the close-up beats. Clip here, not at
+   the section edge, or the phone slides out over the page gutter. */
 .trn-svg {
   width: 100%;
-  height: min(100%, 62vh);
+  height: min(100%, 78vh);
+  overflow: hidden;
 }
 
 .trn-progress {
@@ -1301,23 +1304,133 @@ html {
   transform-origin: 0% 50%;
 }
 
-/* ── the composition's own ink ───────────────────────────────────────────
-   font-size inside a viewBox is user units, and this scene renders at ~1:1,
-   so these numbers are CSS pixels as well. 15u for the two things a person
-   would actually read (the message, the reply), 12u for the machine's own
-   asides — the same ladder scene 2 uses. */
+/* ── the phone ───────────────────────────────────────────────────────────
+   Three weights, exactly BRAND §4: 1.25 for the device silhouette, 1 for the
+   screen and every piece of UI inside it. Every stroke is non-scaling, which
+   is what lets the camera push to 1.62× without a single hairline getting fat.
 
-.trn-msg {
+   Elevation is colour, never shadow (DESIGN §1): --canvas device, --surface
+   screen. The two-step ladder is the only thing separating the phone from the
+   page behind it, and it is enough. */
+.trn-phone {
+  fill: var(--canvas);
+  stroke: var(--hairline-strong);
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+.trn-screen {
+  fill: var(--surface);
+  stroke: var(--hairline);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Outlined UI: the search field, the avatars, the reply bar. */
+.trn-ui-line {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Drawn UI strokes with ends the eye can see: the hamburger, the back
+   chevron. Butt caps, same law as everything else that can rest at zero
+   length (DESIGN §3). Set on the group so its child paths inherit. */
+.trn-ui-stroke {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Somebody else's mail, and the status marks: filled bars at the hairline's
+   strong step. They have to read as CONTENT and not as chrome, and they have
+   to stay quieter than the one row the reader is meant to read — a solid fill
+   two steps below --text-dim does both. */
+.trn-ui-fill {
+  fill: var(--hairline-strong);
+}
+
+.trn-punch {
+  fill: var(--hairline-strong);
+}
+
+.trn-div {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The mail app's identity: the site's own envelope glyph, whose fold is the
+   M. Ink, at the same 1.25 the device silhouette uses, because it is the one
+   mark on the screen that is a logo rather than a control. Never a brand
+   colour — a red envelope would be the only non-ladder hue on the site. */
+.trn-env {
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ── the composition's mono ladder ───────────────────────────────────────
+   The scene renders at ~0.88 of viewBox units, so 12u ≈ 10.5 CSS px at the
+   wide shot and ~17px at the reply close-up — which is the whole reason the
+   camera exists. 12u for a thing with a name (the sender, the subject, the
+   reply), 11u for its supporting line, 10u for the machine's own muttering. */
+
+.trn-app-hint {
   font-family: var(--mono);
-  font-size: 15px;
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+.trn-row-from,
+.trn-thread-sub {
+  font-family: var(--mono);
+  font-size: 12px;
   letter-spacing: 0.01em;
   fill: var(--text);
 }
 
-/* One <text> per glyph, placed by turn.ts at TEXT_X + i · CHAR_W. No
+.trn-row-sub,
+.trn-thread-from {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  fill: var(--text-dim);
+}
+
+.trn-thread-to {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+/* What an empty reply field says. It is IN the finished frame — the reply was
+   sent, so the field is empty again — and it leaves for exactly as long as
+   there are characters standing in its place. */
+.trn-reply-hint {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+/* One <text> per glyph, placed by turn.ts at REPLY_TEXT_X + i · CHAR_W. No
    letter-spacing: a single-glyph run has nothing to space, and the pitch is
-   already carried by CHAR_W (which includes the 0.01em the message above it
-   is set at, so the two lines sit on one rhythm).
+   already carried by CHAR_W (which includes the 0.01em the rest of the screen
+   is set at, so the reply sits on the same rhythm as the subject above it).
 
    At 0, because the reply is NOT in the scene's finished frame: it was typed,
    it became the dot that went home, and a sent message does not sit in the
@@ -1326,19 +1439,46 @@ html {
    also leaves with the moment it names. */
 .trn-char {
   font-family: var(--mono);
-  font-size: 15px;
+  font-size: 12px;
   fill: var(--text);
   opacity: 0;
 }
 
-/* The two figures a still reader needs the reply IN: its own close-up, and the
-   whole-composition frame that is the only figure a reduced-motion reader
-   gets. Reduced motion is a designed still state, not a lossy one — the words
-   the human typed are the single most important thing the motion carried
-   (DESIGN §3). */
+/* ── which screen a still figure is looking at ───────────────────────────
+   The finished frame is the OPENED THREAD: the reader tapped the mail, replied
+   to it, and the reply is gone. So the inbox — the entire arrival mechanism —
+   is erased from the last frame, exactly as scene 2's phase-A wires are erased
+   from its finished anatomy, and exactly as there it gets its own still card.
+
+   These four rules are the whole per-figure vocabulary of this scene, and they
+   are keyed on CLASSES rather than ids: the still figures are clones with every
+   id stripped (a document may only have one of each), so an id selector would
+   match the live scene and nothing the reader on a phone ever sees. */
+.trn-screen-inbox {
+  opacity: 0;
+}
+
+.trn-card-figure[data-phase="delivery"] .trn-screen-inbox {
+  opacity: 1;
+}
+
+.trn-card-figure[data-phase="delivery"] .trn-screen-thread {
+  opacity: 0;
+}
+
+/* The two figures a still reader needs the typed reply IN: its own close-up,
+   and the whole-composition frame a reduced-motion reader gets. Reduced motion
+   is a designed still state, not a lossy one — the words the human typed are
+   the single most important thing the motion carried (DESIGN §3). The hint and
+   the characters are mutually exclusive: a field is empty or it is not. */
 .trn-card-figure[data-phase="reply"] .trn-char,
 .trn-card-figure[data-phase="all"] .trn-char {
   opacity: 1;
+}
+
+.trn-card-figure[data-phase="reply"] .trn-reply-hint,
+.trn-card-figure[data-phase="all"] .trn-reply-hint {
+  opacity: 0;
 }
 
 /* The block cursor is the only element in this scene that is not part of its

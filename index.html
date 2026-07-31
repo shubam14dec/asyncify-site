@@ -908,28 +908,37 @@
 
       <!-- ─────────────────────────────────────────────────────────────────
            SCENE 3 — THE TURN.  "…and then it comes back."
-           One pinned composition, scrubbed over 1.5 viewport heights, in
-           three beats: a delivery, a human reply, and the reply travelling
-           back down the same wire into the engine. See src/turn.ts for the
-           storyboard and the timing.
+           One pinned composition, scrubbed over 1.8 viewport heights, in
+           three beats: a delivery into a real inbox, a human reply typed at a
+           close-up, and that reply travelling back down the same wire into the
+           engine from the wide shot. See src/turn.ts for the storyboard, the
+           timing and the camera.
 
-           Three objects and one horizontal, and the whole scene is legible
-           from that alone: the engine chip on the left is the entire machine
-           from scene 2 with its internals deliberately left out, the card on
-           the right is a message a person received, and the wire between them
-           is the only road in the picture. Everything below the spine is the
-           reply — which is exactly the half of the product Novu does not have.
+           Two objects and one horizontal, and the whole scene is legible from
+           that alone: the engine chip on the left is the entire machine from
+           scene 2 with its internals deliberately left out, and the phone on
+           the right is where the message actually ends up. The chip is small
+           and the phone is 494u tall on purpose — infrastructure is quiet, and
+           the thing a person holds is not.
+
+           WHY A PHONE AND NOT AN ABSTRACT CARD. A card is a diagram of a
+           message; a phone with mail in it is the place a message lands. The
+           whole claim of this scene is that the reply is a REAL human act, and
+           a human does not reply to a rounded rectangle. It stays in the
+           site's dialect regardless: hairline ink, mono text, --surface for
+           the lit screen against --canvas for the device. There is no Gmail
+           red, blue or yellow anywhere in it, and the only green in the scene
+           is the packet's landing pop (BRAND §2).
 
            As in scene 2, the markup below is the ANATOMY only: it is authored
-           in its FINISHED state (drawn, labelled, reply fully typed, inbound
-           mark present) and CSS paints it that way, so a clone of it with no
-           JS applied already is the last frame of the scene. turn.ts pushes it
-           back to the start and scrubs it forward.
+           in its FINISHED state and CSS paints it that way, so a clone of it
+           with no JS applied already is the last frame of the scene. turn.ts
+           pushes it back to the start and scrubs it forward.
            ───────────────────────────────────────────────────────────────── -->
       <section id="scene-turn" aria-labelledby="trn-heading">
         <h2 class="sr-only" id="trn-heading">
-          The turn: a notification is delivered, your user replies to it, and the reply travels
-          back into the engine.
+          The turn: a notification is delivered to your user's inbox, they reply to it, and the
+          reply travels back into the engine.
         </h2>
 
         <div class="trn-pin" id="trn-pin">
@@ -937,80 +946,182 @@
             <svg
               class="trn-svg"
               id="trn-svg"
-              viewBox="0 0 1200 400"
+              viewBox="0 0 1200 600"
               preserveAspectRatio="xMidYMid meet"
               aria-hidden="true"
               focusable="false"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <!-- Flight routes. Rendered into nothing but RENDERED, in the
-                   same coordinate space as the packets that ride them. All
-                   three `d`s are written by turn.ts from its own constants —
-                   a route that disagreed with the wire under it would be a
-                   packet flying over undrawn ground. -->
-              <g class="eng-guides" id="trn-guides">
-                <path id="trn-g-send" d="M 0 0" />
-                <path id="trn-g-step" d="M 0 0" />
-                <path id="trn-g-back" d="M 0 0" />
+              <!-- ONE camera group, wrapping everything. Its transform is
+                   authored here as an explicit identity and then owned by
+                   turn.ts's applyCam(), which writes the attribute directly
+                   rather than going through gsap's `scale`/`x`/`y` — gsap
+                   re-derives an SVG element's transform origin from its own
+                   bbox whenever the transform cache is rebuilt, and a camera
+                   whose pivot silently becomes "wherever the drawing happens
+                   to be widest" drifts further off with every keyframe
+                   (DESIGN §3, and the same construction as #eng-cam).
+
+                   Authoring the identity here rather than leaving the
+                   attribute off is what makes the still clones honest: they
+                   are rendered with no JS on them at all, so the transform
+                   they carry has to be the one that means "the wide shot". -->
+              <g id="trn-cam" transform="translate(0 0) scale(1)">
+                <!-- Flight routes. Rendered into nothing but RENDERED, and
+                     INSIDE the camera: MotionPath's `align` corrects for the
+                     difference between the guide's screen matrix and the
+                     rider's, so a guide parked outside this group would drag
+                     every packet off its route by exactly whatever the camera
+                     is doing at the time. All three `d`s are written by
+                     turn.ts from its own constants. -->
+                <g class="eng-guides" id="trn-guides">
+                  <path id="trn-g-send" d="M 0 0" />
+                  <path id="trn-g-step" d="M 0 0" />
+                  <path id="trn-g-back" d="M 0 0" />
+                </g>
+
+                <!-- ── the engine, as one chip ─────────────────────────────
+                     Empty on purpose. The reader has been inside this box for
+                     two and a half screens; what it needs from this scene is a
+                     middle for the inbound message to come to rest in, which
+                     is why the label sits above it rather than in it (the same
+                     place scene 2 puts "queue" over the queue). -->
+                <g class="trn-l-engine">
+                  <rect class="eng-box" id="trn-chip" x="90" y="158" width="170" height="68" rx="6" />
+                  <text class="eng-aside" id="trn-chip-label" x="90" y="148">asyncify · engine</text>
+                  <!-- The inbound message once it has stopped travelling. A
+                       mark, not the packet that carried it: what the engine
+                       heard has to still be on screen after the motion.
+                       Neutral ink — it is the user's message, not one of our
+                       deliveries (BRAND §2). -->
+                  <circle class="trn-mark-in" id="trn-mark-in" cx="175" cy="192" r="4.5" />
+                  <!-- The cliffhanger. One line, no stray whitespace. -->
+                  <text class="eng-stamp" id="trn-stamp-in" x="90" y="270">inbound · conversation open</text>
+                </g>
+
+                <!-- The one road in the picture. Wall to wall: it touches the
+                     chip's right edge and the phone's left edge, and it runs
+                     at exactly the latitude of the inbox row the message
+                     becomes, so the packet flies straight into its own row
+                     instead of arriving somewhere near it. -->
+                <path class="eng-wire" id="trn-wire" d="M 260 192 L 820 192" />
+                <!-- OUR note about THEIR surface, so it lives outside the
+                     phone, right-anchored 20u off its wall and level with the
+                     row it is about. Lowercase, channel named the way the API
+                     names it (BRAND §6). One line, no stray whitespace —
+                     text-anchor:end would otherwise measure a trailing space. -->
+                <text class="eng-stamp" id="trn-receipt" x="800" y="168" text-anchor="end">delivered · email</text>
+
+                <!-- ── the phone ───────────────────────────────────────────
+                     Drawn art, not a UI surface, which is why the body carries
+                     a 34u corner and the screen a 22u one: BRAND §4's two-value
+                     radius ladder (6 and 16) governs the site's own chrome, and
+                     the hero's bell is the precedent for a scene object being
+                     drawn to its own proportions. Everything INSIDE the screen
+                     is UI again, and every one of those corners is 6.
+
+                     Two-step elevation, exactly DESIGN §1: the device is
+                     --canvas, the screen is --surface. No shadow anywhere. -->
+                <g class="trn-l-phone">
+                  <rect class="trn-phone" id="trn-phone" x="820" y="53" width="260" height="494" rx="34" />
+                  <rect class="trn-screen" id="trn-screen" x="832" y="65" width="236" height="470" rx="22" />
+
+                  <!-- Punch-hole camera and four status marks. Marks, not
+                       "9:41" — a clock face on this page would be a number
+                       that is not real and not explicitly mocked (PRODUCT). -->
+                  <g id="trn-chrome">
+                    <circle class="trn-punch" cx="950" cy="81" r="4" />
+                    <rect class="trn-ui-fill" x="846" y="95" width="22" height="7" rx="2" />
+                    <rect class="trn-ui-fill" x="1022" y="95" width="5" height="7" rx="1" />
+                    <rect class="trn-ui-fill" x="1031" y="95" width="5" height="7" rx="1" />
+                    <rect class="trn-ui-line" x="1042" y="95" width="16" height="7" rx="2" />
+                  </g>
+
+                  <!-- ── screen state 1: the inbox ─────────────────────────
+                       Crossfaded with the thread below. Both states live in
+                       the markup and the timeline only ever swaps their
+                       opacity: a screen change built by mutating structure is
+                       a screen change that cannot be scrubbed backwards. -->
+                  <g class="trn-screen-inbox" id="trn-inbox">
+                    <!-- The app's identity mark, and it is the site's own
+                         envelope glyph (scene 2's #digest-env) rather than a
+                         traced logo: one rect, one fold, and the fold IS the
+                         M. Ink, never a brand colour. -->
+                    <g class="trn-env" id="trn-env">
+                      <rect x="846" y="127" width="22" height="16" rx="2" />
+                      <path d="M 846 127 L 857 137 L 868 127" />
+                    </g>
+                    <!-- Search field at 6u, not a full pill: BRAND §4 puts
+                         pills on the 6px step and forbids a full radius
+                         standing next to one, and every other corner inside
+                         this screen is 6. It still reads as the search bar,
+                         because the hamburger and the hint are what say so. -->
+                    <rect class="trn-ui-line" id="trn-search" x="878" y="117" width="180" height="36" rx="6" />
+                    <g class="trn-ui-stroke" id="trn-burger">
+                      <path d="M 888 129 L 902 129" />
+                      <path d="M 888 135 L 902 135" />
+                      <path d="M 888 141 L 902 141" />
+                    </g>
+                    <text class="trn-app-hint" x="912" y="139">Search in mail</text>
+                    <circle class="trn-ui-line" id="trn-avatar" cx="1040" cy="135" r="9" />
+                    <path class="trn-div" id="trn-inbox-div" d="M 832 159 L 1068 159" />
+
+                    <!-- Four rows of somebody else's mail, generated by
+                         turn.ts from ROW_BARS. They are authored at rows 1–4
+                         and rest one pitch HIGHER, at rows 0–3; the arrival
+                         slides them down into place, which is what a list
+                         receiving a new item at its head actually does. -->
+                    <g id="trn-rows"></g>
+
+                    <!-- The message, in the only row anyone is meant to read.
+                         Same anatomy as the placeholders — avatar, sender,
+                         preview, time — with the bars replaced by words. -->
+                    <g id="trn-row-new">
+                      <circle class="trn-ui-line" cx="852" cy="192" r="9" />
+                      <text class="trn-row-from" x="870" y="186">asyncify</text>
+                      <text class="trn-row-sub" x="870" y="206">Your refund is on its way.</text>
+                      <rect class="trn-ui-fill" x="1048" y="177" width="14" height="5" rx="2" />
+                    </g>
+                  </g>
+
+                  <!-- ── screen state 2: the opened thread ─────────────────
+                       What the reader is looking at for the whole of beat 2,
+                       at the close-up. The reply bar at the bottom is the only
+                       thing in this scene a person touches. -->
+                  <g class="trn-screen-thread" id="trn-thread">
+                    <path class="trn-ui-stroke" id="trn-back" d="M 860 127 L 850 135 L 860 143" />
+                    <path class="trn-div" d="M 832 159 L 1068 159" />
+                    <text class="trn-thread-sub" x="846" y="190">Your refund is on its way.</text>
+                    <circle class="trn-ui-line" cx="852" cy="222" r="9" />
+                    <text class="trn-thread-from" x="870" y="218">asyncify</text>
+                    <text class="trn-thread-to" x="870" y="234">to you</text>
+                    <!-- The body as bars, not as words: the message has
+                         already been read out loud by the subject line, and
+                         setting it twice would be the page repeating itself. -->
+                    <g id="trn-body">
+                      <rect class="trn-ui-fill" x="846" y="258" width="200" height="5" rx="2" />
+                      <rect class="trn-ui-fill" x="846" y="272" width="186" height="5" rx="2" />
+                      <rect class="trn-ui-fill" x="846" y="286" width="128" height="5" rx="2" />
+                    </g>
+                    <path class="trn-div" d="M 846 316 L 1054 316" />
+
+                    <!-- The reply bar. 6u radius, because it is an input, and
+                         it is the one element on this screen the scene ever
+                         changes. The hint is what an empty field says; the
+                         characters are generated by turn.ts, one <text> per
+                         glyph at an explicit x, because a reveal that has to
+                         survive being scrubbed backwards cannot be a string
+                         being appended to. -->
+                    <rect class="trn-ui-line" id="trn-reply" x="846" y="440" width="208" height="44" rx="6" />
+                    <text class="trn-reply-hint" id="trn-reply-hint" x="862" y="467">Reply</text>
+                    <g id="trn-chars"></g>
+                    <rect class="trn-cursor" id="trn-cursor" x="862" y="454" width="6.7" height="13" />
+                  </g>
+                </g>
+
+                <!-- Travelling packets. Generated, and always painted last. -->
+                <g class="trn-l-dots" id="trn-dots"></g>
               </g>
-
-              <!-- ── the engine, as one chip ───────────────────────────────
-                   Empty on purpose. The reader has been inside this box for
-                   two and a half screens; what it needs from this scene is a
-                   middle for the inbound message to come to rest in, which is
-                   why the label sits above it rather than in it (the same
-                   place scene 2 puts "queue" over the queue). -->
-              <g class="trn-l-engine">
-                <rect class="eng-box" id="trn-chip" x="90" y="122" width="170" height="68" rx="6" />
-                <text class="eng-aside" id="trn-chip-label" x="90" y="112">asyncify · engine</text>
-                <!-- The inbound message once it has stopped travelling. A
-                     mark, not the packet that carried it: what the engine
-                     heard has to still be on screen after the motion. Neutral
-                     ink — it is the user's message, not one of our deliveries
-                     (BRAND §2). -->
-                <circle class="trn-mark-in" id="trn-mark-in" cx="175" cy="156" r="4.5" />
-                <!-- The cliffhanger. One line, no stray whitespace. -->
-                <text class="eng-stamp" id="trn-stamp-in" x="90" y="224">inbound · conversation open</text>
-              </g>
-
-              <!-- The one road in the picture. Wall to wall: it touches the
-                   chip's right edge and the card's left edge, so neither the
-                   delivery nor the reply ever crosses a gap. -->
-              <path class="eng-wire" id="trn-wire" d="M 260 156 L 720 156" />
-
-              <!-- ── the message ───────────────────────────────────────────
-                   16px radius, against the chip's 6: BRAND §4 gives cards 16
-                   and chips 6, and here that difference is load-bearing — one
-                   of these is infrastructure and the other is a thing a person
-                   received. -->
-              <g class="trn-l-card">
-                <rect class="eng-box" id="trn-card" x="720" y="106" width="400" height="100" rx="16" />
-                <text class="trn-msg" id="trn-msg" x="744" y="142">Your refund is on its way.</text>
-                <!-- Lowercase, and the channel named the way the API names it
-                     (BRAND §6). This is the last line of scene 2's story and
-                     the first line of scene 3's problem. -->
-                <text class="eng-receipt" id="trn-receipt" x="744" y="182">delivered · email</text>
-              </g>
-
-              <!-- ── the reply ─────────────────────────────────────────────
-                   Hung off the card on a 28u tether, centred so the field
-                   reads as belonging to the message above it rather than as a
-                   second card. 6px radius, because it is an input.
-
-                   The typed characters are generated by turn.ts, one <text>
-                   per glyph at an explicit x: a reveal that has to survive
-                   being scrubbed backwards cannot be a string being appended
-                   to. The cursor is a rect that steps along the same pitch. -->
-              <g class="trn-l-reply">
-                <path class="eng-wire" id="trn-tether" d="M 920 206 L 920 234" />
-                <rect class="eng-box" id="trn-reply" x="720" y="234" width="400" height="60" rx="6" />
-                <text class="eng-aside" id="trn-reply-label" x="720" y="226">reply</text>
-                <g id="trn-chars"></g>
-                <rect class="trn-cursor" id="trn-cursor" x="744" y="259" width="8.4" height="15" />
-              </g>
-
-              <!-- Travelling packets. Generated, and always painted last. -->
-              <g class="trn-l-dots" id="trn-dots"></g>
             </svg>
           </div>
 

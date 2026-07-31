@@ -1,25 +1,30 @@
 /* ══════════════════════════════════════════════════════════════════════════
    SCENE 3 — THE TURN
    ──────────────────────────────────────────────────────────────────────────
-   One composition, pinned, scrubbed over one and a half viewport heights, in
-   three beats:
+   One composition, pinned, scrubbed over one and four-fifths of a viewport
+   height, in three beats and three camera positions:
 
-     1  THE DELIVERY   where scene 2 ended, compressed into three objects: the
-                       whole engine as one chip, one wire, one message card. A
-                       green packet leaves the chip, lands on the card, and the
-                       receipt says the thing every other notification product
-                       says last — delivered.
-     2  THE REPLY      a field opens under the message and a human types into
-                       it, one character at a time. This is the first human act
-                       on the page, so it gets the slowest beat in the scene:
-                       twenty-two characters over a third of a screen of
-                       scroll. Nothing else moves while it happens.
+     1  THE DELIVERY   the whole engine as one chip, one wire, and a phone with
+                       mail on it. A green packet leaves the chip, rides the
+                       wire at exactly the latitude of the inbox row it is
+                       about to become, and the message ARRIVES: the list of
+                       somebody else's mail slides down a row and ours takes
+                       the top slot, with the receipt stamped beside it.
+                       The camera pushes from the wide shot to the inbox as the
+                       packet crosses, so the row is legible when it lands.
+     2  THE REPLY      the camera pushes further, the screen crossfades from
+                       the inbox to the opened thread, and a human types into
+                       the reply bar one character at a time. This is the first
+                       human act on the page, so it owns the frame and gets the
+                       slowest beat in the scene: twenty-two characters over a
+                       quarter of a screen of scroll, with nothing else moving.
      3  THE REVERSAL   the reply collapses into a single dot, steps out of the
-                       field, and STOPS — a turn is a decision and a decision
-                       has a pause in it — then runs the delivery wire
-                       backwards into the engine. The chip acknowledges in
+                       phone, and STOPS — a turn is a decision and a decision
+                       has a pause in it. The camera pulls back to the wide
+                       shot during that pause, so the reader watches the dot
+                       cross the whole distance home. The chip acknowledges in
                        NEUTRAL ink: this message is the user's, not ours, and
-                       green on this site means one of ours arrived (BRAND §2).
+                       green on this site means one of OURS arrived (BRAND §2).
                        The scene ends held on that frame rather than fading:
                        the cliffhanger scene 4 picks up is a conversation that
                        is still open.
@@ -27,14 +32,22 @@
    It obeys engine.ts's four rules — one scrubbed timeline with no .set() or
    .call() in it, every tween a fromTo with immediateRender:false, CSS painting
    the finished frame and restState() inverting it, and transform/opacity/
-   stroke/drawSVG only. One of them takes a new form here and is worth naming:
-   the typed reply never mutates textContent, because a string that was
-   appended to cannot be un-appended by a reverse pass. Every character is its
-   own element, authored once, revealed by opacity.
+   stroke/drawSVG only. Two of them take a new form here and are worth naming:
 
-   Nothing in this scene scales, so the non-scaling-stroke dasharray trap
-   (DESIGN §3) is out of reach; the butt-linecap law still applies and every
-   stroke here inherits it from the .eng-* classes it borrows.
+     · the typed reply never mutates textContent, because a string that was
+       appended to cannot be un-appended by a reverse pass. Every character is
+       its own element, authored once, revealed by opacity. The screen change
+       from inbox to thread is the same discipline one level up — both states
+       are in the markup and the timeline only ever swaps their opacity.
+     · the camera is three tweened numbers written out as ONE transform
+       attribute, and every keyframe is an explicit fromTo off the previous
+       one, so a reverse scrub lands the frame back on the wide shot exactly.
+
+   The camera makes the non-scaling-stroke dasharray law (DESIGN §3) sharper
+   rather than softer: at 1.62× a partial drawSVG range would be off by 62%
+   instead of by a rounding error. Nothing in this scene uses one — every draw
+   is "0% 0%" → "0% 100%", which is the one range that means the same number in
+   screen space and user space. Butt caps everywhere, same reason as always.
 
    Constants first, with the arithmetic, same as engine.ts.
    ══════════════════════════════════════════════════════════════════════════ */
@@ -46,36 +59,52 @@ import { gsap } from "gsap";
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* ── The scrub window ──────────────────────────────────────────────────────
-   Same arithmetic as scene 2: the number that matters is SCROLL PER TIMELINE
-   UNIT, and 1.5 / 60 = 0.025 viewport heights sits just above the 0.020 scene
-   2 settled on. Below ~0.02 the typing beat becomes a flicker. 1.5 screens is
-   the whole argument for the length — this scene is one sentence ("and then it
-   comes back"), and a pinned section that outstays its sentence is the reason
-   readers learn to scroll past pinned sections. */
-const PIN_HEIGHTS = 1.5;
-const TL_END = 60;
+   The number that matters is SCROLL PER TIMELINE UNIT, and it is unchanged at
+   0.025 viewport heights — the same density this scene has always had, and
+   just above the 0.020 scene 2 settled on. Below ~0.02 the typing beat becomes
+   a flicker.
+
+   PIN_HEIGHTS went 1.5 → 1.8 when the card became a phone, and the twelve
+   extra units are itemised rather than rounded up to a feeling:
+
+       +4   the phone is a 494u object with a screen and an app bar in it,
+            where the card was a 100u rectangle; assembling it honestly costs
+            four more units than tracing one box did
+       +3   the push-in from the wide shot to the inbox (B1)
+       +3   the push-in from the inbox to the opened thread (B2)
+       +2   net cost of the screen crossfade and the camera pull-back, both of
+            which overlap beats that already existed
+
+   Nothing was slowed down to get there: every beat that existed before this
+   rework costs the reader exactly the scroll it always did. That is the same
+   discipline scene 2 keeps with C_ADD, and it is what makes a scene safe to
+   lengthen — and safe to shorten again if the phone ever goes. */
+const PIN_HEIGHTS = 1.8;
+const TL_END = 72;
 
 /** Scrub catch-up, in seconds. Matched to scene 2 on purpose — the two
  *  sections are read in one continuous scroll and a change of scrub feel
  *  between them reads as the page stuttering, not as a new scene. */
 const SCRUB = 0.55;
 
-/* Beat boundaries, in timeline units. The split is 18 / 20 / 22 and it is not
-   even by accident: beat 1 is RECAP, and a machine the reader has already
-   toured only has to be recognised; beat 2 is the human, and per word it is
-   the slowest thing on the page; beat 3 carries the turn, the travel and the
-   ending frame, and the ending frame is six units of nothing on purpose. */
+/* Beat boundaries, in timeline units. The split is 22 / 24 / 26 and it is not
+   even by accident: beat 1 is RECAP plus one new object, and a machine the
+   reader has already toured only has to be recognised; beat 2 is the human,
+   and per word it is the slowest thing on the page; beat 3 carries the turn,
+   the longest journey in the scene and the ending frame, and the ending frame
+   is eight units of nothing on purpose. */
 const BEAT_1 = 0;
-const BEAT_2 = 18;
-const BEAT_3 = 38;
+const BEAT_2 = 22;
+const BEAT_3 = 46;
 
 /* ── The composition ───────────────────────────────────────────────────────
-   1200 × 400, one static frame, no camera. Everything is hung off ONE
-   horizontal: WIRE_Y is the spine, and the chip, the wire and the card are all
-   centred on it, so the delivery is a straight line across the frame and the
-   reply is the only thing in the scene that happens below it. That is the
-   whole diagram: out is level, back is a step down and then level again. */
-const WIRE_Y = 156;
+   1200 × 600. Everything is hung off ONE horizontal: WIRE_Y is the spine, and
+   the chip, the wire and — this is the part that does the work — the inbox row
+   the message becomes are all centred on it. The packet therefore flies into
+   its own row rather than at the phone in general, and the reply is the only
+   thing in the scene that happens below the line. Out is level; back is a step
+   down and then level again. */
+const WIRE_Y = 192;
 
 /** The engine chip — the entire machine from scene 2 as one hairline box, with
  *  no internals. Its interior is left empty because the inbound dot comes to
@@ -86,26 +115,42 @@ const CHIP_X = 90;
 const CHIP_W = 170;
 const CHIP_CX = CHIP_X + CHIP_W / 2;
 
-/** The wire, end to end. Chip's right edge to the card's left edge — it
+/** The wire, end to end. Chip's right edge to the phone's left edge — it
  *  touches both, so nothing in this scene flies over a gap. */
 const WIRE_X0 = CHIP_X + CHIP_W;
-const WIRE_X1 = 720;
+const WIRE_X1 = 820;
 
-/** The message card. 16px radius because BRAND §4 gives cards 16 and chips 6,
- *  and the difference between the two shapes is doing real work here: the
- *  engine is infrastructure, the message is a thing a person received. */
-const CARD_X = WIRE_X1;
-const CARD_W = 400;
-const CARD_PAD = 24;
-/** Where every line inside the card and the field starts. */
-const TEXT_X = CARD_X + CARD_PAD;
+/* ── The phone ─────────────────────────────────────────────────────────────
+   494u tall against the chip's 68, and that ratio is the composition's whole
+   argument: infrastructure is small and quiet, the thing a person is holding
+   is not. Its screen is a 236 × 470 window, which at 12u mono is 28 characters
+   across — measured, not guessed, and the reason the subject line is the
+   length it is. */
+const PHONE_X = 820;
+const SCREEN_X = 832;
+const SCREEN_W = 236;
 
-/** The reply field. Same width, 6px radius (it is an input), hung under the
- *  card on a 28u tether — scene 2's workflow-inlet vocabulary. */
-const REPLY_Y = 234;
-const REPLY_H = 60;
-/** The typed reply's baseline, and the y every beat-3 traveller starts at. */
-const REPLY_BASE_Y = 270;
+/** Inbox rows. The pitch is what the arrival animates: the four rows of
+ *  somebody else's mail rest ONE PITCH HIGHER than they are authored, and
+ *  drop into place as ours takes the top slot. A list receiving a new item at
+ *  its head is a list that moves down, and the drop is the only part of this
+ *  beat a reader could not have inferred from a static picture. */
+const ROW_PITCH = 66;
+/** Where a row's contents sit, left to right: avatar centre, text, time mark.
+ *  Row k's centre is WIRE_Y + k · ROW_PITCH, so row 0 is on the spine. */
+const ROW_AVATAR_X = 852;
+const ROW_TEXT_X = 870;
+const ROW_TIME_X = 1048;
+/** The four placeholder rows, as sender-bar / subject-bar widths. Authored,
+ *  never rolled: a width that changes when you scroll past it twice is a
+ *  width that will eventually change in a screenshot (same rule as scene 2's
+ *  mock latencies). Widest is 132u, which clears the time mark at 1048. */
+const ROW_BARS: readonly (readonly [number, number])[] = [
+  [58, 132],
+  [44, 108],
+  [70, 120],
+  [52, 96],
+];
 
 /* ── The typed reply ───────────────────────────────────────────────────────
    Pre-split into one <text> per character, positioned by us rather than by the
@@ -115,21 +160,32 @@ const REPLY_BASE_Y = 270;
        "type a string" is to never have typed it — every glyph exists from the
        first frame and the timeline only ever changes its opacity;
      · placing each glyph at an explicit x means the block cursor's position is
-       arithmetic (TEXT_X + n · CHAR_W) instead of a measurement, so it can be
-       tweened as a stepped sequence that is exact at every scrub position and
-       does not depend on the web font having loaded when the scene booted.
+       arithmetic (REPLY_TEXT_X + n · CHAR_W) instead of a measurement, so it
+       is exact at every scrub position and does not depend on the web font
+       having loaded when the scene booted.
 
-   CHAR_W is the mono advance at this size: 15u × (0.6em + the 0.01em tracking
-   the rest of the scene's mono runs at). Geist Mono is a 0.6em monospace, so
-   the reply sits on the same rhythm as the message above it. */
+   CHAR_W is the mono advance at this size: 12u × (0.6em + the 0.01em tracking
+   the rest of the screen runs at). Geist Mono is a 0.6em monospace, so the
+   reply sits on the same rhythm as the subject line above it. */
 const REPLY_TEXT = "it hasn't arrived yet?";
-const CHAR_W = 15 * 0.61;
+const CHAR_W = 12 * 0.61;
 
-/** The block cursor. Narrower than the cell by half a pixel of air so it never
+/** The reply bar, and where its text starts. 16u of inset, which is the same
+ *  inset the row avatars sit at — the screen has one left margin, not two. */
+const REPLY_X = 846;
+const REPLY_W = 208;
+const REPLY_Y = 440;
+const REPLY_H = 44;
+const REPLY_PAD = 16;
+const REPLY_TEXT_X = REPLY_X + REPLY_PAD;
+/** The typed reply's baseline, and the y every beat-3 traveller starts at. */
+const REPLY_BASE_Y = 467;
+
+/** The block cursor. Narrower than the cell by a hair of air so it never
  *  touches the glyph behind it, and no blink — an infinite loop inside a
  *  scrubbed timeline is a state that survives a reverse pass (DESIGN §3, and
  *  §7 on infinite micro-animations). It is present or it is not. */
-const CURSOR_W = 8.4;
+const CURSOR_W = 6.7;
 
 /* ── The route out, and the route back ─────────────────────────────────────
    A ROUTE and a LINE are two different objects, exactly as in scene 2. The
@@ -137,33 +193,90 @@ const CURSOR_W = 8.4;
    run 85u further at the chip end, into the middle of the box, because a guide
    that stopped at the wall would make the last leg of the journey a jump.
 
-   The return has an elbow in it, because the reply is 114u below the spine. It
-   leaves the field's left wall heading left, climbs, and merges onto the wire
-   heading left — both tangents horizontal, so the dot never appears to turn a
-   corner, it appears to step up onto the line. RETURN_JOIN_X is where it does
-   so: 100u clear of the card, which is the only air the climb has. */
-const STEP_OUT_X = 700;
+   The return has an elbow in it, because the reply bar is 275u below the
+   spine. The dot leaves the phone's left wall heading left, climbs, and merges
+   onto the wire heading left — both tangents horizontal, so it never appears
+   to turn a corner, it appears to step up onto the line. RETURN_JOIN_X is
+   where it does so: 200u clear of the phone, which is the air the climb needs
+   to not read as a vertical jump. */
+const STEP_OUT_X = 800;
 const RETURN_JOIN_X = 620;
+
+/* ── The camera ───────────────────────────────────────────────────────────
+   Same construction as scene 2's: each keyframe is "put scene point (fx,fy) in
+   the middle of the frame at zoom z", tweened as three plain numbers and
+   written out as one transform attribute.
+
+   The zoom range is 0.94 → 1.62, which is wider than the 0.88–1.26 scene 2
+   holds itself to, and the difference is earned rather than borrowed. Scene 2
+   is a schematic with thirty mechanisms in it and a reader who can lose the
+   map; this scene has two objects, and the thing it has to show — twenty-two
+   characters typed into a 208u field — is 12u type that reads at 10 CSS px on
+   the wide shot and 17 at the close-up. A scene whose subject is a sentence
+   has to be able to get close enough to read it.
+
+   The last keyframe is CAM_START again, asserted at boot: the scene ends on
+   the frame it opened on, because beat 3's whole point is the distance, and
+   you cannot show a distance from inside it. */
+const CAM_START = { z: 0.94, fx: 600, fy: 300 };
+const CAM: { at: number; dur: number; z: number; fx: number; fy: number }[] = [
+  /* B1 — the inbox. Starts while the packet is still crossing, so the push
+     and the flight are one movement rather than a move and then a move.
+     940 ± 600/1.28 covers x 471…1409 and 250 ± 300/1.28 covers y 16…484: the
+     whole phone width, its screen top at 65, rows 0 through 4, and the receipt
+     stamp out at x 644 on the left. It crops the phone's bottom 63u, and that
+     is the framing rather than a mistake — the wide shot has already shown the
+     whole device, so a close-up owes the reader the rows, not the chin. */
+  { at: 12.2, dur: 3.2, z: 1.28, fx: 940, fy: 250 },
+  /* B2 — the opened thread. 950 ± 600/1.62 covers x 579…1321 and 315 ± 300/
+     1.62 covers y 130…500, which is the subject line at 190, the sender at
+     218, the body, and the reply bar at 440–484 with 16u of screen under it.
+     The app bar falls off the top and should: the reader is in the thread. */
+  { at: 22.0, dur: 3.2, z: 1.62, fx: 950, fy: 315 },
+  /* B3 — back out, and it happens DURING the pause. The dot stands still
+     outside the phone while the frame opens up behind it, so the two things
+     the beat has to say — "it stopped" and "look how far it has to go" —
+     arrive as one gesture instead of in sequence. */
+  { at: 48.2, dur: 3.6, z: CAM_START.z, fx: CAM_START.fx, fy: CAM_START.fy },
+];
+
+/** viewBox centre — the point the camera puts things at. */
+const FRAME_CX = 600;
+const FRAME_CY = 300;
 
 /* ── Beat 1 · the delivery ─────────────────────────────────────────────── */
 const B1_CHIP = 0.6;
-const B1_WIRE = 2.2;
-const B1_CARD = 3.4;
-/** When the packet appears in the chip, and how long the crossing takes. 3.6
- *  units ≈ 0.09 viewport heights: slow enough to be a journey, quick enough
- *  that the reader is not waiting for a dot they have already understood. */
-const B1_FLY = 7.4;
-const B1_FLY_DUR = 3.6;
-const B1_LAND = B1_FLY + B1_FLY_DUR;
+const B1_WIRE = 1.6;
+const B1_PHONE = 3.0;
+const B1_SCREEN = 4.6;
+/** The phone comes ON in the order a phone does: glass, then chrome, then the
+ *  app, then its contents. Four fades, 1.6 units apart. */
+const B1_CHROME = 6.4;
+const B1_APP = 7.4;
+const B1_ROWS = 8.6;
+/** When the packet appears in the chip, and how long the crossing takes. 4.2
+ *  units ≈ 0.105 viewport heights over 645u of wire. */
+const B1_FLY = 11.0;
+const B1_FLY_DUR = 4.2;
+const B1_LAND = B1_FLY + B1_FLY_DUR; // 15.2
+/** The arrival: the list drops one pitch and our row takes the top slot. */
+const B1_ARRIVE = B1_LAND + 0.2;
 
 /* ── Beat 2 · the reply ────────────────────────────────────────────────── */
-const B2_FIELD = BEAT_2 + 0.4;
-/** The cursor arrives before the first character and sits there for most of a
- *  unit. That gap is the beat: something is about to be said by a person. */
-const B2_CURSOR = 21.2;
-const TYPE_T0 = 22.6;
+/** The screen change. Starts 0.6 units after the camera does, so the push-in
+ *  reads as the cause and the screen change as the consequence. */
+const B2_SWAP = BEAT_2 + 0.6;
+/** The hint leaves and the cursor arrives, in that order and NOT overlapping:
+ *  a field says "Reply" until somebody is in it, and the cursor is what says
+ *  somebody is. Overlapped by 0.5 the block sat on top of the R and the two
+ *  read as one smudged glyph — the hint's own fade (0.9) is therefore what
+ *  sets the cursor's start, not a number chosen next to it. */
+const B2_HINT_OUT = 26.0;
+const B2_HINT_FADE = 0.9;
+const B2_CURSOR = B2_HINT_OUT + B2_HINT_FADE;
+const TYPE_T0 = 28.0;
 /** Scroll per character. 0.52 units = 0.013 viewport heights, so the whole
- *  sentence costs about a third of a screen — the slowest thing on the page,
+ *  sentence costs about a quarter of a screen — the slowest thing on the page,
  *  which is the correct price for the only human act on it. Under ~0.3 the
  *  reply appears rather than being typed; over ~0.7 the reader starts to
  *  wonder whether the page has stopped. */
@@ -172,47 +285,55 @@ const CHAR_FADE = 0.14;
 
 /* ── Beat 3 · the reversal ─────────────────────────────────────────────── */
 const B3_COLLAPSE = BEAT_3;
-const B3_STEP = 39.9;
+const B3_STEP = 47.9;
 const B3_STEP_DUR = 1.3;
-/** THE PAUSE. The dot stands outside the field, committed to nothing, for 2.4
- *  units — a fifth of a screen of scroll in which the page does nothing at
- *  all. Without it the reply ricochets off the card; with it, the message
- *  decides to go back. TURN_PAUSE_MIN refuses to boot if an edit takes it. */
-const B3_COMMIT = 43.6;
+/** THE PAUSE. The dot stands outside the phone, committed to nothing, for 2.8
+ *  units — a fourteenth of the whole scene in which the only thing that moves
+ *  is the camera opening up behind it. Without it the reply ricochets off the
+ *  phone; with it, the message decides to go back. TURN_PAUSE_MIN refuses to
+ *  boot if an edit takes it away. */
+const B3_COMMIT = 52.0;
 const TURN_PAUSE_MIN = 1.5;
-const B3_RUN_DUR = 7.2;
-const B3_LAND = B3_COMMIT + B3_RUN_DUR;
+/** 8.4 units for ~745u of route, against the outbound's 4.2 for 645u. The way
+ *  home is deliberately the slower journey: it is the one nobody else's
+ *  product makes, and the reader is meant to watch all of it. */
+const B3_RUN_DUR = 8.4;
+const B3_LAND = B3_COMMIT + B3_RUN_DUR; // 60.4
 
 /** Packet radius. 4.5u, the same dot as the hero's clapper ball and scene 2's
  *  packets — the third scene in a row is not the place to invent a new one. */
 const DOT_R = 4.5;
 
-/* The still fallback's windows: "x y w h" in scene units, one per beat, each
-   cut so its own mono text clears ~11px on a 380px-wide phone. The captions
-   live here rather than in the markup because this scene has no caption rail —
-   the scrubbed version says all of this with receipts inside the drawing, so a
-   hidden block in index.html would be markup that is never rendered as itself. */
-const STILL_WHOLE = "0 80 1200 240";
+/* The still fallback's windows: "x y w h" in scene units, cut so each one's
+   own mono text is legible on a ~380px phone. The captions live here rather
+   than in the markup because this scene has no caption rail — the scrubbed
+   version says all of this with receipts inside the drawing, so a hidden block
+   in index.html would be markup that is never rendered as itself. */
+const STILL_WHOLE = "0 20 1200 560";
 const STILL_VIEW = [
   {
+    /* The inbox is ERASED from the finished frame — the reader tapped into the
+       thread — so this card is the only place a still reader ever sees the
+       arrival. Same situation as scene 2's phase-A close-up, and the same fix.
+       Left edge at 640 because the receipt stamp starts at 644. */
     phase: "delivery",
     kicker: "the delivery",
-    text: "One event out, delivered on the channel it was addressed to, with a receipt.",
-    /* Bottom edge at y 212, six units under the card: one unit further and the
-       reply field's own label bleeds into a card that is about the delivery. */
-    box: "700 90 440 122",
+    text: "One event out, into a real inbox, on the channel it was addressed to — with a receipt.",
+    box: "640 50 460 200",
   },
   {
+    /* Both phone walls (820 and 1080) inside the window, so the crop reads as
+       a screen and not as a wall of text. Tall, because a phone is. */
     phase: "reply",
     kicker: "the reply",
     text: "Your user answers the notification itself. No dashboard, no support ticket.",
-    box: "700 210 440 96",
+    box: "812 150 276 350",
   },
   {
     phase: "turn",
     kicker: "the turn",
     text: "The answer runs back down the same wire, into the engine. The conversation is open.",
-    box: "56 96 360 152",
+    box: "56 130 360 170",
   },
 ] as const;
 
@@ -221,6 +342,7 @@ const COLOR = {
   greenDim: "#2ba36c",
   text: "#ededed",
   hairline: "#262626",
+  hairlineStrong: "#3f3f3f",
 } as const;
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -265,19 +387,32 @@ export function createTurnScene(): TurnScene {
   const progressFill = q<HTMLElement>(doc, "#trn-progress-fill");
 
   const svg = q<SVGSVGElement>(doc, "#trn-svg");
+  const cam = q<SVGGElement>(svg, "#trn-cam");
+
   const chip = q<SVGRectElement>(svg, "#trn-chip");
   const chipLabel = q<SVGTextElement>(svg, "#trn-chip-label");
   const markIn = q<SVGCircleElement>(svg, "#trn-mark-in");
   const stampIn = q<SVGTextElement>(svg, "#trn-stamp-in");
   const wire = q<SVGPathElement>(svg, "#trn-wire");
-  const card = q<SVGRectElement>(svg, "#trn-card");
-  const msg = q<SVGTextElement>(svg, "#trn-msg");
   const receipt = q<SVGTextElement>(svg, "#trn-receipt");
-  const tether = q<SVGPathElement>(svg, "#trn-tether");
+
+  const phone = q<SVGRectElement>(svg, "#trn-phone");
+  const screen = q<SVGRectElement>(svg, "#trn-screen");
+  const chrome = q<SVGGElement>(svg, "#trn-chrome");
+
+  /* The two screen states. Everything about the phone's contents is one of
+     these two groups, which is what makes the change a crossfade. */
+  const inbox = q<SVGGElement>(svg, "#trn-inbox");
+  const thread = q<SVGGElement>(svg, "#trn-thread");
+
+  const rowsG = q<SVGGElement>(svg, "#trn-rows");
+  const rowNew = q<SVGGElement>(svg, "#trn-row-new");
+
   const field = q<SVGRectElement>(svg, "#trn-reply");
-  const fieldLabel = q<SVGTextElement>(svg, "#trn-reply-label");
+  const replyHint = q<SVGTextElement>(svg, "#trn-reply-hint");
   const charsG = q<SVGGElement>(svg, "#trn-chars");
   const cursor = q<SVGRectElement>(svg, "#trn-cursor");
+
   const dotsG = q<SVGGElement>(svg, "#trn-dots");
   const gSend = q<SVGPathElement>(svg, "#trn-g-send");
   const gStep = q<SVGPathElement>(svg, "#trn-g-step");
@@ -310,7 +445,7 @@ export function createTurnScene(): TurnScene {
   /* The reply plus its cursor has to fit between the field's own walls. The
      text is placed by arithmetic rather than laid out, so nothing else would
      ever notice it running past the edge. */
-  if (TEXT_X + (REPLY_TEXT.length + 1) * CHAR_W > CARD_X + CARD_W - CARD_PAD) {
+  if (REPLY_TEXT_X + (REPLY_TEXT.length + 1) * CHAR_W > REPLY_X + REPLY_W - REPLY_PAD) {
     throw new Error("[turn] the typed reply overflows the reply field");
   }
 
@@ -354,28 +489,92 @@ export function createTurnScene(): TurnScene {
     throw new Error("[turn] the inbound dot comes to rest outside the engine chip");
   }
 
+  /* The wire has to end ON the phone's own wall, and the screen has to be the
+     window the rows are measured against. Both are authored in the markup and
+     both are what the constants here compute against, so a drift of a few
+     units would put the packet's landing point in mid-air and the time marks
+     through the right bezel — neither of which a diff shows. */
+  if (
+    Number(phone.getAttribute("x")) !== PHONE_X ||
+    PHONE_X !== WIRE_X1 ||
+    Number(screen.getAttribute("x")) !== SCREEN_X ||
+    Number(screen.getAttribute("width")) !== SCREEN_W
+  ) {
+    throw new Error("[turn] the phone and the wire disagree about where the phone's wall is");
+  }
+  if (ROW_TIME_X + 14 > SCREEN_X + SCREEN_W) {
+    throw new Error("[turn] an inbox row's time mark runs past the screen");
+  }
+
+  /* The scene has to END on the frame it OPENED on. Beat 3's whole argument is
+     the distance the reply travels, and a camera left anywhere near the phone
+     is a camera that cannot show a distance. It is also what makes a reverse
+     scrub honest: the last keyframe and the rest state are the same three
+     numbers, so scrolling back up cannot leave the frame parked. */
+  const camLast = CAM[CAM.length - 1]!;
+  if (camLast.z !== CAM_START.z || camLast.fx !== CAM_START.fx || camLast.fy !== CAM_START.fy) {
+    throw new Error("[turn] the camera does not return to the wide shot it started on");
+  }
+
+  /* The arrival slides the placeholder list down by exactly one row pitch, and
+     the pitch is a constant the markup cannot see. If the authored rows and
+     ROW_PITCH ever disagree, the list lands half a row off its own ruling —
+     which is the kind of thing a diff does not show. */
+  if (Number(rowNew.querySelector("circle")?.getAttribute("cy")) !== WIRE_Y) {
+    throw new Error("[turn] the new inbox row is not on the wire's own latitude");
+  }
+
   /* ════════════════════════════════════════════════════════════════════════
      GENERATED DOM
-     The two flight routes and the twenty-two characters of the reply. Written
-     from the constants above so the markup can never drift from them.
+     The three flight routes, four rows of somebody else's mail, and the
+     twenty-two characters of the reply. Written from the constants above so
+     the markup can never drift from them.
      ════════════════════════════════════════════════════════════════════════ */
 
   gSend.setAttribute("d", `M ${CHIP_CX} ${WIRE_Y} L ${WIRE_X1} ${WIRE_Y}`);
-  gStep.setAttribute("d", `M ${TEXT_X} ${REPLY_BASE_Y} L ${STEP_OUT_X} ${REPLY_BASE_Y}`);
+  gStep.setAttribute("d", `M ${REPLY_TEXT_X} ${REPLY_BASE_Y} L ${STEP_OUT_X} ${REPLY_BASE_Y}`);
   /* The climb, then the wire, then the last 85u into the middle of the chip —
      one continuous route, because the whole point of the beat is that the
-     message does not stop between the card and the engine. The straight run
+     message does not stop between the phone and the engine. The straight run
      lies exactly on #trn-wire (asserted above), so the reader sees the packet
      riding the line it was delivered on, backwards. */
   gBack.setAttribute(
     "d",
-    `M ${STEP_OUT_X} ${REPLY_BASE_Y} C 664 ${REPLY_BASE_Y} 660 ${WIRE_Y} ${RETURN_JOIN_X} ${WIRE_Y} L ${CHIP_CX} ${WIRE_Y}`,
+    `M ${STEP_OUT_X} ${REPLY_BASE_Y} C 720 ${REPLY_BASE_Y} 700 ${WIRE_Y} ${RETURN_JOIN_X} ${WIRE_Y} L ${CHIP_CX} ${WIRE_Y}`,
   );
+
+  /* Four rows of mail the reader is not meant to read. Same anatomy as the one
+     they are — avatar, sender, subject, time — with the words replaced by
+     bars, which is what "there was already mail in here" looks like without
+     inventing five more sentences of copy nobody will read. */
+  for (const [i, bars] of ROW_BARS.entries()) {
+    const cy = WIRE_Y + (i + 1) * ROW_PITCH;
+    rowsG.append(
+      svgEl("circle", { class: "trn-ui-line", cx: ROW_AVATAR_X, cy, r: 9 }),
+      svgEl("rect", {
+        class: "trn-ui-fill",
+        x: ROW_TEXT_X,
+        y: cy - 16,
+        width: bars[0],
+        height: 6,
+        rx: 2,
+      }),
+      svgEl("rect", {
+        class: "trn-ui-fill",
+        x: ROW_TEXT_X,
+        y: cy + 4,
+        width: bars[1],
+        height: 6,
+        rx: 2,
+      }),
+      svgEl("rect", { class: "trn-ui-fill", x: ROW_TIME_X, y: cy - 15, width: 14, height: 5, rx: 2 }),
+    );
+  }
 
   const chars = Array.from(REPLY_TEXT, (ch, i) => {
     const t = svgEl("text", {
       class: "trn-char",
-      x: (TEXT_X + i * CHAR_W).toFixed(2),
+      x: (REPLY_TEXT_X + i * CHAR_W).toFixed(2),
       y: REPLY_BASE_Y,
     });
     t.textContent = ch;
@@ -401,10 +600,53 @@ export function createTurnScene(): TurnScene {
   for (const el of Array.from(pristine.querySelectorAll("[id]"))) el.removeAttribute("id");
   pristine.querySelector(".trn-l-dots")?.replaceChildren();
 
-  /** Everything traced rather than faded. */
-  const strokeParts: SVGGeometryElement[] = [chip, wire, card, tether, field];
-  /** Everything that only ever fades. */
-  const fadeParts: SVGElement[] = [chipLabel, markIn, stampIn, msg, receipt, fieldLabel];
+  /** Everything traced rather than faded — the four boxes that are STRUCTURE.
+   *  Nothing inside the screen is traced: an app does not draw itself line by
+   *  line, it comes on. */
+  const strokeParts: SVGGeometryElement[] = [chip, wire, phone, screen];
+  /** The boxes whose fill comes up behind their own outline, so each is a line
+   *  before it is a surface. */
+  const boxRects: SVGRectElement[] = [chip, phone, screen];
+  /** Everything that only ever fades. The two screen states are single
+   *  elements here on purpose: an app bar that faded in six pieces would be
+   *  six events, and the phone coming on is one. `rowsG` and `rowNew` carry
+   *  their own opacity INSIDE the inbox group because they arrive at different
+   *  moments than the chrome around them does. */
+  const fadeParts: SVGElement[] = [
+    chipLabel,
+    markIn,
+    stampIn,
+    receipt,
+    chrome,
+    inbox,
+    rowsG,
+    rowNew,
+    thread,
+    replyHint,
+  ];
+
+  /* ── the camera ──────────────────────────────────────────────────────────
+     Three numbers — zoom, and the scene point to centre — tweened as a plain
+     object and written out as one transform attribute. Not as gsap `scale`/
+     `x`/`y` on the group, and that is load-bearing: gsap resolves an SVG
+     element's transform origin against its own bbox unless told otherwise,
+     re-derives it whenever the transform cache is rebuilt, and compensates
+     when it thinks the origin moved. A camera whose pivot silently becomes
+     "wherever the drawing happens to be widest" drifts a little further off
+     with every keyframe. Owning the matrix costs one setAttribute per frame
+     and cannot be wrong. (Identical to #eng-cam, deliberately.)
+
+     The mapping is: scene point p renders at z·p + t, and t is chosen so that
+     (fx,fy) lands on the frame centre. */
+  const camState = { z: CAM_START.z, fx: CAM_START.fx, fy: CAM_START.fy };
+
+  function applyCam(): void {
+    const { z, fx, fy } = camState;
+    cam.setAttribute(
+      "transform",
+      `translate(${(FRAME_CX - z * fx).toFixed(3)} ${(FRAME_CY - z * fy).toFixed(3)}) scale(${z.toFixed(5)})`,
+    );
+  }
 
   /* ════════════════════════════════════════════════════════════════════════
      REST STATE — the inverse of the stylesheet
@@ -414,12 +656,27 @@ export function createTurnScene(): TurnScene {
     gsap.set(pin, { opacity: 0 });
     gsap.set(progressFill, { scaleX: 0 });
     gsap.set(strokeParts, { drawSVG: "0% 0%" });
-    gsap.set([chip, card, field], { fillOpacity: 0, stroke: COLOR.hairline });
+    gsap.set(boxRects, { fillOpacity: 0 });
+    /* The two boxes that ever acknowledge anything, put back to the ink the
+       stylesheet paints them in. They are two different steps of the ladder —
+       the chip is structure, the phone is a silhouette — so they are set
+       separately rather than as a pair. */
+    gsap.set(chip, { stroke: COLOR.hairline });
+    gsap.set(phone, { stroke: COLOR.hairlineStrong });
     gsap.set(fadeParts, { opacity: 0 });
     gsap.set(chars, { opacity: 0 });
-    /* The group scales about the head of the sentence, not its middle: the
-       reply collapses back to where it started being written. */
-    gsap.set(charsG, { scale: 1, svgOrigin: `${TEXT_X} ${REPLY_BASE_Y}` });
+    /* The placeholder list rests ONE PITCH HIGHER than it is authored, so the
+       arrival can drop it into place. The finished frame is where the markup
+       puts it; this is the inverse, same as every other rule here. */
+    gsap.set(rowsG, { y: -ROW_PITCH });
+    /* The collapse pivots on the head of the sentence — the reply contracts
+       back to where it started being written, which is where the dot appears.
+       A BBOX origin rather than svgOrigin, and that is deliberate: this group
+       lives inside the camera, and a global-space origin under an ancestor
+       transform is a question with two defensible answers. The glyphs never
+       move, so the bbox never moves, so re-derivation is harmless. Same
+       construction scene 2 uses for everything inside #eng-cam. */
+    gsap.set(charsG, { scale: 1, transformOrigin: "0% 50%" });
     gsap.set(cursor, { opacity: 0, x: 0 });
     /* Packets parked where their own journey starts rather than at the scene
        origin — same insurance as scene 2. A circle authored at 0,0 sits in the
@@ -437,10 +694,14 @@ export function createTurnScene(): TurnScene {
     gsap.set(dotIn, {
       opacity: 0,
       scale: 1,
-      x: TEXT_X,
+      x: REPLY_TEXT_X,
       y: REPLY_BASE_Y,
       transformOrigin: "50% 50%",
     });
+    camState.z = CAM_START.z;
+    camState.fx = CAM_START.fx;
+    camState.fy = CAM_START.fy;
+    applyCam();
   }
 
   /* ════════════════════════════════════════════════════════════════════════
@@ -451,10 +712,10 @@ export function createTurnScene(): TurnScene {
   function buildStill(reduced: boolean): () => void {
     const frag = doc.createDocumentFragment();
 
-    /* `phase` decides which marks the figure shows. Only one thing in this
-       scene needs it — the typed reply, which is not in the finished frame
-       (see .trn-char in styles.css) and has to be put back for the two figures
-       whose whole job is to show it. */
+    /* `phase` decides which screen the phone is showing and whether the reply
+       is typed into it — two things that are true at different moments and
+       cannot both be true in one frame (see .trn-screen-inbox and .trn-char in
+       styles.css). Everything else in every figure is the finished frame. */
     function figure(box: string, phase: string): HTMLElement {
       const wrap = doc.createElement("div");
       wrap.className = "trn-card-figure";
@@ -482,15 +743,21 @@ export function createTurnScene(): TurnScene {
     }
 
     if (reduced) {
-      /* One finished frame, then the argument as a list. Reduced motion is a
-         designed still state, so the reader still gets all three beats — the
-         drawing carries beat 1 and beat 3's marks, the captions carry the
-         order they happened in. */
+      /* The finished frame whole, then the argument as a list — and the first
+         two captions carry their own close-ups, because at 1200u wide the
+         phone's 12u screen type is 7px and the two things a reduced-motion
+         reader MUST still receive are what the notification said and what the
+         human typed back (DESIGN §3). The turn needs no close-up: the chip,
+         the mark and the stamp are 15u and legible in the whole frame. */
       const lede = doc.createElement("p");
       lede.className = "eng-still-lede";
       lede.textContent = "The user replies, and the reply comes back in.";
       frag.append(lede, figure(STILL_WHOLE, "all"));
-      for (const v of STILL_VIEW) frag.appendChild(block(v.kicker, v.text));
+      for (const v of STILL_VIEW) {
+        const el = block(v.kicker, v.text);
+        if (v.phase !== "turn") el.appendChild(figure(v.box, v.phase));
+        frag.appendChild(el);
+      }
     } else {
       /* One card per beat, each a close-up: the whole 1030u composition on a
          phone is three illegible mono labels. */
@@ -561,6 +828,9 @@ export function createTurnScene(): TurnScene {
 
     const tl = gsap.timeline({
       defaults: { ease: "none" },
+      /* The camera's three numbers are tweened; this is what paints them. A
+         pure function of camState, so it is as rewindable as the tweens are. */
+      onUpdate: applyCam,
       scrollTrigger: {
         trigger: section,
         start: "top top",
@@ -623,50 +893,92 @@ export function createTurnScene(): TurnScene {
       ft(dot, { scale: to }, { scale: 1, duration: 0.3, ease: "power2.inOut" }, at + 0.26);
     };
 
-    /** A box acknowledging something that just landed on it: its hairline
-     *  lifts to `ink` and settles back. A moment, never a state — which is the
-     *  only reason a green border is allowed to exist at all (BRAND §2). */
-    const ack = (box: Element, at: number, ink: string): void => {
-      ft(box, { stroke: COLOR.hairline }, { stroke: ink, duration: 0.2, ease: "power2.out" }, at);
-      ft(box, { stroke: ink }, { stroke: COLOR.hairline, duration: 1.8 }, at + 0.6);
+    /** A box acknowledging something that just landed on it: its stroke lifts
+     *  to `ink` and settles back to `rest`. A moment, never a state — which is
+     *  the only reason a green border is allowed to exist at all (BRAND §2).
+     *  `rest` is passed rather than assumed, because the two boxes that do this
+     *  sit on two different steps of the ladder. */
+    const ack = (box: Element, at: number, ink: string, rest: string): void => {
+      ft(box, { stroke: rest }, { stroke: ink, duration: 0.2, ease: "power2.out" }, at);
+      ft(box, { stroke: ink }, { stroke: rest, duration: 1.8 }, at + 0.6);
     };
 
     /* How much of the pin is left. A pinned section takes the scrollbar away
        from the reader; this hands the information back. */
     ft(progressFill, { scaleX: 0 }, { scaleX: 1, duration: TL_END }, 0);
 
+    /* ── the camera ──────────────────────────────────────────────────────
+       Every keyframe is an explicit fromTo off the previous one, so the frame
+       is a pure function of timeline position: scrub back and it lands on the
+       wide shot exactly, not near it. */
+    {
+      let prev = CAM_START;
+      for (const k of CAM) {
+        ft(
+          camState,
+          { z: prev.z, fx: prev.fx, fy: prev.fy },
+          { z: k.z, fx: k.fx, fy: k.fy, duration: k.dur, ease: "power2.inOut" },
+          k.at,
+        );
+        prev = k;
+      }
+    }
+
     /* ── BEAT 1 · the delivery ───────────────────────────────────────────
        The anatomy assembles left to right, in the order a message travels it:
-       the machine, then the road, then the destination. */
+       the machine, then the road, then the thing at the end of it. The phone
+       then comes ON rather than being drawn — glass, chrome, app, contents —
+       because a device powering up is not a device being sketched. */
     drawBox(chip, B1_CHIP, 2.4);
     fadeIn(chipLabel, B1_CHIP + 1.2, 1.1);
-    draw(wire, B1_WIRE, 2.6);
-    drawBox(card, B1_CARD, 3.0);
+    draw(wire, B1_WIRE, 2.8);
+    drawBox(phone, B1_PHONE, 4.0);
+    drawBox(screen, B1_SCREEN, 2.6);
+    fadeIn(chrome, B1_CHROME, 1.2);
+    fadeIn(inbox, B1_APP, 1.4);
+    fadeIn(rowsG, B1_ROWS, 1.2);
 
     fadeIn(dotOut, B1_FLY - 0.4, 0.5);
     run(dotOut, gSend, B1_FLY, B1_FLY_DUR, "power1.inOut");
 
     /* The delivery. Dim green to full green at the instant of arrival — a
-       packet that was born green has nothing left to say when it lands. */
+       packet that was born green has nothing left to say when it lands — and
+       it is the ONLY green in the scene, in either direction. */
     ft(dotOut, { fill: COLOR.greenDim }, { fill: COLOR.green, duration: 0.14 }, B1_LAND);
     pop(dotOut, B1_LAND, 1.45);
     fadeOut(dotOut, B1_LAND + 0.7, 0.8);
-    ack(card, B1_LAND, COLOR.greenDim);
+    /* The device acknowledges, which is a thing a phone receiving mail does.
+       The silhouette rather than the screen: a lit edge is the whole object
+       reacting, and it settles back inside two units. */
+    ack(phone, B1_LAND, COLOR.greenDim, COLOR.hairlineStrong);
 
-    /* And what the delivery leaves behind: the message, then its receipt. In
-       that order and half a unit apart, because the receipt is an answer to
-       the message having arrived, not part of it. */
-    fadeIn(msg, B1_LAND + 0.5, 1.2);
-    fadeIn(receipt, B1_LAND + 2.0, 1.1);
+    /* THE ARRIVAL. The list of somebody else's mail drops one full row and
+       ours takes the slot at the top — the packet does not become a label
+       beside the phone, it becomes a line in a real inbox. The drop and the
+       fade are one gesture, 0.15 apart, because a row that appeared and THEN
+       pushed the others down would be two events. */
+    ft(rowsG, { y: -ROW_PITCH }, { y: 0, duration: 1.1, ease: "power2.out" }, B1_ARRIVE);
+    fadeIn(rowNew, B1_ARRIVE + 0.15, 1.2);
+    /* Our note about their surface, and it lands after the row it is about:
+       read before the arrival it would be a promise. */
+    fadeIn(receipt, B1_ARRIVE + 1.9, 1.4);
 
     /* ── BEAT 2 · the reply ──────────────────────────────────────────────
-       A field opens under the message, a cursor appears in it, and then
-       nothing on screen moves except twenty-two characters. */
-    draw(tether, B2_FIELD, 0.9);
-    drawBox(field, B2_FIELD + 0.5, 2.2);
-    fadeIn(fieldLabel, B2_FIELD + 1.2, 1.0);
+       The camera pushes in (above), the screen changes underneath it, and then
+       nothing in the frame moves except twenty-two characters.
 
-    fadeIn(cursor, B2_CURSOR, 0.7);
+       The screen change is a crossfade between two groups that both exist in
+       the markup — the inbox out, the thread in, overlapping by 0.8 units so
+       the phone is never blank. Mutating the DOM instead would be a change
+       that cannot be scrubbed backwards. */
+    fadeOut(inbox, B2_SWAP, 1.6);
+    fadeIn(thread, B2_SWAP + 0.8, 1.6);
+    fadeIn(replyHint, B2_SWAP + 1.6, 1.0);
+
+    /* The hint leaves and the cursor arrives, in that order: a field says
+       "Reply" right up until somebody is standing in it. */
+    fadeOut(replyHint, B2_HINT_OUT, B2_HINT_FADE);
+    fadeIn(cursor, B2_CURSOR, 0.8);
 
     chars.forEach((ch, i) => {
       const at = TYPE_T0 + i * CHAR_STEP;
@@ -686,26 +998,32 @@ export function createTurnScene(): TurnScene {
     ft(
       charsG,
       { scale: 1 },
-      /* svgOrigin restated on the tween as well as in restState: gsap
-         re-derives an SVG element's transform origin whenever it rebuilds the
-         transform cache, and a collapse that silently re-pivots to the middle
-         of the sentence is a collapse toward a point no dot ever appears at. */
-      { scale: 0.55, duration: 1.3, ease: "power2.in", svgOrigin: `${TEXT_X} ${REPLY_BASE_Y}` },
+      /* transformOrigin restated on the tween as well as in restState: gsap
+         re-derives an SVG element's origin whenever it rebuilds the transform
+         cache, and a collapse that silently re-pivots to the middle of the
+         sentence is a collapse toward a point no dot ever appears at. */
+      { scale: 0.55, duration: 1.3, ease: "power2.in", transformOrigin: "0% 50%" },
       B3_COLLAPSE,
     );
     fadeOut(chars, B3_COLLAPSE, 0.9);
     fadeOut(cursor, B3_COLLAPSE, 0.5);
+    /* The field goes back to saying what an empty field says. It is also what
+       the finished frame has in it, so this tween is the one that leaves the
+       scene where the stylesheet already had it. */
+    fadeIn(replyHint, B3_COLLAPSE + 1.4, 1.0);
     fadeIn(dotIn, B3_COLLAPSE + 0.6, 0.5);
 
-    /* Out through the field's left wall, and then STOP. The pause is not a
-       gap in the storyboard; it is the beat the whole scene turns on. */
+    /* Out through the phone's left wall, and then STOP. The pause is not a gap
+       in the storyboard; it is the beat the whole scene turns on — and the
+       camera opens up behind the stopped dot (CAM's last keyframe), so the
+       reader learns how far it has to go at the exact moment it decides. */
     run(dotIn, gStep, B3_STEP, B3_STEP_DUR, "power2.out");
     run(dotIn, gBack, B3_COMMIT, B3_RUN_DUR, "power1.inOut");
 
     /* The engine hears it. NEUTRAL ink and no green anywhere in this beat:
        green is a message of ours arriving, and this one is the user's. */
     pop(dotIn, B3_LAND, 1.35);
-    ack(chip, B3_LAND, COLOR.text);
+    ack(chip, B3_LAND, COLOR.text, COLOR.hairline);
 
     /* The traveller goes, the mark it left stays — same handoff as scene 2's
        timeline strip, and for the same reason: what the engine heard has to
@@ -716,8 +1034,8 @@ export function createTurnScene(): TurnScene {
 
     /* The cliffhanger, stamped in the engine's own corner. Scene 4 opens on
        what the engine does about it. Nothing fades out after this: the last
-       six units of the scrub are the reader sitting with the final frame. */
-    fadeIn(stampIn, B3_LAND + 1.8, 1.4);
+       eight units of the scrub are the reader sitting with the final frame. */
+    fadeIn(stampIn, B3_LAND + 1.8, 1.5);
   }
 
   /* ════════════════════════════════════════════════════════════════════════
