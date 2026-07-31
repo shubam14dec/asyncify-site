@@ -887,8 +887,146 @@
         <div class="eng-still" id="eng-still" hidden></div>
       </section>
 
-      <!-- Scenes 3–5 land in the next slice. Markers only. -->
-      <section id="scene-two-way"></section>
+      <!-- ─────────────────────────────────────────────────────────────────
+           THE BRIDGE.  The hinge of the whole page, and the only place on it
+           where the argument is made in words instead of in a drawing.
+
+           Two lines, not one sentence: the first is what the reader has just
+           spent two and a half screens watching every notification product in
+           the world do, and the second is the thing this one does next. They
+           are a setup and a payoff, so they arrive in that order (turn.ts
+           staggers them on one scrub) and the payoff is the brighter of the
+           two. No pin — a hinge that took the scrollbar away would be a
+           section, and this is a breath between two of them.
+           ───────────────────────────────────────────────────────────────── -->
+      <section class="bridge" id="bridge">
+        <h2 class="bridge-copy">
+          <span class="bridge-line">Every message ends at delivered.</span>
+          <span class="bridge-line bridge-line-lead">Ours listen for what comes back.</span>
+        </h2>
+      </section>
+
+      <!-- ─────────────────────────────────────────────────────────────────
+           SCENE 3 — THE TURN.  "…and then it comes back."
+           One pinned composition, scrubbed over 1.5 viewport heights, in
+           three beats: a delivery, a human reply, and the reply travelling
+           back down the same wire into the engine. See src/turn.ts for the
+           storyboard and the timing.
+
+           Three objects and one horizontal, and the whole scene is legible
+           from that alone: the engine chip on the left is the entire machine
+           from scene 2 with its internals deliberately left out, the card on
+           the right is a message a person received, and the wire between them
+           is the only road in the picture. Everything below the spine is the
+           reply — which is exactly the half of the product Novu does not have.
+
+           As in scene 2, the markup below is the ANATOMY only: it is authored
+           in its FINISHED state (drawn, labelled, reply fully typed, inbound
+           mark present) and CSS paints it that way, so a clone of it with no
+           JS applied already is the last frame of the scene. turn.ts pushes it
+           back to the start and scrubs it forward.
+           ───────────────────────────────────────────────────────────────── -->
+      <section id="scene-turn" aria-labelledby="trn-heading">
+        <h2 class="sr-only" id="trn-heading">
+          The turn: a notification is delivered, your user replies to it, and the reply travels
+          back into the engine.
+        </h2>
+
+        <div class="trn-pin" id="trn-pin">
+          <div class="trn-stage">
+            <svg
+              class="trn-svg"
+              id="trn-svg"
+              viewBox="0 0 1200 400"
+              preserveAspectRatio="xMidYMid meet"
+              aria-hidden="true"
+              focusable="false"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <!-- Flight routes. Rendered into nothing but RENDERED, in the
+                   same coordinate space as the packets that ride them. All
+                   three `d`s are written by turn.ts from its own constants —
+                   a route that disagreed with the wire under it would be a
+                   packet flying over undrawn ground. -->
+              <g class="eng-guides" id="trn-guides">
+                <path id="trn-g-send" d="M 0 0" />
+                <path id="trn-g-step" d="M 0 0" />
+                <path id="trn-g-back" d="M 0 0" />
+              </g>
+
+              <!-- ── the engine, as one chip ───────────────────────────────
+                   Empty on purpose. The reader has been inside this box for
+                   two and a half screens; what it needs from this scene is a
+                   middle for the inbound message to come to rest in, which is
+                   why the label sits above it rather than in it (the same
+                   place scene 2 puts "queue" over the queue). -->
+              <g class="trn-l-engine">
+                <rect class="eng-box" id="trn-chip" x="90" y="122" width="170" height="68" rx="6" />
+                <text class="eng-aside" id="trn-chip-label" x="90" y="112">asyncify · engine</text>
+                <!-- The inbound message once it has stopped travelling. A
+                     mark, not the packet that carried it: what the engine
+                     heard has to still be on screen after the motion. Neutral
+                     ink — it is the user's message, not one of our deliveries
+                     (BRAND §2). -->
+                <circle class="trn-mark-in" id="trn-mark-in" cx="175" cy="156" r="4.5" />
+                <!-- The cliffhanger. One line, no stray whitespace. -->
+                <text class="eng-stamp" id="trn-stamp-in" x="90" y="224">inbound · conversation open</text>
+              </g>
+
+              <!-- The one road in the picture. Wall to wall: it touches the
+                   chip's right edge and the card's left edge, so neither the
+                   delivery nor the reply ever crosses a gap. -->
+              <path class="eng-wire" id="trn-wire" d="M 260 156 L 720 156" />
+
+              <!-- ── the message ───────────────────────────────────────────
+                   16px radius, against the chip's 6: BRAND §4 gives cards 16
+                   and chips 6, and here that difference is load-bearing — one
+                   of these is infrastructure and the other is a thing a person
+                   received. -->
+              <g class="trn-l-card">
+                <rect class="eng-box" id="trn-card" x="720" y="106" width="400" height="100" rx="16" />
+                <text class="trn-msg" id="trn-msg" x="744" y="142">Your refund is on its way.</text>
+                <!-- Lowercase, and the channel named the way the API names it
+                     (BRAND §6). This is the last line of scene 2's story and
+                     the first line of scene 3's problem. -->
+                <text class="eng-receipt" id="trn-receipt" x="744" y="182">delivered · email</text>
+              </g>
+
+              <!-- ── the reply ─────────────────────────────────────────────
+                   Hung off the card on a 28u tether, centred so the field
+                   reads as belonging to the message above it rather than as a
+                   second card. 6px radius, because it is an input.
+
+                   The typed characters are generated by turn.ts, one <text>
+                   per glyph at an explicit x: a reveal that has to survive
+                   being scrubbed backwards cannot be a string being appended
+                   to. The cursor is a rect that steps along the same pitch. -->
+              <g class="trn-l-reply">
+                <path class="eng-wire" id="trn-tether" d="M 920 206 L 920 234" />
+                <rect class="eng-box" id="trn-reply" x="720" y="234" width="400" height="60" rx="6" />
+                <text class="eng-aside" id="trn-reply-label" x="720" y="226">reply</text>
+                <g id="trn-chars"></g>
+                <rect class="trn-cursor" id="trn-cursor" x="744" y="259" width="8.4" height="15" />
+              </g>
+
+              <!-- Travelling packets. Generated, and always painted last. -->
+              <g class="trn-l-dots" id="trn-dots"></g>
+            </svg>
+          </div>
+
+          <!-- How much of the pin is left. A pinned section takes the
+               scrollbar away from the reader; this hands it back. -->
+          <div class="trn-progress" aria-hidden="true">
+            <span class="trn-progress-fill" id="trn-progress-fill"></span>
+          </div>
+        </div>
+
+        <!-- Reduced motion and < 768px land here instead: no pin, no scrub.
+             turn.ts fills this with still clones of the composition above. -->
+        <div class="trn-still" id="trn-still" hidden></div>
+      </section>
+
+      <!-- Scenes 4–5 land in the next slice. Markers only. -->
       <section id="scene-agents"></section>
       <section id="scene-cta"></section>
     </main>

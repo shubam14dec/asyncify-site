@@ -640,10 +640,9 @@ html {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   SCENES 3–5 — next slice.
+   SCENES 4–5 — next slice.
    ══════════════════════════════════════════════════════════════════════════ */
 
-#scene-two-way,
 #scene-agents,
 #scene-cta {
   display: none;
@@ -1187,6 +1186,216 @@ html {
    has to go. */
 .eng-card-figure[data-phase="all"] .eng-lbl-queue,
 .eng-card-figure[data-phase="d"] .eng-lbl-queue {
+  display: none;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE BRIDGE — the hinge between scene 2 and scene 3
+   ──────────────────────────────────────────────────────────────────────────
+   Two lines of display type on an otherwise empty screen. It is the only
+   moment on the page that is pure text, so it gets the one thing the scenes
+   cannot have: air on all four sides. No pin, no figure, no kicker.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.bridge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 58vh;
+  padding: clamp(56px, 11vh, 128px) var(--page-pad);
+}
+
+/* Section-head size (BRAND §3: 32–44px, -0.02em), not display size — the
+   hero owns display and a second 76px headline would argue with it. The vh
+   term is not optional: on a 674px laptop this section sits between two
+   full-height scenes and a headline sized off vw alone eats the air that is
+   the whole point of it. */
+.bridge-copy {
+  max-width: var(--page-max);
+  margin: 0;
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: clamp(1.75rem, min(3.6vw, 5.4vh), 2.75rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* The setup sits one step down the gray ladder from the payoff. Colour and
+   not weight, which is the exception BRAND §3 does not make — but these two
+   lines are one sentence in two halves, and setting half a sentence in a
+   heavier weight reads as a different voice rather than as emphasis. */
+.bridge-line {
+  display: block;
+  color: var(--text-dim);
+}
+
+.bridge-line-lead {
+  color: var(--text);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SCENE 3 — THE TURN
+   ──────────────────────────────────────────────────────────────────────────
+   Read this block, like scene 2's, as the composition's FINISHED state: the
+   last frame of the scrub, with the reply typed out, the receipt stamped and
+   the inbound message resting inside the engine chip. turn.ts pushes it back
+   to the start. The one element that is NOT in the finished frame is the
+   cursor, and it rests at 0 here for exactly that reason.
+
+   Most of the ink is borrowed from scene 2 (.eng-box, .eng-wire, .eng-aside,
+   .eng-receipt, .eng-stamp) rather than restated. Two scenes drawn in one
+   dialect is the point; a second set of near-identical rules would be two
+   dialects that happen to match today.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+#scene-turn {
+  position: relative;
+  display: block;
+}
+
+/* The pinned frame: the stage, and the progress line under it. */
+.trn-pin {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  height: 100dvh;
+  padding: clamp(24px, 5vh, 56px) var(--page-pad);
+  /* Faded up by the entry ScrollTrigger, so the scene materialises on the way
+     in rather than being parked under the bridge fully lit. */
+  opacity: 0;
+}
+
+/* `.trn-pin` sets display, so it out-specifies the UA's `[hidden]` rule; the
+   still fallback swaps the two halves of the section with `hidden`. */
+.trn-pin[hidden] {
+  display: none;
+}
+
+.trn-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0; /* a grid child must be allowed to be narrower than its SVG */
+}
+
+.trn-svg {
+  width: 100%;
+  height: min(100%, 62vh);
+}
+
+.trn-progress {
+  position: relative;
+  width: clamp(80px, 8vw, 120px);
+  height: 1px;
+  margin: 0 auto;
+  background: #1c1c1c;
+}
+
+.trn-progress-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--text-faint);
+  transform: scaleX(0);
+  transform-origin: 0% 50%;
+}
+
+/* ── the composition's own ink ───────────────────────────────────────────
+   font-size inside a viewBox is user units, and this scene renders at ~1:1,
+   so these numbers are CSS pixels as well. 15u for the two things a person
+   would actually read (the message, the reply), 12u for the machine's own
+   asides — the same ladder scene 2 uses. */
+
+.trn-msg {
+  font-family: var(--mono);
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  fill: var(--text);
+}
+
+/* One <text> per glyph, placed by turn.ts at TEXT_X + i · CHAR_W. No
+   letter-spacing: a single-glyph run has nothing to space, and the pitch is
+   already carried by CHAR_W (which includes the 0.01em the message above it
+   is set at, so the two lines sit on one rhythm).
+
+   At 0, because the reply is NOT in the scene's finished frame: it was typed,
+   it became the dot that went home, and a sent message does not sit in the
+   compose field afterwards. The still figures that need to show it put it back
+   below — the same move scene 2 makes with the IDEMPOTENCY engraving, which
+   also leaves with the moment it names. */
+.trn-char {
+  font-family: var(--mono);
+  font-size: 15px;
+  fill: var(--text);
+  opacity: 0;
+}
+
+/* The two figures a still reader needs the reply IN: its own close-up, and the
+   whole-composition frame that is the only figure a reduced-motion reader
+   gets. Reduced motion is a designed still state, not a lossy one — the words
+   the human typed are the single most important thing the motion carried
+   (DESIGN §3). */
+.trn-card-figure[data-phase="reply"] .trn-char,
+.trn-card-figure[data-phase="all"] .trn-char {
+  opacity: 1;
+}
+
+/* The block cursor is the only element in this scene that is not part of its
+   finished frame — the reply has been sent, so the person is gone. It rests
+   at 0 here and the scrub is the only thing that ever raises it. */
+.trn-cursor {
+  fill: var(--text);
+  opacity: 0;
+}
+
+/* Our delivery going out: the hero's clapper ball and scene 2's packet, dim
+   in flight so full --green has somewhere to go when it lands. */
+.trn-dot-out {
+  fill: var(--green-dim);
+}
+
+/* The user's reply coming back, and the mark it leaves in the engine. NEUTRAL
+   ink, and this is the rationing law doing actual narrative work rather than
+   being obeyed: green on this site means a message of OURS arrived (BRAND §2).
+   An inbound reply painted green would quietly say the opposite of the scene. */
+.trn-dot-in,
+.trn-mark-in {
+  fill: var(--text);
+}
+
+.trn-dot {
+  opacity: 0;
+}
+
+/* ── the still state (< 768px, and prefers-reduced-motion) ───────────────
+   Shares .eng-card / .eng-kicker / .eng-caption / .eng-still-lede with scene
+   2 — they are the page's still-card primitives, not scene 2's private ones.
+   Only the figure wrapper is its own, because scene 2's zeroes out every
+   stamp and receipt on a card (each of its cards shows one moment) and this
+   scene's figures are windows onto ONE finished frame, in which the receipts
+   are the whole payload. */
+.trn-still {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: clamp(56px, 9vh, 112px) var(--page-pad);
+}
+
+.trn-still[hidden] {
+  display: none;
+}
+
+.trn-card-figure {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.trn-card-figure .trn-svg {
+  height: auto;
+}
+
+/* Nothing travels in a still frame, so nothing is in flight. */
+.trn-card-figure .trn-l-dots {
   display: none;
 }
 

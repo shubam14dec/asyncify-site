@@ -23,6 +23,7 @@ import { SplitText } from "gsap/SplitText";
 import { createBellScene } from "./bell";
 import { createEngineScene } from "./engine";
 import { createHangingHeadline } from "./headline";
+import { createTurnScene } from "./turn";
 
 /* Individual imports, never `gsap/all` — that pulls every plugin into the
    bundle. Budget is in DESIGN.md §6. */
@@ -55,6 +56,13 @@ const scene = createBellScene({
    as on the motion preference, and width can change after boot. */
 const engine = createEngineScene();
 
+/* Scene 3 owns the bridge line above it as well as its own pin — the two are
+   one narrative move, and the bridge exists only to hand over to the scene.
+   Built after scene 2 so its ScrollTriggers are registered in document order;
+   scene 2's fonts-ready ScrollTrigger.refresh() is global and re-measures
+   these too, which is why this file does not ask for a second one. */
+const turn = createTurnScene();
+
 /* The entrance runs once. Waiting for the first font frame avoids the
    headline re-flowing underneath a mid-flight SplitText. */
 function boot(): void {
@@ -84,5 +92,6 @@ if (import.meta.hot) {
     scene.destroy();
     headline.destroy();
     engine.destroy();
+    turn.destroy();
   });
 }
