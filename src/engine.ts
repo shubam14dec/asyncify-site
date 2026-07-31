@@ -99,7 +99,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
    timeline still costs the reader exactly the scroll it always did — which is
    what makes it safe to lengthen the scene, and what makes it safe to SHORTEN
    it. The four phases now run 0.63 / 0.84 / 1.33 / 1.54 viewport-heights. */
-const PIN_HEIGHTS = 2.0; // user call: trying 2 screens — density ~62u/screen; falls back to 2.5 if the busy beats feel rushed.
+const PIN_HEIGHTS = 2.5; // user call: 2.5 screens — density ~50u/screen. 2.0 was tried and felt rushed; 2.5 is the settled value.
 
 /** Scrub catch-up, in seconds. 0.55 is enough to smooth a notched mouse wheel
  *  into continuous motion without the schematic feeling like it is on elastic.
