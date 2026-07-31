@@ -1530,6 +1530,7 @@ export function createEngineScene(): EngineScene {
   const stampRetry = q<SVGTextElement>(svg, "#stamp-retry");
   const stampInvalid = q<SVGTextElement>(svg, "#stamp-invalid");
   const stampOutage = q<SVGTextElement>(svg, "#stamp-outage");
+  const stampBack = q<SVGTextElement>(svg, "#stamp-back");
   const asideRecovered = q<SVGTextElement>(svg, "#aside-recovered");
   const asidePerm = q<SVGTextElement>(svg, "#aside-perm");
   const asideDigest = q<SVGTextElement>(svg, "#aside-digest");
@@ -1635,6 +1636,7 @@ export function createEngineScene(): EngineScene {
     stampRetry,
     stampInvalid,
     stampOutage,
+    stampBack,
     asideRecovered,
     asidePerm,
     asideDigest,
@@ -2582,7 +2584,12 @@ export function createEngineScene(): EngineScene {
        there to catch. A box that lit up on contact would be saying the packet
        fixed it. */
     ft(provGroups[0]!, { opacity: 0.26 }, { opacity: 1, duration: 1.0 }, A_LAND - 1.08);
-    fadeOut(stampOutage, A_LAND - 1.08, 1.0);
+    /* The stamps swap in place, not crossfade: two texts at the same anchor
+       overlapping for a second is mush. Outage leaves fast, and "back online"
+       finishes fading in right as the box reaches full brightness — the label
+       and the state arrive together. */
+    fadeOut(stampOutage, A_LAND - 1.08, 0.4);
+    fadeIn(stampBack, A_LAND - 0.6, 0.6);
     ft(A, { fill: COLOR.amber }, { fill: COLOR.greenDim, duration: 0.5 }, A_LAND - 0.73);
     deliver(A, A_LAND);
     /* The receipt for the beat, and it lands after the delivery rather than at
@@ -2590,6 +2597,7 @@ export function createEngineScene(): EngineScene {
        that the reader watches the promise kept first. */
     fadeIn(asideRecovered, A_LAND + 0.33, 1.0);
     fadeOut(asideRecovered, 57.0, 1.2);
+    fadeOut(stampBack, 57.0, 1.2);
 
     /* ── C2: the ladder, and the siding at the end of it ─────────────────── */
     draw(dlqRail, 57.4, 2.0);

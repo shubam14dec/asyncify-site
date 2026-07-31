@@ -781,6 +781,18 @@
                 >
                   provider outage
                 </text>
+                <!-- The other half of the state: the outage stamp leaves as the
+                     box comes back, and this takes its place — without it the
+                     recovery is only ever inferred from a brightening rect. -->
+                <text
+                  class="eng-stamp eng-stamp-green eng-s-recover"
+                  id="stamp-back"
+                  x="1055"
+                  y="106"
+                  text-anchor="middle"
+                >
+                  provider back online
+                </text>
                 <text class="eng-cue eng-s-recover" id="aside-recovered" x="1055" y="198" text-anchor="middle">
                   their outage · retried · delivered
                 </text>

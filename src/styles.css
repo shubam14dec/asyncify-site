@@ -911,6 +911,12 @@ html {
   fill: var(--amber);
 }
 
+/* Recovery is good news but not a delivery — dim green, not the rationed
+   full accent. */
+.eng-stamp-green {
+  fill: var(--green-dim);
+}
+
 .eng-cue {
   font-family: var(--mono);
   font-size: 12px;
