@@ -106,14 +106,37 @@ const BEAT_3 = 46;
    down and then level again. */
 const WIRE_Y = 192;
 
-/** The engine chip — the entire machine from scene 2 as one hairline box, with
- *  no internals. Its interior is left empty because the inbound dot comes to
- *  rest in the middle of it, which is a sentence a box with a label in the
- *  middle of it cannot say; the label sits ABOVE the box instead, the same
- *  place scene 2 puts "queue". */
+/** The engine chip — the entire machine from scene 2 at 1/7 scale. Its label
+ *  sits ABOVE the box, the same place scene 2 puts "queue", which is what
+ *  leaves the interior free for the machinery. */
 const CHIP_X = 90;
 const CHIP_W = 170;
 const CHIP_CX = CHIP_X + CHIP_W / 2;
+
+/* ── The machine inside the chip ───────────────────────────────────────────
+   An unlabelled echo of the schematic the reader has just toured: inlet, api,
+   the slotted queue, the meter, the fan-out, left to right in the order scene
+   2 reads. There is no text in it and there will not be — recognition is the
+   caption, and a 1/7-scale diagram that has to be labelled is a diagram that
+   failed. Every dimension below is mirrored in index.html, and the slot
+   dividers are generated from these numbers so the box cannot stop dividing
+   evenly into its own cells.
+
+   The queue is CENTRED ON THE CHIP, and that is the one piece of arithmetic
+   here that carries a beat rather than a measurement: CHIP_CX is where the
+   inbound reply comes to rest, so with five cells across 70u the message ends
+   the scene sitting in the MIDDLE CELL of the engine's queue. Which is what a
+   reply actually becomes in the platform — a job, queued. It is also where
+   the outbound packet departs from, so both journeys begin and end in the same
+   five cells; the queue is the only object in the schematic that can honestly
+   be both. Four cells would put a divider on CHIP_CX and the message would
+   spend the last eight units of the scene sitting on a wall. */
+const MINI_Q_X = 140;
+const MINI_Q_W = 70;
+const MINI_Q_CELLS = 5;
+const MINI_Q_Y = 183;
+const MINI_Q_H = 18;
+const MINI_CELL = MINI_Q_W / MINI_Q_CELLS;
 
 /** The wire, end to end. Chip's right edge to the phone's left edge — it
  *  touches both, so nothing in this scene flies over a gap. */
@@ -319,7 +342,11 @@ const STILL_VIEW = [
     phase: "delivery",
     kicker: "the delivery",
     text: "One event out, into a real inbox, on the channel it was addressed to — with a receipt.",
-    box: "640 50 460 200",
+    /* Left edge at 616 rather than 640 so the arrival cue is whole; the extra
+       24u costs 5% of scale and buys the sentence that names the beat. The top
+       edge is free — a figure is width:100% with its box's aspect ratio, so
+       extending it upward for the phone's label changes nothing but height. */
+    box: "616 26 484 224",
   },
   {
     /* Both phone walls (820 and 1080) inside the window, so the crop reads as
@@ -330,10 +357,13 @@ const STILL_VIEW = [
     box: "812 150 276 350",
   },
   {
+    /* Wide enough for the return cue at x 290–458, deep enough for the
+       stamp's descender at 273. It is also the only still figure that shows
+       the machine inside the chip at a size anyone can read it. */
     phase: "turn",
     kicker: "the turn",
     text: "The answer runs back down the same wire, into the engine. The conversation is open.",
-    box: "56 130 360 170",
+    box: "56 130 440 172",
   },
 ] as const;
 
@@ -341,7 +371,8 @@ const COLOR = {
   green: "#3dd68c",
   greenDim: "#2ba36c",
   text: "#ededed",
-  hairline: "#262626",
+  /* The rest ink of both acknowledging boxes. Only one step of the ladder is
+     listed because only one step is ever tweened back to. */
   hairlineStrong: "#3f3f3f",
 } as const;
 
@@ -404,6 +435,14 @@ export function createTurnScene(): TurnScene {
      these two groups, which is what makes the change a crossfade. */
   const inbox = q<SVGGElement>(svg, "#trn-inbox");
   const thread = q<SVGGElement>(svg, "#trn-thread");
+
+  const mini = q<SVGGElement>(svg, "#trn-mini");
+  const miniQueue = q<SVGRectElement>(svg, "#trn-mini-queue");
+  const miniSlots = q<SVGGElement>(svg, "#trn-mini-slots");
+
+  const phoneLabel = q<SVGTextElement>(svg, "#trn-phone-label");
+  const cueArrive = q<SVGTextElement>(svg, "#trn-cue-arrive");
+  const cueReturn = q<SVGTextElement>(svg, "#trn-cue-return");
 
   const rowsG = q<SVGGElement>(svg, "#trn-rows");
   const rowNew = q<SVGGElement>(svg, "#trn-row-new");
@@ -489,6 +528,26 @@ export function createTurnScene(): TurnScene {
     throw new Error("[turn] the inbound dot comes to rest outside the engine chip");
   }
 
+  /* And it has to come to rest in a SLOT, not just somewhere in the box. The
+     last frame of the scene is a message sitting in the engine's queue; if
+     CHIP_CX drifts off a cell centre — which is what happens the moment the
+     queue's width or its cell count is edited — the message spends the ending
+     straddling a divider, and the beat becomes an accident. */
+  const dockCell = (CHIP_CX - MINI_Q_X) / MINI_CELL - 0.5;
+  if (Math.abs(dockCell - Math.round(dockCell)) > 1e-6 || dockCell < 0 || dockCell >= MINI_Q_CELLS) {
+    throw new Error("[turn] the inbound message does not come to rest in a queue cell");
+  }
+  /* The miniature has to fit inside the box it is the inside of, and the
+     markup has to agree with the constants the dividers are generated from. */
+  if (
+    MINI_Q_X <= CHIP_X ||
+    MINI_Q_X + MINI_Q_W >= CHIP_X + CHIP_W ||
+    Number(miniQueue.getAttribute("x")) !== MINI_Q_X ||
+    Number(miniQueue.getAttribute("width")) !== MINI_Q_W
+  ) {
+    throw new Error("[turn] the miniature queue disagrees with MINI_Q_X / MINI_Q_W");
+  }
+
   /* The wire has to end ON the phone's own wall, and the screen has to be the
      window the rows are measured against. Both are authored in the markup and
      both are what the constants here compute against, so a drift of a few
@@ -542,6 +601,15 @@ export function createTurnScene(): TurnScene {
     "d",
     `M ${STEP_OUT_X} ${REPLY_BASE_Y} C 720 ${REPLY_BASE_Y} 700 ${WIRE_Y} ${RETURN_JOIN_X} ${WIRE_Y} L ${CHIP_CX} ${WIRE_Y}`,
   );
+
+  /* The queue's ruling. Generated so the cell pitch lives in exactly one
+     place — the same split scene 2 makes with QUEUE_SLOT, and the reason the
+     dock assert above can be trusted. Interior dividers only: the box's own
+     walls are the first and last. */
+  for (let i = 1; i < MINI_Q_CELLS; i++) {
+    const x = MINI_Q_X + i * MINI_CELL;
+    miniSlots.appendChild(svgEl("path", { d: `M ${x} ${MINI_Q_Y} L ${x} ${MINI_Q_Y + MINI_Q_H}` }));
+  }
 
   /* Four rows of mail the reader is not meant to read. Same anatomy as the one
      they are — avatar, sender, subject, time — with the words replaced by
@@ -614,9 +682,16 @@ export function createTurnScene(): TurnScene {
    *  moments than the chrome around them does. */
   const fadeParts: SVGElement[] = [
     chipLabel,
+    /* The miniature is ONE fade, not eleven: a machine glimpsed inside a
+       window either is there or is not, and tracing it line by line at 1/7
+       scale would be eleven events nobody can follow. */
+    mini,
     markIn,
     stampIn,
     receipt,
+    cueArrive,
+    cueReturn,
+    phoneLabel,
     chrome,
     inbox,
     rowsG,
@@ -658,11 +733,10 @@ export function createTurnScene(): TurnScene {
     gsap.set(strokeParts, { drawSVG: "0% 0%" });
     gsap.set(boxRects, { fillOpacity: 0 });
     /* The two boxes that ever acknowledge anything, put back to the ink the
-       stylesheet paints them in. They are two different steps of the ladder —
-       the chip is structure, the phone is a silhouette — so they are set
-       separately rather than as a pair. */
-    gsap.set(chip, { stroke: COLOR.hairline });
-    gsap.set(phone, { stroke: COLOR.hairlineStrong });
+       stylesheet paints them in — which is the same step for both, because
+       the chip and the phone are this scene's two objects and are drawn as
+       each other's counterpart (.trn-chip / .trn-phone in styles.css). */
+    gsap.set([chip, phone], { stroke: COLOR.hairlineStrong });
     gsap.set(fadeParts, { opacity: 0 });
     gsap.set(chars, { opacity: 0 });
     /* The placeholder list rests ONE PITCH HIGHER than it is authored, so the
@@ -931,8 +1005,13 @@ export function createTurnScene(): TurnScene {
        because a device powering up is not a device being sketched. */
     drawBox(chip, B1_CHIP, 2.4);
     fadeIn(chipLabel, B1_CHIP + 1.2, 1.1);
+    /* The machine comes up inside its own box, a beat after the box closes —
+       the reader gets the silhouette, and then sees there is something in it.
+       Simultaneous, the two read as one busy rectangle. */
+    fadeIn(mini, B1_CHIP + 2.0, 1.3);
     draw(wire, B1_WIRE, 2.8);
     drawBox(phone, B1_PHONE, 4.0);
+    fadeIn(phoneLabel, B1_PHONE + 2.2, 1.2);
     drawBox(screen, B1_SCREEN, 2.6);
     fadeIn(chrome, B1_CHROME, 1.2);
     fadeIn(inbox, B1_APP, 1.4);
@@ -960,8 +1039,12 @@ export function createTurnScene(): TurnScene {
     ft(rowsG, { y: -ROW_PITCH }, { y: 0, duration: 1.1, ease: "power2.out" }, B1_ARRIVE);
     fadeIn(rowNew, B1_ARRIVE + 0.15, 1.2);
     /* Our note about their surface, and it lands after the row it is about:
-       read before the arrival it would be a promise. */
+       read before the arrival it would be a promise. The human sentence
+       follows the machine receipt rather than leading it — the reader should
+       see the thing happen, then be told the receipt, then be told what the
+       receipt means. */
     fadeIn(receipt, B1_ARRIVE + 1.9, 1.4);
+    fadeIn(cueArrive, B1_ARRIVE + 3.2, 1.3);
 
     /* ── BEAT 2 · the reply ──────────────────────────────────────────────
        The camera pushes in (above), the screen changes underneath it, and then
@@ -973,6 +1056,9 @@ export function createTurnScene(): TurnScene {
        that cannot be scrubbed backwards. */
     fadeOut(inbox, B2_SWAP, 1.6);
     fadeIn(thread, B2_SWAP + 0.8, 1.6);
+    /* The arrival's cue goes with the inbox it was about. Two beats later it
+       would be a caption for something off screen. */
+    fadeOut(cueArrive, B2_SWAP, 1.2);
     fadeIn(replyHint, B2_SWAP + 1.6, 1.0);
 
     /* The hint leaves and the cursor arrives, in that order: a field says
@@ -1020,10 +1106,16 @@ export function createTurnScene(): TurnScene {
     run(dotIn, gStep, B3_STEP, B3_STEP_DUR, "power2.out");
     run(dotIn, gBack, B3_COMMIT, B3_RUN_DUR, "power1.inOut");
 
+    /* The one thing the travel cannot say for itself. It arrives as the dot
+       joins the line rather than as it leaves the phone, so the reader is
+       looking at the wire when they are told which wire it is — and it stays,
+       because it names the route and not the moment. */
+    fadeIn(cueReturn, B3_COMMIT + 1.6, 1.3);
+
     /* The engine hears it. NEUTRAL ink and no green anywhere in this beat:
        green is a message of ours arriving, and this one is the user's. */
     pop(dotIn, B3_LAND, 1.35);
-    ack(chip, B3_LAND, COLOR.text, COLOR.hairline);
+    ack(chip, B3_LAND, COLOR.text, COLOR.hairlineStrong);
 
     /* The traveller goes, the mark it left stays — same handoff as scene 2's
        timeline strip, and for the same reason: what the engine heard has to

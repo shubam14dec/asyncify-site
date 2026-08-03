@@ -1304,6 +1304,34 @@ html {
   transform-origin: 0% 50%;
 }
 
+/* ── the engine chip, and the machine inside it ──────────────────────────
+   The chip carries the phone's weight rather than scene 2's box weight, and
+   that is a promotion with a reason: this scene has exactly two objects, they
+   are both silhouettes, and a 68u box drawn one step fainter than the 494u one
+   beside it reads as a detail of the phone rather than as its counterpart.
+   `.eng-box` stays what it is for everything that really is a box. */
+.trn-chip {
+  fill: var(--surface);
+  stroke: var(--hairline-strong);
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The schematic in miniature: one full ladder step below the wall around it
+   (--hairline against --hairline-strong) at 1 against 1.25. Internals are
+   detail, not competition — and at 1/7 scale anything louder turns the chip
+   into a busy little rectangle instead of a machine glimpsed through a
+   window. No fill anywhere: the queue is a box with cells, and cells you
+   cannot see into are not cells. */
+.trn-mini {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
 /* ── the phone ───────────────────────────────────────────────────────────
    Three weights, exactly BRAND §4: 1.25 for the device silhouette, 1 for the
    screen and every piece of UI inside it. Every stroke is non-scaling, which
@@ -1450,15 +1478,20 @@ html {
    is erased from the last frame, exactly as scene 2's phase-A wires are erased
    from its finished anatomy, and exactly as there it gets its own still card.
 
-   These four rules are the whole per-figure vocabulary of this scene, and they
-   are keyed on CLASSES rather than ids: the still figures are clones with every
-   id stripped (a document may only have one of each), so an id selector would
+   The arrival cue goes the same way and for the same reason: it names a beat
+   that has been over for two beats by the time the scene ends.
+
+   These rules are the whole per-figure vocabulary of this scene, and they are
+   keyed on CLASSES rather than ids: the still figures are clones with every id
+   stripped (a document may only have one of each), so an id selector would
    match the live scene and nothing the reader on a phone ever sees. */
-.trn-screen-inbox {
+.trn-screen-inbox,
+.trn-cue-arrive {
   opacity: 0;
 }
 
-.trn-card-figure[data-phase="delivery"] .trn-screen-inbox {
+.trn-card-figure[data-phase="delivery"] .trn-screen-inbox,
+.trn-card-figure[data-phase="delivery"] .trn-cue-arrive {
   opacity: 1;
 }
 

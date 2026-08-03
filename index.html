@@ -981,14 +981,58 @@
                 </g>
 
                 <!-- ── the engine, as one chip ─────────────────────────────
-                     Empty on purpose. The reader has been inside this box for
-                     two and a half screens; what it needs from this scene is a
-                     middle for the inbound message to come to rest in, which
-                     is why the label sits above it rather than in it (the same
-                     place scene 2 puts "queue" over the queue). -->
+                     The whole machine from scene 2 at 1/7 scale, with the
+                     schematic the reader just spent two and a half screens
+                     inside drawn INSIDE it — unlabelled, one ladder step
+                     fainter than its own wall. Recognition does the labelling;
+                     a caption would be the page explaining a joke it already
+                     told. The label sits above the box rather than in it (the
+                     same place scene 2 puts "queue" over the queue), which is
+                     also what leaves the interior free for the machinery. -->
                 <g class="trn-l-engine">
-                  <rect class="eng-box" id="trn-chip" x="90" y="158" width="170" height="68" rx="6" />
+                  <rect class="trn-chip" id="trn-chip" x="90" y="158" width="170" height="68" rx="6" />
                   <text class="eng-aside" id="trn-chip-label" x="90" y="148">asyncify · engine</text>
+
+                  <!-- The miniature, left to right exactly as scene 2 reads:
+                       inlet, api, the slotted queue, the meter, the fan-out.
+                       Every dimension is mirrored by MINI_* in turn.ts and the
+                       slot dividers are generated from there, so the box can
+                       never stop dividing evenly into its own cells.
+
+                       WHY THE QUEUE IS CENTRED ON THE CHIP. The queue's MIDDLE
+                       CELL is the point the inbound reply comes to rest at
+                       (CHIP_CX, asserted at boot) — so the last frame of the
+                       scene is the user's message sitting in a queue slot,
+                       which is exactly what a reply becomes in the real
+                       platform: a job. It is also where the outbound packet
+                       departs from in beat 1, so both journeys begin and end
+                       in the same five cells. A queue is the one object in the
+                       schematic that can honestly be both. -->
+                  <g class="trn-mini" id="trn-mini">
+                    <path d="M 100 192 L 108 192" />
+                    <rect x="108" y="186" width="16" height="12" rx="2" />
+                    <path d="M 124 192 L 140 192" />
+                    <rect id="trn-mini-queue" x="140" y="183" width="70" height="18" rx="2" />
+                    <g id="trn-mini-slots"></g>
+                    <!-- The through-line, queue mouth to the chip's own wall,
+                         so it is continuous with the wire outside: one line
+                         through the box, which is what makes the packet's
+                         departure read as leaving the machine rather than
+                         appearing beside it. -->
+                    <path d="M 210 192 L 260 192" />
+                    <!-- The meter, across the flow at the queue's mouth — the
+                         same gesture as scene 2's #gate. It sits 14u clear of
+                         the fan junction for the same reason the full-size
+                         schematic keeps 50 between them: drawn on the same x,
+                         the bar and the three wires leaving it collapse into
+                         one arrowhead. -->
+                    <path d="M 216 179 L 216 205" />
+                    <!-- The fan-out. Two branches drawn, four implied — at
+                         this scale six would be a smudge, and the reader has
+                         already counted them in scene 2. -->
+                    <path d="M 230 192 C 238 192 240 178 248 178" />
+                    <path d="M 230 192 C 238 192 240 206 248 206" />
+                  </g>
                   <!-- The inbound message once it has stopped travelling. A
                        mark, not the packet that carried it: what the engine
                        heard has to still be on screen after the motion.
@@ -1011,6 +1055,24 @@
                      names it (BRAND §6). One line, no stray whitespace —
                      text-anchor:end would otherwise measure a trailing space. -->
                 <text class="eng-stamp" id="trn-receipt" x="800" y="168" text-anchor="end">delivered · email</text>
+                <!-- The human sentence for the same moment, a step quieter
+                     than the receipt it sits over: 12u faint against the
+                     stamp's 15u dim, exactly the way scene 2 pairs a stamp
+                     with its cue. ABOVE rather than below only because the
+                     wire owns y 192 — there is no room under it.
+
+                     It leaves when the reader taps into the thread, because
+                     by then it is naming a beat that is two beats old; the
+                     still card for the delivery puts it back (styles.css). -->
+                <text class="eng-cue trn-cue-arrive" id="trn-cue-arrive" x="800" y="144" text-anchor="end">the notification arrives</text>
+                <!-- The one thing the return trip cannot say for itself. The
+                     reader watches a dot travel right to left and has no way
+                     of knowing it is the SAME line the delivery came out on —
+                     which is the entire claim. Tense-neutral on purpose: it
+                     names the route, not the moment, so it can stay in the
+                     finished frame beside "inbound · conversation open"
+                     without the two contradicting each other. -->
+                <text class="eng-cue" id="trn-cue-return" x="290" y="222">back down the same wire</text>
 
                 <!-- ── the phone ───────────────────────────────────────────
                      Drawn art, not a UI surface, which is why the body carries
@@ -1023,6 +1085,14 @@
                      Two-step elevation, exactly DESIGN §1: the device is
                      --canvas, the screen is --surface. No shadow anywhere. -->
                 <g class="trn-l-phone">
+                  <!-- WHOSE phone. The scene has exactly two objects and the
+                       reader has to know that one of them is not ours — that
+                       asymmetry is the product. Left-aligned on the device's
+                       own wall, the same relation "asyncify · engine" has to
+                       the chip, so the two labels read as a pair. It stays up
+                       for the whole scene: it is off-frame at the thread
+                       close-up anyway, and it is in the finished frame. -->
+                  <text class="eng-aside" id="trn-phone-label" x="820" y="43">your user's phone</text>
                   <rect class="trn-phone" id="trn-phone" x="820" y="53" width="260" height="494" rx="34" />
                   <rect class="trn-screen" id="trn-screen" x="832" y="65" width="236" height="470" rx="22" />
 
