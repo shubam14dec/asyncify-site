@@ -488,10 +488,17 @@ const TRACK_H = 288;
 const TICK_HALF = 5;
 /** The label column, right of the rail. */
 const STN_TEXT_X = TRACK_X + 14;
+/* Each event line names its SURFACE as well as its string (user call): the
+   first two are pushed server→client over the WebSocket gateway's admin
+   plane (src/ws/gateway.ts — the tenant-events hint channel), so they read
+   `ws ·`; the third is not a ws event at all — it is the BullMQ queue the
+   accepted reply is enqueued onto, so it reads `queue ·`. A developer should
+   be able to tell from the tracker alone which of these they would hear on a
+   socket and which they would find in the engine's queues. */
 const STATIONS: { at: number; word: string; event: string }[] = [
-  { at: B1_LAND, word: "delivered", event: "message.changed" },
-  { at: B3_PRESS, word: "the reply", event: "conversation.changed" },
-  { at: B3_LAND, word: "inbound", event: "conversation-inbound" },
+  { at: B1_LAND, word: "delivered", event: "ws · message.changed" },
+  { at: B3_PRESS, word: "the reply", event: "ws · conversation.changed" },
+  { at: B3_LAND, word: "inbound", event: "queue · conversation-inbound" },
 ];
 /** How long a station takes to light, and how long its event name overlaps
  *  the one it replaces. */
