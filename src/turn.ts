@@ -245,12 +245,14 @@ const CAM_START = { z: 0.94, fx: 600, fy: 300 };
 const CAM: { at: number; dur: number; z: number; fx: number; fy: number }[] = [
   /* B1 — the inbox. Starts while the packet is still crossing, so the push
      and the flight are one movement rather than a move and then a move.
-     940 ± 600/1.28 covers x 471…1409 and 250 ± 300/1.28 covers y 16…484: the
-     whole phone width, its screen top at 65, rows 0 through 4, and the receipt
-     stamp out at x 644 on the left. It crops the phone's bottom 63u, and that
-     is the framing rather than a mistake — the wide shot has already shown the
-     whole device, so a close-up owes the reader the rows, not the chin. */
-  { at: 12.2, dur: 3.2, z: 1.28, fx: 940, fy: 250 },
+     940 ± 600/1.12 covers x 404…1476 and 291 ± 300/1.12 covers y 23…559: the
+     WHOLE phone (y 53…547), its label at 43, and the receipt stamp out at
+     x 644 on the left. This was 1.28 once, which cropped the phone's bottom
+     63u — defensible as framing, but on a dark canvas a device cut by the
+     frame edge reads as something black covering it, not as a choice (user
+     call). The full-immersion zoom belongs to B2, where being past the
+     device's edges is the point. */
+  { at: 12.2, dur: 3.2, z: 1.12, fx: 940, fy: 291 },
   /* B2 — the opened thread. 950 ± 600/1.62 covers x 579…1321 and 315 ± 300/
      1.62 covers y 130…500, which is the subject line at 190, the sender at
      218, the body, and the reply bar at 440–484 with 16u of screen under it.
