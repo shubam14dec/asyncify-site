@@ -404,12 +404,12 @@ const RCP_SETTLE = 1.3;
    what is happening and has scroll left to think about it.
 
      1  after the buzz has rung out and before the reply beat starts
-     2  riding the 8.4-unit journey home, gone before the dock stamp lands
+     2  in the middle of the typing, when nothing else in the frame is moving
+     3  riding the 8.4-unit journey home, gone before the dock stamp lands
 
-   There were three. The typing beat's line was cut (user call, after two
-   attempts at the wording): a human typing is the one picture in this scene
-   that needs no narrator, and the 32-unit silence between the two remaining
-   lines is what makes each of them land as an event.
+   The typing line is the user's own wording, third attempt ("no-reply@" and
+   "no portal, no ticket" both cut): it describes the picture rather than
+   riffing on it, and no joke has to land for it to work.
 
    Each is a rule that draws out from its own middle and a block of text that
    rises into place under it, and leaves by dipping and fading. The boot
@@ -435,6 +435,7 @@ const CAPS: { at: number; out: number }[] = [
      not talk over the phone while it is still shaking, and that relation
      should survive somebody retuning the buzz. */
   { at: BUZZ_END + 0.6, out: 21.0 },
+  { at: 30.5, out: 36.5 },
   { at: 53.2, out: 58.6 },
 ];
 
@@ -474,10 +475,11 @@ const STILL_VIEW = [
        a screen and not as a wall of text. Tall, because a phone is. */
     phase: "reply",
     kicker: "the reply",
-    /* No glass line: the typing beat's caption was cut from the scrubbed
-       scene (user call), and the stills mirror what the frame says. */
-    text: "Your user answers the notification itself. No dashboard, no support ticket.",
-    glass: "",
+    /* The card text describes the picture; the glass line (the user's own
+       wording) owns the meaning — the two share a still card, so they must
+       not say the same thing twice. */
+    text: "The reply is typed into the thread itself, right where the message landed.",
+    glass: "Your user answers the notification itself. No dashboard, no support ticket.",
     box: "812 150 276 350",
   },
   {
@@ -561,7 +563,7 @@ export function createTurnScene(): TurnScene {
    *  cannot reach. */
   const buzz = q<SVGGElement>(svg, "#trn-buzz");
   const glass = q<SVGGElement>(svg, "#trn-glass");
-  const caps = [1, 2].map((i) => {
+  const caps = [1, 2, 3].map((i) => {
     const g = q<SVGGElement>(svg, `#trn-cap-${i}`);
     return { rule: q<SVGPathElement>(g, ".trn-cap-rule"), text: q<SVGGElement>(g, ".trn-cap-text") };
   });
