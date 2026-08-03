@@ -1259,7 +1259,9 @@ html {
 .trn-pin {
   position: relative;
   display: grid;
-  grid-template-rows: 1fr auto;
+  /* One row now — the progress rail that used to occupy the second one moved
+     onto the glass as the beat tracker. */
+  grid-template-rows: 1fr;
   height: 100dvh;
   padding: clamp(24px, 5vh, 56px) var(--page-pad);
   /* Faded up by the entry ScrollTrigger, so the scene materialises on the way
@@ -1288,21 +1290,9 @@ html {
   overflow: hidden;
 }
 
-.trn-progress {
-  position: relative;
-  width: clamp(80px, 8vw, 120px);
-  height: 1px;
-  margin: 0 auto;
-  background: #1c1c1c;
-}
-
-.trn-progress-fill {
-  position: absolute;
-  inset: 0;
-  background: var(--text-faint);
-  transform: scaleX(0);
-  transform-origin: 0% 50%;
-}
+/* The bottom progress hairline used to live here. It is gone: the beat
+   tracker on the glass carries the same information and three stations more,
+   and two progress rails in one scene is two answers to one question. */
 
 /* ── the engine chip, and the machine inside it ──────────────────────────
    The chip carries the phone's weight rather than scene 2's box weight, and
@@ -1509,6 +1499,84 @@ html {
   fill: var(--text);
 }
 
+/* ── the scene's name, at the head of the glass column ───────────────────
+   The kicker is scene 2's rail kicker exactly — 12u mono, 500, --text-faint —
+   because it is the same object doing the same job one scene later.
+
+   The headline is 22u sans, which is not a rung on BRAND §3's ladder, and the
+   weight and tracking are what put it on one. §3's section head is 32–44px at
+   500 / −0.02em; this carries the section head's WEIGHT and TRACKING but at an
+   optical size that measures ~19 CSS px once the viewBox is scaled to the
+   stage. That is deliberate: it has to be read instantly and then stop being
+   looked at. A true 32px section head inside this frame would be the loudest
+   thing in a scene whose subject is a phone. */
+.trn-title-kicker {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+.trn-title-head {
+  font-family: var(--sans);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  fill: var(--text);
+}
+
+/* ── the beat tracker ────────────────────────────────────────────────────
+   The rail the scrub fills, the ticks it passes, and the two label rows under
+   each one. Everything here is ink — the tracker lights by climbing the gray
+   ladder, never by turning green. Green on this site is a delivery, and a
+   progress marker is not a delivery (BRAND §2). */
+.trn-track-rail {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Rests at zero length and grows to full — the butt cap is doing real work
+   here, exactly as it is on the caption rules (DESIGN §3). */
+.trn-track-fill {
+  fill: none;
+  stroke: var(--text-faint);
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* A tick, not a dot: it is always drawn (dim, then bright), so it never rests
+   at zero length and the phantom-dot case cannot arise — and a ruled tick on a
+   rail is scene 2's backoff-tick vocabulary, which is where a reader of this
+   site has already met the idea of marks along a line. */
+.trn-stn-tick {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+.trn-stn-word {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+/* The real platform event name that fires at this beat. One rung under the
+   word, and one at a time — see the width arithmetic in turn.ts's STATIONS. */
+.trn-stn-event {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
 /* The rule each caption draws itself out from. It rests at zero length, which
    is exactly the case the butt-linecap law exists for: a round cap on a
    zero-length dash is painted as a filled circle of stroke-width diameter, so
@@ -1667,4 +1735,33 @@ html {
   letter-spacing: 0.16em;
   fill: #6e6e6e;
   opacity: 0.4; /* engraved-faint; the ring lights it */
+}
+
+/* ── the still block's own title ─────────────────────────────────────────
+   The stills had a lede but no name. Once, at the head of the block — the
+   scene is called the same thing whether or not it can move. */
+.trn-still-title {
+  margin-bottom: clamp(24px, 4vh, 40px);
+}
+
+.trn-still-head {
+  margin: 10px 0 0;
+  max-width: 22ch;
+  font-size: clamp(1.5rem, 4.2vw, 2rem);
+  font-weight: 500;
+  line-height: 1.14;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  text-wrap: balance;
+}
+
+/* The real platform event a beat fires. Mono, faintest rung, and one size
+   under the narrator line above it: it is a string a developer copies, not a
+   sentence anyone reads aloud. */
+.trn-still-event {
+  margin: 8px 0 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  color: var(--text-faint);
 }

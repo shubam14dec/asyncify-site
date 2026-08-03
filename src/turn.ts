@@ -436,6 +436,9 @@ const CAP_DIP = 6;
  *  gesture — the line condenses to its final width — on the one channel the
  *  law allows. */
 const CAP_TRACK = 1.03;
+/** The lowest line a caption ever puts on the glass. The tracker below it is
+ *  asserted clear of this. MUST match the markup's second caption line. */
+const CAP_LINE2_Y = 488;
 const CAPS: { at: number; out: number }[] = [
   /* Written off BUZZ_END rather than as a number near it: the narrator does
      not talk over the phone while it is still shaking, and that relation
@@ -448,6 +451,83 @@ const CAPS: { at: number; out: number }[] = [
 /** The developer tease, one and a half units after the stamp it hangs off:
  *  the fact first, then the door. */
 const TEASE_AFTER = 1.5;
+
+/* ── The title, and the beat tracker ──────────────────────────────────────
+   The glass column, top to bottom: the scene's NAME (which never leaves), the
+   NARRATION (three captions, one at a time), and at its foot the PROGRESS.
+   All three share x 120, which is where the chip's own wall lands in the wide
+   shot, so the column reads as the frame's margin rather than as three things
+   that happen to be near each other.
+
+   WHERE THE TRACKER IS, AND WHY IT IS NOT UNDER THE TITLE. The top-left band
+   is clear at the wide shot (the chip's label starts at frame y 149) and at
+   beat 1 (the wire is at frame y 189 once the receipt and the arrival cue moved
+   under it) — but at beat 2 the wire crosses at frame y 100.7, and that number
+   is not negotiable: the reply bar must be in shot, the wire sits 250 scene
+   units above it, and 250 × 1.62 = 405 of a 600-unit frame. Rail plus two label
+   rows does not fit in the ~95 units above it. The frame's FOOT is clear at all
+   three cameras and was checked the same way:
+
+     wide   frame y 523…566 → scene y 537…583 at scene x 89…451   — empty
+     beat 1 frame y 523…566 → scene y 490…528 at scene x 511…815  — empty
+     beat 2 frame y 523…566 → scene y 453…479 at scene x 573…784  — empty
+
+   (the phone's left wall is scene x 820 in all three, so the left column never
+   meets it), and the captions moved up to y 430/462/488 to leave the foot to
+   the tracker with 30 units of air between them.
+
+   A STATION'S X IS ITS MOMENT: x = TRACK_X0 + TRACK_W · t/TL_END. The fill is
+   one drawSVG over the whole timeline, so it physically cannot reach a station
+   before or after the beat that station names — the geometry and the schedule
+   are the same number, written once.
+
+   THE EVENT NAMES ARE REAL. Verified in the platform repo, not invented:
+     message.changed        src/core/tenant-events.ts:29, emitted at a provider
+                            delivery callback in
+                            src/workers/processors/status.processor.ts:47
+     conversation.changed   src/core/tenant-events.ts:25, emitted when an
+                            inbound turn is accepted — openConversation's
+                            find-or-create/reopen write,
+                            src/db/conversations.repo.ts:643 ("a new inbound
+                            turn … is a conversation change")
+     conversation-inbound   src/shared/queues.ts:39 (QUEUE.CONVERSATION), the
+                            queue an accepted reply is enqueued onto
+                            (src/api/routes/agents.ts:605/676/851)
+
+   ONE EVENT LINE AT A TIME, and that is arithmetic rather than taste. Stations
+   2 and 3 are 14.7 timeline units apart, which is 69u of rail; their event
+   names are 20 characters, which is 98u at 8u mono. Two of them cannot stand
+   under their own ticks at once at any legible size. The word is the state and
+   stays lit; the event name is the moment and hands over to the next. */
+const TRACK_X0 = 120;
+const TRACK_W = 340;
+const TRACK_Y = 528;
+/** Half the tick's height either side of the rail. */
+const TICK_HALF = 5;
+const STN_WORD_Y = TRACK_Y + 22;
+const STN_EVENT_Y = TRACK_Y + 36;
+const STATIONS: { at: number; word: string; event: string }[] = [
+  { at: B1_LAND, word: "delivered", event: "message.changed" },
+  { at: B3_PRESS, word: "the reply", event: "conversation.changed" },
+  { at: B3_LAND, word: "inbound", event: "conversation-inbound" },
+];
+/** How long a station takes to light, and how long its event name overlaps
+ *  the one it replaces. */
+const STN_LIGHT = 0.7;
+const STN_EVENT_IN = 0.9;
+const STN_EVENT_OUT = 0.9;
+
+/** The scene's name, and the ONE place the two strings live: the glass shows
+ *  them in SVG, the still fallback rebuilds them in HTML, and a title that
+ *  said two different things in the two renderings would be a title nobody
+ *  could quote. MUST match #trn-title in index.html. */
+const TITLE_KICKER = "03 · the turn";
+const TITLE_HEAD = "Delivered was just the beginning.";
+
+/** The title arrives once, early, and never leaves. Same rise-and-settle
+ *  grammar as a caption, minus the rule. */
+const TITLE_AT = 1.0;
+const TITLE_DUR = 1.5;
 
 /* The still fallback's windows: "x y w h" in scene units, cut so each one's
    own mono text is legible on a ~380px phone — plus each beat's narrator line,
@@ -506,6 +586,8 @@ const COLOR = {
   text: "#ededed",
   /* Where a receipt settles after arriving one notch brighter. */
   textDim: "#a1a1a1",
+  /* The unlit ink of a tracker station's word. */
+  textFaint: "#6e6e6e",
   /* The rest ink of both acknowledging boxes. Only one step of the ladder is
      listed because only one step is ever tweened back to. */
   hairlineStrong: "#3f3f3f",
@@ -550,7 +632,6 @@ export function createTurnScene(): TurnScene {
   const section = q<HTMLElement>(doc, "#scene-turn");
   const pin = q<HTMLElement>(doc, "#trn-pin");
   const still = q<HTMLElement>(doc, "#trn-still");
-  const progressFill = q<HTMLElement>(doc, "#trn-progress-fill");
 
   const svg = q<SVGSVGElement>(doc, "#trn-svg");
   const cam = q<SVGGElement>(svg, "#trn-cam");
@@ -569,6 +650,10 @@ export function createTurnScene(): TurnScene {
    *  cannot reach. */
   const buzz = q<SVGGElement>(svg, "#trn-buzz");
   const glass = q<SVGGElement>(svg, "#trn-glass");
+  const title = q<SVGGElement>(svg, "#trn-title");
+  const trackRail = q<SVGPathElement>(svg, "#trn-track-rail");
+  const trackFill = q<SVGPathElement>(svg, "#trn-track-fill");
+  const stationsG = q<SVGGElement>(svg, "#trn-stations");
   const caps = [1, 2, 3].map((i) => {
     const g = q<SVGGElement>(svg, `#trn-cap-${i}`);
     return { rule: q<SVGPathElement>(g, ".trn-cap-rule"), text: q<SVGGElement>(g, ".trn-cap-text") };
@@ -652,6 +737,25 @@ export function createTurnScene(): TurnScene {
      same instant, and the caption loses. */
   if (CAPS[0]!.at < BUZZ_END) {
     throw new Error("[turn] caption 1 arrives while the phone is still buzzing");
+  }
+
+  /* The tracker's stations have to be ON the rail and in order. A station
+     whose time is outside the timeline would sit off the end of its own rail,
+     which is the one way this construction can lie about where the scrub is. */
+  for (const [i, st] of STATIONS.entries()) {
+    if (st.at <= 0 || st.at >= TL_END) {
+      throw new Error(`[turn] station ${i + 1} (${st.word}) is off the tracker's rail`);
+    }
+    const prev = STATIONS[i - 1];
+    if (prev && st.at <= prev.at) {
+      throw new Error(`[turn] station ${i + 1} (${st.word}) lights before the one before it`);
+    }
+  }
+  /* And the glass column has to stay a column: the tracker's own labels must
+     clear the lowest caption line, or the narration and the progress collide
+     at whichever scrub position happens to show both. */
+  if (TRACK_Y - TICK_HALF < CAP_LINE2_Y + 20) {
+    throw new Error("[turn] the beat tracker runs into the caption block above it");
   }
 
   /* One caption on the glass at a time — including the tail of the one that is
@@ -790,6 +894,34 @@ export function createTurnScene(): TurnScene {
     `M ${STEP_OUT_X} ${REPLY_BASE_Y} C 720 ${REPLY_BASE_Y} 700 ${WIRE_Y} ${RETURN_JOIN_X} ${WIRE_Y} L ${CHIP_CX} ${WIRE_Y}`,
   );
 
+  /* The tracker's three stations. A tick, the human word, and the platform
+     event name — generated from STATIONS so a station's x is derived from its
+     time and can never be typed in wrong. */
+  const stationX = (at: number): number => TRACK_X0 + TRACK_W * (at / TL_END);
+  const stations = STATIONS.map((st) => {
+    const x = stationX(st.at);
+    const tick = svgEl("path", {
+      class: "trn-stn-tick",
+      d: `M ${x.toFixed(2)} ${TRACK_Y - TICK_HALF} L ${x.toFixed(2)} ${TRACK_Y + TICK_HALF}`,
+    });
+    const word = svgEl("text", {
+      class: "trn-stn-word",
+      x: x.toFixed(2),
+      y: STN_WORD_Y,
+      "text-anchor": "middle",
+    });
+    word.textContent = st.word;
+    const event = svgEl("text", {
+      class: "trn-stn-event",
+      x: x.toFixed(2),
+      y: STN_EVENT_Y,
+      "text-anchor": "middle",
+    });
+    event.textContent = st.event;
+    stationsG.append(tick, word, event);
+    return { tick, word, event, at: st.at };
+  });
+
   /* The queue's ruling. Generated so the cell pitch lives in exactly one
      place — the same split scene 2 makes with QUEUE_SLOT, and the reason the
      dock assert above can be trusted. Interior dividers only: the box's own
@@ -893,6 +1025,7 @@ export function createTurnScene(): TurnScene {
     replyHint,
     send,
     ...caps.map((c) => c.text),
+    ...stations.map((st) => st.event),
   ];
 
   /* ── the camera ──────────────────────────────────────────────────────────
@@ -924,7 +1057,21 @@ export function createTurnScene(): TurnScene {
 
   function restState(): void {
     gsap.set(pin, { opacity: 0 });
-    gsap.set(progressFill, { scaleX: 0 });
+    /* The tracker's rail is permanent furniture; its FILL rests at nothing,
+       which is the same zero-length drawSVG case the caption rules are in. */
+    gsap.set(trackFill, { drawSVG: "0% 0%" });
+    gsap.set(trackRail, { opacity: 0 });
+    /* Every station unlit. The stylesheet already paints them this way, but
+       the scrub tweens both inks, so rest owes an explicit inverse for both. */
+    gsap.set(
+      stations.map((st) => st.tick),
+      { stroke: COLOR.hairlineStrong },
+    );
+    gsap.set(
+      stations.map((st) => st.word),
+      { fill: COLOR.textFaint },
+    );
+    gsap.set(title, { opacity: 0, y: CAP_RISE, scaleX: CAP_TRACK, transformOrigin: "0% 50%" });
     gsap.set(strokeParts, { drawSVG: "0% 0%" });
     gsap.set(boxRects, { fillOpacity: 0 });
     /* The one box that ever acknowledges anything, put back to the ink the
@@ -1019,7 +1166,23 @@ export function createTurnScene(): TurnScene {
        meant, the third line being the sentence the glass says over this beat
        in the scrubbed version. An empty glass line means the beat has no
        narrator (the typing), and the card gets no third voice either. */
-    function block(kicker: string, text: string, glassLine: string): HTMLElement {
+    /* The scene's name, once, at the head of the block — the stills had only a
+       lede, which named the argument but not the scene. Same two lines the
+       glass carries, in HTML because a still has no glass. */
+    function stillTitle(): HTMLElement {
+      const wrap = doc.createElement("div");
+      wrap.className = "trn-still-title";
+      const k = doc.createElement("span");
+      k.className = "eng-kicker";
+      k.textContent = TITLE_KICKER;
+      const h = doc.createElement("p");
+      h.className = "trn-still-head";
+      h.textContent = TITLE_HEAD;
+      wrap.append(k, h);
+      return wrap;
+    }
+
+    function block(kicker: string, text: string, glassLine: string, event: string): HTMLElement {
       const el = doc.createElement("div");
       el.className = "eng-card";
       const k = doc.createElement("span");
@@ -1035,6 +1198,15 @@ export function createTurnScene(): TurnScene {
         g.textContent = glassLine;
         el.appendChild(g);
       }
+      /* The platform event this beat fires — the same string the tracker's
+         station shows in the scrubbed version. The tracker itself has no place
+         in a still (it is progress through a scroll that does not exist), but
+         the event names are developer-facing bait and have to survive the
+         fallback, so they ride the card their beat owns. */
+      const e = doc.createElement("p");
+      e.className = "trn-still-event";
+      e.textContent = event;
+      el.appendChild(e);
       return el;
     }
 
@@ -1045,20 +1217,22 @@ export function createTurnScene(): TurnScene {
          reader MUST still receive are what the notification said and what the
          human typed back (DESIGN §3). The turn needs no close-up: the chip,
          the mark and the stamp are 15u and legible in the whole frame. */
+      frag.appendChild(stillTitle());
       const lede = doc.createElement("p");
       lede.className = "eng-still-lede";
       lede.textContent = "The user replies, and the reply comes back in.";
       frag.append(lede, figure(STILL_WHOLE, "all"));
-      for (const v of STILL_VIEW) {
-        const el = block(v.kicker, v.text, v.glass);
+      for (const [i, v] of STILL_VIEW.entries()) {
+        const el = block(v.kicker, v.text, v.glass, STATIONS[i]!.event);
         if (v.phase !== "turn") el.appendChild(figure(v.box, v.phase));
         frag.appendChild(el);
       }
     } else {
+      frag.appendChild(stillTitle());
       /* One card per beat, each a close-up: the whole 1030u composition on a
          phone is three illegible mono labels. */
-      for (const v of STILL_VIEW) {
-        const el = block(v.kicker, v.text, v.glass);
+      for (const [i, v] of STILL_VIEW.entries()) {
+        const el = block(v.kicker, v.text, v.glass, STATIONS[i]!.event);
         el.appendChild(figure(v.box, v.phase));
         frag.appendChild(el);
       }
@@ -1230,9 +1404,35 @@ export function createTurnScene(): TurnScene {
       ft(c.rule, { drawSVG: "0% 100%" }, { drawSVG: "50% 50%", duration: CAP_RULE_OUT, ease: "power2.in" }, out + 0.2);
     };
 
+    /* ── the glass column's fixed furniture ──────────────────────────────
+       The scene's name arrives once and stays; the tracker's rail arrives with
+       it, because a rail with nothing on it is still the promise that
+       something will be. */
+    ft(
+      title,
+      { opacity: 0, y: CAP_RISE, scaleX: CAP_TRACK },
+      { opacity: 1, y: 0, scaleX: 1, duration: TITLE_DUR, ease: "power2.out", transformOrigin: "0% 50%" },
+      TITLE_AT,
+    );
+    fadeIn(trackRail, TITLE_AT + 0.6, 1.2);
+
     /* How much of the pin is left. A pinned section takes the scrollbar away
-       from the reader; this hands the information back. */
-    ft(progressFill, { scaleX: 0 }, { scaleX: 1, duration: TL_END }, 0);
+       from the reader; this hands the information back — and now it hands back
+       three more things with it. One drawSVG over the whole timeline, so the
+       fill's head is literally the scrub position on the rail. */
+    ft(trackFill, { drawSVG: "0% 0%" }, { drawSVG: "0% 100%", duration: TL_END }, 0);
+
+    /* Each station lights when its own beat lands: the tick climbs to full
+       ink, the word with it, and the platform event that fires at that instant
+       fades in underneath. The event hands over to the next station's rather
+       than accumulating — see STATIONS for why that is arithmetic. */
+    stations.forEach((st, i) => {
+      ft(st.tick, { stroke: COLOR.hairlineStrong }, { stroke: COLOR.text, duration: STN_LIGHT }, st.at);
+      ft(st.word, { fill: COLOR.textFaint }, { fill: COLOR.text, duration: STN_LIGHT }, st.at);
+      fadeIn(st.event, st.at + 0.2, STN_EVENT_IN);
+      const next = stations[i + 1];
+      if (next) fadeOut(st.event, next.at - STN_EVENT_OUT + 0.2, STN_EVENT_OUT);
+    });
 
     /* The sentences on the glass. Written here as one block rather than
        scattered through the beats they belong to, because they are one voice
