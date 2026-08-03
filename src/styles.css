@@ -1467,7 +1467,9 @@ html {
    also leaves with the moment it names. */
 .trn-char {
   font-family: var(--mono);
-  font-size: 12px;
+  /* 11, one size below the subject line: at 12 the typed reply ended against
+     the send glyph's nose (turn.ts CHAR_W has the arithmetic). */
+  font-size: 11px;
   fill: var(--text);
   opacity: 0;
 }

@@ -1214,7 +1214,11 @@
                     <rect class="trn-ui-line" id="trn-reply" x="846" y="440" width="208" height="44" rx="6" />
                     <text class="trn-reply-hint" id="trn-reply-hint" x="862" y="467">Reply</text>
                     <g id="trn-chars"></g>
-                    <rect class="trn-cursor" id="trn-cursor" x="862" y="454" width="6.7" height="13" />
+                    <!-- y 458 / h 11.5 is the 11u type's em box hung on the 467
+                         baseline (ascent ~8.8, descent ~2.5). The old 454/13
+                         was sized for 12u type and hovered 4u above the
+                         lowercase it was supposed to be standing behind. -->
+                    <rect class="trn-cursor" id="trn-cursor" x="862" y="458" width="6.7" height="11.5" />
                     <!-- Send. A paper plane in ONE stroke and no fill, because
                          a filled triangle is an icon set and this site draws
                          line-work. It appears only once there is something to

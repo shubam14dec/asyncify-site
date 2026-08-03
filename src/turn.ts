@@ -187,11 +187,13 @@ const ROW_BARS: readonly (readonly [number, number])[] = [
        is exact at every scrub position and does not depend on the web font
        having loaded when the scene booted.
 
-   CHAR_W is the mono advance at this size: 12u × (0.6em + the 0.01em tracking
-   the rest of the screen runs at). Geist Mono is a 0.6em monospace, so the
-   reply sits on the same rhythm as the subject line above it. */
+   CHAR_W is the mono advance at this size: 11u × (0.6em + the 0.01em tracking
+   the rest of the screen runs at). Geist Mono is a 0.6em monospace. 11u, not
+   the subject line's 12: at 12 the typed line ended 4u short of the send
+   glyph's nose, which at the 1.62× close-up read as the text touching the
+   button (user call) — one size down buys the bar 18u of air. */
 const REPLY_TEXT = "it hasn't arrived yet?";
-const CHAR_W = 12 * 0.61;
+const CHAR_W = 11 * 0.61;
 
 /** The reply bar, and where its text starts. 16u of inset, which is the same
  *  inset the row avatars sit at — the screen has one left margin, not two. */
@@ -211,12 +213,13 @@ const REPLY_BASE_Y = 467;
 const CURSOR_W = 6.7;
 
 /** The send glyph's centre and half-width. It has to clear the last character
- *  the reader types, and the margin is only 3.6u — which is why there is a
- *  boot assert on it rather than a comment hoping for the best. */
+ *  the reader types — asserted at boot rather than hoped for in a comment. */
 const SEND_CX = 1042;
 const SEND_HALF = 8;
-/** Minimum air between the cursor's trailing edge and the glyph's nose. */
-const SEND_GAP_MIN = 2;
+/** Minimum air between the cursor's trailing edge and the glyph's nose. 10u,
+ *  not the 2 it once was: 2 let the crowding that prompted the 11u type size
+ *  pass silently, and a floor that permits the defect is not a floor. */
+const SEND_GAP_MIN = 10;
 
 /* ── The route out, and the route back ─────────────────────────────────────
    A ROUTE and a LINE are two different objects, exactly as in scene 2. The
