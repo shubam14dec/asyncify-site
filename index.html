@@ -1041,6 +1041,14 @@
                   <circle class="trn-mark-in" id="trn-mark-in" cx="175" cy="192" r="4.5" />
                   <!-- The cliffhanger. One line, no stray whitespace. -->
                   <text class="eng-stamp" id="trn-stamp-in" x="90" y="270">inbound · conversation open</text>
+                  <!-- And what happens next, one rung quieter and one beat
+                       later: the stamp is a fact, this is a door. The arrow
+                       points right, which is the direction the reader is about
+                       to scroll — scene 4 is where the agent picks this up.
+                       --text-faint is the bottom of the ladder for resting
+                       text (BRAND §1 forbids opacity-faked grays for a resting
+                       colour), so the extra quiet comes from size, not ink. -->
+                  <text class="eng-cue trn-tease" id="trn-tease" x="90" y="296">handing to your agent →</text>
                 </g>
 
                 <!-- The one road in the picture. Wall to wall: it touches the
@@ -1054,7 +1062,17 @@
                      row it is about. Lowercase, channel named the way the API
                      names it (BRAND §6). One line, no stray whitespace —
                      text-anchor:end would otherwise measure a trailing space. -->
-                <text class="eng-stamp" id="trn-receipt" x="800" y="168" text-anchor="end">delivered · email</text>
+                <!-- THREE receipts in one slot, opacity-swapped. The state of
+                     a message is not a label you write once — it is delivered,
+                     then opened, then replied, and the whole argument of this
+                     scene is that the third state exists at all. Three
+                     elements rather than one because a string that was
+                     rewritten cannot be un-rewritten by a reverse pass; same
+                     law as the typed reply. Each is one line with no stray
+                     whitespace — text-anchor:end measures a trailing space. -->
+                <text class="eng-stamp trn-receipt-d" id="trn-receipt-d" x="800" y="168" text-anchor="end">delivered · email</text>
+                <text class="eng-stamp trn-receipt-o" id="trn-receipt-o" x="800" y="168" text-anchor="end">opened · email</text>
+                <text class="eng-stamp trn-receipt-r" id="trn-receipt-r" x="800" y="168" text-anchor="end">replied · email</text>
                 <!-- The human sentence for the same moment, a step quieter
                      than the receipt it sits over: 12u faint against the
                      stamp's 15u dim, exactly the way scene 2 pairs a stamp
@@ -1093,6 +1111,17 @@
                        for the whole scene: it is off-frame at the thread
                        close-up anyway, and it is in the finished frame. -->
                   <text class="eng-aside" id="trn-phone-label" x="820" y="43">your user's phone</text>
+
+                  <!-- Everything that is PHYSICALLY the device, in one group,
+                       so the arrival can shake it as one object. The label
+                       stays outside: it is the page naming the phone, not part
+                       of it, and a caption that shudders is a caption with a
+                       fault. The group's bbox is exactly the body rect (every
+                       child is inside it), so a 50%/50% transform origin is
+                       the device's own centre without anyone having to write
+                       the coordinate down — and a bbox origin, unlike
+                       svgOrigin, is safe under the camera's matrix. -->
+                  <g id="trn-buzz">
                   <rect class="trn-phone" id="trn-phone" x="820" y="53" width="260" height="494" rx="34" />
                   <rect class="trn-screen" id="trn-screen" x="832" y="65" width="236" height="470" rx="22" />
 
@@ -1186,11 +1215,69 @@
                     <text class="trn-reply-hint" id="trn-reply-hint" x="862" y="467">Reply</text>
                     <g id="trn-chars"></g>
                     <rect class="trn-cursor" id="trn-cursor" x="862" y="454" width="6.7" height="13" />
+                    <!-- Send. A paper plane in ONE stroke and no fill, because
+                         a filled triangle is an icon set and this site draws
+                         line-work. It appears only once there is something to
+                         send, and it is what causes the reply to leave: the
+                         press is the last human act in the scene, and every
+                         beat after it is the machine's. Ink, never green — the
+                         reply is the user's, not one of our deliveries. -->
+                    <g class="trn-send" id="trn-send">
+                      <path d="M 1034 455.5 L 1050 462 L 1034 468.5 L 1037 462 Z" />
+                      <path d="M 1037 462 L 1050 462" />
+                    </g>
                   </g>
+                </g>
                 </g>
 
                 <!-- Travelling packets. Generated, and always painted last. -->
                 <g class="trn-l-dots" id="trn-dots"></g>
+              </g>
+
+              <!-- ── the glass ───────────────────────────────────────────────
+                   Three narrator sentences, and the ONLY thing in this scene
+                   that is not in the world. They live outside #trn-cam on
+                   purpose: a subtitle that zoomed with the shot would be part
+                   of the photograph instead of printed on it, and the camera
+                   pushes to 1.62× in the middle of caption 2.
+
+                   SET IN SANS, against every other word in the scene. BRAND §3
+                   is explicit that mono is for measurement — numbers, IDs,
+                   channel names, receipts — and "not a way to say we are a
+                   developer tool on a marketing headline". These are full
+                   sentences in the narrator's voice, so they take the voice's
+                   typeface, and the contrast against the mono world is exactly
+                   the separation the layer is for.
+
+                   PLACED LOWER-LEFT rather than centred: the phone occupies
+                   the middle of the frame at both close-ups (frame x 466–757
+                   at beat 1, 389–811 at beat 2), and a centred caption would
+                   have sat on the inbox rows and then on the reply bar itself
+                   — narration printed over the one thing the reader is meant
+                   to be watching. The left column is empty at all three camera
+                   positions. x 120 is where the chip's own wall lands in the
+                   wide shot, so the column reads as the frame's margin. -->
+              <g class="trn-l-glass" id="trn-glass">
+                <g class="trn-cap" id="trn-cap-1">
+                  <path class="trn-cap-rule" d="M 120 452 L 340 452" />
+                  <g class="trn-cap-text">
+                    <text x="120" y="484">Delivered is not a log line.</text>
+                    <text x="120" y="510">It is a buzz in a pocket.</text>
+                  </g>
+                </g>
+                <g class="trn-cap" id="trn-cap-2">
+                  <path class="trn-cap-rule" d="M 120 452 L 340 452" />
+                  <g class="trn-cap-text">
+                    <text x="120" y="484">There is no no-reply@ here.</text>
+                  </g>
+                </g>
+                <g class="trn-cap" id="trn-cap-3">
+                  <path class="trn-cap-rule" d="M 120 452 L 340 452" />
+                  <g class="trn-cap-text">
+                    <text x="120" y="484">Most replies dead-end in a support inbox.</text>
+                    <text x="120" y="510">Yours comes back as an event.</text>
+                  </g>
+                </g>
               </g>
             </svg>
           </div>

@@ -210,6 +210,14 @@ const REPLY_BASE_Y = 467;
  *  §7 on infinite micro-animations). It is present or it is not. */
 const CURSOR_W = 6.7;
 
+/** The send glyph's centre and half-width. It has to clear the last character
+ *  the reader types, and the margin is only 3.6u — which is why there is a
+ *  boot assert on it rather than a comment hoping for the best. */
+const SEND_CX = 1042;
+const SEND_HALF = 8;
+/** Minimum air between the cursor's trailing edge and the glyph's nose. */
+const SEND_GAP_MIN = 2;
+
 /* ── The route out, and the route back ─────────────────────────────────────
    A ROUTE and a LINE are two different objects, exactly as in scene 2. The
    reader sees one wire; the packets fly on guides that lie on top of it and
@@ -287,6 +295,30 @@ const B1_LAND = B1_FLY + B1_FLY_DUR; // 15.2
 /** The arrival: the list drops one pitch and our row takes the top slot. */
 const B1_ARRIVE = B1_LAND + 0.2;
 
+/* ── The buzz ──────────────────────────────────────────────────────────────
+   The hero's bell is a real damped oscillator on gsap.ticker, and this is the
+   same physics arriving at the other end of the wire — but it CANNOT be a
+   ticker here, because a scrubbed scene may be rendered at any progress in any
+   order and an integrator has memory. So the damping is authored: one kick out
+   to BUZZ_PEAK, then BUZZ_SWINGS reversals each BUZZ_DECAY of the last, ending
+   at exactly zero. Five reversals gives 2.8° → −1.96 → 1.37 → −0.96 → 0.67 → 0
+   — two and a half oscillations, which is what a phone on a desk does.
+
+   It starts at B1_ARRIVE, which is also the instant the camera's first move
+   FINISHES (12.2 + 3.2 = 15.4). That is not a coincidence to be tidied away:
+   a rotation and a zoom running together read as a wobble in the lens rather
+   than a shake in the object, and the two live on different elements so
+   nothing would have warned us. They are butted end to end instead.
+
+   0.14 + 5 × 0.26 = 1.44 units ≈ 0.036 viewport heights: a flick of scroll,
+   which is the right price for an event that is over before you look at it. */
+const BUZZ_PEAK = 2.8;
+const BUZZ_DECAY = 0.7;
+const BUZZ_SWINGS = 5;
+const BUZZ_IN = 0.14;
+const BUZZ_STEP = 0.26;
+const BUZZ_END = B1_ARRIVE + BUZZ_IN + BUZZ_SWINGS * BUZZ_STEP;
+
 /* ── Beat 2 · the reply ────────────────────────────────────────────────── */
 /** The screen change. Starts 0.6 units after the camera does, so the push-in
  *  reads as the cause and the screen change as the consequence. */
@@ -307,8 +339,22 @@ const TYPE_T0 = 28.0;
  *  wonder whether the page has stopped. */
 const CHAR_STEP = 0.52;
 const CHAR_FADE = 0.14;
+/** When the last character has finished fading in. Everything downstream —
+ *  the send glyph, the press, the collapse — is written against this, and the
+ *  boot assert below is what stops the sequence from ever running backwards. */
+const TYPE_END = TYPE_T0 + (REPLY_TEXT.length - 1) * CHAR_STEP + CHAR_FADE; // 39.06
+/** Send appears once there is something to send, not before. */
+const B2_SEND_IN = TYPE_END + 0.7;
 
 /* ── Beat 3 · the reversal ─────────────────────────────────────────────── */
+/** THE PRESS. The last human act in the scene, and now the CAUSE of
+ *  everything after it: a quick scale dip on the glyph, and 0.3 units later
+ *  the reply comes apart. The collapse used to simply happen at BEAT_3 — it
+ *  still does, to the frame, but it is no longer something the scene decided
+ *  on its own. Somebody pressed send. */
+const B3_PRESS = BEAT_3 - 0.3;
+const B3_PRESS_DOWN = 0.18;
+const B3_PRESS_UP = 0.26;
 const B3_COLLAPSE = BEAT_3;
 const B3_STEP = 47.9;
 const B3_STEP_DUR = 1.3;
@@ -329,8 +375,75 @@ const B3_LAND = B3_COMMIT + B3_RUN_DUR; // 60.4
  *  packets — the third scene in a row is not the place to invent a new one. */
 const DOT_R = 4.5;
 
+/* ── The receipt's three states ────────────────────────────────────────────
+   delivered → opened → replied, each in the same slot. The moments are not
+   chosen for rhythm; each one is the instant the thing it names actually
+   happens on screen, which is the only reason a status line is worth putting
+   on a page at all:
+
+     delivered  the row lands in the inbox
+     opened     the screen changes to the thread — tapping the mail IS opening
+                it, so the swap and the receipt are the same event
+     replied    the send is pressed
+
+   Each arrives one notch brighter than it rests (--text, settling to the
+   stamp's --text-dim over 1.3 units), which is scene 2's stamp emphasis: a
+   state change should be visible as a change, not just as new words. */
+const RCP_DELIVERED = B1_ARRIVE + 1.9; // 17.3
+const RCP_OPENED = 22.8;
+const RCP_REPLIED = B3_PRESS + 0.35;
+const RCP_SWAP_FADE = 0.8;
+const RCP_SETTLE = 1.3;
+
+/* ── The glass ─────────────────────────────────────────────────────────────
+   Three narrator sentences, one on the frame at a time, each timed to the
+   quiet stretch of its own beat — the place where the reader has understood
+   what is happening and has scroll left to think about it.
+
+     1  after the buzz has rung out and before the reply beat starts
+     2  in the middle of the typing, when nothing else in the frame is moving
+     3  riding the 8.4-unit journey home, gone before the dock stamp lands
+
+   Each is a rule that draws out from its own middle and a block of text that
+   rises into place under it, and leaves by dipping and fading. The gaps
+   between them are enormous on purpose (8.6 and 15.8 units): the glass is a
+   layer that should feel like it is used sparingly, and the boot assert below
+   refuses a schedule where one caption is still leaving as the next arrives. */
+const CAP_RULE_IN = 0.9;
+const CAP_TEXT_IN = 1.1;
+const CAP_TEXT_OUT = 0.9;
+const CAP_RULE_OUT = 0.7;
+/** How far the text rises in, and dips out. Small — this is a settle, not an
+ *  entrance (DESIGN §3 caps entrances at subtle). */
+const CAP_RISE = 5;
+const CAP_DIP = 6;
+/** The tracking settle, done as a group scaleX rather than as a letter-spacing
+ *  tween. letter-spacing is a LAYOUT property: animating it re-flows the text
+ *  run every frame, which DESIGN §3 bans outright ("transform and opacity
+ *  only"). A 1.03 → 1.0 scaleX about the text's own left anchor is the same
+ *  gesture — the line condenses to its final width — on the one channel the
+ *  law allows. */
+const CAP_TRACK = 1.03;
+const CAPS: { at: number; out: number }[] = [
+  /* Written off BUZZ_END rather than as a number near it: the narrator does
+     not talk over the phone while it is still shaking, and that relation
+     should survive somebody retuning the buzz. */
+  { at: BUZZ_END + 0.6, out: 21.0 },
+  { at: 30.5, out: 36.5 },
+  { at: 53.2, out: 58.6 },
+];
+
+/** The developer tease, one and a half units after the stamp it hangs off:
+ *  the fact first, then the door. */
+const TEASE_AFTER = 1.5;
+
 /* The still fallback's windows: "x y w h" in scene units, cut so each one's
-   own mono text is legible on a ~380px phone. The captions live here rather
+   own mono text is legible on a ~380px phone — plus each beat's narrator line,
+   which the still carries as TEXT rather than in the figure. A caption is a
+   thing that was said over a moving picture; cropped into a 240u window it
+   would be three words lying across a diagram. Verbatim, and the same three
+   sentences the glass says (index.html #trn-glass).
+   The card captions live here rather
    than in the markup because this scene has no caption rail — the scrubbed
    version says all of this with receipts inside the drawing, so a hidden block
    in index.html would be markup that is never rendered as itself. */
@@ -344,6 +457,7 @@ const STILL_VIEW = [
     phase: "delivery",
     kicker: "the delivery",
     text: "One event out, into a real inbox, on the channel it was addressed to — with a receipt.",
+    glass: "Delivered is not a log line. It is a buzz in a pocket.",
     /* Left edge at 616 rather than 640 so the arrival cue is whole; the extra
        24u costs 5% of scale and buys the sentence that names the beat. The top
        edge is free — a figure is width:100% with its box's aspect ratio, so
@@ -356,6 +470,7 @@ const STILL_VIEW = [
     phase: "reply",
     kicker: "the reply",
     text: "Your user answers the notification itself. No dashboard, no support ticket.",
+    glass: "There is no no-reply@ here.",
     box: "812 150 276 350",
   },
   {
@@ -365,6 +480,7 @@ const STILL_VIEW = [
     phase: "turn",
     kicker: "the turn",
     text: "The answer runs back down the same wire, into the engine. The conversation is open.",
+    glass: "Most replies dead-end in a support inbox. Yours comes back as an event.",
     box: "56 130 440 172",
   },
 ] as const;
@@ -373,6 +489,8 @@ const COLOR = {
   green: "#3dd68c",
   greenDim: "#2ba36c",
   text: "#ededed",
+  /* Where a receipt settles after arriving one notch brighter. */
+  textDim: "#a1a1a1",
   /* The rest ink of both acknowledging boxes. Only one step of the ladder is
      listed because only one step is ever tweened back to. */
   hairlineStrong: "#3f3f3f",
@@ -427,7 +545,19 @@ export function createTurnScene(): TurnScene {
   const markIn = q<SVGCircleElement>(svg, "#trn-mark-in");
   const stampIn = q<SVGTextElement>(svg, "#trn-stamp-in");
   const wire = q<SVGPathElement>(svg, "#trn-wire");
-  const receipt = q<SVGTextElement>(svg, "#trn-receipt");
+  const tease = q<SVGTextElement>(svg, "#trn-tease");
+
+  /** The receipt's three states, in the order they happen. */
+  const receipts = ["d", "o", "r"].map((k) => q<SVGTextElement>(svg, `#trn-receipt-${k}`));
+
+  /** The device as one shakeable object, and the glass as a layer the camera
+   *  cannot reach. */
+  const buzz = q<SVGGElement>(svg, "#trn-buzz");
+  const glass = q<SVGGElement>(svg, "#trn-glass");
+  const caps = [1, 2, 3].map((i) => {
+    const g = q<SVGGElement>(svg, `#trn-cap-${i}`);
+    return { rule: q<SVGPathElement>(g, ".trn-cap-rule"), text: q<SVGGElement>(g, ".trn-cap-text") };
+  });
 
   const phone = q<SVGRectElement>(svg, "#trn-phone");
   const screen = q<SVGRectElement>(svg, "#trn-screen");
@@ -450,6 +580,7 @@ export function createTurnScene(): TurnScene {
   const rowNew = q<SVGGElement>(svg, "#trn-row-new");
 
   const field = q<SVGRectElement>(svg, "#trn-reply");
+  const send = q<SVGGElement>(svg, "#trn-send");
   const replyHint = q<SVGTextElement>(svg, "#trn-reply-hint");
   const charsG = q<SVGGElement>(svg, "#trn-chars");
   const cursor = q<SVGRectElement>(svg, "#trn-cursor");
@@ -470,12 +601,52 @@ export function createTurnScene(): TurnScene {
     throw new Error("[turn] beats are out of order");
   }
 
-  /* The reply has to have finished being typed before beat 3 collapses it. It
-     is the one place in the scene where two beats share a boundary and the
-     later one destroys what the earlier one built. */
-  const TYPE_END = TYPE_T0 + (REPLY_TEXT.length - 1) * CHAR_STEP + CHAR_FADE;
-  if (TYPE_END > BEAT_3) {
-    throw new Error("[turn] the reply is still being typed when beat 3 collapses it");
+  /* The reply has to be FINISHED before anyone can send it, and the send is
+     now what causes the collapse — so this boundary moved from BEAT_3 to the
+     press. It is the one place in the scene where a beat destroys what the
+     previous beat built, and the order has to be typing, then send, then
+     collapse, in that order and never any other. */
+  if (TYPE_END > B3_PRESS) {
+    throw new Error("[turn] the reply is still being typed when the send is pressed");
+  }
+  if (B2_SEND_IN < TYPE_END || B3_PRESS < B2_SEND_IN) {
+    throw new Error("[turn] the send glyph is pressed before it exists, or exists before the words do");
+  }
+  /* The glyph has to clear the last character the reader types. The reply is
+     placed by arithmetic and the glyph is authored in the markup, so nothing
+     else in the system would ever notice them touching. */
+  if (REPLY_TEXT_X + (REPLY_TEXT.length + 1) * CHAR_W > SEND_CX - SEND_HALF - SEND_GAP_MIN) {
+    throw new Error("[turn] the typed reply runs into the send glyph");
+  }
+
+  /* A buzz that does not decay is a vibration, and a vibration on a hairline
+     dark UI is a rendering fault. */
+  if (BUZZ_DECAY >= 1 || BUZZ_DECAY <= 0) {
+    throw new Error("[turn] the buzz does not damp — that is a vibration, not a buzz");
+  }
+  /* And it must not run while the camera is still moving: a rotation under a
+     zoom reads as the lens wobbling rather than the object shaking, and the
+     two live on different elements so nothing else would catch it. */
+  const camB1 = CAM[0]!;
+  if (B1_ARRIVE < camB1.at + camB1.dur) {
+    throw new Error("[turn] the buzz starts before the camera has finished moving");
+  }
+
+  /* The narrator waits for the phone to stop. A sentence rising into the frame
+     while the device is still oscillating is two motions competing for the
+     same instant, and the caption loses. */
+  if (CAPS[0]!.at < BUZZ_END) {
+    throw new Error("[turn] caption 1 arrives while the phone is still buzzing");
+  }
+
+  /* One caption on the glass at a time — including the tail of the one that is
+     leaving. A schedule where two overlap is two narrators. */
+  for (const [i, c] of CAPS.entries()) {
+    if (c.out <= c.at) throw new Error(`[turn] caption ${i + 1} leaves before it arrives`);
+    const next = CAPS[i + 1];
+    if (next && next.at < c.out + Math.max(CAP_TEXT_OUT, CAP_RULE_OUT + 0.2)) {
+      throw new Error(`[turn] caption ${i + 2} arrives before caption ${i + 1} has left`);
+    }
   }
 
   /* The turn is a decision, not a bounce. See B3_COMMIT. */
@@ -669,6 +840,10 @@ export function createTurnScene(): TurnScene {
   pristine.removeAttribute("id");
   for (const el of Array.from(pristine.querySelectorAll("[id]"))) el.removeAttribute("id");
   pristine.querySelector(".trn-l-dots")?.replaceChildren();
+  /* The glass never appears in a still figure. A narrator caption cropped to a
+     240u window would be three words of a sentence lying across a diagram;
+     the still carries these three lines as text in the cards instead. */
+  pristine.querySelector(".trn-l-glass")?.remove();
 
   /** Everything traced rather than faded — the four boxes that are STRUCTURE.
    *  Nothing inside the screen is traced: an app does not draw itself line by
@@ -690,7 +865,8 @@ export function createTurnScene(): TurnScene {
     mini,
     markIn,
     stampIn,
-    receipt,
+    tease,
+    ...receipts,
     cueArrive,
     cueReturn,
     phoneLabel,
@@ -700,6 +876,8 @@ export function createTurnScene(): TurnScene {
     rowNew,
     thread,
     replyHint,
+    send,
+    ...caps.map((c) => c.text),
   ];
 
   /* ── the camera ──────────────────────────────────────────────────────────
@@ -734,11 +912,11 @@ export function createTurnScene(): TurnScene {
     gsap.set(progressFill, { scaleX: 0 });
     gsap.set(strokeParts, { drawSVG: "0% 0%" });
     gsap.set(boxRects, { fillOpacity: 0 });
-    /* The two boxes that ever acknowledge anything, put back to the ink the
-       stylesheet paints them in — which is the same step for both, because
-       the chip and the phone are this scene's two objects and are drawn as
-       each other's counterpart (.trn-chip / .trn-phone in styles.css). */
-    gsap.set([chip, phone], { stroke: COLOR.hairlineStrong });
+    /* The one box that ever acknowledges anything, put back to the ink the
+       stylesheet paints it in. The phone is not in this list any more: its
+       arrival is a buzz now, and rest state only owes an inverse for things
+       the scrub actually changes. */
+    gsap.set(chip, { stroke: COLOR.hairlineStrong });
     gsap.set(fadeParts, { opacity: 0 });
     gsap.set(chars, { opacity: 0 });
     /* The placeholder list rests ONE PITCH HIGHER than it is authored, so the
@@ -754,6 +932,23 @@ export function createTurnScene(): TurnScene {
        construction scene 2 uses for everything inside #eng-cam. */
     gsap.set(charsG, { scale: 1, transformOrigin: "0% 50%" });
     gsap.set(cursor, { opacity: 0, x: 0 });
+    gsap.set(send, { scale: 1, transformOrigin: "50% 50%" });
+    /* The device stands still and square until something arrives for it. */
+    gsap.set(buzz, { rotation: 0, transformOrigin: "50% 50%" });
+    /* The glass. Its own layer opacity is what the stylesheet uses to keep the
+       captions out of the finished frame, so the scrub has to raise it once
+       and then work in the caption groups underneath. Each rule rests
+       collapsed onto its own middle — the one drawSVG range other than 0 and
+       100 that means the same number in screen space and user space. */
+    gsap.set(glass, { opacity: 1 });
+    gsap.set(
+      caps.map((c) => c.rule),
+      { drawSVG: "50% 50%" },
+    );
+    gsap.set(
+      caps.map((c) => c.text),
+      { y: CAP_RISE, scaleX: CAP_TRACK, transformOrigin: "0% 50%" },
+    );
     /* Packets parked where their own journey starts rather than at the scene
        origin — same insurance as scene 2. A circle authored at 0,0 sits in the
        viewBox's corner until something moves it, so the failure mode of a beat
@@ -805,7 +1000,10 @@ export function createTurnScene(): TurnScene {
       return wrap;
     }
 
-    function block(kicker: string, text: string): HTMLElement {
+    /* Kicker, then what happened, then what it meant — the third line being
+       the sentence the glass says over this beat in the scrubbed version. Two
+       voices on one card, in the same order the frame plays them. */
+    function block(kicker: string, text: string, glassLine: string): HTMLElement {
       const el = doc.createElement("div");
       el.className = "eng-card";
       const k = doc.createElement("span");
@@ -814,7 +1012,10 @@ export function createTurnScene(): TurnScene {
       const p = doc.createElement("p");
       p.className = "eng-caption";
       p.textContent = text;
-      el.append(k, p);
+      const g = doc.createElement("p");
+      g.className = "trn-still-glass";
+      g.textContent = glassLine;
+      el.append(k, p, g);
       return el;
     }
 
@@ -830,7 +1031,7 @@ export function createTurnScene(): TurnScene {
       lede.textContent = "The user replies, and the reply comes back in.";
       frag.append(lede, figure(STILL_WHOLE, "all"));
       for (const v of STILL_VIEW) {
-        const el = block(v.kicker, v.text);
+        const el = block(v.kicker, v.text, v.glass);
         if (v.phase !== "turn") el.appendChild(figure(v.box, v.phase));
         frag.appendChild(el);
       }
@@ -838,7 +1039,7 @@ export function createTurnScene(): TurnScene {
       /* One card per beat, each a close-up: the whole 1030u composition on a
          phone is three illegible mono labels. */
       for (const v of STILL_VIEW) {
-        const el = block(v.kicker, v.text);
+        const el = block(v.kicker, v.text, v.glass);
         el.appendChild(figure(v.box, v.phase));
         frag.appendChild(el);
       }
@@ -979,9 +1180,46 @@ export function createTurnScene(): TurnScene {
       ft(box, { stroke: ink }, { stroke: rest, duration: 1.8 }, at + 0.6);
     };
 
+    /** A receipt state arriving. One notch brighter than it rests, settling
+     *  back over 1.3 units — scene 2's stamp emphasis. A status line that
+     *  simply appeared would be new words; this is a change of state. */
+    const stampState = (el: Element, at: number): void => {
+      fadeIn(el, at, 0.6);
+      ft(el, { fill: COLOR.text }, { fill: COLOR.textDim, duration: RCP_SETTLE }, at + 0.2);
+    };
+
+    /** A caption on the glass: a rule drawn out from its own middle, then the
+     *  sentence rising under it with its tracking settling. Out is a dip and a
+     *  fade, and the rule collapses back the way it came. Every value explicit
+     *  at both ends, so scrubbing back takes the caption apart in the order it
+     *  was built. */
+    const caption = (i: number, at: number, out: number): void => {
+      const c = caps[i]!;
+      ft(c.rule, { drawSVG: "50% 50%" }, { drawSVG: "0% 100%", duration: CAP_RULE_IN, ease: "power2.out" }, at);
+      ft(
+        c.text,
+        { opacity: 0, y: CAP_RISE, scaleX: CAP_TRACK },
+        { opacity: 1, y: 0, scaleX: 1, duration: CAP_TEXT_IN, ease: "power2.out", transformOrigin: "0% 50%" },
+        at + 0.25,
+      );
+      ft(
+        c.text,
+        { opacity: 1, y: 0 },
+        { opacity: 0, y: CAP_DIP, duration: CAP_TEXT_OUT, ease: "power2.in", transformOrigin: "0% 50%" },
+        out,
+      );
+      ft(c.rule, { drawSVG: "0% 100%" }, { drawSVG: "50% 50%", duration: CAP_RULE_OUT, ease: "power2.in" }, out + 0.2);
+    };
+
     /* How much of the pin is left. A pinned section takes the scrollbar away
        from the reader; this hands the information back. */
     ft(progressFill, { scaleX: 0 }, { scaleX: 1, duration: TL_END }, 0);
+
+    /* The three sentences on the glass. Written here as one block rather than
+       scattered through the beats they belong to, because they are one voice
+       and a reader of this file should be able to see the whole of what the
+       narrator says without reading the whole scene. */
+    CAPS.forEach((c, i) => caption(i, c.at, c.out));
 
     /* ── the camera ──────────────────────────────────────────────────────
        Every keyframe is an explicit fromTo off the previous one, so the frame
@@ -1028,10 +1266,20 @@ export function createTurnScene(): TurnScene {
     ft(dotOut, { fill: COLOR.greenDim }, { fill: COLOR.green, duration: 0.14 }, B1_LAND);
     pop(dotOut, B1_LAND, 1.45);
     fadeOut(dotOut, B1_LAND + 0.7, 0.8);
-    /* The device acknowledges, which is a thing a phone receiving mail does.
-       The silhouette rather than the screen: a lit edge is the whole object
-       reacting, and it settles back inside two units. */
-    ack(phone, B1_LAND, COLOR.greenDim, COLOR.hairlineStrong);
+
+    /* The phone used to acknowledge with a green edge here, and it is gone.
+       Two reasons, and the first one is the law. A 494u silhouette lit in
+       --green-dim is the largest green shape on the site — larger than the one
+       CTA at the bottom of the page — and BRAND §2 rations green precisely so
+       that a delivery has somewhere to go. It was defensible as a transient
+       moment when the phone was a 100u card; at full height, with the whole
+       device in frame at this camera, it is the page shouting.
+
+       The second reason is that it is now redundant. A phone that receives
+       mail BUZZES — the device's reaction is the buzz below, the row landing,
+       and the receipt. Acknowledgment by motion instead of by colour is the
+       better sentence anyway, and it leaves the packet's landing pop as the
+       only green in the scene, in either direction. */
 
     /* THE ARRIVAL. The list of somebody else's mail drops one full row and
        ours takes the slot at the top — the packet does not become a label
@@ -1040,12 +1288,41 @@ export function createTurnScene(): TurnScene {
        pushed the others down would be two events. */
     ft(rowsG, { y: -ROW_PITCH }, { y: 0, duration: 1.1, ease: "power2.out" }, B1_ARRIVE);
     fadeIn(rowNew, B1_ARRIVE + 0.15, 1.2);
+
+    /* AND THE PHONE BUZZES. The hero's bell is a real damped oscillator; this
+       is the same idea authored as keyframes because a scrub has no memory to
+       integrate with. One kick, then five reversals each 0.7 of the last,
+       ending at exactly zero — so a reader who scrolls back finds the device
+       square again rather than a degree off true. */
+    {
+      let a = BUZZ_PEAK;
+      let at = B1_ARRIVE;
+      ft(
+        buzz,
+        { rotation: 0 },
+        { rotation: a, duration: BUZZ_IN, ease: "power2.out", transformOrigin: "50% 50%" },
+        at,
+      );
+      at += BUZZ_IN;
+      for (let i = 1; i <= BUZZ_SWINGS; i++) {
+        const next = i === BUZZ_SWINGS ? 0 : -a * BUZZ_DECAY;
+        ft(
+          buzz,
+          { rotation: a },
+          { rotation: next, duration: BUZZ_STEP, ease: "power1.inOut", transformOrigin: "50% 50%" },
+          at,
+        );
+        a = next;
+        at += BUZZ_STEP;
+      }
+    }
+
     /* Our note about their surface, and it lands after the row it is about:
        read before the arrival it would be a promise. The human sentence
        follows the machine receipt rather than leading it — the reader should
        see the thing happen, then be told the receipt, then be told what the
        receipt means. */
-    fadeIn(receipt, B1_ARRIVE + 1.9, 1.4);
+    stampState(receipts[0]!, RCP_DELIVERED);
     fadeIn(cueArrive, B1_ARRIVE + 3.2, 1.3);
 
     /* ── BEAT 2 · the reply ──────────────────────────────────────────────
@@ -1063,6 +1340,12 @@ export function createTurnScene(): TurnScene {
     fadeOut(cueArrive, B2_SWAP, 1.2);
     fadeIn(replyHint, B2_SWAP + 1.6, 1.0);
 
+    /* Tapping the mail IS opening it, so the screen change and the receipt's
+       second state are the same event rather than two things that happen to
+       be near each other. The old state leaves as the new one arrives. */
+    fadeOut(receipts[0]!, RCP_OPENED - 0.4, RCP_SWAP_FADE);
+    stampState(receipts[1]!, RCP_OPENED);
+
     /* The hint leaves and the cursor arrives, in that order: a field says
        "Reply" right up until somebody is standing in it. */
     fadeOut(replyHint, B2_HINT_OUT, B2_HINT_FADE);
@@ -1079,10 +1362,41 @@ export function createTurnScene(): TurnScene {
       ft(cursor, { x: i * CHAR_W }, { x: (i + 1) * CHAR_W, duration: 0.06 }, at);
     });
 
+    /* The sentence is finished, so the thing that sends it appears. Not
+       before: a send button beside an empty field is a control, and this is a
+       moment. */
+    fadeIn(send, B2_SEND_IN, 0.9);
+
     /* ── BEAT 3 · the reversal ───────────────────────────────────────────
-       Note for note the dedupe dissolve from scene 2 — shrink under power2.in,
+       THE PRESS, and everything after it is a consequence. A quick dip about
+       the glyph's own centre — 0.18 down under power2.in, 0.26 back under
+       power2.out, which is DESIGN §3's press-feedback curve and the same
+       gesture every button on this site makes at :active. */
+    ft(
+      send,
+      { scale: 1 },
+      { scale: 0.82, duration: B3_PRESS_DOWN, ease: "power2.in", transformOrigin: "50% 50%" },
+      B3_PRESS,
+    );
+    ft(
+      send,
+      { scale: 0.82 },
+      { scale: 1, duration: B3_PRESS_UP, ease: "power2.out", transformOrigin: "50% 50%" },
+      B3_PRESS + B3_PRESS_DOWN,
+    );
+    /* The receipt's third state arrives with the press, not with the landing:
+       "replied" is true the instant the user sends, and everything after it is
+       the engine's problem. */
+    fadeOut(receipts[1]!, RCP_REPLIED - 0.4, RCP_SWAP_FADE);
+    stampState(receipts[2]!, RCP_REPLIED);
+    /* And the glyph goes with the words it sent. */
+    fadeOut(send, B3_COLLAPSE + 0.2, 0.8);
+
+    /* Note for note the dedupe dissolve from scene 2 — shrink under power2.in,
        fade — because it is the same kind of claim: this text stops being text
-       and becomes one thing the engine can carry. */
+       and becomes one thing the engine can carry. It begins 0.3 units after
+       the press, which is what makes the press its cause rather than its
+       neighbour. */
     ft(
       charsG,
       { scale: 1 },
@@ -1130,6 +1444,9 @@ export function createTurnScene(): TurnScene {
        what the engine does about it. Nothing fades out after this: the last
        eight units of the scrub are the reader sitting with the final frame. */
     fadeIn(stampIn, B3_LAND + 1.8, 1.5);
+    /* And the door out of the scene, a beat and a half behind the fact. The
+       arrow points the way the reader is about to scroll. */
+    fadeIn(tease, B3_LAND + 1.8 + TEASE_AFTER, 1.3);
   }
 
   /* ════════════════════════════════════════════════════════════════════════

@@ -1472,6 +1472,63 @@ html {
   opacity: 0;
 }
 
+/* The send glyph. One stroke, round joins so the plane's nose is a point and
+   not a chisel, and NO fill — a solid triangle would be the only filled shape
+   on this screen and the first icon on the site. Ink, never green: the reply
+   belongs to the user (BRAND §2). */
+.trn-send {
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+  /* Not in the finished frame — the reply was sent, so there is nothing to
+     send. The still figures that show the typed reply put it back. */
+  opacity: 0;
+}
+
+/* One rung under the stamp it hangs off: 11u against 15u, same --text-faint
+   ink as every other cue. */
+.trn-tease {
+  font-size: 11px;
+}
+
+/* ── the glass ───────────────────────────────────────────────────────────
+   The narrator layer. Sans, because BRAND §3 keeps mono for measurement and
+   these are sentences; --text so they carry, but small enough (17u ≈ 15 CSS px
+   at the scene's on-screen scale) to stay subordinate to the world behind
+   them. Nothing here is ever green, and nothing here scales with the camera. */
+.trn-cap-text text {
+  font-family: var(--sans);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  fill: var(--text);
+}
+
+/* The rule each caption draws itself out from. It rests at zero length, which
+   is exactly the case the butt-linecap law exists for: a round cap on a
+   zero-length dash is painted as a filled circle of stroke-width diameter, so
+   three of these would sit as three stray dots on the frame before the reader
+   has scrolled a pixel (DESIGN §3). */
+.trn-cap-rule {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Nothing on the glass is in the finished frame: a subtitle is a thing that
+   was said, not a thing that is there. The still fallback carries the three
+   sentences as text in the cards instead (turn.ts), which is what "the same
+   information, delivered by layout instead of by time" means for a layer that
+   is not part of the drawing at all. */
+.trn-l-glass {
+  opacity: 0;
+}
+
 /* ── which screen a still figure is looking at ───────────────────────────
    The finished frame is the OPENED THREAD: the reader tapped the mail, replied
    to it, and the reply is gone. So the inbox — the entire arrival mechanism —
@@ -1486,16 +1543,23 @@ html {
    stripped (a document may only have one of each), so an id selector would
    match the live scene and nothing the reader on a phone ever sees. */
 .trn-screen-inbox,
-.trn-cue-arrive {
+.trn-cue-arrive,
+/* The receipt's finished state is `replied` — the last thing that happened to
+   this message. The two earlier states are moments, and moments live on the
+   card that shows their moment. */
+.trn-receipt-d,
+.trn-receipt-o {
   opacity: 0;
 }
 
 .trn-card-figure[data-phase="delivery"] .trn-screen-inbox,
-.trn-card-figure[data-phase="delivery"] .trn-cue-arrive {
+.trn-card-figure[data-phase="delivery"] .trn-cue-arrive,
+.trn-card-figure[data-phase="delivery"] .trn-receipt-d {
   opacity: 1;
 }
 
-.trn-card-figure[data-phase="delivery"] .trn-screen-thread {
+.trn-card-figure[data-phase="delivery"] .trn-screen-thread,
+.trn-card-figure[data-phase="delivery"] .trn-receipt-r {
   opacity: 0;
 }
 
@@ -1505,13 +1569,29 @@ html {
    the single most important thing the motion carried (DESIGN §3). The hint and
    the characters are mutually exclusive: a field is empty or it is not. */
 .trn-card-figure[data-phase="reply"] .trn-char,
-.trn-card-figure[data-phase="all"] .trn-char {
+.trn-card-figure[data-phase="all"] .trn-char,
+/* The send glyph belongs with the words it is going to send. */
+.trn-card-figure[data-phase="reply"] .trn-send,
+.trn-card-figure[data-phase="all"] .trn-send {
   opacity: 1;
 }
 
 .trn-card-figure[data-phase="reply"] .trn-reply-hint,
 .trn-card-figure[data-phase="all"] .trn-reply-hint {
   opacity: 0;
+}
+
+/* The glass line each still card carries, under the card's own caption: what
+   happened, then what it meant. One rung down in size and ink so the narrator
+   stays the second voice on the card, exactly as it is the second voice on
+   the frame. */
+.trn-still-glass {
+  margin: 10px 0 0;
+  max-width: 46ch;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-dim);
+  text-wrap: pretty;
 }
 
 /* The block cursor is the only element in this scene that is not part of its
