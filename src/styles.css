@@ -1259,14 +1259,22 @@ html {
 .trn-pin {
   position: relative;
   display: grid;
-  /* One row now — the progress rail that used to occupy the second one moved
-     onto the glass as the beat tracker. */
-  grid-template-rows: 1fr;
+  /* Scene 2's anatomy (see .eng-pin): rail column at the page margin, stage
+     beside it — so the two pinned scenes hang their titles on the same left
+     edge. The rail carries the title and the vertical beat tracker. */
+  grid-template-columns: clamp(240px, 24vw, 380px) 1fr;
+  align-items: center;
+  gap: clamp(16px, 3vw, 48px);
   height: 100dvh;
   padding: clamp(24px, 5vh, 56px) var(--page-pad);
   /* Faded up by the entry ScrollTrigger, so the scene materialises on the way
      in rather than being parked under the bridge fully lit. */
   opacity: 0;
+}
+
+.trn-rail {
+  position: relative;
+  align-self: center;
 }
 
 /* `.trn-pin` sets display, so it out-specifies the UA's `[hidden]` rule; the
@@ -1510,20 +1518,26 @@ html {
    stage. That is deliberate: it has to be read instantly and then stop being
    looked at. A true 32px section head inside this frame would be the loudest
    thing in a scene whose subject is a phone. */
-.trn-title-kicker {
-  font-family: var(--mono);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  fill: var(--text-faint);
-}
-
-.trn-title-head {
+/* HTML now, in the rail column (the kicker reuses .eng-kicker outright, so
+   the two scenes' titles are literally the same type). */
+.trn-head {
   font-family: var(--sans);
   font-size: 22px;
   font-weight: 500;
   letter-spacing: -0.02em;
-  fill: var(--text);
+  line-height: 1.25;
+  color: var(--text);
+}
+
+/* The vertical tracker. Fixed width = its viewBox width, so it renders at
+   scale 1 and turn.ts's station arithmetic is in real pixels. */
+.trn-tracker {
+  display: block;
+  width: 200px;
+  max-width: 100%;
+  height: auto;
+  margin-top: 36px;
+  overflow: visible;
 }
 
 /* ── the beat tracker ────────────────────────────────────────────────────
@@ -1563,7 +1577,8 @@ html {
 
 .trn-stn-word {
   font-family: var(--mono);
-  font-size: 9px;
+  /* Scale-1 svg now (was 9px inside the 1200u glass, which rendered ~11px). */
+  font-size: 11px;
   letter-spacing: 0.01em;
   fill: var(--text-faint);
 }
@@ -1572,7 +1587,8 @@ html {
    word, and one at a time — see the width arithmetic in turn.ts's STATIONS. */
 .trn-stn-event {
   font-family: var(--mono);
-  font-size: 8px;
+  /* Scale-1 svg now (was 8px inside the 1200u glass). */
+  font-size: 9.5px;
   letter-spacing: 0.01em;
   fill: var(--text-faint);
 }

@@ -436,9 +436,6 @@ const CAP_DIP = 6;
  *  gesture — the line condenses to its final width — on the one channel the
  *  law allows. */
 const CAP_TRACK = 1.03;
-/** The lowest line a caption ever puts on the glass. The tracker below it is
- *  asserted clear of this. MUST match the markup's second caption line. */
-const CAP_LINE2_Y = 488;
 const CAPS: { at: number; out: number }[] = [
   /* Written off BUZZ_END rather than as a number near it: the narrator does
      not talk over the phone while it is still shaking, and that relation
@@ -453,33 +450,18 @@ const CAPS: { at: number; out: number }[] = [
 const TEASE_AFTER = 1.5;
 
 /* ── The title, and the beat tracker ──────────────────────────────────────
-   The glass column, top to bottom: the scene's NAME (which never leaves), the
-   NARRATION (three captions, one at a time), and at its foot the PROGRESS.
-   All three share x 120, which is where the chip's own wall lands in the wide
-   shot, so the column reads as the frame's margin rather than as three things
-   that happen to be near each other.
+   Both live in the pin's RAIL COLUMN now — the same left column scene 2 hangs
+   its captions in (eng-pin's grid), so the two pinned scenes put their names
+   on the same page margin (user call; the first draft drew both on the glass
+   at scene x 120, which lands ~300px into a centred frame and read as
+   floating). The title is HTML; the tracker is its own small SVG under it,
+   VERTICAL — a rail that fills downward through three stations.
 
-   WHERE THE TRACKER IS, AND WHY IT IS NOT UNDER THE TITLE. The top-left band
-   is clear at the wide shot (the chip's label starts at frame y 149) and at
-   beat 1 (the wire is at frame y 189 once the receipt and the arrival cue moved
-   under it) — but at beat 2 the wire crosses at frame y 100.7, and that number
-   is not negotiable: the reply bar must be in shot, the wire sits 250 scene
-   units above it, and 250 × 1.62 = 405 of a 600-unit frame. Rail plus two label
-   rows does not fit in the ~95 units above it. The frame's FOOT is clear at all
-   three cameras and was checked the same way:
-
-     wide   frame y 523…566 → scene y 537…583 at scene x 89…451   — empty
-     beat 1 frame y 523…566 → scene y 490…528 at scene x 511…815  — empty
-     beat 2 frame y 523…566 → scene y 453…479 at scene x 573…784  — empty
-
-   (the phone's left wall is scene x 820 in all three, so the left column never
-   meets it), and the captions moved up to y 430/462/488 to leave the foot to
-   the tracker with 30 units of air between them.
-
-   A STATION'S X IS ITS MOMENT: x = TRACK_X0 + TRACK_W · t/TL_END. The fill is
+   A STATION'S Y IS ITS MOMENT: y = TRACK_Y0 + TRACK_H · t/TL_END. The fill is
    one drawSVG over the whole timeline, so it physically cannot reach a station
    before or after the beat that station names — the geometry and the schedule
-   are the same number, written once.
+   are the same number, written once. The tracker svg renders at scale 1
+   (fixed CSS width = viewBox width), so these numbers are real pixels.
 
    THE EVENT NAMES ARE REAL. Verified in the platform repo, not invented:
      message.changed        src/core/tenant-events.ts:29, emitted at a provider
@@ -494,18 +476,18 @@ const TEASE_AFTER = 1.5;
                             queue an accepted reply is enqueued onto
                             (src/api/routes/agents.ts:605/676/851)
 
-   ONE EVENT LINE AT A TIME, and that is arithmetic rather than taste. Stations
-   2 and 3 are 14.7 timeline units apart, which is 69u of rail; their event
-   names are 20 characters, which is 98u at 8u mono. Two of them cannot stand
-   under their own ticks at once at any legible size. The word is the state and
-   stays lit; the event name is the moment and hands over to the next. */
-const TRACK_X0 = 120;
-const TRACK_W = 340;
-const TRACK_Y = 528;
-/** Half the tick's height either side of the rail. */
+   ONE EVENT LINE AT A TIME, same rule as the horizontal draft but now it is
+   vertical arithmetic: stations 2 and 3 are 5.4 timeline units apart, which
+   is 21px of rail — a word row plus an event row is 15px, so two open event
+   lines would interleave with the next station's word. The word is the state
+   and stays lit; the event name is the moment and hands over to the next. */
+const TRACK_X = 8;
+const TRACK_Y0 = 6;
+const TRACK_H = 288;
+/** Half the tick's width either side of the rail. */
 const TICK_HALF = 5;
-const STN_WORD_Y = TRACK_Y + 22;
-const STN_EVENT_Y = TRACK_Y + 36;
+/** The label column, right of the rail. */
+const STN_TEXT_X = TRACK_X + 14;
 const STATIONS: { at: number; word: string; event: string }[] = [
   { at: B1_LAND, word: "delivered", event: "message.changed" },
   { at: B3_PRESS, word: "the reply", event: "conversation.changed" },
@@ -650,10 +632,12 @@ export function createTurnScene(): TurnScene {
    *  cannot reach. */
   const buzz = q<SVGGElement>(svg, "#trn-buzz");
   const glass = q<SVGGElement>(svg, "#trn-glass");
-  const title = q<SVGGElement>(svg, "#trn-title");
-  const trackRail = q<SVGPathElement>(svg, "#trn-track-rail");
-  const trackFill = q<SVGPathElement>(svg, "#trn-track-fill");
-  const stationsG = q<SVGGElement>(svg, "#trn-stations");
+  /* Rail-column furniture: HTML title, and the vertical tracker's own SVG —
+     both outside the stage svg, queried from the document. */
+  const title = q<HTMLElement>(doc, "#trn-title");
+  const trackRail = q<SVGPathElement>(doc, "#trn-track-rail");
+  const trackFill = q<SVGPathElement>(doc, "#trn-track-fill");
+  const stationsG = q<SVGGElement>(doc, "#trn-stations");
   const caps = [1, 2, 3].map((i) => {
     const g = q<SVGGElement>(svg, `#trn-cap-${i}`);
     return { rule: q<SVGPathElement>(g, ".trn-cap-rule"), text: q<SVGGElement>(g, ".trn-cap-text") };
@@ -751,11 +735,16 @@ export function createTurnScene(): TurnScene {
       throw new Error(`[turn] station ${i + 1} (${st.word}) lights before the one before it`);
     }
   }
-  /* And the glass column has to stay a column: the tracker's own labels must
-     clear the lowest caption line, or the narration and the progress collide
-     at whichever scrub position happens to show both. */
-  if (TRACK_Y - TICK_HALF < CAP_LINE2_Y + 20) {
-    throw new Error("[turn] the beat tracker runs into the caption block above it");
+  /* The tracker is vertical now: a station's label rows must fit between it
+     and the next station, or the two interleave. Word row + event row span
+     ~26px below a tick (see the station builder); the closest pair guards it. */
+  {
+    const minGap = Math.min(
+      ...STATIONS.slice(1).map((st, i) => ((st.at - STATIONS[i]!.at) / TL_END) * TRACK_H),
+    );
+    if (minGap < 20) {
+      throw new Error("[turn] two tracker stations sit too close for their label rows");
+    }
   }
 
   /* One caption on the glass at a time — including the tail of the one that is
@@ -894,28 +883,28 @@ export function createTurnScene(): TurnScene {
     `M ${STEP_OUT_X} ${REPLY_BASE_Y} C 720 ${REPLY_BASE_Y} 700 ${WIRE_Y} ${RETURN_JOIN_X} ${WIRE_Y} L ${CHIP_CX} ${WIRE_Y}`,
   );
 
-  /* The tracker's three stations. A tick, the human word, and the platform
-     event name — generated from STATIONS so a station's x is derived from its
+  /* The tracker's three stations, on the vertical rail. A tick across the
+     rail, the human word beside it, and the platform event name on the row
+     below — generated from STATIONS so a station's y is derived from its
      time and can never be typed in wrong. */
-  const stationX = (at: number): number => TRACK_X0 + TRACK_W * (at / TL_END);
+  const stationY = (at: number): number => TRACK_Y0 + TRACK_H * (at / TL_END);
+  stationsG.replaceChildren();
   const stations = STATIONS.map((st) => {
-    const x = stationX(st.at);
+    const y = stationY(st.at);
     const tick = svgEl("path", {
       class: "trn-stn-tick",
-      d: `M ${x.toFixed(2)} ${TRACK_Y - TICK_HALF} L ${x.toFixed(2)} ${TRACK_Y + TICK_HALF}`,
+      d: `M ${TRACK_X - TICK_HALF} ${y.toFixed(2)} L ${TRACK_X + TICK_HALF} ${y.toFixed(2)}`,
     });
     const word = svgEl("text", {
       class: "trn-stn-word",
-      x: x.toFixed(2),
-      y: STN_WORD_Y,
-      "text-anchor": "middle",
+      x: String(STN_TEXT_X),
+      y: (y + 4).toFixed(2),
     });
     word.textContent = st.word;
     const event = svgEl("text", {
       class: "trn-stn-event",
-      x: x.toFixed(2),
-      y: STN_EVENT_Y,
-      "text-anchor": "middle",
+      x: String(STN_TEXT_X),
+      y: (y + 17).toFixed(2),
     });
     event.textContent = st.event;
     stationsG.append(tick, word, event);
