@@ -264,11 +264,17 @@ const CAM: { at: number; dur: number; z: number; fx: number; fy: number }[] = [
      call). The full-immersion zoom belongs to B2, where being past the
      device's edges is the point. */
   { at: 12.2, dur: 3.2, z: 1.12, fx: 940, fy: 291 },
-  /* B2 — the opened thread. 950 ± 600/1.62 covers x 579…1321 and 315 ± 300/
+  /* B2 — the opened thread. 870 ± 600/1.62 covers x 499…1241 and 315 ± 300/
      1.62 covers y 130…500, which is the subject line at 190, the sender at
      218, the body, and the reply bar at 440–484 with 16u of screen under it.
-     The app bar falls off the top and should: the reader is in the thread. */
-  { at: 22.0, dur: 3.2, z: 1.62, fx: 950, fy: 315 },
+     The app bar falls off the top and should: the reader is in the thread.
+     fx was 950 — dead-centred on the phone — which parked 240u of empty
+     canvas on the frame's right while caption 2's first line (357px from
+     x 120) ran 87px INTO the phone's left wall on the left. 870 hands that
+     wasted right margin to the caption column: the phone's wall now lands at
+     frame x ≈ 520, and the longest caption line ends at 477 with 43px of
+     air. Caption left, device right — the close-up gained a composition. */
+  { at: 22.0, dur: 3.2, z: 1.62, fx: 870, fy: 315 },
   /* B3 — back out, and it happens DURING the pause. The dot stands still
      outside the phone while the frame opens up behind it, so the two things
      the beat has to say — "it stopped" and "look how far it has to go" —
