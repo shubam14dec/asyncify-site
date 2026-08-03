@@ -287,15 +287,20 @@ const FRAME_CX = 600;
 const FRAME_CY = 300;
 
 /* ── Beat 1 · the delivery ─────────────────────────────────────────────── */
-const B1_CHIP = 0.6;
-const B1_WIRE = 1.6;
-const B1_PHONE = 3.0;
-const B1_SCREEN = 4.6;
+/* The world starts assembling at 2.6, not 0.6 (user call): the first two
+   units of the pin belong to the rail column alone — the reader arrives from
+   the bridge, the scene's NAME greets them, and only then does the stage
+   start drawing. The camera at 12.2 and the arrival at 15.4 are untouched;
+   the assembly just uses less of the slack ahead of them. */
+const B1_CHIP = 2.6;
+const B1_WIRE = 3.6;
+const B1_PHONE = 5.0;
+const B1_SCREEN = 6.6;
 /** The phone comes ON in the order a phone does: glass, then chrome, then the
  *  app, then its contents. Four fades, 1.6 units apart. */
-const B1_CHROME = 6.4;
-const B1_APP = 7.4;
-const B1_ROWS = 8.6;
+const B1_CHROME = 8.4;
+const B1_APP = 9.4;
+const B1_ROWS = 10.6;
 /** When the packet appears in the chip, and how long the crossing takes. 4.2
  *  units ≈ 0.105 viewport heights over 645u of wire. */
 const B1_FLY = 11.0;
@@ -510,10 +515,9 @@ const STN_EVENT_OUT = 0.9;
 const TITLE_KICKER = "03 · the turn";
 const TITLE_HEAD = "Delivered was just the beginning.";
 
-/** The title arrives once, early, and never leaves. Same rise-and-settle
- *  grammar as a caption, minus the rule. */
-const TITLE_AT = 1.0;
-const TITLE_DUR = 1.5;
+/* The title has NO timeline entrance (user call): it rides the pin's own
+   entry fade, so the scene's name is already standing when the bridge hands
+   over — a nameplate, not an actor. The tracker's rail comes with it. */
 
 /* The still fallback's windows: "x y w h" in scene units, cut so each one's
    own mono text is legible on a ~380px phone — plus each beat's narrator line,
@@ -1066,7 +1070,7 @@ export function createTurnScene(): TurnScene {
     /* The tracker's rail is permanent furniture; its FILL rests at nothing,
        which is the same zero-length drawSVG case the caption rules are in. */
     gsap.set(trackFill, { drawSVG: "0% 0%" });
-    gsap.set(trackRail, { opacity: 0 });
+    gsap.set(trackRail, { opacity: 1 });
     /* Every station unlit. The stylesheet already paints them this way, but
        the scrub tweens both inks, so rest owes an explicit inverse for both. */
     gsap.set(
@@ -1077,7 +1081,8 @@ export function createTurnScene(): TurnScene {
       stations.map((st) => st.word),
       { fill: COLOR.textFaint },
     );
-    gsap.set(title, { opacity: 0, y: CAP_RISE, scaleX: CAP_TRACK, transformOrigin: "0% 50%" });
+    /* Fully standing at rest — the pin's entry fade is its only entrance. */
+    gsap.set(title, { opacity: 1, y: 0, scaleX: 1, transformOrigin: "0% 50%" });
     gsap.set(strokeParts, { drawSVG: "0% 0%" });
     gsap.set(boxRects, { fillOpacity: 0 });
     /* The one box that ever acknowledges anything, put back to the ink the
@@ -1410,17 +1415,9 @@ export function createTurnScene(): TurnScene {
       ft(c.rule, { drawSVG: "0% 100%" }, { drawSVG: "50% 50%", duration: CAP_RULE_OUT, ease: "power2.in" }, out + 0.2);
     };
 
-    /* ── the glass column's fixed furniture ──────────────────────────────
-       The scene's name arrives once and stays; the tracker's rail arrives with
-       it, because a rail with nothing on it is still the promise that
-       something will be. */
-    ft(
-      title,
-      { opacity: 0, y: CAP_RISE, scaleX: CAP_TRACK },
-      { opacity: 1, y: 0, scaleX: 1, duration: TITLE_DUR, ease: "power2.out", transformOrigin: "0% 50%" },
-      TITLE_AT,
-    );
-    fadeIn(trackRail, TITLE_AT + 0.6, 1.2);
+    /* The rail column has no timeline entrance — title and rail are part of
+       the pin's furniture and arrive with its entry fade (user call), so the
+       scene is named before its first drawn stroke. */
 
     /* How much of the pin is left. A pinned section takes the scrollbar away
        from the reader; this hands the information back — and now it hands back
