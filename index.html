@@ -1076,7 +1076,17 @@
                        --text-faint is the bottom of the ladder for resting
                        text (BRAND §1 forbids opacity-faked grays for a resting
                        colour), so the extra quiet comes from size, not ink. -->
-                  <text class="eng-cue trn-tease" id="trn-tease" x="90" y="318">handing to your agent →</text>
+                  <!-- The door to scene 4, drawn as ARCHITECTURE rather than
+                     said as a caption (user call — the 11u cue was too small
+                     for the page's biggest promise). A wire leaves the chip's
+                     wall, bends into the scroll direction and runs off the
+                     bottom of the frame; the hand-off label rides it at stamp
+                     size. The agents scene will pick this wire up. Routed
+                     right then down at x 420 — past the stamp stack's widest
+                     line (~x 337) — so it crosses no text. -->
+                  <path class="eng-wire" id="trn-door-wire" d="M 260 208 C 330 208 420 240 420 330 L 420 548" />
+                  <path class="eng-wire" id="trn-door-head" d="M 412 539 L 420 549 L 428 539" />
+                  <text class="eng-stamp trn-tease" id="trn-tease" x="434" y="446">handing to your agent →</text>
                 </g>
 
                 <!-- The one road in the picture. Wall to wall: it touches the
@@ -1110,8 +1120,8 @@
                      way the receipts share theirs: opacity-swapped, never
                      both up. The moment is here; the tracker keeps the
                      ledger. -->
-                <text class="trn-evt trn-evt-d" id="trn-evt-d" x="800" y="254" text-anchor="end">ws · message.changed</text>
-                <text class="trn-evt trn-evt-r" id="trn-evt-r" x="800" y="254" text-anchor="end">ws · conversation.changed</text>
+                <text class="trn-evt trn-evt-d" id="trn-evt-d" x="800" y="254" text-anchor="end">websocket · message.changed</text>
+                <text class="trn-evt trn-evt-r" id="trn-evt-r" x="800" y="254" text-anchor="end">websocket · conversation.changed</text>
                 <text class="eng-stamp trn-receipt-d" id="trn-receipt-d" x="800" y="232" text-anchor="end">delivered · email</text>
                 <text class="eng-stamp trn-receipt-o" id="trn-receipt-o" x="800" y="232" text-anchor="end">opened · email</text>
                 <text class="eng-stamp trn-receipt-r" id="trn-receipt-r" x="800" y="232" text-anchor="end">replied · email</text>
@@ -1132,7 +1142,11 @@
                      names the route, not the moment, so it can stay in the
                      finished frame beside "inbound · conversation open"
                      without the two contradicting each other. -->
-                <text class="eng-cue" id="trn-cue-return" x="290" y="222">back down the same wire</text>
+                <!-- x 455: right of the door wire's bend (x 420) and ending
+                     40u clear of the replied-receipt's start (x 663), so the
+                     exit ramp, the cue and the receipt never share ink. The
+                     cue names the whole wire; it can stand anywhere under it. -->
+                <text class="eng-cue" id="trn-cue-return" x="455" y="222">back down the same wire</text>
 
                 <!-- ── the phone ───────────────────────────────────────────
                      Drawn art, not a UI surface, which is why the body carries

@@ -1488,10 +1488,11 @@ html {
   opacity: 0;
 }
 
-/* One rung under the stamp it hangs off: 11u against 15u, same --text-faint
-   ink as every other cue. */
+/* Full stamp size now (user call): it rides the door wire out of the chip
+   and is the page's biggest promise, not a footnote. Ink comes from
+   .eng-stamp; this class only marks it for the timeline. */
 .trn-tease {
-  font-size: 11px;
+  font-size: 15px;
 }
 
 /* ── the glass ───────────────────────────────────────────────────────────

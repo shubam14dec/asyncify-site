@@ -445,9 +445,6 @@ const CAPS: { at: number; out: number }[] = [
   { at: 53.2, out: 58.6 },
 ];
 
-/** The developer tease, one and a half units after the stamp it hangs off:
- *  the fact first, then the door. */
-const TEASE_AFTER = 1.5;
 
 /* ── The title, and the beat tracker ──────────────────────────────────────
    Both live in the pin's RAIL COLUMN now — the same left column scene 2 hangs
@@ -640,6 +637,10 @@ export function createTurnScene(): TurnScene {
   const evtD = q<SVGTextElement>(svg, "#trn-evt-d");
   const evtR = q<SVGTextElement>(svg, "#trn-evt-r");
   const evtQ = q<SVGTextElement>(svg, "#trn-evt-q");
+  /* The door to scene 4: the wire out of the chip, its arrowhead, and the
+     hand-off label that rides it. */
+  const doorWire = q<SVGPathElement>(svg, "#trn-door-wire");
+  const doorHead = q<SVGPathElement>(svg, "#trn-door-head");
 
   /** The device as one shakeable object, and the glass as a layer the camera
    *  cannot reach. */
@@ -997,7 +998,7 @@ export function createTurnScene(): TurnScene {
   /** Everything traced rather than faded — the four boxes that are STRUCTURE.
    *  Nothing inside the screen is traced: an app does not draw itself line by
    *  line, it comes on. */
-  const strokeParts: SVGGeometryElement[] = [chip, wire, phone, screen];
+  const strokeParts: SVGGeometryElement[] = [chip, wire, phone, screen, doorWire, doorHead];
   /** The boxes whose fill comes up behind their own outline, so each is a line
    *  before it is a surface. */
   const boxRects: SVGRectElement[] = [chip, phone, screen];
@@ -1683,9 +1684,14 @@ export function createTurnScene(): TurnScene {
        seat in this queue, and this is what that seat is called. Part of the
        final frame — the cliffhanger's technical name. */
     fadeIn(evtQ, B3_LAND + 2.6, 1.3);
-    /* And the door out of the scene, a beat and a half behind the fact. The
-       arrow points the way the reader is about to scroll. */
-    fadeIn(tease, B3_LAND + 1.8 + TEASE_AFTER, 1.3);
+    /* And the door out of the scene — drawn, not said: the wire leaves the
+       chip's wall, bends into the scroll direction and runs off the bottom of
+       the frame, arrowhead landing as it arrives. The hand-off label rides it
+       at stamp size. This is the last thing the scene builds, and it points
+       at the next one. */
+    draw(doorWire, B3_LAND + 3.4, 1.6);
+    draw(doorHead, B3_LAND + 4.9, 0.3);
+    fadeIn(tease, B3_LAND + 4.6, 1.3);
   }
 
   /* ════════════════════════════════════════════════════════════════════════
