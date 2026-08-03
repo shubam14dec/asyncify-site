@@ -472,8 +472,11 @@ const STILL_VIEW = [
        a screen and not as a wall of text. Tall, because a phone is. */
     phase: "reply",
     kicker: "the reply",
-    text: "Your user answers the notification itself. No dashboard, no support ticket.",
-    glass: "There is no no-reply@ here.",
+    /* The card text describes the picture; the glass line owns the no-ticket
+       claim — the two share a still card, so they must not say the same
+       thing twice. */
+    text: "Your user answers the notification itself, right where it landed.",
+    glass: "No portal, no ticket. They just reply.",
     box: "812 150 276 350",
   },
   {
