@@ -399,19 +399,22 @@ const RCP_SWAP_FADE = 0.8;
 const RCP_SETTLE = 1.3;
 
 /* ── The glass ─────────────────────────────────────────────────────────────
-   Three narrator sentences, one on the frame at a time, each timed to the
+   Two narrator sentences, one on the frame at a time, each timed to the
    quiet stretch of its own beat — the place where the reader has understood
    what is happening and has scroll left to think about it.
 
      1  after the buzz has rung out and before the reply beat starts
-     2  in the middle of the typing, when nothing else in the frame is moving
-     3  riding the 8.4-unit journey home, gone before the dock stamp lands
+     2  riding the 8.4-unit journey home, gone before the dock stamp lands
+
+   There were three. The typing beat's line was cut (user call, after two
+   attempts at the wording): a human typing is the one picture in this scene
+   that needs no narrator, and the 32-unit silence between the two remaining
+   lines is what makes each of them land as an event.
 
    Each is a rule that draws out from its own middle and a block of text that
-   rises into place under it, and leaves by dipping and fading. The gaps
-   between them are enormous on purpose (8.6 and 15.8 units): the glass is a
-   layer that should feel like it is used sparingly, and the boot assert below
-   refuses a schedule where one caption is still leaving as the next arrives. */
+   rises into place under it, and leaves by dipping and fading. The boot
+   assert below refuses a schedule where one caption is still leaving as the
+   next arrives. */
 const CAP_RULE_IN = 0.9;
 const CAP_TEXT_IN = 1.1;
 const CAP_TEXT_OUT = 0.9;
@@ -432,7 +435,6 @@ const CAPS: { at: number; out: number }[] = [
      not talk over the phone while it is still shaking, and that relation
      should survive somebody retuning the buzz. */
   { at: BUZZ_END + 0.6, out: 21.0 },
-  { at: 30.5, out: 36.5 },
   { at: 53.2, out: 58.6 },
 ];
 
@@ -472,11 +474,10 @@ const STILL_VIEW = [
        a screen and not as a wall of text. Tall, because a phone is. */
     phase: "reply",
     kicker: "the reply",
-    /* The card text describes the picture; the glass line owns the no-ticket
-       claim — the two share a still card, so they must not say the same
-       thing twice. */
-    text: "Your user answers the notification itself, right where it landed.",
-    glass: "No portal, no ticket. They just reply.",
+    /* No glass line: the typing beat's caption was cut from the scrubbed
+       scene (user call), and the stills mirror what the frame says. */
+    text: "Your user answers the notification itself. No dashboard, no support ticket.",
+    glass: "",
     box: "812 150 276 350",
   },
   {
@@ -560,7 +561,7 @@ export function createTurnScene(): TurnScene {
    *  cannot reach. */
   const buzz = q<SVGGElement>(svg, "#trn-buzz");
   const glass = q<SVGGElement>(svg, "#trn-glass");
-  const caps = [1, 2, 3].map((i) => {
+  const caps = [1, 2].map((i) => {
     const g = q<SVGGElement>(svg, `#trn-cap-${i}`);
     return { rule: q<SVGPathElement>(g, ".trn-cap-rule"), text: q<SVGGElement>(g, ".trn-cap-text") };
   });
@@ -1006,9 +1007,10 @@ export function createTurnScene(): TurnScene {
       return wrap;
     }
 
-    /* Kicker, then what happened, then what it meant — the third line being
-       the sentence the glass says over this beat in the scrubbed version. Two
-       voices on one card, in the same order the frame plays them. */
+    /* Kicker, then what happened, then — where the beat has one — what it
+       meant, the third line being the sentence the glass says over this beat
+       in the scrubbed version. An empty glass line means the beat has no
+       narrator (the typing), and the card gets no third voice either. */
     function block(kicker: string, text: string, glassLine: string): HTMLElement {
       const el = doc.createElement("div");
       el.className = "eng-card";
@@ -1018,10 +1020,13 @@ export function createTurnScene(): TurnScene {
       const p = doc.createElement("p");
       p.className = "eng-caption";
       p.textContent = text;
-      const g = doc.createElement("p");
-      g.className = "trn-still-glass";
-      g.textContent = glassLine;
-      el.append(k, p, g);
+      el.append(k, p);
+      if (glassLine) {
+        const g = doc.createElement("p");
+        g.className = "trn-still-glass";
+        g.textContent = glassLine;
+        el.appendChild(g);
+      }
       return el;
     }
 
@@ -1221,7 +1226,7 @@ export function createTurnScene(): TurnScene {
        from the reader; this hands the information back. */
     ft(progressFill, { scaleX: 0 }, { scaleX: 1, duration: TL_END }, 0);
 
-    /* The three sentences on the glass. Written here as one block rather than
+    /* The sentences on the glass. Written here as one block rather than
        scattered through the beats they belong to, because they are one voice
        and a reader of this file should be able to see the whole of what the
        narrator says without reading the whole scene. */
