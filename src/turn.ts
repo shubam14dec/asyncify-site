@@ -634,6 +634,12 @@ export function createTurnScene(): TurnScene {
 
   /** The receipt's three states, in the order they happen. */
   const receipts = ["d", "o", "r"].map((k) => q<SVGTextElement>(svg, `#trn-receipt-${k}`));
+  /* The in-world event lines (user call): the platform string a beat fires,
+     stamped beside that beat's receipt at the moment it happens. The tracker
+     keeps the same strings faint, as the ledger. */
+  const evtD = q<SVGTextElement>(svg, "#trn-evt-d");
+  const evtR = q<SVGTextElement>(svg, "#trn-evt-r");
+  const evtQ = q<SVGTextElement>(svg, "#trn-evt-q");
 
   /** The device as one shakeable object, and the glass as a layer the camera
    *  cannot reach. */
@@ -1020,6 +1026,9 @@ export function createTurnScene(): TurnScene {
     thread,
     replyHint,
     send,
+    evtD,
+    evtR,
+    evtQ,
     ...caps.map((c) => c.text),
     ...stations.map((st) => st.event),
   ];
@@ -1553,6 +1562,11 @@ export function createTurnScene(): TurnScene {
     /* The arrival's cue goes with the inbox it was about. Two beats later it
        would be a caption for something off screen. */
     fadeOut(cueArrive, B2_SWAP, 1.2);
+    /* The delivery's event line arrives just after the receipt it annotates,
+       and leaves with the inbox — same lifetime as the arrival cue, because
+       it names the same moment. */
+    fadeIn(evtD, RCP_DELIVERED + 0.5, 1.0);
+    fadeOut(evtD, B2_SWAP, 1.2);
     fadeIn(replyHint, B2_SWAP + 1.6, 1.0);
 
     /* Tapping the mail IS opening it, so the screen change and the receipt's
@@ -1604,6 +1618,12 @@ export function createTurnScene(): TurnScene {
        the engine's problem. */
     fadeOut(receipts[1]!, RCP_REPLIED - 0.4, RCP_SWAP_FADE);
     stampState(receipts[2]!, RCP_REPLIED);
+    /* The accept's event line, under the receipt whose moment it is. It leaves
+       once the dot has landed and the story has moved to the chip — at the
+       wide ending the phone side keeps only its receipt, or the frame's two
+       corners would both be talking at once. */
+    fadeIn(evtR, RCP_REPLIED + 0.4, 1.0);
+    fadeOut(evtR, B3_LAND + 0.8, 1.2);
     /* And the glyph goes with the words it sent. */
     fadeOut(send, B3_COLLAPSE + 0.2, 0.8);
 
@@ -1659,6 +1679,10 @@ export function createTurnScene(): TurnScene {
        what the engine does about it. Nothing fades out after this: the last
        eight units of the scrub are the reader sitting with the final frame. */
     fadeIn(stampIn, B3_LAND + 1.8, 1.5);
+    /* The queue's name, between the fact and the door: the dot just took a
+       seat in this queue, and this is what that seat is called. Part of the
+       final frame — the cliffhanger's technical name. */
+    fadeIn(evtQ, B3_LAND + 2.6, 1.3);
     /* And the door out of the scene, a beat and a half behind the fact. The
        arrow points the way the reader is about to scroll. */
     fadeIn(tease, B3_LAND + 1.8 + TEASE_AFTER, 1.3);

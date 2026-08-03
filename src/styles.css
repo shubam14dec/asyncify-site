@@ -1567,6 +1567,17 @@ html {
    at zero length and the phantom-dot case cannot arise — and a ruled tick on a
    rail is scene 2's backoff-tick vocabulary, which is where a reader of this
    site has already met the idea of marks along a line. */
+/* The in-world event lines: the platform string a beat fires, stamped beside
+   the receipt for that beat. Dim, not faint — these are the most
+   developer-facing words in the scene (user call), one notch under the
+   receipt they annotate so the pair reads receipt-then-its-event. */
+.trn-evt {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  fill: var(--text-dim);
+}
+
 .trn-stn-tick {
   fill: none;
   stroke: var(--hairline-strong);

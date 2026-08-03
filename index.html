@@ -1066,6 +1066,9 @@
                   <circle class="trn-mark-in" id="trn-mark-in" cx="175" cy="192" r="4.5" />
                   <!-- The cliffhanger. One line, no stray whitespace. -->
                   <text class="eng-stamp" id="trn-stamp-in" x="90" y="270">inbound · conversation open</text>
+                  <!-- Not a ws event — the queue the accepted reply lands in,
+                     named at the moment the dot takes its seat in it. -->
+                  <text class="trn-evt" id="trn-evt-q" x="90" y="292">queue · conversation-inbound</text>
                   <!-- And what happens next, one rung quieter and one beat
                        later: the stamp is a fact, this is a door. The arrow
                        points right, which is the direction the reader is about
@@ -1073,7 +1076,7 @@
                        --text-faint is the bottom of the ladder for resting
                        text (BRAND §1 forbids opacity-faked grays for a resting
                        colour), so the extra quiet comes from size, not ink. -->
-                  <text class="eng-cue trn-tease" id="trn-tease" x="90" y="296">handing to your agent →</text>
+                  <text class="eng-cue trn-tease" id="trn-tease" x="90" y="318">handing to your agent →</text>
                 </g>
 
                 <!-- The one road in the picture. Wall to wall: it touches the
@@ -1100,6 +1103,15 @@
                      rewritten cannot be un-rewritten by a reverse pass; same
                      law as the typed reply. Each is one line with no stray
                      whitespace — text-anchor:end measures a trailing space. -->
+                <!-- The platform event each receipt's moment fires, IN the
+                     world beside the receipt itself (user call — the faint
+                     tracker echo was too quiet for the most developer-facing
+                     strings in the scene). Two share the phone-side slot the
+                     way the receipts share theirs: opacity-swapped, never
+                     both up. The moment is here; the tracker keeps the
+                     ledger. -->
+                <text class="trn-evt trn-evt-d" id="trn-evt-d" x="800" y="254" text-anchor="end">ws · message.changed</text>
+                <text class="trn-evt trn-evt-r" id="trn-evt-r" x="800" y="254" text-anchor="end">ws · conversation.changed</text>
                 <text class="eng-stamp trn-receipt-d" id="trn-receipt-d" x="800" y="232" text-anchor="end">delivered · email</text>
                 <text class="eng-stamp trn-receipt-o" id="trn-receipt-o" x="800" y="232" text-anchor="end">opened · email</text>
                 <text class="eng-stamp trn-receipt-r" id="trn-receipt-r" x="800" y="232" text-anchor="end">replied · email</text>
@@ -1112,7 +1124,7 @@
                      It leaves when the reader taps into the thread, because
                      by then it is naming a beat that is two beats old; the
                      still card for the delivery puts it back (styles.css). -->
-                <text class="eng-cue trn-cue-arrive" id="trn-cue-arrive" x="800" y="256" text-anchor="end">the notification arrives</text>
+                <text class="eng-cue trn-cue-arrive" id="trn-cue-arrive" x="800" y="278" text-anchor="end">the notification arrives</text>
                 <!-- The one thing the return trip cannot say for itself. The
                      reader watches a dot travel right to left and has no way
                      of knowing it is the SAME line the delivery came out on —
