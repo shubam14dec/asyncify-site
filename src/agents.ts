@@ -1979,6 +1979,21 @@ export function createAgentsScene(): AgentsScene {
         2.55,
       );
       tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.35, immediateRender: false }, 3.2);
+      /* The commit (user call: the line was not earning attention): the word
+         has landed, so the SENTENCE reacts -- the whole line steps up a rung
+         of ink and a rule draws out from its centre underneath, the page's
+         standing gesture for "this just became true". */
+      const eraPhrase = doc.querySelector<HTMLElement>("#agt-era-phrase");
+      const eraRule = doc.querySelector<HTMLElement>("#agt-era-rule");
+      if (eraPhrase && eraRule) {
+        tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 3.3);
+        tl.fromTo(
+          eraRule,
+          { scaleX: 0 },
+          { scaleX: 1, duration: 0.55, ease: "power2.out", transformOrigin: "50% 50%", immediateRender: false },
+          3.35,
+        );
+      }
     }
   }
 

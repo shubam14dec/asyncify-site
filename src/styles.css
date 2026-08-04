@@ -1814,11 +1814,32 @@ html {
    rides the bridge's stagger as the first voice in. */
 .agt-bridge-kicker {
   font-family: var(--mono);
-  font-size: 13px;
+  /* 16, not an eyebrow's 13: this line carries the act's biggest claim and
+     was getting read as a footnote (user catch). Still mono, still under the
+     sans sentences in size -- but present. */
+  font-size: 16px;
   font-weight: 500;
   letter-spacing: 0.02em;
   color: var(--text-faint);
-  margin-bottom: 14px;
+  margin-bottom: 18px;
+}
+
+/* The phrase wrapper: gives the commit-rule a box to span. */
+.agt-era-phrase {
+  position: relative;
+  display: inline-block;
+}
+
+/* The commit: once "agentic" lands, this rule draws out from the centre --
+   the site's caption-rule grammar meaning "this just became true". */
+.agt-era-rule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -8px;
+  height: 1px;
+  background: var(--hairline-strong);
+  transform: scaleX(0);
 }
 
 /* The insertion. The slot reserves the word's width at all times (the word
@@ -1830,7 +1851,7 @@ html {
 
 .agt-era-word {
   display: inline-block;
-  color: var(--text-dim); /* the inserted word lands one rung brighter */
+  color: var(--text); /* full ink: the inserted word is the line's brightest thing */
 }
 
 /* A proofreader's caret under the gap: two hairline strokes meeting in a
