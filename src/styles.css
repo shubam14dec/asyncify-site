@@ -1868,12 +1868,25 @@ html {
   display: inline-block;
 }
 
-/* The selection: the same green the site paints ::selection with, swept
-   across the era once it has been written -- as if a cursor dragged over it
-   (user call). Behind the glyphs, above the canvas. */
+/* The selection: the same green the site paints ::selection with, painted
+   across the era BY THE DOT as it inks the underline below (user call) --
+   the scaleX of both bands is written by the journey's renderer, a pure
+   function of the dot's position. Behind the glyphs, above the canvas. */
 .agt-era-hl {
   position: absolute;
-  inset: -3px -8px -1px -8px;
+  inset: -2px -8px 0 -8px;
+  z-index: -1;
+  background: var(--green-soft);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+/* Real selections are per-run boxes: the 27px serif word carries a TALLER
+   box than the mono around it (user catch, from selecting it manually) --
+   this band supplies the serif word's own step. */
+.agt-era-hl-word {
+  position: absolute;
+  inset: -5px -4px -8px -4px;
   z-index: -1;
   background: var(--green-soft);
   transform: scaleX(0);

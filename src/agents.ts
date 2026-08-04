@@ -1955,6 +1955,13 @@ export function createAgentsScene(): AgentsScene {
 
     let fractions: number[] = [];
     let totalLen = 0;
+    /* The selection's geometry, captured with the path's: the base band's box,
+       the serif word's own (taller) band, and the underline's x-range that
+       maps the dot's position onto both. */
+    let selGeom: { hlX0: number; hlX1: number; wX0: number; wX1: number; ux0: number; ux1: number } | null = null;
+    const eraHl = doc.querySelector<HTMLElement>("#agt-era-hl");
+    const eraHlWord = doc.querySelector<HTMLElement>("#agt-era-hl-word");
+    const eraWordEl = doc.querySelector<HTMLElement>("#agt-era-word");
     if (svgB && bwire && bdot && eraPhrase && sectionB && bridgeLines.length >= 3) {
       const r = sectionB.getBoundingClientRect();
       const ph = eraPhrase.getBoundingClientRect();
@@ -2015,6 +2022,17 @@ export function createAgentsScene(): AgentsScene {
         `C ${sideX.toFixed(1)} ${(l3y + 120).toFixed(1)} ${exitX.toFixed(1)} ${(exitY - 160).toFixed(1)} ${exitX.toFixed(1)} ${exitY.toFixed(1)}`,
       ];
       bwire.setAttribute("d", segs.join(" "));
+      if (eraHl && eraHlWord && eraWordEl) {
+        const wr = eraWordEl.getBoundingClientRect();
+        selGeom = {
+          hlX0: ph.left - r.left - 8,
+          hlX1: ph.right - r.left + 8,
+          wX0: wr.left - r.left - 4,
+          wX1: wr.right - r.left + 4,
+          ux0,
+          ux1,
+        };
+      }
       /* Seam fractions, measured: a temp path per prefix, appended so the
          engine will measure it, then removed. */
       const lens: number[] = [];
@@ -2038,6 +2056,21 @@ export function createAgentsScene(): AgentsScene {
       const pt = bwire.getPointAtLength(journey.p * totalLen);
       gsap.set(bdot, { attr: { cx: pt.x.toFixed(2), cy: pt.y.toFixed(2) } });
       gsap.set(bwire, { drawSVG: `0% ${(journey.p * 100).toFixed(3)}%` });
+      /* The selection follows the traveller: while the dot is on the
+         underline segment its x maps linearly across the phrase, and each
+         band fills exactly as far as the dot has reached its own box --
+         the base band at the mono's height, the serif word's band at its
+         taller one, like a real selection's per-run boxes. */
+      if (selGeom && eraHl && eraHlWord && fractions.length >= 2) {
+        const f1 = fractions[0]!;
+        const f2 = fractions[1]!;
+        const su = Math.max(0, Math.min(1, (journey.p - f1) / (f2 - f1)));
+        const dotX = selGeom.ux0 + su * (selGeom.ux1 - selGeom.ux0);
+        const base = Math.max(0, Math.min(1, (dotX - selGeom.hlX0) / (selGeom.hlX1 - selGeom.hlX0)));
+        const word = Math.max(0, Math.min(1, (dotX - selGeom.wX0) / (selGeom.wX1 - selGeom.wX0)));
+        gsap.set(eraHl, { scaleX: base.toFixed(4) });
+        gsap.set(eraHlWord, { scaleX: word.toFixed(4) });
+      }
     };
     if (bwire && bdot && totalLen) {
       gsap.set(bwire, { drawSVG: "0% 0%" });
@@ -2090,19 +2123,6 @@ export function createAgentsScene(): AgentsScene {
       }
       if (eraPhrase) {
         tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 3.8);
-        {
-          /* The selection sweep: the era gets SELECTED once written -- the
-             site's own ::selection green, dragged across left to right. */
-          const eraHl = doc.querySelector<HTMLElement>("#agt-era-hl");
-          if (eraHl) {
-            tl.fromTo(
-              eraHl,
-              { scaleX: 0 },
-              { scaleX: 1, duration: 0.6, ease: "power2.out", transformOrigin: "0% 50%", immediateRender: false },
-              3.95,
-            );
-          }
-        }
       }
       /* The reply passes the sentence about itself, and the sentence notices:
          a brightness swell as the dot crosses its latitude, then it settles. */
@@ -2118,19 +2138,6 @@ export function createAgentsScene(): AgentsScene {
       tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 3.72);
       if (eraPhrase) {
         tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 3.8);
-        {
-          /* The selection sweep: the era gets SELECTED once written -- the
-             site's own ::selection green, dragged across left to right. */
-          const eraHl = doc.querySelector<HTMLElement>("#agt-era-hl");
-          if (eraHl) {
-            tl.fromTo(
-              eraHl,
-              { scaleX: 0 },
-              { scaleX: 1, duration: 0.6, ease: "power2.out", transformOrigin: "0% 50%", immediateRender: false },
-              3.95,
-            );
-          }
-        }
       }
     }
   }
