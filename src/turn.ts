@@ -1686,9 +1686,16 @@ export function createTurnScene(): TurnScene {
        the frame, arrowhead landing as it arrives. The hand-off label rides it
        at stamp size. This is the last thing the scene builds, and it points
        at the next one. */
-    draw(doorWire, B3_LAND + 3.4, 1.6);
-    draw(doorHead, B3_LAND + 4.9, 0.3);
-    fadeIn(tease, B3_LAND + 4.6, 1.3);
+    /* Retimed for the through-wire's continuity (user call): the door used
+       to finish ~17 units before the scene ends and then sit frozen through
+       the held ending -- a dead arrow the bridge had to apologise for. Now
+       the wire GROWS through the hold and the arrowhead lands at the very
+       last beat, so the pin releases with the line still alive and the
+       bridge continues a motion instead of resuming a corpse. The label
+       appears as the wire passes its latitude. */
+    draw(doorWire, 60.0, 11.2);
+    fadeIn(tease, 66.0, 1.3);
+    draw(doorHead, 71.2, 0.5);
   }
 
   /* ════════════════════════════════════════════════════════════════════════

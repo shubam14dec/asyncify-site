@@ -390,7 +390,6 @@ const CHAN_TOTAL =
    pin belong to the rail column alone — the reader arrives from the bridge,
    the scene's NAME and its five empty promises greet them, and only then does
    the stage start drawing. Scene 3's entry pattern, deliberately. */
-const B1_WIRE_IN = 2.4;
 const B1_BOX = 4.0;
 const B1_WIRE_OUT = 4.6;
 const B1_PHONE = 5.0;
@@ -2045,7 +2044,7 @@ export function createAgentsScene(): AgentsScene {
       onUpdate: renderJourney,
       scrollTrigger: {
         trigger: "#bridge-agents",
-        start: "top 78%",
+        start: "top 92%",
         /* A long runway: this bridge is a scene now -- the wire's whole
            journey (dive, underline, side rail, exit) plays across it. */
         end: "top -55%",
@@ -2066,8 +2065,8 @@ export function createAgentsScene(): AgentsScene {
       /* The journey, seam by seam. The underline segment (f1..f2) is run at
          ease "none" so the inking reads at the reader's own scroll speed;
          the exit accelerates, because scene 4 is pulling. */
-      tl.fromTo(bdot, { opacity: 0 }, { opacity: 1, duration: 0.25, immediateRender: false }, 0.35);
-      tl.fromTo(journey, { p: 0 }, { p: f1!, duration: 1.9, ease: "power1.inOut", immediateRender: false }, 0.3);
+      tl.fromTo(bdot, { opacity: 0 }, { opacity: 1, duration: 0.25, immediateRender: false }, 0.1);
+      tl.fromTo(journey, { p: 0 }, { p: f1!, duration: 2.1, ease: "power1.inOut", immediateRender: false }, 0.05);
       tl.fromTo(journey, { p: f1! }, { p: f2!, duration: 1.4, ease: "none", immediateRender: false }, 2.3);
       tl.fromTo(journey, { p: f2! }, { p: f3!, duration: 0.6, ease: "power1.inOut", immediateRender: false }, 3.8);
       tl.fromTo(journey, { p: f3! }, { p: f4!, duration: 0.5, ease: "power1.inOut", immediateRender: false }, 4.5);
@@ -2121,6 +2120,21 @@ export function createAgentsScene(): AgentsScene {
         opacity: 1,
         ease: "none",
         scrollTrigger: { trigger: section, start: "top 85%", end: "top 12%", scrub: true },
+      },
+    );
+
+    /* Continuity (user call): the inbound wire is ALREADY drawing while the
+       section approaches its pin, so the bridge's ink meets a live wire
+       instead of waiting for the pin and beat 1. Complete by pin start; the
+       dot then drops through an existing road. */
+    gsap.fromTo(
+      wireIn,
+      { drawSVG: "0% 0%" },
+      {
+        drawSVG: "0% 100%",
+        ease: "none",
+        immediateRender: false,
+        scrollTrigger: { trigger: section, start: "top 98%", end: "top 12%", scrub: true },
       },
     );
 
@@ -2251,7 +2265,7 @@ export function createAgentsScene(): AgentsScene {
        person at the end of it. The phone comes ON rather than being drawn —
        glass, screen, thread — because a device showing a conversation is not
        a device being sketched. */
-    draw(wireIn, B1_WIRE_IN, 2.6);
+    /* wireIn draws on the approach trigger above, not here. */
     drawBox(agentBox, B1_BOX, 2.4);
     draw(wireOut, B1_WIRE_OUT, 3.0);
     drawBox(phone, B1_PHONE, 3.4);
