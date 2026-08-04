@@ -446,7 +446,11 @@ const MEM_SCALE = 1.9;
    mush (user catch). At these values the world and the neighbours are
    silhouettes -- shape without words -- which is what "context" meant. */
 const MEM_STAGE_DIM = 0.05;
-const MEM_ROW_DIM = 0.1;
+/* 0.6, up from 0.1 (user call): under the TRUE camera the whole checklist
+   rides into the close-up and should read as the list it is -- the reader
+   must see WHERE the subject row sits among the five. The neighbours are
+   subordinate, not absent; only the masthead leaves. */
+const MEM_ROW_DIM = 0.6;
 /* Zero, not 0.1: a 29px near-white head is still legible at 10% -- big type
    survives dims that erase small type (user catch). The rows may whisper;
    the masthead leaves the frame entirely and returns with the camera. */
