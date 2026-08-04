@@ -1876,7 +1876,12 @@ html {
   position: absolute;
   inset: -2px -8px 0 -8px;
   z-index: -1;
-  background: var(--green-soft);
+  /* NOT var(--green-soft): the word's taller band overlaps this one, and two
+     25%-alpha layers compound to a darker patch under the serif word (user
+     catch). This is green-soft PRE-COMPOSITED on the canvas -- identical to
+     the eye, and overlaps become invisible because solid-on-solid of the
+     same colour is a no-op. */
+  background: #173d2b;
   transform: scaleX(0);
   transform-origin: 0 50%;
 }
@@ -1888,7 +1893,7 @@ html {
   position: absolute;
   inset: -5px -4px -8px -4px;
   z-index: -1;
-  background: var(--green-soft);
+  background: #173d2b; /* same pre-composited solid as .agt-era-hl -- see there */
   transform: scaleX(0);
   transform-origin: 0 50%;
 }
