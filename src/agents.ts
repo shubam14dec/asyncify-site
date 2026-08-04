@@ -403,13 +403,8 @@ const B1_GUTS = 7.2;
 const B1_STAMP = 8.0;
 const B1_THREAD = 8.6;
 /** When the reply appears in the chip, and how long the run in takes. */
-/* From pin start, not 8.4 (user call: the traveller must CONTINUE): the
-   bridge's cruise is timed to land the dot on this frame's top edge at the
-   exact pin moment, and this dot takes over there and then -- a slow
-   constant descent while the world assembles around it. Same landing time
-   as ever, so nothing downstream moved. */
-const B1_FLY = 0.5;
-const B1_FLY_DUR = 11.3;
+const B1_FLY = 8.4;
+const B1_FLY_DUR = 3.4;
 const B1_LAND = B1_FLY + B1_FLY_DUR; // 11.8
 const B1_REPLY = 10.0;
 /** The first tick, once the box and its label have settled — the claim is not
@@ -2088,16 +2083,11 @@ export function createAgentsScene(): AgentsScene {
       scrollTrigger: {
         trigger: "#bridge-agents",
         start: "top 92%",
-        /* The runway ends where the NEXT scene's pin begins -- BY REFERENCE,
-           not arithmetic. The first version computed "top -115%" from the
-           bridge's own height and missed a ~140px layout interaction between
-           the sections, so the pin engaged while the journey was still 4%
-           from done and the hand-off tore (instrumented, not guessed).
-           endTrigger states the intent directly: this timeline's end IS the
-           moment scene 4's top reaches the viewport top, whatever the layout
-           between here and there does. */
-        endTrigger: "#scene-agents",
-        end: "top top",
+        /* A long runway: this bridge is a scene now -- the wire's whole
+           journey (dive, underline, side rail, exit) plays across it. -85%,
+           not -55%: the traveller read as rushed (user call), and a scrub's
+           only brake is scroll distance. */
+        end: "top -85%",
         scrub: true,
       },
     });
@@ -2111,7 +2101,7 @@ export function createAgentsScene(): AgentsScene {
     });
 
     if (bwire && bdot && totalLen && fractions.length === 5) {
-      const [f1, f2, f3, f4] = fractions;
+      const [f1, f2, f3] = fractions;
       /* The journey, seam by seam. The underline segment (f1..f2) is run at
          ease "none" so the inking reads at the reader's own scroll speed;
          the exit accelerates, because scene 4 is pulling. */
@@ -2127,32 +2117,10 @@ export function createAgentsScene(): AgentsScene {
          the path. */
       const CRUISE = 4.0;
       const t0 = 3.25; // dive ends, cruise begins
-      /* The exit accelerates again (user call) -- but VELOCITY-CONTINUOUSLY.
-         A stock accelerating ease starts at zero speed, which is the stall we
-         just killed. This ease, e(t) = (t + c*t^2)/(1+c), starts at exactly
-         1/(1+c) of the segment's average slope; the exit leg's duration is
-         then SOLVED so that starting slope times its average speed equals the
-         cruise speed. The dot leaves the last bend at cruise pace and is
-         doing ~3.4x by the time it crosses into scene 4. */
-      const ACCEL_C = 1.2;
-      const accelEase = (x: number): number => (x + ACCEL_C * x * x) / (1 + ACCEL_C);
-      const cruiseSpan = f4! - f1!;
-      const exitSpan = 1 - f4!;
-      /* The cruise keeps ITS approved speed -- (1-f1)/CRUISE, the pacing the
-         whole middle was tuned at -- and the exit's duration is derived ON
-         TOP of it (first attempt solved both inside a fixed total, which
-         silently compressed the underline and the sentences by a third to
-         pay for the surge: worse, correctly called). The timeline simply
-         ends earlier; the scrub maps to whatever the total is, and the dot
-         still lands at the pin instant because the landing IS the end. */
-      const vCruise = (1 - f1!) / CRUISE;
-      const dCruise = cruiseSpan / vCruise;
-      const dExit = exitSpan / ((1 + ACCEL_C) * vCruise);
-      const at = (f: number): number => t0 + (f - f1!) / vCruise;
+      const at = (f: number): number => t0 + (CRUISE * (f - f1!)) / (1 - f1!);
       tl.fromTo(journey, { p: 0 }, { p: f1!, duration: 3.2, ease: "power1.in", immediateRender: false }, 0.05);
-      tl.fromTo(journey, { p: f1! }, { p: f4!, duration: dCruise, ease: "none", immediateRender: false }, t0);
-      tl.fromTo(journey, { p: f4! }, { p: 1, duration: dExit, ease: accelEase, immediateRender: false }, t0 + dCruise);
-      tl.fromTo(bdot, { opacity: 1 }, { opacity: 0, duration: 0.1, immediateRender: false }, t0 + dCruise + dExit - 0.1);
+      tl.fromTo(journey, { p: f1! }, { p: 1, duration: CRUISE, ease: "none", immediateRender: false }, t0);
+      tl.fromTo(bdot, { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, t0 + CRUISE - 0.25);
 
       /* The era types itself WHILE the dot inks the underline beneath it --
          the traveller writes the era in as it passes (user's wow). */
@@ -2215,11 +2183,22 @@ export function createAgentsScene(): AgentsScene {
       },
     );
 
-    /* Continuity, third pass: the wire now inks INSIDE the pin, just ahead
-       of the descending dot -- the road is laid as the traveller rides it,
-       the same grammar as the bridge. (The approach-scrub draw is gone: the
-       bridge's cruise now ends AT the pin, so pre-drawing would mean ink
-       before the traveller again.) See the pinned timeline's first beats. */
+    /* Continuity, second pass (user catch: the wire was fully drawn long
+       before the traveller reached it). The bridge dot lands on this wire's
+       top tip when the section's top sits ~30% down the viewport -- the
+       bridge's journey ends there by construction. So the wire draws FROM
+       that moment: the ink continues downward as the dot arrives, one line
+       still being drawn, and completes just before the pin takes over. */
+    gsap.fromTo(
+      wireIn,
+      { drawSVG: "0% 0%" },
+      {
+        drawSVG: "0% 100%",
+        ease: "none",
+        immediateRender: false,
+        scrollTrigger: { trigger: section, start: "top 32%", end: "top 4%", scrub: true },
+      },
+    );
 
     const tl = gsap.timeline({
       defaults: { ease: "none" },
@@ -2348,7 +2327,7 @@ export function createAgentsScene(): AgentsScene {
        person at the end of it. The phone comes ON rather than being drawn —
        glass, screen, thread — because a device showing a conversation is not
        a device being sketched. */
-    draw(wireIn, 0.05, 1.6);
+    /* wireIn draws on the approach trigger above, not here. */
     drawBox(agentBox, B1_BOX, 2.4);
     draw(wireOut, B1_WIRE_OUT, 3.0);
     drawBox(phone, B1_PHONE, 3.4);
@@ -2375,7 +2354,7 @@ export function createAgentsScene(): AgentsScene {
     fadeIn(stampJob, B1_STAMP, 1.2);
 
     fadeIn(dotIn, B1_FLY - 0.4, 0.5);
-    run(dotIn, gIn, B1_FLY, B1_FLY_DUR, "none");
+    run(dotIn, gIn, B1_FLY, B1_FLY_DUR, "power1.inOut");
     /* The machine hears it. NEUTRAL ink, and this is the rationing law doing
        narrative work rather than being obeyed: green on this site means a
        message of OURS arrived, and this one is the customer's (BRAND §2). */
