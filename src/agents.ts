@@ -2084,8 +2084,10 @@ export function createAgentsScene(): AgentsScene {
         trigger: "#bridge-agents",
         start: "top 92%",
         /* A long runway: this bridge is a scene now -- the wire's whole
-           journey (dive, underline, side rail, exit) plays across it. */
-        end: "top -55%",
+           journey (dive, underline, side rail, exit) plays across it. -85%,
+           not -55%: the traveller read as rushed (user call), and a scrub's
+           only brake is scroll distance. */
+        end: "top -85%",
         scrub: true,
       },
     });
@@ -2104,40 +2106,40 @@ export function createAgentsScene(): AgentsScene {
          ease "none" so the inking reads at the reader's own scroll speed;
          the exit accelerates, because scene 4 is pulling. */
       tl.fromTo(bdot, { opacity: 0 }, { opacity: 1, duration: 0.25, immediateRender: false }, 0.1);
-      tl.fromTo(journey, { p: 0 }, { p: f1!, duration: 2.1, ease: "power1.inOut", immediateRender: false }, 0.05);
-      tl.fromTo(journey, { p: f1! }, { p: f2!, duration: 1.4, ease: "none", immediateRender: false }, 2.3);
-      tl.fromTo(journey, { p: f2! }, { p: f3!, duration: 0.6, ease: "power1.inOut", immediateRender: false }, 3.8);
-      tl.fromTo(journey, { p: f3! }, { p: f4!, duration: 0.5, ease: "power1.inOut", immediateRender: false }, 4.5);
-      tl.fromTo(journey, { p: f4! }, { p: 1, duration: 0.6, ease: "power2.in", immediateRender: false }, 5.1);
-      tl.fromTo(bdot, { opacity: 1 }, { opacity: 0, duration: 0.2, immediateRender: false }, 5.55);
+      tl.fromTo(journey, { p: 0 }, { p: f1!, duration: 3.2, ease: "power1.inOut", immediateRender: false }, 0.05);
+      tl.fromTo(journey, { p: f1! }, { p: f2!, duration: 1.7, ease: "none", immediateRender: false }, 3.45);
+      tl.fromTo(journey, { p: f2! }, { p: f3!, duration: 0.8, ease: "power1.inOut", immediateRender: false }, 5.3);
+      tl.fromTo(journey, { p: f3! }, { p: f4!, duration: 0.7, ease: "power1.inOut", immediateRender: false }, 6.2);
+      tl.fromTo(journey, { p: f4! }, { p: 1, duration: 0.8, ease: "power2.in", immediateRender: false }, 7.0);
+      tl.fromTo(bdot, { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, 7.55);
 
       /* The era types itself WHILE the dot inks the underline beneath it --
          the traveller writes the era in as it passes (user's wow). */
       if (eraCaret && eraLetters.length) {
         gsap.set(eraLetters, { opacity: 0 });
-        tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, 2.15);
+        tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, 3.3);
         eraLetters.forEach((ch, i) => {
-          tl.fromTo(ch, { opacity: 0 }, { opacity: 1, duration: 0.16, immediateRender: false }, 2.4 + i * 0.17);
+          tl.fromTo(ch, { opacity: 0 }, { opacity: 1, duration: 0.16, immediateRender: false }, 3.55 + i * 0.2);
         });
-        tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 3.72);
+        tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 5.2);
       }
       if (eraPhrase) {
-        tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 3.8);
+        tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 5.25);
       }
       /* The reply passes the sentence about itself, and the sentence notices:
          a brightness swell as the dot crosses its latitude, then it settles. */
-      tl.fromTo(bridgeLines[1]!, { color: "#a1a1a1" }, { color: "#ededed", duration: 0.35, immediateRender: false }, 4.3);
-      tl.fromTo(bridgeLines[1]!, { color: "#ededed" }, { color: "#a1a1a1", duration: 0.6, immediateRender: false }, 4.85);
+      tl.fromTo(bridgeLines[1]!, { color: "#a1a1a1" }, { color: "#ededed", duration: 0.35, immediateRender: false }, 5.85);
+      tl.fromTo(bridgeLines[1]!, { color: "#ededed" }, { color: "#a1a1a1", duration: 0.6, immediateRender: false }, 6.5);
     } else if (eraCaret && eraLetters.length) {
       /* No wire (svg missing or zero-length path): the typing still plays. */
       gsap.set(eraLetters, { opacity: 0 });
-      tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, 2.15);
+      tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, 3.3);
       eraLetters.forEach((ch, i) => {
-        tl.fromTo(ch, { opacity: 0 }, { opacity: 1, duration: 0.16, immediateRender: false }, 2.4 + i * 0.17);
+        tl.fromTo(ch, { opacity: 0 }, { opacity: 1, duration: 0.16, immediateRender: false }, 3.55 + i * 0.2);
       });
-      tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 3.72);
+      tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 5.2);
       if (eraPhrase) {
-        tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 3.8);
+        tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 5.25);
       }
     }
   }
