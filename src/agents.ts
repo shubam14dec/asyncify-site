@@ -1991,7 +1991,7 @@ export function createAgentsScene(): AgentsScene {
          floated below the text it belongs to (user catch). */
       const tail = doc.querySelector<HTMLElement>("#agt-era-tail");
       const tr = tail ? tail.getBoundingClientRect() : ph;
-      const uy = tr.bottom - r.top; // snug under the words (user call) -- the floor is the serif g's descender, which reaches ~2px above this
+      const uy = tr.bottom - r.top - 5; // a true underline offset, ~3px under the baseline (user-tuned); it crosses the serif g's descender the way any underline crosses descenders
       const ux0 = ph.left - r.left - 18;
       const ux1 = ph.right - r.left + 4;
       const sideX = Math.max(l2.right, l3.right) - r.left + 56;
