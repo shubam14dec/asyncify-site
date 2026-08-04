@@ -1383,7 +1383,16 @@
           <!-- The era gets named here, at the door to the act that proves it
                (user call) -- a kicker over the bridge, in the mono register,
                so the two sentences keep their voice. -->
-          <span class="agt-bridge-line agt-bridge-kicker">the agentic era of notifications</span>
+          <!-- The era is not announced, it is INSERTED (user call for a
+               creative treatment): the line reveals with a gap and a
+               proofreader's caret, then "agentic" drops into place -- the
+               sentence gets edited in front of the reader, which is the
+               product's whole story. The slot always occupies its width
+               (opacity hides the word), so nothing reflows -- the gap IS the
+               design until the word lands. -->
+          <span class="agt-bridge-line agt-bridge-kicker">the
+            <span class="agt-era-slot"><span class="agt-era-caret" id="agt-era-caret" aria-hidden="true"></span><span class="agt-era-word" id="agt-era-word">agentic</span></span>
+            era of notifications</span>
           <span class="agt-bridge-line">A customer's reply is sitting in a queue.</span>
           <span class="agt-bridge-line agt-bridge-lead">Meet what answers it.</span>
         </h2>

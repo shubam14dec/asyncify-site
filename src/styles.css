@@ -1821,6 +1821,50 @@ html {
   margin-bottom: 14px;
 }
 
+/* The insertion. The slot reserves the word's width at all times (the word
+   hides by opacity, never by display), so the edit never reflows the line. */
+.agt-era-slot {
+  position: relative;
+  display: inline-block;
+}
+
+.agt-era-word {
+  display: inline-block;
+  color: var(--text-dim); /* the inserted word lands one rung brighter */
+}
+
+/* A proofreader's caret under the gap: two hairline strokes meeting in a
+   wedge, drawn with borders -- no glyph, so no font-subset risk. */
+.agt-era-caret {
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  width: 8px;
+  height: 5px;
+  transform: translateX(-50%);
+  opacity: 0;
+}
+
+.agt-era-caret::before,
+.agt-era-caret::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 6px;
+  height: 1px;
+  background: var(--text-dim);
+}
+
+.agt-era-caret::before {
+  left: -0.5px;
+  transform: rotate(-40deg);
+}
+
+.agt-era-caret::after {
+  right: -0.5px;
+  transform: rotate(40deg);
+}
+
 .agt-bridge-lead {
   color: var(--text);
 }

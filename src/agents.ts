@@ -1956,6 +1956,22 @@ export function createAgentsScene(): AgentsScene {
         i * 0.45,
       );
     });
+    /* The insertion, after the kicker line stands: caret appears under the
+       gap, "agentic" drops in from above it, caret leaves. Scrubbed back,
+       the era un-inserts itself -- which is its own kind of joke. */
+    const eraCaret = doc.querySelector<HTMLElement>("#agt-era-caret");
+    const eraWord = doc.querySelector<HTMLElement>("#agt-era-word");
+    if (eraCaret && eraWord) {
+      gsap.set(eraWord, { opacity: 0, y: -13 });
+      tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, 0.75);
+      tl.fromTo(
+        eraWord,
+        { opacity: 0, y: -13 },
+        { opacity: 1, y: 0, duration: 0.55, ease: "power2.out", immediateRender: false },
+        1.0,
+      );
+      tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 1.55);
+    }
   }
 
   /* ════════════════════════════════════════════════════════════════════════
