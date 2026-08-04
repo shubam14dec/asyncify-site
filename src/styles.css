@@ -1851,6 +1851,15 @@ html {
 
 .agt-era-word {
   display: inline-block;
+  /* The one display face on the site, for the one inserted word: the mono
+     sentence is the old world's voice, and the era arrives speaking a
+     different one (user call: it should catch the eye). Sized so its cap
+     height rides the mono line without wrecking the baseline. */
+  font-family: "Instrument Serif", Georgia, serif;
+  font-style: italic;
+  font-size: 27px;
+  line-height: 0.8;
+  vertical-align: baseline;
   color: var(--text); /* full ink: the inserted word is the line's brightest thing */
 }
 

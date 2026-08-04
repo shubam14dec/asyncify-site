@@ -10,6 +10,9 @@ import "@fontsource/geist-sans/latin-400.css";
 import "@fontsource/geist-sans/latin-500.css";
 import "@fontsource/geist-sans/latin-600.css";
 import "@fontsource/geist-mono/latin-400.css";
+/* One display voice, for one word: "agentic" lands in the bridge in an italic
+   serif -- the new era arriving in a new typeface. Used nowhere else. */
+import "@fontsource/instrument-serif/400-italic.css";
 import "@fontsource/geist-mono/latin-500.css";
 
 import "./styles.css";
