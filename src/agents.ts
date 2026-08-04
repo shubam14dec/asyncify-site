@@ -451,10 +451,7 @@ const MEM_STAGE_DIM = 0.05;
    must see WHERE the subject row sits among the five. The neighbours are
    subordinate, not absent; only the masthead leaves. */
 const MEM_ROW_DIM = 0.6;
-/* Zero, not 0.1: a 29px near-white head is still legible at 10% -- big type
-   survives dims that erase small type (user catch). The rows may whisper;
-   the masthead leaves the frame entirely and returns with the camera. */
-const MEM_TITLE_DIM = 0;
+
 /** One memory at a time — a list revealed all at once is read as one item. */
 const MEM_CURVES: readonly number[] = [21.6, 23.1, 24.6];
 const MEM_CURVE_DRAW = 0.8;
@@ -687,9 +684,8 @@ const Q_Y0 = 12;
 const Q_PITCH = 46;
 /** The memory fan pivots the close-up on the remembers row's own latitude
  *  (declared here, beside the geometry it is derived from). */
-const MEM_ORIGIN_Y = Q_Y0 + 1 * Q_PITCH + 6;
-const GRD_ORIGIN_Y = Q_Y0 + 2 * Q_PITCH + 6;
-const GUA_ORIGIN_Y = Q_Y0 + 3 * Q_PITCH + 6;
+/* The per-row aim points retired with them: the camera now takes ONE shot
+   (masthead + full checklist, fitted) for all three asides. */
 const Q_MIN_PITCH = 38;
 const Q_WORD_DY = 11;
 /* Measured rather than eyeballed, twice. At the original 22 the word and its
@@ -864,26 +860,33 @@ export function createAgentsScene(): AgentsScene {
      outside the stage svg and queried from the document. */
   const title = q<HTMLElement>(doc, "#agt-title");
   const cam = q<HTMLElement>(doc, "#agt-cam");
-  /** The camera aims by COMPOSITION, not by fixing a point: the first draft
-   *  held the aim point still while scaling, which shoved everything left of
-   *  it off-frame -- the checklist's own boxes landed past the pin's clip and
-   *  the list read half-cut (user catch). Instead: put the zoomed checklist's
-   *  left edge at a fixed margin, and centre the subject row vertically.
-   *  With transformOrigin 0,0 a content point p maps to translate + scale*p,
-   *  so both are one line of algebra. Measured lazily (function-based tween
-   *  values evaluate on first render, after fonts and layout -- the
-   *  boot-font-metrics trap does not apply); checklist renders at scale 1,
-   *  so svg units are pixels. */
-  const CAM_MARGIN = 28;
-  const camX = () => () => {
+  /** ONE framing for all three asides (user call: the masthead rides the
+   *  close-up too): the whole rail block -- kicker, head, and the full
+   *  checklist -- fitted top-to-bottom in the frame. The subject row is
+   *  already marked by full ink and its fan, so the camera does not chase
+   *  rows; it makes the same move every time, which is also what makes it
+   *  read as a camera. The zoom computes itself: MEM_SCALE if the block
+   *  fits, else whatever does -- so no viewport can cut the list. All
+   *  measured lazily (function-based tween values evaluate on first render,
+   *  after fonts and layout; the boot-font-metrics trap does not apply). */
+  const CAM_MARGIN = 20;
+  const camBlock = () => {
     const c = cam.getBoundingClientRect();
+    const ttl = title.getBoundingClientRect();
     const k = checklist.getBoundingClientRect();
-    return CAM_MARGIN - MEM_SCALE * (k.left - c.left);
+    return { c, top: ttl.top - c.top, left: Math.min(ttl.left, k.left) - c.left, height: k.bottom - ttl.top };
   };
-  const camY = (originY: number) => () => {
-    const c = cam.getBoundingClientRect();
-    const k = checklist.getBoundingClientRect();
-    return c.height / 2 - MEM_SCALE * (k.top - c.top + originY);
+  const camScale = () => {
+    const b = camBlock();
+    return Math.min(MEM_SCALE, (b.c.height - 2 * CAM_MARGIN) / b.height);
+  };
+  const camX = () => () => {
+    const b = camBlock();
+    return CAM_MARGIN - camScale() * b.left;
+  };
+  const camY = () => () => {
+    const b = camBlock();
+    return CAM_MARGIN - camScale() * b.top;
   };
   const checklist = q<SVGSVGElement>(doc, "#agt-checklist");
   const rulesG = q<SVGGElement>(checklist, "#agt-rules");
@@ -2151,10 +2154,9 @@ export function createAgentsScene(): AgentsScene {
     {
       const others = rows.filter((_, i) => i !== 1).flatMap((r) => [r.word, r.box]);
       ft(svg, { opacity: 1 }, { opacity: MEM_STAGE_DIM, duration: 0.7 }, MEM_IN);
-      ft(cam, { scale: 1, x: 0, y: 0 }, { scale: MEM_SCALE, x: camX(), y: camY(MEM_ORIGIN_Y), duration: 0.9, ease: "power2.inOut", transformOrigin: "0px 0px" }, MEM_IN);
+      ft(cam, { scale: 1, x: 0, y: 0 }, { scale: camScale, x: camX(), y: camY(), duration: 0.9, ease: "power2.inOut", transformOrigin: "0px 0px" }, MEM_IN);
       ft(others, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, MEM_IN);
       ft(rulesG, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, MEM_IN);
-      ft(title, { opacity: 1 }, { opacity: MEM_TITLE_DIM, duration: 0.7 }, MEM_IN);
       MEM_CURVES.forEach((at, i) => {
         draw(memCurves[i]!, at, MEM_CURVE_DRAW);
         fadeIn(memLabels[i]!, at + MEM_LABEL_LAG, 0.6);
@@ -2162,10 +2164,9 @@ export function createAgentsScene(): AgentsScene {
       ft(memCurves, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8, ease: "power2.in" }, MEM_OUT);
       ft(memLabels, { opacity: 1 }, { opacity: 0, duration: 0.6 }, MEM_OUT);
       ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
-      ft(cam, { scale: MEM_SCALE, x: camX(), y: camY(MEM_ORIGIN_Y) }, { scale: 1, x: 0, y: 0, duration: 0.8, ease: "power2.inOut", transformOrigin: "0px 0px" }, MEM_FOCUS_OUT);
+      ft(cam, { scale: camScale, x: camX(), y: camY() }, { scale: 1, x: 0, y: 0, duration: 0.8, ease: "power2.inOut", transformOrigin: "0px 0px" }, MEM_FOCUS_OUT);
       ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
       ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
-      ft(title, { opacity: MEM_TITLE_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
     }
 
     draw(traces[1]!, B2_T2, 1.8);
@@ -2180,10 +2181,9 @@ export function createAgentsScene(): AgentsScene {
     {
       const others = rows.filter((_, i) => i !== 2).flatMap((r) => [r.word, r.box]);
       ft(svg, { opacity: 1 }, { opacity: MEM_STAGE_DIM, duration: 0.7 }, GRD_IN);
-      ft(cam, { scale: 1, x: 0, y: 0 }, { scale: MEM_SCALE, x: camX(), y: camY(GRD_ORIGIN_Y), duration: 0.9, ease: "power2.inOut", transformOrigin: "0px 0px" }, GRD_IN);
+      ft(cam, { scale: 1, x: 0, y: 0 }, { scale: camScale, x: camX(), y: camY(), duration: 0.9, ease: "power2.inOut", transformOrigin: "0px 0px" }, GRD_IN);
       ft(others, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GRD_IN);
       ft(rulesG, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GRD_IN);
-      ft(title, { opacity: 1 }, { opacity: MEM_TITLE_DIM, duration: 0.7 }, GRD_IN);
       GRD_CURVES.forEach((at, i) => {
         draw(grdCurves[i]!, at, MEM_CURVE_DRAW);
         fadeIn(grdLabels[i]!, at + MEM_LABEL_LAG, 0.6);
@@ -2191,10 +2191,9 @@ export function createAgentsScene(): AgentsScene {
       ft(grdCurves, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8, ease: "power2.in" }, GRD_OUT);
       ft(grdLabels, { opacity: 1 }, { opacity: 0, duration: 0.6 }, GRD_OUT);
       ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: 0.8 }, GRD_FOCUS_OUT);
-      ft(cam, { scale: MEM_SCALE, x: camX(), y: camY(GRD_ORIGIN_Y) }, { scale: 1, x: 0, y: 0, duration: 0.8, ease: "power2.inOut", transformOrigin: "0px 0px" }, GRD_FOCUS_OUT);
+      ft(cam, { scale: camScale, x: camX(), y: camY() }, { scale: 1, x: 0, y: 0, duration: 0.8, ease: "power2.inOut", transformOrigin: "0px 0px" }, GRD_FOCUS_OUT);
       ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GRD_FOCUS_OUT);
       ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GRD_FOCUS_OUT);
-      ft(title, { opacity: MEM_TITLE_DIM }, { opacity: 1, duration: 0.8 }, GRD_FOCUS_OUT);
     }
 
     /* ── BEAT 3 · the guarded action ─────────────────────────────────────
@@ -2264,19 +2263,17 @@ export function createAgentsScene(): AgentsScene {
     {
       const others = rows.filter((_, i) => i !== 3).flatMap((r) => [r.word, r.box]);
       ft(svg, { opacity: 1 }, { opacity: MEM_STAGE_DIM, duration: 0.7 }, GUA_IN);
-      ft(cam, { scale: 1, x: 0, y: 0 }, { scale: MEM_SCALE, x: camX(), y: camY(GUA_ORIGIN_Y), duration: 0.9, ease: "power2.inOut", transformOrigin: "0px 0px" }, GUA_IN);
+      ft(cam, { scale: 1, x: 0, y: 0 }, { scale: camScale, x: camX(), y: camY(), duration: 0.9, ease: "power2.inOut", transformOrigin: "0px 0px" }, GUA_IN);
       ft(others, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GUA_IN);
       ft(rulesG, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GUA_IN);
-      ft(title, { opacity: 1 }, { opacity: MEM_TITLE_DIM, duration: 0.7 }, GUA_IN);
       draw(guaCurve, GUA_CURVE, MEM_CURVE_DRAW);
       fadeIn(guaLabel, GUA_CURVE + MEM_LABEL_LAG, 0.6);
       ft(guaCurve, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8, ease: "power2.in" }, GUA_OUT);
       ft(guaLabel, { opacity: 1 }, { opacity: 0, duration: 0.6 }, GUA_OUT);
       ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: 0.8 }, GUA_FOCUS_OUT);
-      ft(cam, { scale: MEM_SCALE, x: camX(), y: camY(GUA_ORIGIN_Y) }, { scale: 1, x: 0, y: 0, duration: 0.8, ease: "power2.inOut", transformOrigin: "0px 0px" }, GUA_FOCUS_OUT);
+      ft(cam, { scale: camScale, x: camX(), y: camY() }, { scale: 1, x: 0, y: 0, duration: 0.8, ease: "power2.inOut", transformOrigin: "0px 0px" }, GUA_FOCUS_OUT);
       ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GUA_FOCUS_OUT);
       ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GUA_FOCUS_OUT);
-      ft(title, { opacity: MEM_TITLE_DIM }, { opacity: 1, duration: 0.8 }, GUA_FOCUS_OUT);
     }
 
     /* ── BEAT 4 · the answer ─────────────────────────────────────────────
