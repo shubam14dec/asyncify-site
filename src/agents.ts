@@ -1944,7 +1944,11 @@ export function createAgentsScene(): AgentsScene {
       scrollTrigger: {
         trigger: "#bridge-agents",
         start: "top 82%",
-        end: "top 34%",
+        /* 18%, not 34%: the insertion beats live at the END of this span, and
+           they must play once the whole block stands centred (user call) --
+           the longer runway puts the caret-and-drop at the copy's centred
+           moment instead of mid-reveal. */
+        end: "top 18%",
         scrub: true,
       },
     });
@@ -1963,14 +1967,18 @@ export function createAgentsScene(): AgentsScene {
     const eraWord = doc.querySelector<HTMLElement>("#agt-era-word");
     if (eraCaret && eraWord) {
       gsap.set(eraWord, { opacity: 0, y: -13 });
-      tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, 0.75);
+      /* AFTER all three lines stand (last line lands at 1.9): the reader sees
+         the finished block, centred -- and THEN the edit happens to it. The
+         insertion is a correction to something complete, not a piece of the
+         assembly (user call). */
+      tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.35, immediateRender: false }, 2.2);
       tl.fromTo(
         eraWord,
         { opacity: 0, y: -13 },
-        { opacity: 1, y: 0, duration: 0.55, ease: "power2.out", immediateRender: false },
-        1.0,
+        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", immediateRender: false },
+        2.55,
       );
-      tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 1.55);
+      tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.35, immediateRender: false }, 3.2);
     }
   }
 
