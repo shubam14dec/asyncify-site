@@ -432,9 +432,18 @@ const T_MEMORY = 20.4;
    authored: the fan needed a stage, and the only honest way to get one in a
    fixed timeline is to move the next act, not to talk over it. */
 const MEM_IN = 20.8;
-const MEM_SCALE = 1.16;
-const MEM_STAGE_DIM = 0.35;
-const MEM_ROW_DIM = 0.35;
+/* The close-up is a REAL one (user call, after the 1.16/0.35 draft read as a
+   lean-in rather than a camera move): scene 3's typing zoom is the model --
+   the subject owns the frame, everything else is present but unreadable. At
+   1.9 the row's word renders ~25px and the fan's labels ~22px; the world at
+   0.15 is context, not competition; the title and the other rows hold at 0.2
+   so the reader keeps the anchor of "this is the list" without anything to
+   read but the subject. One set of constants for all three asides -- one
+   camera language, not three. */
+const MEM_SCALE = 1.9;
+const MEM_STAGE_DIM = 0.15;
+const MEM_ROW_DIM = 0.2;
+const MEM_TITLE_DIM = 0.2;
 /** One memory at a time — a list revealed all at once is read as one item. */
 const MEM_CURVES: readonly number[] = [21.6, 23.1, 24.6];
 const MEM_CURVE_DRAW = 0.8;
@@ -2112,6 +2121,7 @@ export function createAgentsScene(): AgentsScene {
       ft(checklist, { scale: 1 }, { scale: MEM_SCALE, duration: 0.9, ease: "power2.inOut", transformOrigin: `0px ${MEM_ORIGIN_Y}px` }, MEM_IN);
       ft(others, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, MEM_IN);
       ft(rulesG, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, MEM_IN);
+      ft(title, { opacity: 1 }, { opacity: MEM_TITLE_DIM, duration: 0.7 }, MEM_IN);
       MEM_CURVES.forEach((at, i) => {
         draw(memCurves[i]!, at, MEM_CURVE_DRAW);
         fadeIn(memLabels[i]!, at + MEM_LABEL_LAG, 0.6);
@@ -2122,6 +2132,7 @@ export function createAgentsScene(): AgentsScene {
       ft(checklist, { scale: MEM_SCALE }, { scale: 1, duration: 0.8, ease: "power2.inOut", transformOrigin: `0px ${MEM_ORIGIN_Y}px` }, MEM_FOCUS_OUT);
       ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
       ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
+      ft(title, { opacity: MEM_TITLE_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
     }
 
     draw(traces[1]!, B2_T2, 1.8);
@@ -2139,6 +2150,7 @@ export function createAgentsScene(): AgentsScene {
       ft(checklist, { scale: 1 }, { scale: MEM_SCALE, duration: 0.9, ease: "power2.inOut", transformOrigin: `0px ${GRD_ORIGIN_Y}px` }, GRD_IN);
       ft(others, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GRD_IN);
       ft(rulesG, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GRD_IN);
+      ft(title, { opacity: 1 }, { opacity: MEM_TITLE_DIM, duration: 0.7 }, GRD_IN);
       GRD_CURVES.forEach((at, i) => {
         draw(grdCurves[i]!, at, MEM_CURVE_DRAW);
         fadeIn(grdLabels[i]!, at + MEM_LABEL_LAG, 0.6);
@@ -2149,6 +2161,7 @@ export function createAgentsScene(): AgentsScene {
       ft(checklist, { scale: MEM_SCALE }, { scale: 1, duration: 0.8, ease: "power2.inOut", transformOrigin: `0px ${GRD_ORIGIN_Y}px` }, GRD_FOCUS_OUT);
       ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GRD_FOCUS_OUT);
       ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GRD_FOCUS_OUT);
+      ft(title, { opacity: MEM_TITLE_DIM }, { opacity: 1, duration: 0.8 }, GRD_FOCUS_OUT);
     }
 
     /* ── BEAT 3 · the guarded action ─────────────────────────────────────
@@ -2221,6 +2234,7 @@ export function createAgentsScene(): AgentsScene {
       ft(checklist, { scale: 1 }, { scale: MEM_SCALE, duration: 0.9, ease: "power2.inOut", transformOrigin: `0px ${GUA_ORIGIN_Y}px` }, GUA_IN);
       ft(others, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GUA_IN);
       ft(rulesG, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GUA_IN);
+      ft(title, { opacity: 1 }, { opacity: MEM_TITLE_DIM, duration: 0.7 }, GUA_IN);
       draw(guaCurve, GUA_CURVE, MEM_CURVE_DRAW);
       fadeIn(guaLabel, GUA_CURVE + MEM_LABEL_LAG, 0.6);
       ft(guaCurve, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8, ease: "power2.in" }, GUA_OUT);
@@ -2229,6 +2243,7 @@ export function createAgentsScene(): AgentsScene {
       ft(checklist, { scale: MEM_SCALE }, { scale: 1, duration: 0.8, ease: "power2.inOut", transformOrigin: `0px ${GUA_ORIGIN_Y}px` }, GUA_FOCUS_OUT);
       ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GUA_FOCUS_OUT);
       ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GUA_FOCUS_OUT);
+      ft(title, { opacity: MEM_TITLE_DIM }, { opacity: 1, duration: 0.8 }, GUA_FOCUS_OUT);
     }
 
     /* ── BEAT 4 · the answer ─────────────────────────────────────────────
