@@ -1809,6 +1809,18 @@ html {
   color: var(--text-dim);
 }
 
+/* The era kicker: mono and faint over the two sans sentences, the same
+   eyebrow relation the rail titles use. It shares .agt-bridge-line so it
+   rides the bridge's stagger as the first voice in. */
+.agt-bridge-kicker {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--text-faint);
+  margin-bottom: 14px;
+}
+
 .agt-bridge-lead {
   color: var(--text);
 }
