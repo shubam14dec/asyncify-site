@@ -2163,10 +2163,12 @@ export function createAgentsScene(): AgentsScene {
       },
     );
 
-    /* Continuity (user call): the inbound wire is ALREADY drawing while the
-       section approaches its pin, so the bridge's ink meets a live wire
-       instead of waiting for the pin and beat 1. Complete by pin start; the
-       dot then drops through an existing road. */
+    /* Continuity, second pass (user catch: the wire was fully drawn long
+       before the traveller reached it). The bridge dot lands on this wire's
+       top tip when the section's top sits ~30% down the viewport -- the
+       bridge's journey ends there by construction. So the wire draws FROM
+       that moment: the ink continues downward as the dot arrives, one line
+       still being drawn, and completes just before the pin takes over. */
     gsap.fromTo(
       wireIn,
       { drawSVG: "0% 0%" },
@@ -2174,7 +2176,7 @@ export function createAgentsScene(): AgentsScene {
         drawSVG: "0% 100%",
         ease: "none",
         immediateRender: false,
-        scrollTrigger: { trigger: section, start: "top 98%", end: "top 12%", scrub: true },
+        scrollTrigger: { trigger: section, start: "top 32%", end: "top 4%", scrub: true },
       },
     );
 
