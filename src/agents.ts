@@ -207,20 +207,41 @@ const DOT_R = 4.5;
 
 /* ── The channel row ───────────────────────────────────────────────────────
    Four line marks and four lowercase words (BRAND §6 — the channels are
-   lowercase because that is how the API spells them), right-aligned to the
-   phone's own right wall so the row hangs off the device rather than floating
-   under the middle of the frame. Laid out from a cursor rather than from four
-   hand-placed x values, so the spacing is arithmetic and stays even if a
-   channel is ever renamed.
+   lowercase because that is how the API spells them), LEFT-ALIGNED TO THE
+   CAPTION COLUMN and stacked directly above caption 3's rule (user call).
+
+   It used to be right-aligned to the phone's right wall, and that was the
+   wrong argument: down there it read as a claim about the phone, and it was a
+   fifth object in a composition that already had four. Above the sentence
+   that names it, it is the picture of that sentence — marks, a rule, then the
+   words — and the two are one statement that arrives and leaves together.
+
+   Laid out from a cursor rather than from four hand-placed x values, so the
+   spacing is arithmetic and stays even if a channel is ever renamed.
 
    Each glyph is authored in its own 12 × 12 box at the origin and placed with
    a translate — which is why none of them carries an offset in its `d`. */
-const CHAN_RIGHT = PHONE_X + PHONE_W;
-const CHAN_BASE_Y = 552;
-const CHAN_GLYPH = 12;
-const CHAN_GAP = 5;
-const CHAN_SEP = 16;
-const CHAN_SIZE = 10.5;
+/** The caption column's own left edge, shared with the glass so the row and
+ *  the sentence under it hang on one margin. */
+const CAP_X = 40;
+/** The rule every caption draws itself out from. Authored in the markup;
+ *  asserted against it at boot, because the row is placed above it by
+ *  arithmetic and nothing else in the system would notice them colliding. */
+const CAP_RULE_Y = 424;
+/** The channel words' baseline. The row sits between the agent box's bottom
+ *  wall (364) and the caption rule (424) with roughly 20u of air either side —
+ *  both clearances are asserted, because this is the one place in the scene
+ *  where the glass and the world share a band of frame. */
+const CHAN_BASE_Y = 398;
+/** Each glyph is authored in a CHAN_ART box and PLACED at CHAN_GLYPH with a
+ *  scale transform, so the marks grow and the hairline does not (the class
+ *  carries vector-effect: non-scaling-stroke). 20 against the 12 it was:
+ *  ~16.9 CSS px on a 1250px viewport, ~20.8 on a 1536px one. */
+const CHAN_ART = 12;
+const CHAN_GLYPH = 20;
+const CHAN_GAP = 7;
+const CHAN_SEP = 22;
+const CHAN_SIZE = 14;
 const CHANNELS: readonly { word: string; d: string }[] = [
   /* in-app: a speech bubble with a tail, which is the one shape that means
      "inside your product" without drawing a product. */
@@ -235,6 +256,14 @@ const CHANNELS: readonly { word: string; d: string }[] = [
      stamps on its digest and scene 3 puts in the mail app. */
   { word: "email", d: "M 0.5 2 L 11.5 2 L 11.5 10 L 0.5 10 Z M 0.5 2 L 6 6.6 L 11.5 2" },
 ];
+
+/** Each item's width, and the row's, computed once from the constants above:
+ *  the boot assert that keeps the row inside its own column and the builder
+ *  that lays it out then read the same two numbers, instead of one of them
+ *  re-deriving what the other measured. */
+const CHAN_WIDTHS = CHANNELS.map((c) => CHAN_GLYPH + CHAN_GAP + monoWidth(c.word, CHAN_SIZE));
+const CHAN_TOTAL =
+  CHAN_WIDTHS.reduce((acc, w) => acc + w, 0) + (CHANNELS.length - 1) * CHAN_SEP;
 
 /* ══════════════════════════════════════════════════════════════════════════
    THE BEATS
@@ -325,7 +354,14 @@ const B4_MSG = 66.6;
 const B4_CITE = 68.2;
 const B4_RECEIPT = 69.0;
 const B4_EVT = 70.0;
-const B4_CHANNELS = 70.8;
+/** The row leads its own sentence in by a beat, left to right. Each mark is
+ *  its own explicit fromTo, so a reverse scrub un-staggers them in the order
+ *  they arrived — a stagger built with gsap's `stagger` shorthand would be one
+ *  tween with an internal offset, and this scene has to be a pure function of
+ *  timeline position. */
+const B4_CHANNELS = 68.8;
+const CHAN_STEP = 0.22;
+const CHAN_FADE = 0.5;
 /** The door to scene 5, drawn last and inside the held ending — a build, not
  *  a fade, which is the one kind of motion the held ending allows. */
 const B4_DOOR_RULE = 75.0;
@@ -362,7 +398,10 @@ const CAP_TRACK = 1.03;
 const CAPS: readonly { at: number; out: number }[] = [
   { at: 30.8, out: 36.4 },
   { at: 46.8, out: 52.6 },
-  { at: 69.0, out: 72.6 },
+  /* Pushed 0.4 later than it used to sit so the channel row can lead it: the
+     marks come in from 68.8, the rule draws under them at 69.4, and the words
+     rise last. Out at 72.8 leaves the held ending clear by 0.3 (asserted). */
+  { at: 69.4, out: 72.8 },
 ];
 
 /* ── The checklist ─────────────────────────────────────────────────────────
@@ -484,6 +523,7 @@ const TITLE_HEAD = "It answers. You stay in control.";
 const STILL_WHOLE = `0 0 ${FRAME_W} ${FRAME_H}`;
 const STILL_VIEW = [
   {
+    chans: false,
     kicker: "the pickup",
     text: "The reply comes out of the queue and into an agent that is yours — your endpoint, your prompt, your model.",
     glass: "",
@@ -493,6 +533,7 @@ const STILL_VIEW = [
     box: "180 96 300 300",
   },
   {
+    chans: false,
     kicker: "the lookup",
     text: "Two calls, in the order a brain makes them: what do I already know about this person, and what does the order actually say.",
     glass: "It doesn't guess. It remembers, and it looks things up.",
@@ -502,6 +543,7 @@ const STILL_VIEW = [
     box: "418 84 372 200",
   },
   {
+    chans: false,
     kicker: "the guardrail",
     text: "The third call is an action, not a question. It stops at the policy and waits for a person.",
     glass: "Real actions wait for a human yes.",
@@ -509,6 +551,7 @@ const STILL_VIEW = [
     box: "500 360 300 190",
   },
   {
+    chans: true,
     kicker: "the answer",
     text: "The answer lands in the thread the reply was written in, with the source it came from and a receipt for the send.",
     glass: "One agent. Every channel your user lives on.",
@@ -633,6 +676,7 @@ export function createAgentsScene(): AgentsScene {
   const receipt = q<SVGTextElement>(svg, "#agt-receipt");
   const evt = q<SVGTextElement>(svg, "#agt-evt");
   const channelsG = q<SVGGElement>(svg, "#agt-channels");
+  const capRule3 = q<SVGPathElement>(svg, "#agt-cap-3 .trn-cap-rule");
 
   const doorRule = q<SVGPathElement>(svg, "#agt-door-rule");
   const doorText = q<SVGTextElement>(svg, "#agt-door");
@@ -876,8 +920,52 @@ export function createAgentsScene(): AgentsScene {
       throw new Error(`[agents] caption ${i + 2} arrives before caption ${i + 1} has left`);
     }
   }
+  /* ── the channel row, and the sentence it belongs to ──────────────────
+     The row is placed above the caption's rule by arithmetic and the rule is
+     authored in the markup, so nothing else in the system would ever notice
+     the two colliding — or notice the row drifting up into the agent box,
+     which is the only world object that shares this band of frame. */
+  {
+    const ra = capRule3.getPointAtLength(0);
+    if (Math.abs(ra.x - CAP_X) > 0.5 || Math.abs(ra.y - CAP_RULE_Y) > 0.5) {
+      throw new Error("[agents] the caption rule disagrees with CAP_X / CAP_RULE_Y");
+    }
+    const rowTop = CHAN_BASE_Y - CHAN_SIZE * 0.36 - CHAN_GLYPH / 2;
+    const rowBottom = rowTop + CHAN_GLYPH;
+    if (CAP_RULE_Y - rowBottom < 12) {
+      throw new Error("[agents] the channel row is sitting on its own caption's rule");
+    }
+    if (rowTop - (AGENT_Y + AGENT_H) < 12) {
+      throw new Error("[agents] the channel row has drifted up into the agent box");
+    }
+    /* And it has to stay in its own column rather than running under the card
+       stack, which is 100u of frame to its right at exactly this latitude. */
+    if (CAP_X + CHAN_TOTAL > CARD_X - 20) {
+      throw new Error("[agents] the channel row runs into the tool-card column");
+    }
+  }
+
+  /* The row and its sentence are ONE statement (user call), so the schedule
+     has to keep them one: the marks lead the words in and cannot still be
+     assembling after the sentence has landed, and they cannot start while the
+     previous narrator is still leaving. */
+  {
+    const cap3 = CAPS[2]!;
+    const rowEnd = B4_CHANNELS + (CHANNELS.length - 1) * CHAN_STEP + CHAN_FADE;
+    if (B4_CHANNELS < CAPS[1]!.out + CAP_TEXT_OUT) {
+      throw new Error("[agents] the channel row arrives while the previous caption is still leaving");
+    }
+    if (B4_CHANNELS > cap3.at) {
+      throw new Error("[agents] the channel row follows its own sentence instead of leading it");
+    }
+    if (rowEnd > cap3.at + CAP_TEXT_IN + 0.6) {
+      throw new Error("[agents] the channel row is still assembling after its sentence has landed");
+    }
+  }
+
   /* Captions are the only thing in this scene that ever leaves, so they are
-     the only thing that can violate the held ending. */
+     the only thing that can violate the held ending. The channel row leaves
+     with caption 3 and is covered by the same bound. */
   const lastCap = CAPS[CAPS.length - 1]!;
   if (lastCap.out + Math.max(CAP_TEXT_OUT, CAP_RULE_OUT + 0.2) > HOLD_FROM) {
     throw new Error("[agents] the last caption is still leaving inside the held ending");
@@ -946,28 +1034,36 @@ export function createAgentsScene(): AgentsScene {
      origin in its own 12u box and placed with a translate, so none of them
      carries an offset in its `d` and renaming a channel cannot move a mark. */
   channelsG.replaceChildren();
+  /** One group per channel, so each mark-and-word pair can arrive on its own
+   *  beat. The pair is grouped rather than tweened as two elements because a
+   *  glyph that faded in without its own name is a mark nobody can read. */
+  const chanItems: SVGGElement[] = [];
   {
-    const widths = CHANNELS.map(
-      (c) => CHAN_GLYPH + CHAN_GAP + monoWidth(c.word, CHAN_SIZE),
-    );
-    const total = widths.reduce((a, b) => a + b, 0) + (CHANNELS.length - 1) * CHAN_SEP;
-    /* The glyph box hangs so its middle sits on the word's optical centre —
-       10u mono has a cap height of ~7.2u, so the centre is ~3.6u above the
-       baseline and the 12u box starts 9.6u above it. */
-    const glyphTop = CHAN_BASE_Y - 9.6;
-    let x = CHAN_RIGHT - total;
+    /* The glyph box hangs so its middle sits on the word's optical centre.
+       Geist Mono's caps are ~0.72em, so the centre of a cap is 0.36em above
+       the baseline, and the box starts half its own height above that. */
+    const glyphTop = CHAN_BASE_Y - CHAN_SIZE * 0.36 - CHAN_GLYPH / 2;
+    /* The marks are authored in a CHAN_ART box and scaled into place. The
+       transform is static — written once here, never tweened — and the class
+       is non-scaling-stroke, so the drawing grows and the hairline does not. */
+    const k = (CHAN_GLYPH / CHAN_ART).toFixed(4);
+    let x = CAP_X;
     for (const [i, c] of CHANNELS.entries()) {
-      const g = svgEl("g", { transform: `translate(${x.toFixed(2)} ${glyphTop.toFixed(2)})` });
-      g.appendChild(svgEl("path", { class: "agt-chan-glyph", d: c.d }));
-      channelsG.appendChild(g);
+      const item = svgEl("g", { class: "agt-chan" });
+      const mark = svgEl("g", {
+        transform: `translate(${x.toFixed(2)} ${glyphTop.toFixed(2)}) scale(${k})`,
+      });
+      mark.appendChild(svgEl("path", { class: "agt-chan-glyph", d: c.d }));
       const word = svgEl("text", {
         class: "agt-chan-word",
         x: (x + CHAN_GLYPH + CHAN_GAP).toFixed(2),
         y: CHAN_BASE_Y,
       });
       word.textContent = c.word;
-      channelsG.appendChild(word);
-      x += widths[i]! + CHAN_SEP;
+      item.append(mark, word);
+      channelsG.appendChild(item);
+      chanItems.push(item);
+      x += CHAN_WIDTHS[i]! + CHAN_SEP;
     }
   }
 
@@ -1037,7 +1133,7 @@ export function createAgentsScene(): AgentsScene {
     cite,
     receipt,
     evt,
-    channelsG,
+    ...chanItems,
     doorText,
     ...caps.map((c) => c.text),
     ...rows.map((r) => r.evidence),
@@ -1180,6 +1276,27 @@ export function createAgentsScene(): AgentsScene {
        meant, the third line being the sentence the glass says over this beat
        in the scrubbed version. The pickup has no narrator and gets no third
        voice either. */
+    /* The channel row, rebuilt as a strip. Same CHANNELS const, same four
+       marks; the glyph `d`s are authored in a CHAN_ART box so a viewBox of
+       exactly that size renders them at whatever the stylesheet asks for. */
+    function stillChannels(): HTMLElement {
+      const ul = doc.createElement("ul");
+      ul.className = "agt-still-chans";
+      for (const c of CHANNELS) {
+        const li = doc.createElement("li");
+        li.className = "agt-still-chan";
+        const mark = document.createElementNS(SVG_NS, "svg");
+        mark.setAttribute("viewBox", `0 0 ${CHAN_ART} ${CHAN_ART}`);
+        mark.setAttribute("aria-hidden", "true");
+        mark.appendChild(svgEl("path", { class: "agt-chan-glyph", d: c.d }));
+        const w = doc.createElement("span");
+        w.textContent = c.word;
+        li.append(mark, w);
+        ul.appendChild(li);
+      }
+      return ul;
+    }
+
     function block(kicker: string, text: string, glassLine: string, event: string): HTMLElement {
       const el = doc.createElement("div");
       el.className = "eng-card";
@@ -1222,6 +1339,10 @@ export function createAgentsScene(): AgentsScene {
     for (const v of STILL_VIEW) {
       const el = block(v.kicker, v.text, v.glass, v.event);
       el.appendChild(figure(v.box));
+      /* The beat that makes the multi-channel claim carries the row that
+         proves it — in the scrub that row is on the glass, and the glass is
+         stripped out of every still figure. */
+      if (v.chans) el.appendChild(stillChannels());
       frag.appendChild(el);
     }
 
@@ -1534,10 +1655,18 @@ export function createAgentsScene(): AgentsScene {
        developer would subscribe to. */
     stampState(receipt, B4_RECEIPT);
     fadeIn(evt, B4_EVT, 1.2);
-    /* And the four channels the SAME agent would have answered on. Last,
-       because it is the widening of the claim rather than the claim: the
-       reader has to believe one channel before four is worth saying. */
-    fadeIn(channelsG, B4_CHANNELS, 1.4);
+    /* And the four channels the SAME agent would have answered on — now the
+       first half of caption 3 rather than a label beside the phone. The marks
+       come in left to right, a beat ahead of the rule and two ahead of the
+       words, so the reader meets the picture and is then told what it means.
+
+       They leave with the sentence, because they are part of it. Nothing on
+       the glass is in the finished frame (styles.css, .trn-l-glass) and this
+       row is on the glass now; the still cards carry the claim instead. */
+    chanItems.forEach((item, i) => {
+      fadeIn(item, B4_CHANNELS + i * CHAN_STEP, CHAN_FADE);
+      fadeOut(item, CAPS[2]!.out, CAP_TEXT_OUT);
+    });
 
     /* ── THE HELD ENDING ─────────────────────────────────────────────────
        Six units in which nothing leaves. The only thing still being built is

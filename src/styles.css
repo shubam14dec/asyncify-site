@@ -2187,7 +2187,20 @@ html {
   fill: var(--text-faint);
 }
 
-/* The channel row: four line marks and four lowercase words. */
+/* THE CHANNEL ROW. Four line marks and four lowercase words, and they now
+   sit ON THE GLASS, above caption 3's rule, as the picture of the sentence
+   underneath them rather than as a fifth object beside the phone.
+
+   Each glyph's `d` is authored in a 12-unit box and PLACED with a scale
+   transform (agents.ts), which is why the stroke below carries
+   vector-effect: non-scaling-stroke rather than a hand-reduced stroke-width:
+   the mark grows, the hairline does not. That is the whole reason this row
+   could be enlarged 1.67x without any of it getting fat.
+
+   The word is 14u against the row's old 10.5. At the scene's on-screen scale
+   that is ~11.4 CSS px on a 1250px viewport and ~14.6 on a 1536px one — a
+   channel name is a thing a reader is meant to actually read, and at the old
+   size it was a texture. */
 .agt-chan-glyph {
   fill: none;
   stroke: var(--hairline-strong);
@@ -2199,7 +2212,7 @@ html {
 
 .agt-chan-word {
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: 14px;
   letter-spacing: 0.01em;
   fill: var(--text-faint);
 }
@@ -2284,6 +2297,39 @@ html {
   font-size: 13px;
   letter-spacing: 0.01em;
   color: var(--text);
+}
+
+/* The channel row, as a strip. The scrubbed version puts it on the glass,
+   and the glass is stripped out of every still figure — so, exactly like the
+   checklist, it survives the fallback by CHANGING FORM rather than by being
+   cropped, and it is generated from the same CHANNELS const. It rides the
+   card whose beat it belongs to (the answer), not the phone it used to sit
+   beside. */
+.agt-still-chans {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin: 16px 0 0;
+  padding: 14px 0 0;
+  list-style: none;
+  border-top: 1px solid var(--hairline);
+}
+
+.agt-still-chan {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  color: var(--text-faint);
+}
+
+.agt-still-chan svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex: none;
 }
 
 .agt-still-e {
