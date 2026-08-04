@@ -1991,7 +1991,7 @@ export function createAgentsScene(): AgentsScene {
          floated below the text it belongs to (user catch). */
       const tail = doc.querySelector<HTMLElement>("#agt-era-tail");
       const tr = tail ? tail.getBoundingClientRect() : ph;
-      const uy = tr.bottom - r.top + 3; // +3 not +8: the line box already carries descent padding, and +8 crowded the sentence below
+      const uy = tr.bottom - r.top; // snug under the words (user call) -- the floor is the serif g's descender, which reaches ~2px above this
       const ux0 = ph.left - r.left - 18;
       const ux1 = ph.right - r.left + 4;
       const sideX = Math.max(l2.right, l3.right) - r.left + 56;
@@ -2001,9 +2001,14 @@ export function createAgentsScene(): AgentsScene {
          fractions of the cumulative arc length at each seam are what the
          timeline's tweens are written against -- geometry and schedule are
          the same numbers, scene 3's tracker discipline. */
-      const dive = (uy - entryY) * 0.45;
+      const dive = (uy - entryY) * 0.5;
+      /* Tangent-continuous into the underline (user catch: the first draft
+         arrived at ~45 degrees and KINKED flat at the last moment): the
+         second control point sits at the underline's own height, so the
+         curve arrives horizontal -- already flowing into the rule it is
+         about to draw. One sweep, no corner. */
       const segs = [
-        `M ${entryX.toFixed(1)} ${entryY.toFixed(1)} C ${entryX.toFixed(1)} ${(entryY + dive).toFixed(1)} ${(ux0 - 130).toFixed(1)} ${(uy - 130).toFixed(1)} ${ux0.toFixed(1)} ${uy.toFixed(1)}`,
+        `M ${entryX.toFixed(1)} ${entryY.toFixed(1)} C ${entryX.toFixed(1)} ${(entryY + dive).toFixed(1)} ${(ux0 - 170).toFixed(1)} ${uy.toFixed(1)} ${ux0.toFixed(1)} ${uy.toFixed(1)}`,
         `L ${ux1.toFixed(1)} ${uy.toFixed(1)}`,
         `C ${(ux1 + 120).toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${(l2y - 70).toFixed(1)} ${sideX.toFixed(1)} ${l2y.toFixed(1)}`,
         `C ${sideX.toFixed(1)} ${(l2y + 40).toFixed(1)} ${sideX.toFixed(1)} ${(l3y - 40).toFixed(1)} ${sideX.toFixed(1)} ${l3y.toFixed(1)}`,
