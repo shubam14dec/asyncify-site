@@ -2088,12 +2088,16 @@ export function createAgentsScene(): AgentsScene {
       scrollTrigger: {
         trigger: "#bridge-agents",
         start: "top 92%",
-        /* The runway ends where the NEXT scene's pin begins: the bridge is
-           115vh tall, so "top -115%" is the scroll moment scene 4's top
-           reaches the viewport top -- the cruise lands the dot on the
-           wire-in's tip at the exact pin instant, and scene 4's own dot
-           takes over there and then. That equality is the hand-off. */
-        end: "top -115%",
+        /* The runway ends where the NEXT scene's pin begins -- BY REFERENCE,
+           not arithmetic. The first version computed "top -115%" from the
+           bridge's own height and missed a ~140px layout interaction between
+           the sections, so the pin engaged while the journey was still 4%
+           from done and the hand-off tore (instrumented, not guessed).
+           endTrigger states the intent directly: this timeline's end IS the
+           moment scene 4's top reaches the viewport top, whatever the layout
+           between here and there does. */
+        endTrigger: "#scene-agents",
+        end: "top top",
         scrub: true,
       },
     });
