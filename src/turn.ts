@@ -1693,9 +1693,15 @@ export function createTurnScene(): TurnScene {
        last beat, so the pin releases with the line still alive and the
        bridge continues a motion instead of resuming a corpse. The label
        appears as the wire passes its latitude. */
-    draw(doorWire, 55.6, 15.6); // starts the moment the dock stamps settle -- no idle beat (user call)
-    fadeIn(tease, 60.0, 1.3); // early in the descent, not waited for
-    draw(doorHead, 71.2, 0.5);
+    /* AFTER the landing, not through it (user catch: an earlier retime used a
+       stale landing time and had the door drawing while the dot was still
+       flying home). The true order: land 60.4 -> mark seated 60.9 -> stamps
+       62.2..63.7 -> ONE quiet beat with the message at rest in its seat ->
+       then the door leaves the wall and grows to the frame's edge, arrowhead
+       landing at the scene's last breath for the bridge to take over. */
+    draw(doorWire, 64.6, 6.8);
+    fadeIn(tease, 66.6, 1.3); // mid-descent, as the wire passes its latitude
+    draw(doorHead, 71.4, 0.4);
   }
 
   /* ════════════════════════════════════════════════════════════════════════
