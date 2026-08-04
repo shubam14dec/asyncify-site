@@ -447,7 +447,10 @@ const MEM_SCALE = 1.9;
    silhouettes -- shape without words -- which is what "context" meant. */
 const MEM_STAGE_DIM = 0.05;
 const MEM_ROW_DIM = 0.1;
-const MEM_TITLE_DIM = 0.1;
+/* Zero, not 0.1: a 29px near-white head is still legible at 10% -- big type
+   survives dims that erase small type (user catch). The rows may whisper;
+   the masthead leaves the frame entirely and returns with the camera. */
+const MEM_TITLE_DIM = 0;
 /** One memory at a time — a list revealed all at once is read as one item. */
 const MEM_CURVES: readonly number[] = [21.6, 23.1, 24.6];
 const MEM_CURVE_DRAW = 0.8;
