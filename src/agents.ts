@@ -84,7 +84,7 @@ import { gsap } from "gsap";
             reader is meant to leave the scene on
 
    Nothing that existed in the storyboard was slowed down to reach it. */
-const PIN_HEIGHTS = 2.6; // was 2.0 -- the scene gained three camera asides on the same scroll and read as rushed (user call); 0.0325 vh/unit now, the slowest scene on the page because it is the densest
+const PIN_HEIGHTS = 3.0; // trying 3.0 (user call; 2.6 was the first slowdown from 2.0) -- 0.0375 vh/unit; falls back to 2.6 if this over-stretches
 const TL_END = 80;
 
 /** Scrub catch-up, in seconds. Matched to scenes 2 and 3 on purpose. */
