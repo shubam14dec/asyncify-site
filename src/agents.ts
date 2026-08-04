@@ -442,6 +442,18 @@ const MEM_LABEL_LAG = 0.35;
 const MEM_OUT = 26.6;
 const MEM_FOCUS_OUT = 27.3;
 
+/* -- The grounded close-up ------------------------------------------------
+   The memory aside's sibling, at the grounded tick, same rhythm on purpose --
+   twice is a motif (and it stops at twice; a third would be a template).
+   Three curves out of row 3: the agent's grounding is your tools (signed
+   calls), your company's documents (cited answers), and the honest boundary
+   (no source, no invention). Beat 3's whole chain sits +2 from where it was
+   authored to give this the same stage the memory aside got. */
+const GRD_IN = 33.6;
+const GRD_CURVES: readonly number[] = [34.4, 35.9, 37.4];
+const GRD_OUT = 39.2;
+const GRD_FOCUS_OUT = 39.9;
+
 const B2_T2 = 28.2;
 const B2_C2 = 29.4;
 const B2_C2_TITLE = 30.6;
@@ -451,32 +463,32 @@ const T_GROUND = 33.2;
 /* ── Beat 3 · the guarded action ───────────────────────────────────────── */
 /* The policy is stated BEFORE the call it stops, because that is the order it
    is true in: the rule exists, and then the agent walks into it. */
-const B3_GUARD = 39.0;
-const B3_T3 = 40.4;
-const B3_C3 = 41.6;
-const B3_C3_TITLE = 42.8;
+const B3_GUARD = 41.0;
+const B3_T3 = 42.4;
+const B3_C3 = 43.6;
+const B3_C3_TITLE = 44.8;
 /** THE PAUSE. The card's border leaves the ink ladder for the only time in
  *  the scene, and stays there for nearly seven units — a twelfth of the whole
  *  scrub in which the machine does nothing at all. AMBER_MIN_HOLD refuses to
  *  boot if an edit takes that away: an approval that resolves as fast as it is
  *  asked for is not a guardrail, it is a speed bump. */
-const B3_AMBER = 43.8;
+const B3_AMBER = 45.8;
 const B3_AMBER_DUR = 1.0;
-const B3_CONN = 45.0;
-const B3_APPROVE = 45.6;
-const B3_APPROVE_TITLE = 47.0;
-const B3_APPROVE_WHO = 47.8;
-const B3_YES_IN = 48.4;
+const B3_CONN = 47.0;
+const B3_APPROVE = 47.6;
+const B3_APPROVE_TITLE = 49.0;
+const B3_APPROVE_WHO = 49.8;
+const B3_YES_IN = 50.4;
 /** THE YES. The last human act in the scene, and the cause of everything
  *  after it — the same press gesture scene 3 gives its send glyph, which is
  *  DESIGN §3's press-feedback curve. */
-const B3_PRESS = 50.6;
+const B3_PRESS = 52.6;
 const B3_PRESS_DOWN = 0.18;
 const B3_PRESS_UP = 0.26;
 const T_GUARD = B3_PRESS;
-const B3_DRAIN = 51.0;
+const B3_DRAIN = 53.0;
 const B3_DRAIN_DUR = 1.6;
-const B3_RESULT = 52.4;
+const B3_RESULT = 54.4;
 const AMBER_MIN_HOLD = 4;
 
 /* ── Beat 4 · the answer ───────────────────────────────────────────────── */
@@ -552,8 +564,10 @@ const CAP_DIP = 6;
  *  and DESIGN §3 bans animating one outright. */
 const CAP_TRACK = 1.03;
 const CAPS: readonly { at: number; out: number }[] = [
-  { at: 30.8, out: 36.4 },
-  { at: 46.8, out: 52.6 },
+  /* Between the two checklist asides: it narrates the second lookup and must
+     be OFF the glass before the grounded close-up dims the stage under it. */
+  { at: 29.0, out: 32.6 },
+  { at: 48.8, out: 54.6 },
 ];
 
 /* ── the closing statement ─────────────────────────────────────────────
@@ -640,6 +654,7 @@ const Q_PITCH = 46;
 /** The memory fan pivots the close-up on the remembers row's own latitude
  *  (declared here, beside the geometry it is derived from). */
 const MEM_ORIGIN_Y = Q_Y0 + 1 * Q_PITCH + 6;
+const GRD_ORIGIN_Y = Q_Y0 + 2 * Q_PITCH + 6;
 const Q_MIN_PITCH = 38;
 const Q_WORD_DY = 11;
 /* Measured rather than eyeballed, twice. At the original 22 the word and its
@@ -818,6 +833,8 @@ export function createAgentsScene(): AgentsScene {
   const qualitiesG = q<SVGGElement>(checklist, "#agt-qualities");
   const memCurves = [1, 2, 3].map((i) => q<SVGPathElement>(checklist, `#agt-mem-c${i}`));
   const memLabels = [1, 2, 3].map((i) => q<SVGTextElement>(checklist, `#agt-mem-l${i}`));
+  const grdCurves = [1, 2, 3].map((i) => q<SVGPathElement>(checklist, `#agt-grd-c${i}`));
+  const grdLabels = [1, 2, 3].map((i) => q<SVGTextElement>(checklist, `#agt-grd-l${i}`));
 
   const wireIn = q<SVGPathElement>(svg, "#agt-wire-in");
   const wireOut = q<SVGPathElement>(svg, "#agt-wire-out");
@@ -917,6 +934,19 @@ export function createAgentsScene(): AgentsScene {
   }
   if (MEM_CURVES[MEM_CURVES.length - 1]! + MEM_CURVE_DRAW + MEM_LABEL_LAG >= MEM_OUT) {
     throw new Error("[agents] the last memory label has no time to stand before the fan folds");
+  }
+
+  /* Same two guards for the grounded aside, against the SHIFTED beat 3. */
+  if (GRD_FOCUS_OUT + 0.9 > B3_GUARD) {
+    throw new Error("[agents] the grounded close-up is still folding away when the guardrail speaks");
+  }
+  if (GRD_CURVES[GRD_CURVES.length - 1]! + MEM_CURVE_DRAW + MEM_LABEL_LAG >= GRD_OUT) {
+    throw new Error("[agents] the last grounding label has no time to stand before the fan folds");
+  }
+  /* And caption 1 must be off the glass before that close-up dims the stage
+     it is printed on. */
+  if (CAPS[0]!.out + CAP_TEXT_OUT > GRD_IN) {
+    throw new Error("[agents] caption 1 is still on the glass when the grounded close-up dims it");
   }
 
   /* And the last one has to land before the held ending: a checklist still
@@ -1601,8 +1631,8 @@ export function createAgentsScene(): AgentsScene {
     /* The memory close-up fully folded: curves at zero length, labels dark,
        the checklist at scale 1 about the pivot it will use, every row and the
        stage at full ink. */
-    gsap.set(memCurves, { drawSVG: "0% 0%" });
-    gsap.set(memLabels, { opacity: 0 });
+    gsap.set([...memCurves, ...grdCurves], { drawSVG: "0% 0%" });
+    gsap.set([...memLabels, ...grdLabels], { opacity: 0 });
     gsap.set(checklist, { scale: 1, transformOrigin: `0px ${MEM_ORIGIN_Y}px` });
     gsap.set(svg, { opacity: 1 });
     gsap.set(rulesG, { opacity: 1 });
@@ -2048,7 +2078,7 @@ export function createAgentsScene(): AgentsScene {
     {
       const others = rows.filter((_, i) => i !== 1).flatMap((r) => [r.word, r.box]);
       ft(svg, { opacity: 1 }, { opacity: MEM_STAGE_DIM, duration: 0.7 }, MEM_IN);
-      ft(checklist, { scale: 1 }, { scale: MEM_SCALE, duration: 0.9, ease: "power2.inOut" }, MEM_IN);
+      ft(checklist, { scale: 1 }, { scale: MEM_SCALE, duration: 0.9, ease: "power2.inOut", transformOrigin: `0px ${MEM_ORIGIN_Y}px` }, MEM_IN);
       ft(others, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, MEM_IN);
       ft(rulesG, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, MEM_IN);
       MEM_CURVES.forEach((at, i) => {
@@ -2058,7 +2088,7 @@ export function createAgentsScene(): AgentsScene {
       ft(memCurves, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8, ease: "power2.in" }, MEM_OUT);
       ft(memLabels, { opacity: 1 }, { opacity: 0, duration: 0.6 }, MEM_OUT);
       ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
-      ft(checklist, { scale: MEM_SCALE }, { scale: 1, duration: 0.8, ease: "power2.inOut" }, MEM_FOCUS_OUT);
+      ft(checklist, { scale: MEM_SCALE }, { scale: 1, duration: 0.8, ease: "power2.inOut", transformOrigin: `0px ${MEM_ORIGIN_Y}px` }, MEM_FOCUS_OUT);
       ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
       ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
     }
@@ -2067,6 +2097,28 @@ export function createAgentsScene(): AgentsScene {
     drawBox(cardBoxes[1]!, B2_C2, 1.8);
     fadeIn(cardTitles[1]!, B2_C2_TITLE, 1.0);
     fadeIn(cardResults[1]!, B2_C2_RESULT, 1.2);
+
+    /* -- the grounded close-up -------------------------------------------
+       The memory aside's sibling at the grounded tick -- same choreography,
+       different pivot and different truth: tools, documents, honesty. Rows
+       other than row 3 recede this time. */
+    {
+      const others = rows.filter((_, i) => i !== 2).flatMap((r) => [r.word, r.box]);
+      ft(svg, { opacity: 1 }, { opacity: MEM_STAGE_DIM, duration: 0.7 }, GRD_IN);
+      ft(checklist, { scale: 1 }, { scale: MEM_SCALE, duration: 0.9, ease: "power2.inOut", transformOrigin: `0px ${GRD_ORIGIN_Y}px` }, GRD_IN);
+      ft(others, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GRD_IN);
+      ft(rulesG, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GRD_IN);
+      GRD_CURVES.forEach((at, i) => {
+        draw(grdCurves[i]!, at, MEM_CURVE_DRAW);
+        fadeIn(grdLabels[i]!, at + MEM_LABEL_LAG, 0.6);
+      });
+      ft(grdCurves, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8, ease: "power2.in" }, GRD_OUT);
+      ft(grdLabels, { opacity: 1 }, { opacity: 0, duration: 0.6 }, GRD_OUT);
+      ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: 0.8 }, GRD_FOCUS_OUT);
+      ft(checklist, { scale: MEM_SCALE }, { scale: 1, duration: 0.8, ease: "power2.inOut", transformOrigin: `0px ${GRD_ORIGIN_Y}px` }, GRD_FOCUS_OUT);
+      ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GRD_FOCUS_OUT);
+      ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GRD_FOCUS_OUT);
+    }
 
     /* ── BEAT 3 · the guarded action ─────────────────────────────────────
        The policy is stated before the call it stops, the call is made anyway,
