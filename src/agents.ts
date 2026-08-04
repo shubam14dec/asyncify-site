@@ -115,7 +115,7 @@ const HOLD_FROM = 74;
    only thing that ever travels it. The tool traces are the only lines that
    leave it, and they are the only lines that come back. */
 const FRAME_W = 1080;
-const FRAME_H = 600;
+const FRAME_H = 634; // 600 + the second 34u drop of the beat-3 cluster (user call) — the foot margin was already at its floor, so the frame grew instead
 const SPINE_Y = 306;
 
 /** The chassis, as one box — scene 3's chip dialect, one scene on. It grew
@@ -222,9 +222,9 @@ const CARD_PAD = 12;
 const CARDS: readonly { y: number; h: number }[] = [
   { y: 96, h: 74 },
   { y: 208, h: 58 },
-  { y: 420, h: 54 },
+  { y: 454, h: 54 },
 ];
-const APPROVE_Y = 496;
+const APPROVE_Y = 530;
 const APPROVE_H = 70;
 /** The policy annotation's own baseline. It is authored in the markup like
  *  every other string in the world, and it lives here too because it is the
@@ -232,7 +232,7 @@ const APPROVE_H = 70;
  *  under it, so "paired, above, and closer to that card than to anything else"
  *  is an invariant rather than a placement. Asserted against the markup and
  *  against both its neighbours at boot. */
-const GUARD_Y = 410;
+const GUARD_Y = 444;
 const GUARD_SIZE = 11;
 /** How much frame has to be left under the deepest thing in the world. The
  *  cluster is what pushed against this, and 24u is the floor the move was
@@ -702,7 +702,7 @@ const STILL_VIEW = [
        the approval card's floor at 566 — and it followed the cluster 34u down
        when the cluster moved. A window left at the old latitude would have
        framed the empty gap the move created. */
-    box: "500 390 300 190",
+    box: "500 424 300 190",
   },
   {
     chans: true,
