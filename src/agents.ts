@@ -275,12 +275,21 @@ const CAP_X = 40;
  *  asserted against it at boot, because the row is placed above it by
  *  arithmetic and nothing else in the system would notice them colliding. */
 const CAP_RULE_Y = 424;
-/** The channel words' baseline. The row sits between the chassis's bottom
- *  wall (376) and the caption rule (424) with 14u of air either side — both
- *  clearances are asserted, because this is the one place in the scene where
- *  the glass and the world share a band of frame, and the chassis grew 24u
- *  taller when the guide's rows went into it. */
-const CHAN_BASE_Y = 405;
+/** The CLOSING STATEMENT's own rule, 44u below the captions'. It is a
+ *  different object with a different lifetime (see #agt-closing in the
+ *  markup), so it gets its own latitude rather than borrowing theirs — which
+ *  is also what buys the channel marks above it their clearance from the
+ *  chassis. The two zones overlap in space and never in time; the schedule
+ *  asserts below are what keep that true. */
+const CLOSE_RULE_Y = 468;
+/** The channel words' baseline. The row used to sit 14u under the chassis's
+ *  bottom wall, which was close enough that it read as a fifth row OF the
+ *  chassis rather than as a statement about the scene (user call). It now sits
+ *  58u clear of it and 14u above its own rule — far enough that the eye files
+ *  the block separately, near enough that the marks still belong to the words
+ *  under them. Both clearances are asserted, because this is the one place in
+ *  the scene where a frame-level layer and the world share a band. */
+const CHAN_BASE_Y = 449;
 /** Each glyph is authored in a CHAN_ART box and PLACED at CHAN_GLYPH with a
  *  scale transform, so the marks grow and the hairline does not (the class
  *  carries vector-effect: non-scaling-stroke). 20 against the 12 it was:
@@ -410,10 +419,29 @@ const B4_FLY = 61.0;
 const B4_FLY_DUR = 5.2;
 const B4_LAND = B4_FLY + B4_FLY_DUR; // 66.2
 const T_ANSWER = B4_LAND;
-const B4_MSG = 66.6;
+const B4_MSG = 66.5;
 const B4_CITE = 68.2;
-const B4_RECEIPT = 69.0;
-const B4_EVT = 70.0;
+const B4_RECEIPT = 67.9;
+const B4_EVT = 68.5;
+/* ── the receipt pair's viewing window ────────────────────────────────
+   `delivered · email` and `websocket event: message.changed` used to stand in
+   the finished frame forever. They now stamp, hold long enough to be read at
+   scrub pace, and go (user call) — the reader has seen them, and the ending is
+   better without two lines of machine muttering hanging in the middle of it.
+
+   The window is measured, not felt: 4.5 units for the receipt and 3.5 for the
+   event line, which at this scene's 0.025 viewport-heights-per-unit is a tenth
+   of a screen of scroll each with the string standing still. RCP_WINDOW_MIN
+   refuses a schedule that gives them less. They are also the LAST thing in the
+   scene that ever leaves, so the fade is timed to land exactly on HOLD_FROM:
+   past it, the frame is finished and nothing moves but the door drawing itself.
+
+   Nothing is lost by their going. The answer is still in the thread with its
+   citation, the checklist's fifth row still reads `answers back / ws ·
+   message.changed`, and the closing statement now persists under it. */
+const RCP_OUT = 73.0;
+const RCP_OUT_DUR = 1.0;
+const RCP_WINDOW_MIN = 3;
 /** The row leads its own sentence in by a beat, left to right. Each mark is
  *  its own explicit fromTo, so a reverse scrub un-staggers them in the order
  *  they arrived — a stagger built with gsap's `stagger` shorthand would be one
@@ -458,11 +486,21 @@ const CAP_TRACK = 1.03;
 const CAPS: readonly { at: number; out: number }[] = [
   { at: 30.8, out: 36.4 },
   { at: 46.8, out: 52.6 },
-  /* Pushed 0.4 later than it used to sit so the channel row can lead it: the
-     marks come in from 68.8, the rule draws under them at 69.4, and the words
-     rise last. Out at 72.8 leaves the held ending clear by 0.3 (asserted). */
-  { at: 69.4, out: 72.8 },
 ];
+
+/* ── the closing statement ─────────────────────────────────────────────
+   There used to be a third caption here and there is not any more, because it
+   stopped being one (user call). It arrives the way a caption does — the marks
+   lead, the rule draws under them, the words rise last — and then it simply
+   never leaves. The scene ends with it on the frame.
+
+   That is a deliberate exception to the rule the glass layer states about
+   itself, and it is worth naming rather than quietly breaking: narration is a
+   thing that was said, so it goes; this is the claim the scene exists to make,
+   so it stays. Everything that is still a caption is still governed by the
+   one-at-a-time assert, and the statement gets its own assert saying it may
+   not arrive while the last of them is still leaving. */
+const CLOSE_AT = 69.4;
 
 /* ── The checklist ─────────────────────────────────────────────────────────
    Five capabilities, listed complete from the pin's entry fade, each ticked at
@@ -745,16 +783,19 @@ export function createAgentsScene(): AgentsScene {
   const receipt = q<SVGTextElement>(svg, "#agt-receipt");
   const evt = q<SVGTextElement>(svg, "#agt-evt");
   const channelsG = q<SVGGElement>(svg, "#agt-channels");
-  const capRule3 = q<SVGPathElement>(svg, "#agt-cap-3 .trn-cap-rule");
 
   const doorRule = q<SVGPathElement>(svg, "#agt-door-rule");
   const doorText = q<SVGTextElement>(svg, "#agt-door");
 
   const glass = q<SVGGElement>(svg, "#agt-glass");
-  const caps = [1, 2, 3].map((i) => {
+  const caps = [1, 2].map((i) => {
     const g = q<SVGGElement>(svg, `#agt-cap-${i}`);
     return { rule: q<SVGPathElement>(g, ".trn-cap-rule"), text: q<SVGGElement>(g, ".trn-cap-text") };
   });
+  /* The closing statement. Same two parts a caption has and the same ink, but
+     its own elements and its own schedule — it outlives them. */
+  const closeRule = q<SVGPathElement>(svg, "#agt-close-rule");
+  const closeText = q<SVGGElement>(svg, "#agt-close-text");
 
   const dotsG = q<SVGGElement>(svg, "#agt-dots");
   const gIn = q<SVGPathElement>(svg, "#agt-g-in");
@@ -1077,17 +1118,35 @@ export function createAgentsScene(): AgentsScene {
      the two colliding — or notice the row drifting up into the agent box,
      which is the only world object that shares this band of frame. */
   {
-    const ra = capRule3.getPointAtLength(0);
-    if (Math.abs(ra.x - CAP_X) > 0.5 || Math.abs(ra.y - CAP_RULE_Y) > 0.5) {
-      throw new Error("[agents] the caption rule disagrees with CAP_X / CAP_RULE_Y");
+    const ra = closeRule.getPointAtLength(0);
+    if (Math.abs(ra.x - CAP_X) > 0.5 || Math.abs(ra.y - CLOSE_RULE_Y) > 0.5) {
+      throw new Error("[agents] the closing rule disagrees with CAP_X / CLOSE_RULE_Y");
+    }
+    /* The two real captions still hang on the band above. They share the left
+       column with the statement and never the frame, so what has to hold is
+       only that they are a different latitude and the higher one — a caption
+       drawn at the statement's y would be the scene contradicting itself about
+       where its own margin note lives. */
+    if (CAP_RULE_Y >= CLOSE_RULE_Y) {
+      throw new Error("[agents] the captions no longer sit above the closing statement");
+    }
+    for (const [i, c] of caps.entries()) {
+      const ca = c.rule.getPointAtLength(0);
+      if (Math.abs(ca.x - CAP_X) > 0.5 || Math.abs(ca.y - CAP_RULE_Y) > 0.5) {
+        throw new Error(`[agents] caption ${i + 1}'s rule disagrees with CAP_X / CAP_RULE_Y`);
+      }
     }
     const rowTop = CHAN_BASE_Y - CHAN_SIZE * 0.36 - CHAN_GLYPH / 2;
     const rowBottom = rowTop + CHAN_GLYPH;
-    if (CAP_RULE_Y - rowBottom < 12) {
-      throw new Error("[agents] the channel row is sitting on its own caption's rule");
+    if (CLOSE_RULE_Y - rowBottom < 12) {
+      throw new Error("[agents] the channel row is sitting on its own rule");
     }
-    if (rowTop - (AGENT_Y + AGENT_H) < 12) {
-      throw new Error("[agents] the channel row has drifted up into the agent box");
+    /* 40, not the 12 this started at. The whole point of moving the block was
+       that 14u read as "attached to the chassis" (user call), so the floor has
+       to be a number that refuses the arrangement we were just asked to leave
+       — a floor that permits the defect is not a floor. */
+    if (rowTop - (AGENT_Y + AGENT_H) < 40) {
+      throw new Error("[agents] the channel row has drifted back up under the chassis");
     }
     /* And it has to stay in its own column rather than running under the card
        stack, which is 100u of frame to its right at exactly this latitude. */
@@ -1101,22 +1160,49 @@ export function createAgentsScene(): AgentsScene {
      assembling after the sentence has landed, and they cannot start while the
      previous narrator is still leaving. */
   {
-    const cap3 = CAPS[2]!;
     const rowEnd = B4_CHANNELS + (CHANNELS.length - 1) * CHAN_STEP + CHAN_FADE;
-    if (B4_CHANNELS < CAPS[1]!.out + CAP_TEXT_OUT) {
-      throw new Error("[agents] the channel row arrives while the previous caption is still leaving");
+    const lastCaption = CAPS[CAPS.length - 1]!;
+    if (B4_CHANNELS < lastCaption.out + CAP_TEXT_OUT) {
+      throw new Error("[agents] the closing statement arrives while the last caption is still leaving");
     }
-    if (B4_CHANNELS > cap3.at) {
+    if (B4_CHANNELS > CLOSE_AT) {
       throw new Error("[agents] the channel row follows its own sentence instead of leading it");
     }
-    if (rowEnd > cap3.at + CAP_TEXT_IN + 0.6) {
+    if (rowEnd > CLOSE_AT + CAP_TEXT_IN + 0.6) {
       throw new Error("[agents] the channel row is still assembling after its sentence has landed");
+    }
+    /* The statement is the last thing the scene builds before the door, and it
+       has to be standing by the time the held ending starts — it is what the
+       reader is meant to be able to stop and read. */
+    if (CLOSE_AT + 0.25 + CAP_TEXT_IN > HOLD_FROM) {
+      throw new Error("[agents] the closing statement is still arriving inside the held ending");
     }
   }
 
-  /* Captions are the only thing in this scene that ever leaves, so they are
-     the only thing that can violate the held ending. The channel row leaves
-     with caption 3 and is covered by the same bound. */
+  /* ── the receipt pair's window ──────────────────────────────────────
+     A string that leaves has to have been readable first, and "readable" here
+     is a distance in scroll rather than a feeling: RCP_WINDOW_MIN units with
+     the line standing still and nothing else arriving on top of it. The two
+     have different windows because the event line stamps after the receipt it
+     annotates, so both are checked. */
+  {
+    const receiptUp = B4_RECEIPT + 0.6;
+    const evtUp = B4_EVT + 1.0;
+    if (RCP_OUT - receiptUp < RCP_WINDOW_MIN || RCP_OUT - evtUp < RCP_WINDOW_MIN) {
+      throw new Error("[agents] the delivery receipt leaves before anyone could have read it");
+    }
+    if (RCP_OUT < B4_LAND) {
+      throw new Error("[agents] the receipt leaves before the delivery it is a receipt for");
+    }
+    /* They are the last thing in the scene that ever leaves. */
+    if (RCP_OUT + RCP_OUT_DUR > HOLD_FROM) {
+      throw new Error("[agents] the receipt is still leaving inside the held ending");
+    }
+  }
+
+  /* Captions and the receipt pair are the only things in this scene that ever
+     leave; the receipt's bound is checked above, and this is the captions'.
+     The closing statement is deliberately not in either list — it stays. */
   const lastCap = CAPS[CAPS.length - 1]!;
   if (lastCap.out + Math.max(CAP_TEXT_OUT, CAP_RULE_OUT + 0.2) > HOLD_FROM) {
     throw new Error("[agents] the last caption is still leaving inside the held ending");
@@ -1291,6 +1377,7 @@ export function createAgentsScene(): AgentsScene {
     ...chanItems,
     doorText,
     ...caps.map((c) => c.text),
+    closeText,
     ...rows.map((r) => r.evidence),
   ];
 
@@ -1337,6 +1424,10 @@ export function createAgentsScene(): AgentsScene {
       caps.map((c) => c.text),
       { y: CAP_RISE, scaleX: CAP_TRACK, transformOrigin: "0% 50%" },
     );
+    /* The closing statement rests exactly as a caption does — it is only its
+       exit that differs, and a rest state owes an inverse for the way in. */
+    gsap.set(closeRule, { drawSVG: "50% 50%" });
+    gsap.set(closeText, { y: CAP_RISE, scaleX: CAP_TRACK, transformOrigin: "0% 50%" });
     /* Packets parked where their own journey starts rather than at the scene
        origin — same insurance as scenes 2 and 3. A circle authored at 0,0 sits
        in the viewBox's corner until something moves it, so the failure mode of
@@ -1823,19 +1914,39 @@ export function createAgentsScene(): AgentsScene {
        The receipt is a fact about the send; the event is the string a
        developer would subscribe to. */
     stampState(receipt, B4_RECEIPT);
-    fadeIn(evt, B4_EVT, 1.2);
+    fadeIn(evt, B4_EVT, 1.0);
+    /* And then they go. The pair arrived together and leaves together, because
+       they are one stamp read at two rungs — a receipt whose event line
+       outlived it would be half a thought left on the frame. */
+    fadeOut(receipt, RCP_OUT, RCP_OUT_DUR);
+    fadeOut(evt, RCP_OUT, RCP_OUT_DUR);
     /* And the four channels the SAME agent would have answered on — now the
        first half of caption 3 rather than a label beside the phone. The marks
        come in left to right, a beat ahead of the rule and two ahead of the
        words, so the reader meets the picture and is then told what it means.
 
-       They leave with the sentence, because they are part of it. Nothing on
-       the glass is in the finished frame (styles.css, .trn-l-glass) and this
-       row is on the glass now; the still cards carry the claim instead. */
+       AND THEY STAY, with the sentence they belong to. That is why the block
+       moved off the glass: the glass's contract is that its contents are not
+       in the finished frame, and this claim is (user call). */
     chanItems.forEach((item, i) => {
       fadeIn(item, B4_CHANNELS + i * CHAN_STEP, CHAN_FADE);
-      fadeOut(item, CAPS[2]!.out, CAP_TEXT_OUT);
     });
+    /* The rule and the words that finish the statement, built exactly the way
+       a caption is built and then left alone. No exit tween on any of the three
+       parts, which is the entire difference between this and the two real
+       captions above it. */
+    ft(
+      closeRule,
+      { drawSVG: "50% 50%" },
+      { drawSVG: "0% 100%", duration: CAP_RULE_IN, ease: "power2.out" },
+      CLOSE_AT,
+    );
+    ft(
+      closeText,
+      { opacity: 0, y: CAP_RISE, scaleX: CAP_TRACK },
+      { opacity: 1, y: 0, scaleX: 1, duration: CAP_TEXT_IN, ease: "power2.out", transformOrigin: "0% 50%" },
+      CLOSE_AT + 0.25,
+    );
 
     /* ── THE HELD ENDING ─────────────────────────────────────────────────
        Six units in which nothing leaves. The only thing still being built is

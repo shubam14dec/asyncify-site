@@ -1954,9 +1954,28 @@ html {
   min-width: 0; /* a grid child must be allowed to be narrower than its SVG */
 }
 
+/* THE FRAME MUST FIT THE PIN, and `height: min(100%, 78vh)` — which scenes 2
+   and 3 both carry — does not make it. `100%` here resolves against a grid item
+   whose own height is its content, which is indeterminate, so the whole min()
+   is dropped and the height falls back to the aspect-derived one. On a tall
+   window nobody notices; on a 550px-tall one the svg renders 659px tall inside
+   a 606px content box and the bottom ~9% of the viewBox goes under the fold.
+
+   That was harmless while nothing lived down there. It stopped being harmless
+   the moment the closing statement moved to y 434-532 and the door cue to 566:
+   the two things the reader is meant to be left looking at were the two things
+   being cropped.
+
+   So the cap is expressed in units that are always definite. The pin is
+   100dvh with clamp(24px, 5vh, 56px) of padding top and bottom, so its content
+   box is exactly this tall; `height: auto` keeps the intrinsic aspect ratio and
+   `max-height` scales the whole drawing down when the window is short.
+   preserveAspectRatio does the rest — a smaller complete frame, never a
+   cropped one. */
 .agt-svg {
   width: 100%;
-  height: min(100%, 78vh);
+  height: auto;
+  max-height: calc(100dvh - 2 * clamp(24px, 5vh, 56px));
   overflow: hidden;
 }
 
