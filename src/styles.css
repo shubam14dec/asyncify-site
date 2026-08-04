@@ -2258,6 +2258,23 @@ html {
    that is ~11.4 CSS px on a 1250px viewport and ~14.6 on a 1536px one — a
    channel name is a thing a reader is meant to actually read, and at the old
    size it was a texture. */
+/* The memory fan. Curves rest at zero length (butt caps — phantom-dot law);
+   labels are dim, not faint: they are the point of the close-up. */
+.agt-mem-curve {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+.agt-mem-label {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+  fill: var(--text-dim);
+}
+
 .agt-chan-glyph {
   fill: none;
   stroke: var(--hairline-strong);

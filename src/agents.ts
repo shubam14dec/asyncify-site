@@ -420,11 +420,33 @@ const B2_C1 = 16.6;
 const B2_C1_TITLE = 17.8;
 const B2_C1_RESULT = 20.0;
 const T_MEMORY = 20.4;
-const B2_T2 = 24.2;
-const B2_C2 = 25.4;
-const B2_C2_TITLE = 26.6;
-const B2_C2_RESULT = 28.8;
-const T_GROUND = 29.2;
+
+/* ── The memory close-up ──────────────────────────────────────────────────
+   (user call) The "remembers" tick is the one moment to show what the word
+   MEANS: the platform's three memories (guide §9 — transcript, episodic
+   summaries, durable profile). For seven units the rail becomes the subject:
+   the world dims, the checklist scales up about the remembers row (this
+   scene's only "camera" move), and three curves fan out of the row one at a
+   time, each naming a memory. Then everything folds away and the lookup
+   resumes — which is why the card-2 chain below sits +4 from where it was
+   authored: the fan needed a stage, and the only honest way to get one in a
+   fixed timeline is to move the next act, not to talk over it. */
+const MEM_IN = 20.8;
+const MEM_SCALE = 1.16;
+const MEM_STAGE_DIM = 0.35;
+const MEM_ROW_DIM = 0.35;
+/** One memory at a time — a list revealed all at once is read as one item. */
+const MEM_CURVES: readonly number[] = [21.6, 23.1, 24.6];
+const MEM_CURVE_DRAW = 0.8;
+const MEM_LABEL_LAG = 0.35;
+const MEM_OUT = 26.6;
+const MEM_FOCUS_OUT = 27.3;
+
+const B2_T2 = 28.2;
+const B2_C2 = 29.4;
+const B2_C2_TITLE = 30.6;
+const B2_C2_RESULT = 32.8;
+const T_GROUND = 33.2;
 
 /* ── Beat 3 · the guarded action ───────────────────────────────────────── */
 /* The policy is stated BEFORE the call it stops, because that is the order it
@@ -615,6 +637,9 @@ const Q_X = 0.5;
 const Q_TEXT_X = 26;
 const Q_Y0 = 12;
 const Q_PITCH = 46;
+/** The memory fan pivots the close-up on the remembers row's own latitude
+ *  (declared here, beside the geometry it is derived from). */
+const MEM_ORIGIN_Y = Q_Y0 + 1 * Q_PITCH + 6;
 const Q_MIN_PITCH = 38;
 const Q_WORD_DY = 11;
 /* Measured rather than eyeballed, twice. At the original 22 the word and its
@@ -685,7 +710,7 @@ const STILL_VIEW = [
   {
     chans: false,
     kicker: "the lookup",
-    text: "Two calls, in the order a brain makes them: what do I already know about this person, and what does the order actually say.",
+    text: "Two calls, in the order a brain makes them: what do I already know about this person — short-term transcript, episodic past conversations, long-term profile — and what does the order actually say.",
     glass: "It doesn't guess. It remembers, and it looks things up.",
     event: "tool · search_history",
     /* Both traces leaving the box's wall and both cards, so the crop still
@@ -791,6 +816,8 @@ export function createAgentsScene(): AgentsScene {
   const checklist = q<SVGSVGElement>(doc, "#agt-checklist");
   const rulesG = q<SVGGElement>(checklist, "#agt-rules");
   const qualitiesG = q<SVGGElement>(checklist, "#agt-qualities");
+  const memCurves = [1, 2, 3].map((i) => q<SVGPathElement>(checklist, `#agt-mem-c${i}`));
+  const memLabels = [1, 2, 3].map((i) => q<SVGTextElement>(checklist, `#agt-mem-l${i}`));
 
   const wireIn = q<SVGPathElement>(svg, "#agt-wire-in");
   const wireOut = q<SVGPathElement>(svg, "#agt-wire-out");
@@ -882,6 +909,16 @@ export function createAgentsScene(): AgentsScene {
       throw new Error(`[agents] quality ${i + 1} (${qy.word}) ticks before the one above it`);
     }
   }
+  /* The memory close-up has to be OVER — curves retracted, world back at
+     full ink — before trace 2 fires; a lookup drawn into a dimmed stage is a
+     scene talking over its own aside. */
+  if (MEM_FOCUS_OUT + 0.9 > B2_T2) {
+    throw new Error("[agents] the memory close-up is still folding away when the lookup resumes");
+  }
+  if (MEM_CURVES[MEM_CURVES.length - 1]! + MEM_CURVE_DRAW + MEM_LABEL_LAG >= MEM_OUT) {
+    throw new Error("[agents] the last memory label has no time to stand before the fan folds");
+  }
+
   /* And the last one has to land before the held ending: a checklist still
      completing itself while the scene is supposedly finished is a scene whose
      ending is a lie. */
@@ -1428,7 +1465,7 @@ export function createAgentsScene(): AgentsScene {
     });
     evidence.textContent = qy.evidence;
     qualitiesG.append(box, tick, word, evidence);
-    return { tick, word, evidence, at: qy.at };
+    return { box, tick, word, evidence, at: qy.at };
   });
 
   /* The channel row, laid out from a cursor: total width first, then
@@ -1560,6 +1597,18 @@ export function createAgentsScene(): AgentsScene {
     gsap.set(
       rows.map((r) => r.word),
       { fill: COLOR.textDim },
+    );
+    /* The memory close-up fully folded: curves at zero length, labels dark,
+       the checklist at scale 1 about the pivot it will use, every row and the
+       stage at full ink. */
+    gsap.set(memCurves, { drawSVG: "0% 0%" });
+    gsap.set(memLabels, { opacity: 0 });
+    gsap.set(checklist, { scale: 1, transformOrigin: `0px ${MEM_ORIGIN_Y}px` });
+    gsap.set(svg, { opacity: 1 });
+    gsap.set(rulesG, { opacity: 1 });
+    gsap.set(
+      rows.flatMap((r) => [r.word, r.box]),
+      { opacity: 1 },
     );
     gsap.set(strokeParts, { drawSVG: "0% 0%" });
     gsap.set(boxRects, { fillOpacity: 0 });
@@ -1990,6 +2039,29 @@ export function createAgentsScene(): AgentsScene {
     drawBox(cardBoxes[0]!, B2_C1, 2.0);
     fadeIn(cardTitles[0]!, B2_C1_TITLE, 1.0);
     fadeIn(cardResults[0]!, B2_C1_RESULT, 1.2);
+
+    /* ── the memory close-up ─────────────────────────────────────────────
+       The world yields, the rail speaks: three curves out of the remembers
+       row, one memory at a time, then the whole aside folds away and the
+       scene picks its sentence back up. Every move is an explicit pair, so
+       scrubbing back re-dims, re-scales and re-folds in reverse order. */
+    {
+      const others = rows.filter((_, i) => i !== 1).flatMap((r) => [r.word, r.box]);
+      ft(svg, { opacity: 1 }, { opacity: MEM_STAGE_DIM, duration: 0.7 }, MEM_IN);
+      ft(checklist, { scale: 1 }, { scale: MEM_SCALE, duration: 0.9, ease: "power2.inOut" }, MEM_IN);
+      ft(others, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, MEM_IN);
+      ft(rulesG, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, MEM_IN);
+      MEM_CURVES.forEach((at, i) => {
+        draw(memCurves[i]!, at, MEM_CURVE_DRAW);
+        fadeIn(memLabels[i]!, at + MEM_LABEL_LAG, 0.6);
+      });
+      ft(memCurves, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8, ease: "power2.in" }, MEM_OUT);
+      ft(memLabels, { opacity: 1 }, { opacity: 0, duration: 0.6 }, MEM_OUT);
+      ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
+      ft(checklist, { scale: MEM_SCALE }, { scale: 1, duration: 0.8, ease: "power2.inOut" }, MEM_FOCUS_OUT);
+      ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
+      ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
+    }
 
     draw(traces[1]!, B2_T2, 1.8);
     drawBox(cardBoxes[1]!, B2_C2, 1.8);
