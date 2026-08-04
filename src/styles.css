@@ -2268,12 +2268,6 @@ html {
   vector-effect: non-scaling-stroke;
 }
 
-/* The footnote's quote-bar: drawn ink, because the block glyph is not in the
-   font subset. */
-.agt-mem-bar {
-  fill: var(--text-dim);
-}
-
 .agt-mem-label {
   font-family: var(--mono);
   font-size: 11.5px;
