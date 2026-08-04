@@ -1693,8 +1693,8 @@ export function createTurnScene(): TurnScene {
        last beat, so the pin releases with the line still alive and the
        bridge continues a motion instead of resuming a corpse. The label
        appears as the wire passes its latitude. */
-    draw(doorWire, 60.0, 11.2);
-    fadeIn(tease, 66.0, 1.3);
+    draw(doorWire, 55.6, 15.6); // starts the moment the dock stamps settle -- no idle beat (user call)
+    fadeIn(tease, 60.0, 1.3); // early in the descent, not waited for
     draw(doorHead, 71.2, 0.5);
   }
 
