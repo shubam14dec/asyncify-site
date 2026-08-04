@@ -71,8 +71,10 @@ import { gsap } from "gsap";
    three pinned scenes are read in one continuous scroll and a change of
    density between them reads as the page speeding up, not as a new scene.
 
-   PIN_HEIGHTS is 2.0 against scene 3's 1.8, and the eight extra units are
-   itemised rather than rounded up to a feeling:
+   PIN_HEIGHTS began at 2.0 against scene 3's 1.8 (the eight extra units
+   itemised below), and later grew to 2.6 when the three camera asides
+   landed on the same timeline and the scene read as rushed (user call) --
+   the original itemisation still explains the 2.0 floor:
 
        +3   a third and fourth object (the card stack and the approval card)
             that have to assemble, where scene 3 had two
