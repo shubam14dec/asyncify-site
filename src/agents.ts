@@ -114,12 +114,12 @@ const HOLD_FROM = 74;
    centre line, the road to the phone runs along it, and the answer is the
    only thing that ever travels it. The tool traces are the only lines that
    leave it, and they are the only lines that come back. */
-const FRAME_W = 1120;
+const FRAME_W = 1080;
 const FRAME_H = 600;
 const SPINE_Y = 306;
 
 /** The agent, as one box — scene 3's chip dialect, one scene on. */
-const AGENT_X = 260;
+const AGENT_X = 240;
 const AGENT_Y = 248;
 const AGENT_W = 200;
 const AGENT_H = 116;
@@ -128,7 +128,7 @@ const AGENT_H = 116;
  *  not merely inside the box, because the first thing the checklist claims is
  *  "your own model" and a tick has to be earned by something the reader can
  *  point at. */
-const MODEL_X = 286;
+const MODEL_X = 266;
 const MODEL_W = 34;
 const MODEL_CX = MODEL_X + MODEL_W / 2;
 
@@ -137,7 +137,7 @@ const MODEL_CX = MODEL_X + MODEL_W / 2;
  *  entering the machine rather than passing beside it — and it is far enough
  *  right that the box's two-line label, which is left-aligned on the box's own
  *  wall, never runs under it (asserted at boot). */
-const IN_X = 440;
+const IN_X = 420;
 
 /** The road to the person. Wall to wall, at the spine. */
 const WIRE_OUT_X0 = AGENT_X + AGENT_W;
@@ -153,7 +153,7 @@ const WIRE_OUT_X0 = AGENT_X + AGENT_W;
    box. The 120u gap between card 2 and card 3 is that clearance, and it is
    also the beat break: everything above the spine is the agent thinking,
    everything below it is the agent acting. */
-const CARD_X = 550;
+const CARD_X = 518;
 const CARD_W = 246;
 const CARD_PAD = 12;
 const CARDS: readonly { y: number; h: number }[] = [
@@ -177,11 +177,11 @@ const APPROVE_H = 70;
    type ladder went up a step; a screen that could not hold the sentence the
    whole scene is building toward would be a screen sized for the wrong
    thing. */
-const PHONE_X = 848;
+const PHONE_X = 816;
 const PHONE_Y = 100;
 const PHONE_W = 228;
 const PHONE_H = 400;
-const SCREEN_X = 858;
+const SCREEN_X = 826;
 const SCREEN_Y = 110;
 const SCREEN_W = 208;
 const SCREEN_H = 380;
@@ -406,33 +406,51 @@ const QUALITIES: readonly { word: string; evidence: string; at: number }[] = [
 ];
 
 /* The checklist's own geometry, in REAL PIXELS: the svg's CSS width equals its
-   viewBox width, so it renders at scale 1 and these numbers are the numbers on
-   screen. Row pitch has to clear a word row plus an evidence row plus air —
-   ~26px of type — and Q_MIN_PITCH is what refuses a tighter edit. */
-const Q_TRACK_W = 200;
-const Q_BOX = 9;
+   viewBox width, so it renders at scale 1 and every number here is a number on
+   screen. Row pitch has to clear a word row plus an evidence row plus air, and
+   Q_MIN_PITCH is what refuses a tighter edit.
+
+   THESE ARE THE SECOND SET. The first was a 9px box, an 11px word and a 9.5px
+   evidence line at a 42px pitch — arithmetically correct, rendered at scale 1
+   exactly as intended, and unreadable. Two things were wrong and only one of
+   them was size: the unlit word sat at --text-faint, so the five claims this
+   column exists to make up front could not be read until the scene had already
+   proved them. A checklist whose unchecked state is invisible is not a
+   checklist, it is a reveal. The word now rests at --text-dim and lights to
+   --text, --text-faint is reserved for the evidence rows, and everything is
+   one clear step larger. */
+const Q_TRACK_W = 220;
+const Q_TRACK_H = 240;
+const Q_BOX = 13;
 const Q_X = 0.5;
-const Q_TEXT_X = 22;
-const Q_Y0 = 4;
-const Q_PITCH = 42;
-const Q_MIN_PITCH = 32;
-const Q_WORD_DY = 8.6;
-/* 26 and not the 22 this started at. Measured rather than eyeballed: at 22 the
-   11px word's em box ran 1.4 → 15.8 and the 9.5px evidence's ran 16.4 → 29.2,
-   which is 0.6px of daylight between two lines of mono — close enough that the
-   pair read as one smudged block instead of as a claim and its receipt. 26
-   buys 4.6px between them and still leaves 10px before the next row's word,
-   which is the ratio the rows need: a row is one thing, and the space between
-   rows has to be bigger than the space inside one. */
-const Q_EVID_DY = 26;
-const Q_WORD_SIZE = 11;
-const Q_EVID_SIZE = 9.5;
-/** The checkmark, as offsets from its box's own origin. Two segments, one
- *  corner: the shortest path that is unmistakably a tick and not an arrow. */
+const Q_TEXT_X = 26;
+const Q_Y0 = 12;
+const Q_PITCH = 46;
+const Q_MIN_PITCH = 38;
+const Q_WORD_DY = 11;
+/* Measured rather than eyeballed, twice. At the original 22 the word and its
+   evidence had 0.6px of daylight between their em boxes and read as one
+   smudged block; 26 fixed that at the old 11/9.5px sizes. At today's 13/11px
+   the same ratio wants 28, which leaves ~5.9px inside a row and ~9px before
+   the next row's word — the relation that actually matters, because a row is
+   one thing and the gap between rows has to be visibly bigger than the gap
+   inside one. Q_RULE_DY is where the hairline that says so is drawn. */
+const Q_EVID_DY = 28;
+/* The row's own rule, below its evidence line and above the next row's word.
+   Q_Y0 leaves room for the list's TOP rule at Q_RULE_TOP, so the column is
+   bounded the same way the still's list is by border-top. */
+const Q_RULE_DY = 38;
+const Q_RULE_TOP = 2;
+const Q_WORD_SIZE = 13;
+const Q_EVID_SIZE = 11;
+/** The checkmark, as offsets from its box's own origin — redrawn for the 13u
+ *  box, not scaled up from the 9u one, because a tick is a gesture and its
+ *  proportions are not linear in its size. Two segments, one corner: the
+ *  shortest path that is unmistakably a tick and not an arrow. */
 const Q_TICK: readonly (readonly [number, number])[] = [
-  [2.6, 5.4],
-  [4.4, 7.4],
-  [7.6, 3.0],
+  [3.4, 7.2],
+  [5.7, 10.1],
+  [10.2, 3.9],
 ];
 /** How long a tick takes to draw, and how long the row's word takes to lift
  *  off the bottom of the ladder with it. */
@@ -444,7 +462,8 @@ const Q_EVID_IN = 0.9;
  *  them in HTML, the still fallback rebuilds them, and a title that said two
  *  different things in the two renderings would be a title nobody could
  *  quote. MUST match #agt-title in index.html. */
-const TITLE_KICKER = "04 · agents";
+const TITLE_NUM = "04";
+const TITLE_NAME = "agents";
 const TITLE_HEAD = "It answers. You stay in control.";
 
 /* The title and the checklist have NO timeline entrance: they are the pin's
@@ -471,7 +490,7 @@ const STILL_VIEW = [
     event: "job · conversation-inbound",
     /* The wire from the top edge, the box, both label lines and the job stamp.
        Square, because this beat is one object and its name. */
-    box: "200 96 300 300",
+    box: "180 96 300 300",
   },
   {
     kicker: "the lookup",
@@ -480,14 +499,14 @@ const STILL_VIEW = [
     event: "tool · search_history",
     /* Both traces leaving the box's wall and both cards, so the crop still
        shows a request going somewhere rather than two floating boxes. */
-    box: "440 84 380 200",
+    box: "418 84 372 200",
   },
   {
     kicker: "the guardrail",
     text: "The third call is an action, not a question. It stops at the policy and waits for a person.",
     glass: "Real actions wait for a human yes.",
     event: "guard · maxAutoCalls → approval",
-    box: "530 360 300 190",
+    box: "500 360 300 190",
   },
   {
     kicker: "the answer",
@@ -496,7 +515,7 @@ const STILL_VIEW = [
     event: "ws · message.changed",
     /* Wide enough for the receipt and the event line out at x 619, deep
        enough for the channel row at 552. */
-    box: "596 280 500 300",
+    box: "564 280 500 300",
   },
 ] as const;
 
@@ -507,7 +526,8 @@ const COLOR = {
   text: "#ededed",
   /* Where a receipt settles after arriving one notch brighter. */
   textDim: "#a1a1a1",
-  /* The unlit ink of a checklist row's word. */
+  /* The unlit ink of a checklist row's word — --text-dim, not --text-faint.
+     A promise the reader cannot read before it is kept is not a promise. */
   textFaint: "#6e6e6e",
   /* The rest ink of every box in this scene that ever changes colour: the
      agent box acknowledging, the action card pausing, the yes affordance
@@ -572,6 +592,7 @@ export function createAgentsScene(): AgentsScene {
      outside the stage svg and queried from the document. */
   const title = q<HTMLElement>(doc, "#agt-title");
   const checklist = q<SVGSVGElement>(doc, "#agt-checklist");
+  const rulesG = q<SVGGElement>(checklist, "#agt-rules");
   const qualitiesG = q<SVGGElement>(checklist, "#agt-qualities");
 
   const wireIn = q<SVGPathElement>(svg, "#agt-wire-in");
@@ -686,8 +707,27 @@ export function createAgentsScene(): AgentsScene {
   }
   /* The rows have to fit the svg they are drawn in, or the last one's evidence
      is clipped by the viewBox rather than by the column. */
-  if (Q_Y0 + (QUALITIES.length - 1) * Q_PITCH + Q_EVID_DY + 4 > Number(checklist.viewBox.baseVal.height)) {
+  if (Q_Y0 + (QUALITIES.length - 1) * Q_PITCH + Q_RULE_DY + 2 > Q_TRACK_H) {
     throw new Error("[agents] the checklist is taller than its own viewBox");
+  }
+  /* The svg has to BE the box the arithmetic above assumes, or every number in
+     this block is measured against something that is not on screen. This is
+     the one assert that makes "the checklist renders at scale 1" a fact rather
+     than an intention. */
+  if (
+    checklist.viewBox.baseVal.width !== Q_TRACK_W ||
+    checklist.viewBox.baseVal.height !== Q_TRACK_H
+  ) {
+    throw new Error("[agents] #agt-checklist's viewBox disagrees with Q_TRACK_W / Q_TRACK_H");
+  }
+  /* And it has to be LAID OUT at that width, or the type is not the size this
+     file says it is. A percentage width here would silently rescale the whole
+     column; the rail's clamp starts at 232px so 220 always fits. */
+  {
+    const laid = checklist.getBoundingClientRect().width;
+    if (laid > 0 && Math.abs(laid - Q_TRACK_W) > 1) {
+      throw new Error("[agents] the checklist is not rendering at scale 1 — its type is not the size it says");
+    }
   }
 
   /* ── the world's geometry ───────────────────────────────────────────────
@@ -863,6 +903,20 @@ export function createAgentsScene(): AgentsScene {
      inside it, the claim beside it, and the evidence under that — generated
      from QUALITIES so a row's y is derived from its index and its moment is
      the same datum the timeline reads. */
+  /* The rules first, in their own group under the rows: a top edge for the
+     list and one under each row, exactly the border-top / border-bottom the
+     still's list gets from CSS. Permanent furniture — they are never drawn
+     and never tweened, because the STRUCTURE of the list is not one of the
+     things this scene has to prove. */
+  rulesG.replaceChildren();
+  rulesG.appendChild(
+    svgEl("path", { class: "agt-q-rule", d: `M 0 ${Q_RULE_TOP} L ${Q_TRACK_W} ${Q_RULE_TOP}` }),
+  );
+  for (let i = 0; i < QUALITIES.length; i++) {
+    const y = Q_Y0 + i * Q_PITCH + Q_RULE_DY;
+    rulesG.appendChild(svgEl("path", { class: "agt-q-rule", d: `M 0 ${y} L ${Q_TRACK_W} ${y}` }));
+  }
+
   qualitiesG.replaceChildren();
   const rows = QUALITIES.map((qy, i) => {
     const y = Q_Y0 + i * Q_PITCH;
@@ -872,7 +926,7 @@ export function createAgentsScene(): AgentsScene {
       y: y + 0.5,
       width: Q_BOX,
       height: Q_BOX,
-      rx: 1,
+      rx: 2,
     });
     const tick = svgEl("path", { class: "agt-q-tick", d: tickPath(Q_X, y + 0.5) });
     const word = svgEl("text", { class: "agt-q-word", x: Q_TEXT_X, y: (y + Q_WORD_DY).toFixed(2) });
@@ -1004,7 +1058,7 @@ export function createAgentsScene(): AgentsScene {
        explicit inverse for it. */
     gsap.set(
       rows.map((r) => r.word),
-      { fill: COLOR.textFaint },
+      { fill: COLOR.textDim },
     );
     gsap.set(strokeParts, { drawSVG: "0% 0%" });
     gsap.set(boxRects, { fillOpacity: 0 });
@@ -1073,9 +1127,15 @@ export function createAgentsScene(): AgentsScene {
     function stillTitle(): HTMLElement {
       const wrap = doc.createElement("div");
       wrap.className = "trn-still-title";
-      const k = doc.createElement("span");
-      k.className = "eng-kicker";
-      k.textContent = TITLE_KICKER;
+      /* The rail's own two-tone kicker, rebuilt: the number a rung brighter
+         than the word, same as the pinned version. A still that quoted the
+         string but dropped the treatment would be a second design. */
+      const k = doc.createElement("p");
+      k.className = "agt-kicker";
+      const num = doc.createElement("span");
+      num.className = "agt-kicker-num";
+      num.textContent = TITLE_NUM;
+      k.append(num, doc.createTextNode(` · ${TITLE_NAME}`));
       const h = doc.createElement("p");
       h.className = "trn-still-head";
       h.textContent = TITLE_HEAD;
@@ -1334,7 +1394,7 @@ export function createAgentsScene(): AgentsScene {
        which is the only honest rest state for a list of promises. */
     rows.forEach((r) => {
       draw(r.tick, r.at, Q_DRAW);
-      ft(r.word, { fill: COLOR.textFaint }, { fill: COLOR.text, duration: Q_LIGHT }, r.at);
+      ft(r.word, { fill: COLOR.textDim }, { fill: COLOR.text, duration: Q_LIGHT }, r.at);
       fadeIn(r.evidence, r.at + 0.3, Q_EVID_IN);
     });
 

@@ -1836,15 +1836,20 @@ html {
 
    The measurement: on a 1250px CSS viewport — which is what a maximised
    window on a 1536px display at 1.25 device-pixel-ratio actually gives you —
-   this scene's stage is about 940px wide, so the 1120u frame renders at 0.84.
-   11.5u lands at ~9.6 CSS px and 12u at ~10, which is BRAND §3's receipt
-   rung. The first draft of this ladder was a full step lower (10.5 / 11) and
+   this scene's stage is about 911px wide, so the 1080u frame renders at 0.84.
+   11.5u lands at ~9.7 CSS px and 12u at ~10.1, which is BRAND §3's receipt
+   rung. At a 1536px viewport the same two numbers are 12.1 and 12.6.
+
+   The first draft of this ladder was a full step lower (10.5 / 11) and
    measured 7.9px on the same screen: below the site's own floor, and the
-   asymmetry was visible — the checklist in the rail renders at scale 1 and
-   its 9.5px evidence rows were LARGER than the card lines they were the
-   receipts for. Nothing in the world is set below 9.5u now, and the frame is
-   1120 wide rather than 1200 for the same reason: the extra 80u of viewBox
-   cost every label 7% of its rendered size and bought nothing.
+   asymmetry gave it away — the checklist in the rail renders at scale 1, so
+   its evidence rows came out LARGER than the card lines they were receipts
+   for. Nothing in the world is set below 9.5u now.
+
+   The frame is 1080 wide, twice reduced from 1200: every 40u of viewBox is
+   about 4% off every label in the scene, and this one has no camera to win it
+   back. What paid for the last 40 was the rail handing over the width it was
+   holding for prose captions it does not have.
    ══════════════════════════════════════════════════════════════════════════ */
 
 #scene-agents {
@@ -1856,19 +1861,24 @@ html {
    beside it, so all three pinned scenes hang their titles on the same left
    edge.
 
-   THE RAIL IS NARROWER HERE — clamp(210, 18vw, 300) against their
-   clamp(240, 24vw, 380) — and that is the one place this scene departs from
-   their grid, for a measured reason. Scenes 2 and 3 fill that column with
-   prose captions and need the measure; this one puts a 200px checklist in it
-   and a two-line head above, and everything past 210px is air. Handing the
-   difference to the stage is worth 12% of scene scale on a 1250px viewport,
-   which at this scene's type ladder is the difference between a card line at
-   8px and one at 10 — and this is the only scene on the site with no camera
-   to fall back on. */
+   THE RAIL'S WIDTH IS THE CHECKLIST'S WIDTH PLUS ITS MARGIN, and nothing
+   else decides it. The checklist is 220px of viewBox rendered at exactly
+   220px (see .agt-checklist), so its type is in real pixels; the column has
+   to be at least that, and past it every pixel is air the stage could have
+   had. clamp(232, 19vw, 320) is 237.5px at a 1250px viewport and 292 at
+   1536 — wide enough for the checklist and a two-line head, and narrower
+   than scenes 2 and 3's clamp(240, 24vw, 380), which is sized for prose
+   captions this scene does not have.
+
+   The forty-odd pixels that buys go to the stage, and they are what let the
+   world's viewBox come down to 1080: this is the only scene on the site with
+   no camera, so scene scale is the only thing standing between a card line
+   and being unreadable. Both ends of the trade are measured rather than
+   felt — see the type-ladder note below. */
 .agt-pin {
   position: relative;
   display: grid;
-  grid-template-columns: clamp(210px, 18vw, 300px) 1fr;
+  grid-template-columns: clamp(232px, 19vw, 320px) 1fr;
   align-items: center;
   gap: clamp(16px, 3vw, 48px);
   height: 100dvh;
@@ -1889,6 +1899,54 @@ html {
   align-self: center;
 }
 
+/* THE MASTHEAD: kicker, head, and the air between them. Two rules, and they
+   are the whole difference between a title and a label.
+
+   THE KICKER IS TWO TONES OF ONE LADDER. `04` sits at --text-dim and the word
+   at --text-faint, which makes the line read as a numbered thing rather than
+   as a faint string — the number is the part a reader is scanning for when
+   they are four scenes into a page. Tracking goes to 0.08em, up from the
+   0.01em BRAND §3 gives a chip label, because this is an eyebrow and not a
+   measurement. It stays LOWERCASE: BRAND §7 bans the tracked-uppercase
+   eyebrow outright, and scenes 2 and 3 are lowercase, so uppercase here would
+   break the set to solve a problem tracking already solves. */
+.agt-kicker {
+  margin: 0 0 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: var(--text-faint);
+}
+
+.agt-kicker-num {
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The scene's name, and the reason this scene does not reuse .trn-head.
+   22px is a title in scene 3's rail, where the loudest object on the frame is
+   a 494u phone and the column's job is to stay out of its way. Here the
+   column has a five-row checklist in it, and a head only nine pixels bigger
+   than the list underneath reads as that list's caption.
+
+   clamp(25px, 2.1vw, 29px) is 26.3px at a 1250px viewport and 29 at 1536 —
+   approaching BRAND §3's 32–44px section-head range at the weight and
+   tracking §3 specifies, and stopping short of it because this head shares a
+   column with a diagram rather than owning a page. Two lines at every width
+   the pin runs at, which is what text-wrap: balance is here to keep even. */
+.agt-head {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: clamp(25px, 2.1vw, 29px);
+  font-weight: 500;
+  line-height: 1.14;
+  letter-spacing: -0.025em;
+  color: var(--text);
+  text-wrap: balance;
+}
+
 .agt-stage {
   display: flex;
   align-items: center;
@@ -1903,19 +1961,48 @@ html {
 }
 
 /* ── the checklist ───────────────────────────────────────────────────────
-   Fixed width = its viewBox width, so it renders at scale 1 and agents.ts's
-   row arithmetic is in real pixels — same construction as scene 3's tracker.
+   FIXED WIDTH = ITS VIEWBOX WIDTH, so it renders at scale 1 and every number
+   in agents.ts's row arithmetic is a real pixel — scene 3's tracker
+   construction, and the reason `width: 220px` may never become a percentage.
+   `max-width: 100%` is a floor guard, not a layout: the rail's own clamp
+   starts at 232px so it can never bite.
+
+   The sizes below are the second draft. The first was an 11px word, a 9.5px
+   evidence line and a 9px box — all at scale 1, all correct arithmetic, and
+   all too small to read on a near-black canvas at arm's length. The ink was
+   the other half of it: an unlit word at --text-faint against #0a0a0a is a
+   claim the reader cannot make out until the scene has already proved it,
+   which is backwards. This list exists to be read BEFORE anything is ticked —
+   five promises up front is the entire construction.
+
+   So: --text-dim for a word at rest, --text when lit, and --text-faint
+   reserved for the evidence lines, where it belongs. A receipt is allowed to
+   be quiet. A promise is not.
 
    Everything here is painted at REST, not finished, because unlike the rest
    of this scene the checklist never appears in a still clone: the still
    fallback rebuilds it as an actual HTML list further down. */
 .agt-checklist {
   display: block;
-  width: 200px;
+  width: 220px;
   max-width: 100%;
   height: auto;
-  margin-top: 32px;
+  margin-top: clamp(24px, 3.4vh, 34px);
   overflow: visible;
+}
+
+/* The rules that group the rows. Same anatomy the still's list gets from
+   border-top / border-bottom (see .agt-still-list), so the checklist is one
+   design in two renderings rather than two things that resemble each other.
+   DESIGN §1's sanctioned grouping device: a 1px divider, never a card. They
+   are permanent furniture and never rest at zero length, so the butt cap here
+   is house style rather than the phantom-dot law. */
+.agt-q-rule {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
 }
 
 /* An empty box, listed from the pin's first frame. It is always drawn — the
@@ -1939,24 +2026,32 @@ html {
 .agt-q-tick {
   fill: none;
   stroke: var(--text);
-  stroke-width: 1.25;
+  /* 1.75 against the box's 1. A checkmark drawn at the same weight as the box
+     it sits in does not read as a mark IN a box, it reads as more box — and
+     the entire state change this scene sells happens inside a 13px square. */
+  stroke-width: 1.75;
   stroke-linecap: butt;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
 
+/* The claim. --text-dim at rest so it is READABLE before it is proved, and
+   --text once the scene proves it: one step of the ladder, which is exactly
+   as much emphasis as a checkbox being ticked deserves. The tick is what
+   carries the state change; the ink only confirms it. */
 .agt-q-word {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 0.01em;
-  fill: var(--text-faint);
+  fill: var(--text-dim);
 }
 
-/* The evidence for a claim, one rung under it, and hidden until the scene has
-   actually produced it. */
+/* The evidence for a claim, one rung under it in both size and ink, and
+   hidden until the scene has actually produced it. This is the one place
+   --text-faint belongs in this column: it is a receipt. */
 .agt-q-evidence {
   font-family: var(--mono);
-  font-size: 9.5px;
+  font-size: 11px;
   letter-spacing: 0.01em;
   fill: var(--text-faint);
   opacity: 0;
@@ -2169,7 +2264,7 @@ html {
 
 .agt-still-row {
   display: grid;
-  grid-template-columns: 14px 1fr;
+  grid-template-columns: 15px 1fr;
   gap: 10px;
   align-items: start;
   padding: 12px 0;
@@ -2178,8 +2273,8 @@ html {
 
 .agt-still-tick {
   display: block;
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px;
   margin-top: 1px;
 }
 
@@ -2193,9 +2288,11 @@ html {
 
 .agt-still-e {
   display: block;
-  margin-top: 4px;
+  margin-top: 5px;
   font-family: var(--mono);
-  font-size: 11.5px;
+  /* The rail's own evidence size, so the checklist reads identically whether
+     it is drawn into an svg or laid out as a list. */
+  font-size: 11px;
   letter-spacing: 0.01em;
   color: var(--text-faint);
 }
