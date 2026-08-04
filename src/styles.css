@@ -2212,7 +2212,9 @@ html {
 
 .agt-chan-word {
   font-family: var(--mono);
-  font-size: 14px;
+  /* 12, down from 14 (user call) — MUST match agents.ts CHAN_SIZE, which is
+     what the row's layout arithmetic measures with. */
+  font-size: 12px;
   letter-spacing: 0.01em;
   fill: var(--text-faint);
 }

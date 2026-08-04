@@ -241,7 +241,7 @@ const CHAN_ART = 12;
 const CHAN_GLYPH = 20;
 const CHAN_GAP = 7;
 const CHAN_SEP = 22;
-const CHAN_SIZE = 14;
+const CHAN_SIZE = 12; // was 14 — the enlarged row's words outgrew their glyphs (user call)
 const CHANNELS: readonly { word: string; d: string }[] = [
   /* in-app: a speech bubble with a tail, which is the one shape that means
      "inside your product" without drawing a product. */
@@ -249,9 +249,20 @@ const CHANNELS: readonly { word: string; d: string }[] = [
   /* telegram: the paper plane, in one outline and one crease — the same
      construction as scene 3's send glyph, and no fill, for the same reason. */
   { word: "telegram", d: "M 0.5 5.6 L 11.5 1.2 L 7.6 10.8 L 5.4 6.9 Z M 5.4 6.9 L 11.5 1.2" },
-  /* slack: the hash, as four leaning strokes. Not the logo — the logo is four
-     colours and this site has one. */
-  { word: "slack", d: "M 3.2 1 L 2.2 11 M 8.2 1 L 7.2 11 M 0.5 4.2 L 10.6 3.6 M 1.4 8.6 L 11.5 8" },
+  /* slack: the actual pinwheel — four rounded lozenges in Slack's rotational
+     arrangement (top-left vertical, top-right horizontal, bottom-right
+     vertical, bottom-left horizontal), as ONE-ink outlines. The first draft
+     drew a hash instead, reasoning the real logo is four colours; the user
+     overruled — the SHAPE is the recognizable part, and an outline keeps the
+     colour law intact. */
+  {
+    word: "slack",
+    d:
+      "M 3.4 2.1 A 1.1 1.1 0 0 1 5.6 2.1 L 5.6 4.5 A 1.1 1.1 0 0 1 3.4 4.5 Z " +
+      "M 7.5 3.4 L 9.9 3.4 A 1.1 1.1 0 0 1 9.9 5.6 L 7.5 5.6 A 1.1 1.1 0 0 1 7.5 3.4 Z " +
+      "M 6.4 7.5 A 1.1 1.1 0 0 1 8.6 7.5 L 8.6 9.9 A 1.1 1.1 0 0 1 6.4 9.9 Z " +
+      "M 2.1 6.4 L 4.5 6.4 A 1.1 1.1 0 0 1 4.5 8.6 L 2.1 8.6 A 1.1 1.1 0 0 1 2.1 6.4 Z",
+  },
   /* email: the site's own envelope, whose fold is the M. Same glyph scene 2
      stamps on its digest and scene 3 puts in the mail app. */
   { word: "email", d: "M 0.5 2 L 11.5 2 L 11.5 10 L 0.5 10 Z M 0.5 2 L 6 6.6 L 11.5 2" },
