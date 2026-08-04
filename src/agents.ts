@@ -1965,25 +1965,50 @@ export function createAgentsScene(): AgentsScene {
       const wireIn = doc.querySelector<SVGPathElement>("#agt-wire-in");
       const dh = doorHead ? doorHead.getBoundingClientRect() : null;
       const wi = wireIn ? wireIn.getBoundingClientRect() : null;
-      const entryX = dh ? dh.left + dh.width / 2 - r.left : r.width * 0.42;
+      /* THE CONNECTION IS TO ENDPOINTS, NOT EDGES (user catch: the wire did
+         not meet either scene). Scene 3's arrowhead lives in a PINNED
+         element: measured at boot it reports its pre-pin position, but by
+         the time the reader is here the pin has carried it its full travel
+         down the page. Its resting place is derivable without scrolling:
+         the pinned frame ends flush at its own section's bottom, so
+         final = sectionBottom - frameHeight + offsetInFrame. Scene 4 has
+         not pinned yet when the bridge plays, so its wire-in measures true
+         as-is. Both endpoints land OUTSIDE this svg's box -- overflow is
+         visible, and that overdraw IS the connection. */
+      const s3 = doc.querySelector<HTMLElement>("#scene-turn");
+      const trnPin = doc.querySelector<HTMLElement>("#trn-pin");
+      let entryX = r.width * 0.42;
+      let entryY = -6;
+      if (dh && s3 && trnPin) {
+        const s3r = s3.getBoundingClientRect();
+        const pr = trnPin.getBoundingClientRect();
+        entryX = dh.left + dh.width / 2 - r.left;
+        entryY = s3r.bottom - pr.height + (dh.top + dh.height / 2 - pr.top) - r.top;
+      }
       const exitX = wi ? wi.left - r.left : r.width * 0.5;
-      const uy = ph.bottom - r.top + 10;
+      const exitY = wi ? wi.top - r.top : r.height + 8;
+      /* The underline hangs off the MONO tail's box, not the phrase's: the
+         27px serif word inflates the phrase box downward and the rule
+         floated below the text it belongs to (user catch). */
+      const tail = doc.querySelector<HTMLElement>("#agt-era-tail");
+      const tr = tail ? tail.getBoundingClientRect() : ph;
+      const uy = tr.bottom - r.top + 3; // +3 not +8: the line box already carries descent padding, and +8 crowded the sentence below
       const ux0 = ph.left - r.left - 18;
       const ux1 = ph.right - r.left + 4;
       const sideX = Math.max(l2.right, l3.right) - r.left + 56;
       const l2y = l2.top + l2.height / 2 - r.top;
       const l3y = l3.top + l3.height / 2 - r.top;
-      const H = r.height;
       /* One path, five segments, each continuing from the last point. The
          fractions of the cumulative arc length at each seam are what the
          timeline's tweens are written against -- geometry and schedule are
          the same numbers, scene 3's tracker discipline. */
+      const dive = (uy - entryY) * 0.45;
       const segs = [
-        `M ${entryX.toFixed(1)} -6 C ${entryX.toFixed(1)} ${(uy * 0.55).toFixed(1)} ${(ux0 - 70).toFixed(1)} ${(uy - 80).toFixed(1)} ${ux0.toFixed(1)} ${uy.toFixed(1)}`,
+        `M ${entryX.toFixed(1)} ${entryY.toFixed(1)} C ${entryX.toFixed(1)} ${(entryY + dive).toFixed(1)} ${(ux0 - 130).toFixed(1)} ${(uy - 130).toFixed(1)} ${ux0.toFixed(1)} ${uy.toFixed(1)}`,
         `L ${ux1.toFixed(1)} ${uy.toFixed(1)}`,
         `C ${(ux1 + 120).toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${(l2y - 70).toFixed(1)} ${sideX.toFixed(1)} ${l2y.toFixed(1)}`,
         `C ${sideX.toFixed(1)} ${(l2y + 40).toFixed(1)} ${sideX.toFixed(1)} ${(l3y - 40).toFixed(1)} ${sideX.toFixed(1)} ${l3y.toFixed(1)}`,
-        `C ${sideX.toFixed(1)} ${(l3y + 100).toFixed(1)} ${exitX.toFixed(1)} ${(H - 120).toFixed(1)} ${exitX.toFixed(1)} ${(H + 8).toFixed(1)}`,
+        `C ${sideX.toFixed(1)} ${(l3y + 120).toFixed(1)} ${exitX.toFixed(1)} ${(exitY - 160).toFixed(1)} ${exitX.toFixed(1)} ${exitY.toFixed(1)}`,
       ];
       bwire.setAttribute("d", segs.join(" "));
       /* Seam fractions, measured: a temp path per prefix, appended so the
