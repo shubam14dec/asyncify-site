@@ -403,8 +403,13 @@ const B1_GUTS = 7.2;
 const B1_STAMP = 8.0;
 const B1_THREAD = 8.6;
 /** When the reply appears in the chip, and how long the run in takes. */
-const B1_FLY = 8.4;
-const B1_FLY_DUR = 3.4;
+/* From pin start, not 8.4 (user call: the traveller must CONTINUE): the
+   bridge's cruise is timed to land the dot on this frame's top edge at the
+   exact pin moment, and this dot takes over there and then -- a slow
+   constant descent while the world assembles around it. Same landing time
+   as ever, so nothing downstream moved. */
+const B1_FLY = 0.5;
+const B1_FLY_DUR = 11.3;
 const B1_LAND = B1_FLY + B1_FLY_DUR; // 11.8
 const B1_REPLY = 10.0;
 /** The first tick, once the box and its label have settled — the claim is not
@@ -2083,11 +2088,12 @@ export function createAgentsScene(): AgentsScene {
       scrollTrigger: {
         trigger: "#bridge-agents",
         start: "top 92%",
-        /* A long runway: this bridge is a scene now -- the wire's whole
-           journey (dive, underline, side rail, exit) plays across it. -85%,
-           not -55%: the traveller read as rushed (user call), and a scrub's
-           only brake is scroll distance. */
-        end: "top -85%",
+        /* The runway ends where the NEXT scene's pin begins: the bridge is
+           115vh tall, so "top -115%" is the scroll moment scene 4's top
+           reaches the viewport top -- the cruise lands the dot on the
+           wire-in's tip at the exact pin instant, and scene 4's own dot
+           takes over there and then. That equality is the hand-off. */
+        end: "top -115%",
         scrub: true,
       },
     });
@@ -2120,7 +2126,7 @@ export function createAgentsScene(): AgentsScene {
       const at = (f: number): number => t0 + (CRUISE * (f - f1!)) / (1 - f1!);
       tl.fromTo(journey, { p: 0 }, { p: f1!, duration: 3.2, ease: "power1.in", immediateRender: false }, 0.05);
       tl.fromTo(journey, { p: f1! }, { p: 1, duration: CRUISE, ease: "none", immediateRender: false }, t0);
-      tl.fromTo(bdot, { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, t0 + CRUISE - 0.25);
+      tl.fromTo(bdot, { opacity: 1 }, { opacity: 0, duration: 0.1, immediateRender: false }, t0 + CRUISE - 0.1);
 
       /* The era types itself WHILE the dot inks the underline beneath it --
          the traveller writes the era in as it passes (user's wow). */
@@ -2175,22 +2181,11 @@ export function createAgentsScene(): AgentsScene {
       },
     );
 
-    /* Continuity, second pass (user catch: the wire was fully drawn long
-       before the traveller reached it). The bridge dot lands on this wire's
-       top tip when the section's top sits ~30% down the viewport -- the
-       bridge's journey ends there by construction. So the wire draws FROM
-       that moment: the ink continues downward as the dot arrives, one line
-       still being drawn, and completes just before the pin takes over. */
-    gsap.fromTo(
-      wireIn,
-      { drawSVG: "0% 0%" },
-      {
-        drawSVG: "0% 100%",
-        ease: "none",
-        immediateRender: false,
-        scrollTrigger: { trigger: section, start: "top 32%", end: "top 4%", scrub: true },
-      },
-    );
+    /* Continuity, third pass: the wire now inks INSIDE the pin, just ahead
+       of the descending dot -- the road is laid as the traveller rides it,
+       the same grammar as the bridge. (The approach-scrub draw is gone: the
+       bridge's cruise now ends AT the pin, so pre-drawing would mean ink
+       before the traveller again.) See the pinned timeline's first beats. */
 
     const tl = gsap.timeline({
       defaults: { ease: "none" },
@@ -2319,7 +2314,7 @@ export function createAgentsScene(): AgentsScene {
        person at the end of it. The phone comes ON rather than being drawn —
        glass, screen, thread — because a device showing a conversation is not
        a device being sketched. */
-    /* wireIn draws on the approach trigger above, not here. */
+    draw(wireIn, 0.05, 1.6);
     drawBox(agentBox, B1_BOX, 2.4);
     draw(wireOut, B1_WIRE_OUT, 3.0);
     drawBox(phone, B1_PHONE, 3.4);
@@ -2346,7 +2341,7 @@ export function createAgentsScene(): AgentsScene {
     fadeIn(stampJob, B1_STAMP, 1.2);
 
     fadeIn(dotIn, B1_FLY - 0.4, 0.5);
-    run(dotIn, gIn, B1_FLY, B1_FLY_DUR, "power1.inOut");
+    run(dotIn, gIn, B1_FLY, B1_FLY_DUR, "none");
     /* The machine hears it. NEUTRAL ink, and this is the rationing law doing
        narrative work rather than being obeyed: green on this site means a
        message of OURS arrived, and this one is the customer's (BRAND §2). */
