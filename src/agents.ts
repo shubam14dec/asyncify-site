@@ -2101,35 +2101,47 @@ export function createAgentsScene(): AgentsScene {
     });
 
     if (bwire && bdot && totalLen && fractions.length === 5) {
-      const [f1, f2, f3, f4] = fractions;
+      const [f1, f2, f3] = fractions;
       /* The journey, seam by seam. The underline segment (f1..f2) is run at
          ease "none" so the inking reads at the reader's own scroll speed;
          the exit accelerates, because scene 4 is pulling. */
       tl.fromTo(bdot, { opacity: 0 }, { opacity: 1, duration: 0.25, immediateRender: false }, 0.1);
-      tl.fromTo(journey, { p: 0 }, { p: f1!, duration: 3.2, ease: "power1.inOut", immediateRender: false }, 0.05);
-      tl.fromTo(journey, { p: f1! }, { p: f2!, duration: 1.7, ease: "none", immediateRender: false }, 3.25);
-      tl.fromTo(journey, { p: f2! }, { p: f3!, duration: 0.8, ease: "power1.inOut", immediateRender: false }, 4.95);
-      tl.fromTo(journey, { p: f3! }, { p: f4!, duration: 0.7, ease: "power1.inOut", immediateRender: false }, 5.75);
-      tl.fromTo(journey, { p: f4! }, { p: 1, duration: 0.8, ease: "power2.in", immediateRender: false }, 6.45);
-      tl.fromTo(bdot, { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, 7.0);
+      /* THE JOURNEY IS TWO TWEENS, NOT FIVE (user catch, twice: the dot kept
+         "waiting"). Per-segment inOut eases start and end at ZERO VELOCITY --
+         no gap on the clock, but the traveller braked to a halt at every
+         seam. Now: the dive (from rest, arriving at speed), then ONE
+         constant-speed tween for everything else. Uniform motion has no
+         seams to stall at. The landmark times below are COMPUTED from the
+         measured arc-length fractions, so the letters and pulses fire when
+         the dot actually passes, whatever this viewport's geometry made of
+         the path. */
+      const CRUISE = 4.0;
+      const t0 = 3.25; // dive ends, cruise begins
+      const at = (f: number): number => t0 + (CRUISE * (f - f1!)) / (1 - f1!);
+      tl.fromTo(journey, { p: 0 }, { p: f1!, duration: 3.2, ease: "power1.in", immediateRender: false }, 0.05);
+      tl.fromTo(journey, { p: f1! }, { p: 1, duration: CRUISE, ease: "none", immediateRender: false }, t0);
+      tl.fromTo(bdot, { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, t0 + CRUISE - 0.25);
 
       /* The era types itself WHILE the dot inks the underline beneath it --
          the traveller writes the era in as it passes (user's wow). */
+      const tU1 = at(f2!);
       if (eraCaret && eraLetters.length) {
         gsap.set(eraLetters, { opacity: 0 });
-        tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, 3.05);
+        tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, t0 - 0.2);
+        const step = Math.max(0.12, (tU1 - t0 - 0.25) / eraLetters.length);
         eraLetters.forEach((ch, i) => {
-          tl.fromTo(ch, { opacity: 0 }, { opacity: 1, duration: 0.16, immediateRender: false }, 3.35 + i * 0.2);
+          tl.fromTo(ch, { opacity: 0 }, { opacity: 1, duration: 0.16, immediateRender: false }, t0 + 0.1 + i * step);
         });
-        tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 4.98);
+        tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, tU1);
       }
       if (eraPhrase) {
-        tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 5.0);
+        tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, tU1 + 0.05);
       }
       /* The reply passes the sentence about itself, and the sentence notices:
          a brightness swell as the dot crosses its latitude, then it settles. */
-      tl.fromTo(bridgeLines[1]!, { color: "#a1a1a1" }, { color: "#ededed", duration: 0.35, immediateRender: false }, 5.55);
-      tl.fromTo(bridgeLines[1]!, { color: "#ededed" }, { color: "#a1a1a1", duration: 0.6, immediateRender: false }, 6.1);
+      const tL2 = at(f3!);
+      tl.fromTo(bridgeLines[1]!, { color: "#a1a1a1" }, { color: "#ededed", duration: 0.35, immediateRender: false }, tL2 - 0.15);
+      tl.fromTo(bridgeLines[1]!, { color: "#ededed" }, { color: "#a1a1a1", duration: 0.6, immediateRender: false }, tL2 + 0.4);
     } else if (eraCaret && eraLetters.length) {
       /* No wire (svg missing or zero-length path): the typing still plays. */
       gsap.set(eraLetters, { opacity: 0 });
