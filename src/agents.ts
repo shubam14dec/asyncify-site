@@ -2107,39 +2107,39 @@ export function createAgentsScene(): AgentsScene {
          the exit accelerates, because scene 4 is pulling. */
       tl.fromTo(bdot, { opacity: 0 }, { opacity: 1, duration: 0.25, immediateRender: false }, 0.1);
       tl.fromTo(journey, { p: 0 }, { p: f1!, duration: 3.2, ease: "power1.inOut", immediateRender: false }, 0.05);
-      tl.fromTo(journey, { p: f1! }, { p: f2!, duration: 1.7, ease: "none", immediateRender: false }, 3.45);
-      tl.fromTo(journey, { p: f2! }, { p: f3!, duration: 0.8, ease: "power1.inOut", immediateRender: false }, 5.3);
-      tl.fromTo(journey, { p: f3! }, { p: f4!, duration: 0.7, ease: "power1.inOut", immediateRender: false }, 6.2);
-      tl.fromTo(journey, { p: f4! }, { p: 1, duration: 0.8, ease: "power2.in", immediateRender: false }, 7.0);
-      tl.fromTo(bdot, { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, 7.55);
+      tl.fromTo(journey, { p: f1! }, { p: f2!, duration: 1.7, ease: "none", immediateRender: false }, 3.25);
+      tl.fromTo(journey, { p: f2! }, { p: f3!, duration: 0.8, ease: "power1.inOut", immediateRender: false }, 4.95);
+      tl.fromTo(journey, { p: f3! }, { p: f4!, duration: 0.7, ease: "power1.inOut", immediateRender: false }, 5.75);
+      tl.fromTo(journey, { p: f4! }, { p: 1, duration: 0.8, ease: "power2.in", immediateRender: false }, 6.45);
+      tl.fromTo(bdot, { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, 7.0);
 
       /* The era types itself WHILE the dot inks the underline beneath it --
          the traveller writes the era in as it passes (user's wow). */
       if (eraCaret && eraLetters.length) {
         gsap.set(eraLetters, { opacity: 0 });
-        tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, 3.3);
+        tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, 3.05);
         eraLetters.forEach((ch, i) => {
-          tl.fromTo(ch, { opacity: 0 }, { opacity: 1, duration: 0.16, immediateRender: false }, 3.55 + i * 0.2);
+          tl.fromTo(ch, { opacity: 0 }, { opacity: 1, duration: 0.16, immediateRender: false }, 3.35 + i * 0.2);
         });
-        tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 5.2);
+        tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 4.98);
       }
       if (eraPhrase) {
-        tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 5.25);
+        tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 5.0);
       }
       /* The reply passes the sentence about itself, and the sentence notices:
          a brightness swell as the dot crosses its latitude, then it settles. */
-      tl.fromTo(bridgeLines[1]!, { color: "#a1a1a1" }, { color: "#ededed", duration: 0.35, immediateRender: false }, 5.85);
-      tl.fromTo(bridgeLines[1]!, { color: "#ededed" }, { color: "#a1a1a1", duration: 0.6, immediateRender: false }, 6.5);
+      tl.fromTo(bridgeLines[1]!, { color: "#a1a1a1" }, { color: "#ededed", duration: 0.35, immediateRender: false }, 5.55);
+      tl.fromTo(bridgeLines[1]!, { color: "#ededed" }, { color: "#a1a1a1", duration: 0.6, immediateRender: false }, 6.1);
     } else if (eraCaret && eraLetters.length) {
       /* No wire (svg missing or zero-length path): the typing still plays. */
       gsap.set(eraLetters, { opacity: 0 });
-      tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, 3.3);
+      tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, 3.05);
       eraLetters.forEach((ch, i) => {
-        tl.fromTo(ch, { opacity: 0 }, { opacity: 1, duration: 0.16, immediateRender: false }, 3.55 + i * 0.2);
+        tl.fromTo(ch, { opacity: 0 }, { opacity: 1, duration: 0.16, immediateRender: false }, 3.35 + i * 0.2);
       });
-      tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 5.2);
+      tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 4.98);
       if (eraPhrase) {
-        tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 5.25);
+        tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 5.0);
       }
     }
   }
