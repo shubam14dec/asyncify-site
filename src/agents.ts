@@ -197,19 +197,65 @@ const WIRE_OUT_X0 = AGENT_X + AGENT_W;
    — that none of them straddles SPINE_Y. The answer's road runs through this
    column at y 306, and a card sitting on it would turn the one line the eye is
    supposed to follow across the frame into a line that disappears behind a
-   box. The 120u gap between card 2 and card 3 is that clearance, and it is
-   also the beat break: everything above the spine is the agent thinking,
-   everything below it is the agent acting. */
+   box. The gap between card 2 and card 3 is that clearance, and it is also the
+   beat break: everything above the spine is the agent thinking, everything
+   below it is the agent acting.
+
+   THE GUARDED-ACTION CLUSTER SITS 34u LOWER THAN IT USED TO — the annotation,
+   the action card, the connector and the approval card, moved as ONE object
+   (user call). At the old latitudes the cluster started 110u under card 2 and
+   read as a third entry in the same trace log; the beat it belongs to is not
+   another lookup, it is the scene stopping. 154u of daylight is what makes it
+   its own act, and it is bought at the bottom rather than in the middle: the
+   approval card's floor lands on 566, which is the door cue's own baseline at
+   the other end of the frame, so the composition's foot is one band and the
+   frame keeps a 34u margin under it.
+
+   Nothing INSIDE the cluster moved relative to anything else in it: the
+   annotation is still 10u over the card it explains, the connector is still the
+   same 22u stem, and the approval card still hangs 22u under the action it
+   asks about. A cluster whose parts drifted apart while it travelled would be
+   a different drawing, not the same one lower down. */
 const CARD_X = 518;
 const CARD_W = 246;
 const CARD_PAD = 12;
 const CARDS: readonly { y: number; h: number }[] = [
   { y: 96, h: 74 },
   { y: 208, h: 58 },
-  { y: 386, h: 54 },
+  { y: 420, h: 54 },
 ];
-const APPROVE_Y = 462;
+const APPROVE_Y = 496;
 const APPROVE_H = 70;
+/** The policy annotation's own baseline. It is authored in the markup like
+ *  every other string in the world, and it lives here too because it is the
+ *  one label in the scene whose POSITION carries meaning: it explains the card
+ *  under it, so "paired, above, and closer to that card than to anything else"
+ *  is an invariant rather than a placement. Asserted against the markup and
+ *  against both its neighbours at boot. */
+const GUARD_Y = 410;
+const GUARD_SIZE = 11;
+/** How much frame has to be left under the deepest thing in the world. The
+ *  cluster is what pushed against this, and 24u is the floor the move was
+ *  designed to keep clear of — .agt-svg scales the whole viewBox to the
+ *  viewport, so anything past 600 is not clipped, it simply never existed. */
+const FRAME_FOOT_MIN = 24;
+
+/* ── The tool traces' departure latitudes ──────────────────────────────────
+   Three lines out of the chassis's right wall, one per card, and the three
+   numbers are here rather than only in the markup because they are a FAN and
+   not three placements: they have to stay on their card's own side of the
+   spine, inside the wall between its corners, and in the same order as the
+   cards they serve.
+
+   282 and 296 are the two questions — adjacent, just above the spine, because
+   they are one kind of act happening twice. 352 is the ACTION, and it moved
+   down from 338 with the cluster it serves: a departure that stayed where it
+   was would have turned a swept elbow into a drop, and the trace would have
+   been a leftover of the old composition pointing at the new one. At 352 it
+   leaves 46u under the spine and 24u over the box's bottom corner — the wall's
+   last honest latitude — and the fan now reads the way the scene does, two
+   lines thinking and one line acting. */
+const TRACE_OUT_Y: readonly number[] = [282, 296, 352];
 
 /* ── The phone ─────────────────────────────────────────────────────────────
    Scene 3's device at 228u against its 260 — 88%, and the reduction is the
@@ -652,7 +698,11 @@ const STILL_VIEW = [
     text: "The third call is an action, not a question. It stops at the policy and waits for a person.",
     glass: "Real actions wait for a human yes.",
     event: "guard · maxAutoCalls → approval",
-    box: "500 360 300 190",
+    /* Cut to the cluster's own block — the annotation's em box at ~402 down to
+       the approval card's floor at 566 — and it followed the cluster 34u down
+       when the cluster moved. A window left at the old latitude would have
+       framed the empty gap the move created. */
+    box: "500 390 300 190",
   },
   {
     chans: true,
@@ -1048,6 +1098,27 @@ export function createAgentsScene(): AgentsScene {
       }
     }
   }
+  /* And the boxes in the markup have to BE where this file says the column is.
+     Everything below — the traces' landing points, the connector, the cluster's
+     clearances — is computed from CARDS and APPROVE_Y, so a rect that drifted
+     from them would make every assert in this section true about a drawing
+     nobody is looking at. */
+  {
+    const drawn: readonly { el: SVGRectElement; y: number; h: number }[] = [
+      ...cardBoxes.map((el, i) => ({ el, y: CARDS[i]!.y, h: CARDS[i]!.h })),
+      { el: approveBox, y: APPROVE_Y, h: APPROVE_H },
+    ];
+    for (const [i, d] of drawn.entries()) {
+      if (
+        Number(d.el.getAttribute("x")) !== CARD_X ||
+        Number(d.el.getAttribute("width")) !== CARD_W ||
+        Number(d.el.getAttribute("y")) !== d.y ||
+        Number(d.el.getAttribute("height")) !== d.h
+      ) {
+        throw new Error(`[agents] card ${i + 1} in the markup disagrees with the card column's constants`);
+      }
+    }
+  }
   /* The connector has to actually join the two boxes it claims to. */
   {
     const cA = conn.getPointAtLength(0);
@@ -1055,6 +1126,98 @@ export function createAgentsScene(): AgentsScene {
     const card3 = CARDS[2]!;
     if (Math.abs(cA.y - (card3.y + card3.h)) > 0.5 || Math.abs(cB.y - APPROVE_Y) > 0.5) {
       throw new Error("[agents] the approval connector does not join the action card to the approval");
+    }
+  }
+
+  /* ── the tool traces ────────────────────────────────────────────────────
+     A trace is the only thing in this scene that joins two objects placed by
+     two different hands — a latitude on the chassis's wall and the middle of a
+     card's wall — and until the guarded-action cluster moved, nothing checked
+     that it still reached either of them. It does now, at both ends and in
+     four ways.
+
+     ENDPOINTS ARE THE WHOLE CHECK, because of how the `d`s are authored: each
+     is one cubic whose first control point carries its start's y and whose
+     second carries its end's y, so both tangents are horizontal and the curve's
+     y is bounded by its own two endpoints. A trace therefore cannot bulge
+     across the spine between checks — the two points are the path. */
+  for (const [i, t] of traces.entries()) {
+    const card = CARDS[i]!;
+    const wall = TRACE_OUT_Y[i]!;
+    const mid = card.y + card.h / 2;
+    const a = t.getPointAtLength(0);
+    const b = t.getPointAtLength(t.getTotalLength());
+
+    if (Math.abs(a.x - (AGENT_X + AGENT_W)) > 0.5 || Math.abs(a.y - wall) > 0.5) {
+      throw new Error(`[agents] trace ${i + 1} does not leave the chassis wall at its own latitude`);
+    }
+    if (Math.abs(b.x - CARD_X) > 0.5 || Math.abs(b.y - mid) > 0.5) {
+      throw new Error(`[agents] trace ${i + 1} does not land on the middle of card ${i + 1}'s wall`);
+    }
+    /* Out of the wall, not out of a corner. 12u is twice the box's own corner
+       radius, which is the distance at which a line still reads as leaving a
+       flat surface. */
+    if (wall < AGENT_Y + 12 || wall > AGENT_Y + AGENT_H - 12) {
+      throw new Error(`[agents] trace ${i + 1} leaves the chassis through a corner`);
+    }
+    /* And it stays on its card's own side of the spine. The answer's road is
+       the one line the reader follows across the frame; a request crossing it
+       would be a second road. */
+    if ((wall < SPINE_Y) !== (mid < SPINE_Y)) {
+      throw new Error(`[agents] trace ${i + 1} crosses the answer's road`);
+    }
+    const prev = TRACE_OUT_Y[i - 1];
+    if (prev !== undefined && wall <= prev) {
+      throw new Error(`[agents] trace ${i + 1} leaves the wall above the trace before it`);
+    }
+  }
+
+  /* ── the guarded-action cluster ─────────────────────────────────────────
+     Four objects that have to move as one, and the two relations that make
+     them one: the annotation is PAIRED to the card under it, and the whole
+     block is further from the lookup cards than any of its own parts are from
+     each other. Both are arithmetic on the constants, and the second one is
+     the user's complaint written down — the cluster used to sit 102u under
+     card 2 and read as a third entry in the same log. */
+  {
+    const card2 = CARDS[1]!;
+    const card3 = CARDS[2]!;
+    if (Number(guard.getAttribute("x")) !== CARD_X || Number(guard.getAttribute("y")) !== GUARD_Y) {
+      throw new Error("[agents] the guardrail annotation disagrees with CARD_X / GUARD_Y");
+    }
+    /* Baseline to the wall of the card it explains. Close enough to belong to
+       it, far enough not to sit on it. */
+    const pair = card3.y - GUARD_Y;
+    if (pair < 4 || pair > 20) {
+      throw new Error("[agents] the guardrail annotation has come unpaired from the card it explains");
+    }
+    /* 120, and the number is chosen the way the channel row's floor was: it has
+       to REFUSE the arrangement we were just asked to leave. The annotation's
+       em box used to clear card 2 by 102u; a floor that permits the defect is
+       not a floor. */
+    const top = GUARD_Y - GUARD_SIZE * 0.75;
+    if (top - (card2.y + card2.h) < 120) {
+      throw new Error("[agents] the guarded action has drifted back up into the lookup cards");
+    }
+    /* The annotation is the one string in the world wider than the card it
+       belongs to, so it is the one that could reach the phone. */
+    if (CARD_X + monoWidth(guard.textContent ?? "", GUARD_SIZE) > PHONE_X - 12) {
+      throw new Error("[agents] the guardrail annotation runs into the phone");
+    }
+    /* The deepest object in the world, against the frame it is drawn in.
+       .agt-svg fits the whole viewBox to the viewport, so a cluster that walked
+       past 600 would not be clipped — it would be missing. */
+    if (FRAME_H - (APPROVE_Y + APPROVE_H) < FRAME_FOOT_MIN) {
+      throw new Error("[agents] the guarded-action cluster has walked off the bottom of the frame");
+    }
+    /* Going down put the approval card into the closing statement's band. They
+       are two columns and never touch, but nothing in the system would notice
+       them starting to: the statement's rule is what marks its column's width,
+       and it is held off the card stack by the same 20u the channel row above
+       it is held to. */
+    const ruleEnd = closeRule.getPointAtLength(closeRule.getTotalLength());
+    if (ruleEnd.x > CARD_X - 20) {
+      throw new Error("[agents] the closing statement's column runs into the approval card");
     }
   }
 

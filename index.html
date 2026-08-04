@@ -1604,7 +1604,7 @@
                      falls down a column at x 406 and turns right at y 306, so
                      no row may reach into x 392+ above the spine; the brain's
                      disc is 392–420 × 292–320 and no row's em box may enter it;
-                     and the traces leave the wall at y 282 / 296 / 338, which
+                     and the traces leave the wall at y 282 / 296 / 352, which
                      is outside the box entirely. -->
                 <g id="agt-guts">
                   <text class="agt-guts-row" x="204" y="272">conversations · history</text>
@@ -1632,10 +1632,27 @@
                    the spine. Request goes out as a DRAW; response comes back
                    as a result line fading in inside the card — which is the
                    anatomy the real Turn Inspector shows, a call and then its
-                   return, not a round trip animated twice. -->
+                   return, not a round trip animated twice.
+
+                   ONE CUBIC EACH, and always the same construction: the first
+                   control point carries the START's y and the second carries
+                   the END's, so both tangents are horizontal and the line is a
+                   swept elbow — out of the wall flat, over, into the card flat.
+                   It is also what makes the boot assert cheap: a curve whose
+                   controls share their endpoints' latitudes cannot leave the
+                   band between them, so checking the two points checks the path.
+
+                   TRACE 3 WAS RE-ROUTED when the guarded-action cluster moved
+                   34u down (see CARDS in agents.ts). Its departure went with
+                   it — 338 → 352, the wall's last latitude before the corner —
+                   rather than staying put and letting the elbow stretch into a
+                   drop. The fan now says what the scene says: two lines just
+                   above the spine asking questions, one well below it doing
+                   something. TRACE_OUT_Y in agents.ts is the same three numbers
+                   and asserts all of it at boot. -->
               <path class="eng-wire agt-trace" id="agt-trace-1" d="M 430 282 C 470 282 478 133 518 133" />
               <path class="eng-wire agt-trace" id="agt-trace-2" d="M 430 296 C 470 296 478 237 518 237" />
-              <path class="eng-wire agt-trace" id="agt-trace-3" d="M 430 338 C 470 338 478 413 518 413" />
+              <path class="eng-wire agt-trace" id="agt-trace-3" d="M 430 352 C 470 352 478 447 518 447" />
 
               <!-- ── the tool cards ──────────────────────────────────────────
                    Small hairline boxes with mono lines, one per call, in the
@@ -1676,13 +1693,25 @@
                    agent walks into it. It is faint INK and not amber — amber
                    in this scene is rationed to exactly one object, the paused
                    card's own border, so that the pause has a colour and its
-                   explanation does not compete with it (BRAND §2). -->
-              <text class="agt-guard" id="agt-guard" x="518" y="376">2nd refund in 30 days · auto → approval</text>
+                   explanation does not compete with it (BRAND §2).
+
+                   EVERYTHING FROM HERE TO THE APPROVAL CARD MOVED 34u DOWN as
+                   one object (user call): the note, the card it explains, the
+                   stem, and the card that asks the person. It used to start
+                   102u under the lookup stack, which is close enough that the
+                   eye read it as a third entry in the same trace log — and this
+                   is not another lookup, it is the scene stopping. The whole
+                   block is one act and it now has the daylight to be read as
+                   one. Internal spacing is untouched, the trace that feeds it
+                   was re-routed to follow it, and agents.ts asserts the pairing,
+                   the 120u floor under the lookup cards and the frame's own
+                   foot. -->
+              <text class="agt-guard" id="agt-guard" x="518" y="410">2nd refund in 30 days · auto → approval</text>
 
               <g class="agt-l-card" id="agt-card-3">
-                <rect class="agt-card" id="agt-card-3-box" x="518" y="386" width="246" height="54" rx="6" />
-                <text class="agt-card-title" id="agt-card-3-title" x="530" y="410">refund_reissue</text>
-                <text class="agt-card-line" id="agt-card-3-result" x="530" y="430">reissued</text>
+                <rect class="agt-card" id="agt-card-3-box" x="518" y="420" width="246" height="54" rx="6" />
+                <text class="agt-card-title" id="agt-card-3-title" x="530" y="444">refund_reissue</text>
+                <text class="agt-card-line" id="agt-card-3-result" x="530" y="464">reissued</text>
                 <!-- The tick that finishes the sentence "reissued ✓". DRAWN,
                      not typed: U+2713 is not in the latin subset this site
                      self-hosts, so a literal checkmark would silently fall back
@@ -1691,32 +1720,32 @@
                      segment geometry as the checklist's ticks, which is the
                      right rhyme — this is the fifth tick of the scene, drawn
                      in the world instead of in the rail. -->
-                <path class="agt-tick" id="agt-card-3-tick" d="M 592 428.4 L 595.4 432.6 L 602 424.2" />
+                <path class="agt-tick" id="agt-card-3-tick" d="M 592 462.4 L 595.4 466.6 L 602 458.2" />
               </g>
 
               <!-- Card 3 asks the approval card the question, and the line
                    between them is the causality. Short and vertical: two boxes
                    stacked with a stem read as one mechanism, where two boxes
                    side by side read as two things that happened. -->
-              <path class="eng-wire" id="agt-conn" d="M 641 440 L 641 462" />
+              <path class="eng-wire" id="agt-conn" d="M 641 474 L 641 496" />
 
               <g class="agt-l-card" id="agt-approve">
-                <rect class="agt-card" id="agt-approve-box" x="518" y="462" width="246" height="70" rx="6" />
-                <text class="agt-card-title" id="agt-approve-title" x="530" y="486">approve refund_reissue?</text>
+                <rect class="agt-card" id="agt-approve-box" x="518" y="496" width="246" height="70" rx="6" />
+                <text class="agt-card-title" id="agt-approve-title" x="530" y="520">approve refund_reissue?</text>
                 <!-- A person, in two strokes. The only human figure on the
                      site, and it is deliberately the smallest object in the
                      frame: the claim is not that a human does the work, it is
                      that a human is the one who says yes. -->
                 <g id="agt-approve-who">
                   <g class="agt-human">
-                    <circle cx="542" cy="503" r="3.2" />
-                    <path d="M 536 514 C 536 507 548 507 548 514" />
+                    <circle cx="542" cy="537" r="3.2" />
+                    <path d="M 536 548 C 536 541 548 541 548 548" />
                   </g>
-                  <text class="agt-card-line" x="556" y="513">ops</text>
+                  <text class="agt-card-line" x="556" y="547">ops</text>
                 </g>
                 <g id="agt-yes">
-                  <rect class="agt-yes-box" id="agt-yes-box" x="698" y="496" width="48" height="22" rx="6" />
-                  <text class="agt-card-line" x="722" y="512" text-anchor="middle">yes</text>
+                  <rect class="agt-yes-box" id="agt-yes-box" x="698" y="530" width="48" height="22" rx="6" />
+                  <text class="agt-card-line" x="722" y="546" text-anchor="middle">yes</text>
                 </g>
               </g>
 
