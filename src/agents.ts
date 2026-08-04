@@ -84,7 +84,7 @@ import { gsap } from "gsap";
             reader is meant to leave the scene on
 
    Nothing that existed in the storyboard was slowed down to reach it. */
-const PIN_HEIGHTS = 3.0; // SETTLED (user call, 2026-08-04): 2.0 -> 2.6 -> 3.0 as the three camera asides landed; the page's biggest scroll spend, for its densest scene
+const PIN_HEIGHTS = 2.7; // SETTLED (user call, 2026-08-04): 2.0 -> 2.6 -> 3.0 -> 2.7; 3.0 over-stretched on the ride, 2.7 is the keeper
 const TL_END = 80;
 
 /** Scrub catch-up, in seconds. Matched to scenes 2 and 3 on purpose. */
