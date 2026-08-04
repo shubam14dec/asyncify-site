@@ -457,7 +457,13 @@ const MEM_CURVES: readonly number[] = [21.6, 23.1, 24.6];
 const MEM_CURVE_DRAW = 0.8;
 const MEM_LABEL_LAG = 0.35;
 const MEM_OUT = 26.6;
-const MEM_FOCUS_OUT = 27.3;
+/* The pull-back gets 1.3 units where the push-in gets 0.9 -- a return that
+   spanned 0.8 read as a snap in a crowd (user catch): it shared its instant
+   with the fold, the re-brighten and the next act. Now it starts AS the fold
+   collapses (film grammar: the aside folds while the camera leaves) and
+   lands just before the scene resumes. */
+const CAM_RETURN = 1.3;
+const MEM_FOCUS_OUT = 26.7; // 26.8 put the landing at B2_T2 exactly; the assert (rightly) wants real margin
 
 /* -- The grounded close-up ------------------------------------------------
    The memory aside's sibling, at the grounded tick, same rhythm on purpose --
@@ -469,7 +475,7 @@ const MEM_FOCUS_OUT = 27.3;
 const GRD_IN = 33.6;
 const GRD_CURVES: readonly number[] = [34.4, 35.9, 37.4];
 const GRD_OUT = 39.2;
-const GRD_FOCUS_OUT = 39.9;
+const GRD_FOCUS_OUT = 39.5;
 
 /* -- The guarded footnote --------------------------------------------------
    (user call) A third close-up, but deliberately NOT a third fan: guarded is
@@ -483,7 +489,7 @@ const GRD_FOCUS_OUT = 39.9;
 const GUA_IN = 55.6;
 const GUA_CURVE = 56.4;
 const GUA_OUT = 59.0;
-const GUA_FOCUS_OUT = 59.6;
+const GUA_FOCUS_OUT = 59.4;
 
 const B2_T2 = 28.2;
 const B2_C2 = 29.4;
@@ -991,7 +997,7 @@ export function createAgentsScene(): AgentsScene {
   /* The memory close-up has to be OVER — curves retracted, world back at
      full ink — before trace 2 fires; a lookup drawn into a dimmed stage is a
      scene talking over its own aside. */
-  if (MEM_FOCUS_OUT + 0.9 > B2_T2) {
+  if (MEM_FOCUS_OUT + CAM_RETURN + 0.1 > B2_T2) {
     throw new Error("[agents] the memory close-up is still folding away when the lookup resumes");
   }
   if (MEM_CURVES[MEM_CURVES.length - 1]! + MEM_CURVE_DRAW + MEM_LABEL_LAG >= MEM_OUT) {
@@ -999,7 +1005,7 @@ export function createAgentsScene(): AgentsScene {
   }
 
   /* Same two guards for the grounded aside, against the SHIFTED beat 3. */
-  if (GRD_FOCUS_OUT + 0.9 > B3_GUARD) {
+  if (GRD_FOCUS_OUT + CAM_RETURN + 0.1 > B3_GUARD) {
     throw new Error("[agents] the grounded close-up is still folding away when the guardrail speaks");
   }
   if (GRD_CURVES[GRD_CURVES.length - 1]! + MEM_CURVE_DRAW + MEM_LABEL_LAG >= GRD_OUT) {
@@ -1020,7 +1026,7 @@ export function createAgentsScene(): AgentsScene {
   if (GUA_CURVE + MEM_CURVE_DRAW + MEM_LABEL_LAG >= GUA_OUT) {
     throw new Error("[agents] the guarded footnote has no time to stand before it folds");
   }
-  if (GUA_FOCUS_OUT + 0.9 > B4_FLY) {
+  if (GUA_FOCUS_OUT + CAM_RETURN + 0.1 > B4_FLY) {
     throw new Error("[agents] the guarded footnote is still folding away when the answer flies");
   }
 
@@ -2163,10 +2169,10 @@ export function createAgentsScene(): AgentsScene {
       });
       ft(memCurves, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8, ease: "power2.in" }, MEM_OUT);
       ft(memLabels, { opacity: 1 }, { opacity: 0, duration: 0.6 }, MEM_OUT);
-      ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
-      ft(cam, { scale: camScale, x: camX(), y: camY() }, { scale: 1, x: 0, y: 0, duration: 0.8, ease: "power2.inOut", transformOrigin: "0px 0px" }, MEM_FOCUS_OUT);
-      ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
-      ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
+      ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: CAM_RETURN }, MEM_FOCUS_OUT);
+      ft(cam, { scale: camScale, x: camX(), y: camY() }, { scale: 1, x: 0, y: 0, duration: CAM_RETURN, ease: "power2.inOut", transformOrigin: "0px 0px" }, MEM_FOCUS_OUT);
+      ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: CAM_RETURN }, MEM_FOCUS_OUT);
+      ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: CAM_RETURN }, MEM_FOCUS_OUT);
     }
 
     draw(traces[1]!, B2_T2, 1.8);
@@ -2190,10 +2196,10 @@ export function createAgentsScene(): AgentsScene {
       });
       ft(grdCurves, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8, ease: "power2.in" }, GRD_OUT);
       ft(grdLabels, { opacity: 1 }, { opacity: 0, duration: 0.6 }, GRD_OUT);
-      ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: 0.8 }, GRD_FOCUS_OUT);
-      ft(cam, { scale: camScale, x: camX(), y: camY() }, { scale: 1, x: 0, y: 0, duration: 0.8, ease: "power2.inOut", transformOrigin: "0px 0px" }, GRD_FOCUS_OUT);
-      ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GRD_FOCUS_OUT);
-      ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GRD_FOCUS_OUT);
+      ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: CAM_RETURN }, GRD_FOCUS_OUT);
+      ft(cam, { scale: camScale, x: camX(), y: camY() }, { scale: 1, x: 0, y: 0, duration: CAM_RETURN, ease: "power2.inOut", transformOrigin: "0px 0px" }, GRD_FOCUS_OUT);
+      ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: CAM_RETURN }, GRD_FOCUS_OUT);
+      ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: CAM_RETURN }, GRD_FOCUS_OUT);
     }
 
     /* ── BEAT 3 · the guarded action ─────────────────────────────────────
@@ -2270,10 +2276,10 @@ export function createAgentsScene(): AgentsScene {
       fadeIn(guaLabel, GUA_CURVE + MEM_LABEL_LAG, 0.6);
       ft(guaCurve, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8, ease: "power2.in" }, GUA_OUT);
       ft(guaLabel, { opacity: 1 }, { opacity: 0, duration: 0.6 }, GUA_OUT);
-      ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: 0.8 }, GUA_FOCUS_OUT);
-      ft(cam, { scale: camScale, x: camX(), y: camY() }, { scale: 1, x: 0, y: 0, duration: 0.8, ease: "power2.inOut", transformOrigin: "0px 0px" }, GUA_FOCUS_OUT);
-      ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GUA_FOCUS_OUT);
-      ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GUA_FOCUS_OUT);
+      ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: CAM_RETURN }, GUA_FOCUS_OUT);
+      ft(cam, { scale: camScale, x: camX(), y: camY() }, { scale: 1, x: 0, y: 0, duration: CAM_RETURN, ease: "power2.inOut", transformOrigin: "0px 0px" }, GUA_FOCUS_OUT);
+      ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: CAM_RETURN }, GUA_FOCUS_OUT);
+      ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: CAM_RETURN }, GUA_FOCUS_OUT);
     }
 
     /* ── BEAT 4 · the answer ─────────────────────────────────────────────
