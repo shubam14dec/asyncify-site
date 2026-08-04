@@ -1868,6 +1868,18 @@ html {
   display: inline-block;
 }
 
+/* The selection: the same green the site paints ::selection with, swept
+   across the era once it has been written -- as if a cursor dragged over it
+   (user call). Behind the glyphs, above the canvas. */
+.agt-era-hl {
+  position: absolute;
+  inset: -3px -8px -1px -8px;
+  z-index: -1;
+  background: var(--green-soft);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
 /* The era's underline is no longer its own element: it is a SEGMENT of the
    through-wire, inked by the dot as it passes (see #agt-bridge-svg). */
 

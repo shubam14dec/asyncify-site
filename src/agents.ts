@@ -2090,6 +2090,19 @@ export function createAgentsScene(): AgentsScene {
       }
       if (eraPhrase) {
         tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 3.8);
+        {
+          /* The selection sweep: the era gets SELECTED once written -- the
+             site's own ::selection green, dragged across left to right. */
+          const eraHl = doc.querySelector<HTMLElement>("#agt-era-hl");
+          if (eraHl) {
+            tl.fromTo(
+              eraHl,
+              { scaleX: 0 },
+              { scaleX: 1, duration: 0.6, ease: "power2.out", transformOrigin: "0% 50%", immediateRender: false },
+              3.95,
+            );
+          }
+        }
       }
       /* The reply passes the sentence about itself, and the sentence notices:
          a brightness swell as the dot crosses its latitude, then it settles. */
@@ -2105,6 +2118,19 @@ export function createAgentsScene(): AgentsScene {
       tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 3.72);
       if (eraPhrase) {
         tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 3.8);
+        {
+          /* The selection sweep: the era gets SELECTED once written -- the
+             site's own ::selection green, dragged across left to right. */
+          const eraHl = doc.querySelector<HTMLElement>("#agt-era-hl");
+          if (eraHl) {
+            tl.fromTo(
+              eraHl,
+              { scaleX: 0 },
+              { scaleX: 1, duration: 0.6, ease: "power2.out", transformOrigin: "0% 50%", immediateRender: false },
+              3.95,
+            );
+          }
+        }
       }
     }
   }
