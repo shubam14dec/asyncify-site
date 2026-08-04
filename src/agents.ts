@@ -441,9 +441,13 @@ const MEM_IN = 20.8;
    read but the subject. One set of constants for all three asides -- one
    camera language, not three. */
 const MEM_SCALE = 1.9;
-const MEM_STAGE_DIM = 0.15;
-const MEM_ROW_DIM = 0.2;
-const MEM_TITLE_DIM = 0.2;
+/* 0.05/0.1, down from 0.15/0.2: at the deeper zoom the leftover dims still
+   left READABLE text under the fan's labels, and dim-text-over-dim-text is
+   mush (user catch). At these values the world and the neighbours are
+   silhouettes -- shape without words -- which is what "context" meant. */
+const MEM_STAGE_DIM = 0.05;
+const MEM_ROW_DIM = 0.1;
+const MEM_TITLE_DIM = 0.1;
 /** One memory at a time — a list revealed all at once is read as one item. */
 const MEM_CURVES: readonly number[] = [21.6, 23.1, 24.6];
 const MEM_CURVE_DRAW = 0.8;

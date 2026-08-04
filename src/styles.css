@@ -1897,6 +1897,11 @@ html {
 .agt-rail {
   position: relative;
   align-self: center;
+  /* Above the stage in paint order: the asides zoom the checklist to 1.9x and
+     its fan sweeps over the stage's box -- the stage is LATER in the DOM, so
+     without this the close-up's labels render UNDER the dimmed world's text
+     (user catch: "background text overlapping"). */
+  z-index: 2;
 }
 
 /* THE MASTHEAD: kicker, head, and the air between them. Two rules, and they
