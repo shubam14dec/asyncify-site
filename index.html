@@ -1362,8 +1362,424 @@
         <div class="trn-still" id="trn-still" hidden></div>
       </section>
 
-      <!-- Scenes 4–5 land in the next slice. Markers only. -->
-      <section id="scene-agents"></section>
+      <!-- ─────────────────────────────────────────────────────────────────
+           THE SECOND BRIDGE.  Same grammar as the first one — two lines, a
+           setup one step down the gray ladder and a payoff at full ink, free
+           scroll, no pin — because it is doing the same job one scene later:
+           a breath between two pinned sections, and a hand-off.
+
+           WHY THE LINE CLASS IS `agt-bridge-line` AND NOT `.bridge-line`.
+           turn.ts owns every `.bridge-line` on the page with a document-wide
+           querySelectorAll and animates the lot on scene 3's own trigger. A
+           second bridge that borrowed the class would have its copy revealed
+           four screens early, by a timeline that has no idea it exists. The
+           LAYOUT classes (.bridge, .bridge-copy) are page primitives and are
+           borrowed outright; only the animated hook is scene-local. Scene 3's
+           trigger is the string ".bridge", which resolves to the first match
+           in the document, so it keeps pointing at its own section.
+           ───────────────────────────────────────────────────────────────── -->
+      <section class="bridge" id="bridge-agents">
+        <h2 class="bridge-copy">
+          <span class="agt-bridge-line">A customer's reply is sitting in a queue.</span>
+          <span class="agt-bridge-line agt-bridge-lead">Meet what answers it.</span>
+        </h2>
+      </section>
+
+      <!-- ─────────────────────────────────────────────────────────────────
+           SCENE 4 — AGENTS.  "It answers. You stay in control."
+           One pinned composition, scrubbed over two viewport heights, in four
+           beats and NO camera: the pickup, the lookup, the guarded action, and
+           the answer. See src/agents.ts for the storyboard and the timing.
+
+           WHY NO CAMERA. Scenes 2 and 3 move the lens because their subject is
+           a single small thing inside a large drawing — a queue slot, a
+           sentence typed into a 208u field. This scene's subject is a SEQUENCE:
+           a request going out to a card and a result coming back, three times,
+           in an order that is the whole argument. A camera that pushed into
+           each card in turn would show the reader three close-ups and hide the
+           thing that connects them. The composition is sized so every string in
+           it reads at the wide shot instead (see agents.ts's type ladder), and
+           the reader's eye does the panning.
+
+           THREE COLUMNS, LEFT TO RIGHT, AND THEY ARE THE SENTENCE. The agent
+           box on the left is what picks the reply up; the stack of tool cards
+           in the middle is what it does about it; the phone on the right is
+           where the answer lands. One horizontal at y 306 runs the whole width
+           — the box's own centre line — and the tool traces are the only
+           things that leave it. The answer never does: it goes straight out of
+           the machine and into the person, and everything else is work.
+
+           THE WIRE AT THE TOP IS SCENE 3'S DOOR WIRE. It enters from the frame's
+           top edge and runs down into the agent box, which is the same gesture
+           scene 3 ends on — a wire leaving the engine's wall and running off the
+           bottom of ITS frame. The two scenes are one pipe with a bridge in the
+           middle of it.
+
+           As in scenes 2 and 3, the markup below is the ANATOMY only: it is
+           authored in its FINISHED state and CSS paints it that way, so a clone
+           of it with no JS applied already is the last frame of the scene.
+           agents.ts pushes it back to the start and scrubs it forward. This
+           scene's finished frame is unusually complete — nothing in it is
+           erased by a later beat, which is why (unlike scene 3) the still
+           figures need no per-phase overrides at all.
+           ───────────────────────────────────────────────────────────────── -->
+      <section id="scene-agents" aria-labelledby="agt-heading">
+        <h2 class="sr-only" id="agt-heading">
+          Agents: your own agent picks the reply up out of the queue, searches its memory,
+          looks the order up, waits for a human to approve the refund, and answers back on the
+          channel the user is already in.
+        </h2>
+
+        <div class="agt-pin" id="agt-pin">
+          <!-- The rail column — scene 2's and scene 3's anatomy exactly, so all
+               three pinned scenes hang their names on the same page margin.
+               Title on top; beneath it this scene's tracker.
+
+               THE TRACKER IS A CHECKLIST, NOT A PROGRESS RAIL (user design).
+               Scenes 2 and 3 hand the scrollbar back with a fill that grows;
+               this one hands back something better, because this scene's
+               argument is not "how far through are we" but "how many of the
+               five things we claim have you actually watched happen". Five
+               empty boxes are listed from the first frame — the claims, made
+               up front — and each one gets a checkmark DRAWN into it at the
+               instant the scene demonstrates it. Five ticks is still a
+               position on a rail; it is just a rail whose stations are
+               promises. Rows are generated by agents.ts from QUALITIES, so a
+               tick's moment and its row are the same data. -->
+          <div class="agt-rail" id="agt-rail">
+            <div class="agt-title" id="agt-title">
+              <span class="eng-kicker">04 · agents</span>
+              <!-- .trn-head, borrowed rather than restated: it is the page's
+                   pinned-rail head, not scene 3's private one, exactly as
+                   .eng-kicker above it is not scene 2's. -->
+              <p class="trn-head">It answers. You stay in control.</p>
+            </div>
+            <svg
+              class="agt-checklist"
+              id="agt-checklist"
+              viewBox="0 0 200 216"
+              aria-hidden="true"
+              focusable="false"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g id="agt-qualities"></g>
+            </svg>
+          </div>
+
+          <div class="agt-stage">
+            <svg
+              class="agt-svg"
+              id="agt-svg"
+              viewBox="0 0 1120 600"
+              preserveAspectRatio="xMidYMid meet"
+              aria-hidden="true"
+              focusable="false"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <!-- Flight routes. Rendered into nothing but RENDERED, so
+                   MotionPath measures them in the same space the riders live
+                   in. Both `d`s are written by agents.ts from its constants. -->
+              <g class="eng-guides" id="agt-guides">
+                <path id="agt-g-in" d="M 0 0" />
+                <path id="agt-g-out" d="M 0 0" />
+              </g>
+
+              <!-- ── the wire down from scene 3 ──────────────────────────────
+                   It starts at the frame's top edge, which is where scene 3's
+                   door wire left ITS frame's bottom edge. Nothing labels the
+                   join; the reader has just scrolled through a bridge that
+                   says "a customer's reply is sitting in a queue", and a line
+                   coming down out of the top of the next picture is the only
+                   caption that needs. -->
+              <path class="eng-wire" id="agt-wire-in" d="M 440 0 L 440 248" />
+              <!-- The queue the reply is sitting in, named on the wire that
+                   carries it out — the same string scene 3 ends on, so the two
+                   frames are demonstrably the same job. Right-anchored so it
+                   hangs off the wire rather than crossing it. -->
+              <text class="trn-evt" id="agt-stamp-job" x="416" y="146" text-anchor="end">job · conversation-inbound</text>
+
+              <!-- ── the agent, as one box ───────────────────────────────────
+                   Drawn in scene 3's chip dialect — hairline-strong wall, 6u
+                   corner, --surface fill — because it is the same KIND of
+                   object one scene on: a machine named from outside and shown
+                   only in outline. The label sits above it for the same reason
+                   scene 2 puts "queue" over the queue.
+
+                   "your agent" and "your model · your prompt" are the whole
+                   differentiator in eleven words, and they are set one rung
+                   apart in SIZE rather than in ink: --text-faint is the bottom
+                   of the ladder for resting text (BRAND §1 forbids
+                   opacity-faked grays for a resting colour), so quiet has to
+                   come from the type scale. Same move as scene 3's tease. -->
+              <g class="agt-l-agent">
+                <rect class="trn-chip" id="agt-box" x="260" y="248" width="200" height="116" rx="6" />
+                <text class="eng-aside" id="agt-label" x="260" y="222">your agent</text>
+                <text class="agt-sub" id="agt-sub" x="260" y="238">your model · your prompt</text>
+
+                <!-- The internals: an inlet, the model, a through-line, and a
+                     RETURN ARC over it. Four marks, no text, one full ladder
+                     step below the wall around them — scene 3's miniature
+                     precedent exactly.
+
+                     The arc is not decoration: it is the one true thing about
+                     an agent's shape, which is that it calls out and comes
+                     back, and the tool traces that leave this box in beat 2
+                     are that loop made visible outside the wall. It is an ARC
+                     OVER THE LINE rather than a closed ring beside it, and
+                     that is the second draft: a ring drawn as two curves
+                     meeting at a point read as a pennant — an arrowhead
+                     pointing back down its own inlet — and it also sat on the
+                     latitude both packets travel, so every dot in the scene
+                     crossed it twice. Above the line, the loop is unmistakable
+                     and the road under it is clear.
+
+                     The through-line runs to the chip's own wall so it is
+                     continuous with the wire outside (scene 3's precedent):
+                     one line from the model to the phone, which is what makes
+                     the answer's departure read as leaving the machine rather
+                     than appearing beside it. -->
+                <g class="trn-mini" id="agt-guts">
+                  <path d="M 270 306 L 286 306" />
+                  <rect x="286" y="296" width="34" height="20" rx="2" />
+                  <path d="M 320 306 L 460 306" />
+                  <path d="M 356 306 C 356 282 412 282 412 306" />
+                </g>
+              </g>
+
+              <!-- The road to the person. Wall to wall: it touches the agent
+                   box's right edge and the phone's left edge, and it runs at
+                   exactly the latitude of the box's own centre, so the answer
+                   leaves from the middle of the machine rather than from a
+                   corner of it. Asserted at boot. -->
+              <path class="eng-wire" id="agt-wire-out" d="M 460 306 L 848 306" />
+
+              <!-- ── the tool traces ─────────────────────────────────────────
+                   Three lines out of the box's right wall, each to its own
+                   card. They leave at three different heights and none of them
+                   crosses y 306, so the answer's road stays the only thing on
+                   the spine. Request goes out as a DRAW; response comes back
+                   as a result line fading in inside the card — which is the
+                   anatomy the real Turn Inspector shows, a call and then its
+                   return, not a round trip animated twice. -->
+              <path class="eng-wire agt-trace" id="agt-trace-1" d="M 460 282 C 500 282 505 133 550 133" />
+              <path class="eng-wire agt-trace" id="agt-trace-2" d="M 460 296 C 500 296 505 237 550 237" />
+              <path class="eng-wire agt-trace" id="agt-trace-3" d="M 460 338 C 500 338 505 413 550 413" />
+
+              <!-- ── the tool cards ──────────────────────────────────────────
+                   Small hairline boxes with mono lines, one per call, in the
+                   brain's real order: remember first, then look up, then act.
+
+                   THE STRINGS ARE CHECKED. `search_history` is a real built-in
+                   tool (notification-system src/core/managed-brain.ts:1082,
+                   docs/AGENT-TOOLS.md:119) and `maxAutoCalls` is a real
+                   guardrail key (src/api/routes/agent-tools.ts:60). The two
+                   business tools are INVENTED, and honestly so: custom tools
+                   are registered by the customer over
+                   POST /v1/agents/:identifier/tools
+                   (src/api/routes/agent-tools.ts:139), so their names are
+                   whatever that customer called them. They are written
+                   snake_case because the platform's own name regex is
+                   ^[a-z][a-z0-9_]{0,63}$ (agent-tools.ts:44) — a dotted name
+                   would be rejected with a 400, and a fictional string that
+                   the real API would refuse is not a fiction, it is a mistake.
+              -->
+              <g class="agt-l-card" id="agt-card-1">
+                <rect class="agt-card" id="agt-card-1-box" x="550" y="96" width="246" height="74" rx="6" />
+                <text class="agt-card-title" id="agt-card-1-title" x="562" y="120">search_history</text>
+                <g id="agt-card-1-result">
+                  <text class="agt-card-line" x="562" y="142">past conversation · 12 days ago</text>
+                  <text class="agt-card-line" x="562" y="158">refund promised</text>
+                </g>
+              </g>
+
+              <g class="agt-l-card" id="agt-card-2">
+                <rect class="agt-card" id="agt-card-2-box" x="550" y="208" width="246" height="58" rx="6" />
+                <text class="agt-card-title" id="agt-card-2-title" x="562" y="232">orders_lookup · #4821</text>
+                <text class="agt-card-line" id="agt-card-2-result" x="562" y="254">refund: reissued · eta 2 days</text>
+              </g>
+
+              <!-- ── the guarded action ──────────────────────────────────────
+                   The guardrail note sits ABOVE the card it stops, because it
+                   is true before the call is: the policy exists, and then the
+                   agent walks into it. It is faint INK and not amber — amber
+                   in this scene is rationed to exactly one object, the paused
+                   card's own border, so that the pause has a colour and its
+                   explanation does not compete with it (BRAND §2). -->
+              <text class="agt-guard" id="agt-guard" x="550" y="376">2nd refund in 30 days · auto → approval</text>
+
+              <g class="agt-l-card" id="agt-card-3">
+                <rect class="agt-card" id="agt-card-3-box" x="550" y="386" width="246" height="54" rx="6" />
+                <text class="agt-card-title" id="agt-card-3-title" x="562" y="410">refund_reissue</text>
+                <text class="agt-card-line" id="agt-card-3-result" x="562" y="430">reissued</text>
+                <!-- The tick that finishes the sentence "reissued ✓". DRAWN,
+                     not typed: U+2713 is not in the latin subset this site
+                     self-hosts, so a literal checkmark would silently fall back
+                     to whatever mono the OS has and arrive at a different
+                     weight and a different width. It is also the same two-
+                     segment geometry as the checklist's ticks, which is the
+                     right rhyme — this is the fifth tick of the scene, drawn
+                     in the world instead of in the rail. -->
+                <path class="agt-tick" id="agt-card-3-tick" d="M 624 428.4 L 627.4 432.6 L 634 424.2" />
+              </g>
+
+              <!-- Card 3 asks the approval card the question, and the line
+                   between them is the causality. Short and vertical: two boxes
+                   stacked with a stem read as one mechanism, where two boxes
+                   side by side read as two things that happened. -->
+              <path class="eng-wire" id="agt-conn" d="M 670 440 L 670 462" />
+
+              <g class="agt-l-card" id="agt-approve">
+                <rect class="agt-card" id="agt-approve-box" x="550" y="462" width="246" height="70" rx="6" />
+                <text class="agt-card-title" id="agt-approve-title" x="562" y="486">approve refund_reissue?</text>
+                <!-- A person, in two strokes. The only human figure on the
+                     site, and it is deliberately the smallest object in the
+                     frame: the claim is not that a human does the work, it is
+                     that a human is the one who says yes. -->
+                <g id="agt-approve-who">
+                  <g class="agt-human">
+                    <circle cx="574" cy="503" r="3.2" />
+                    <path d="M 568 514 C 568 507 580 507 580 514" />
+                  </g>
+                  <text class="agt-card-line" x="588" y="513">ops</text>
+                </g>
+                <g id="agt-yes">
+                  <rect class="agt-yes-box" id="agt-yes-box" x="730" y="496" width="48" height="22" rx="6" />
+                  <text class="agt-card-line" x="754" y="512" text-anchor="middle">yes</text>
+                </g>
+              </g>
+
+              <!-- ── the phone ───────────────────────────────────────────────
+                   Scene 3's device, at 88% of its width, and the reduction is
+                   the point: one scene ago it was the subject, now it is the
+                   destination. Same two-step elevation (--canvas body,
+                   --surface screen), same corner logic — the device drawn to
+                   its own proportions, everything inside it on the 6u UI step.
+
+                   The thread already has the reply in it when the scene opens.
+                   That is not a shortcut: the reply was sent at the end of
+                   scene 3, so a phone that had to be told about it again would
+                   be the page forgetting its own last frame. The one thing
+                   this screen gains during the scene is the answer. -->
+              <g class="agt-l-phone">
+                <rect class="trn-phone" id="agt-phone" x="848" y="100" width="228" height="400" rx="30" />
+                <rect class="trn-screen" id="agt-screen" x="858" y="110" width="208" height="380" rx="19" />
+
+                <!-- The thread as it stands when the scene opens: the app's
+                     back affordance, the message asyncify sent (as BARS, not
+                     as words — the reader read it out loud one scene ago and
+                     setting it twice would be the page repeating itself), and
+                     the human's reply underneath it in full. -->
+                <g id="agt-thread">
+                  <path class="trn-ui-stroke" d="M 886 134 L 878 142 L 886 150" />
+                  <path class="trn-div" d="M 858 162 L 1066 162" />
+                  <circle class="trn-ui-line" cx="882" cy="190" r="7" />
+                  <text class="agt-from" x="896" y="188">asyncify</text>
+                  <text class="agt-to" x="896" y="201">to you</text>
+                  <g class="trn-ui-fill">
+                    <rect x="868" y="216" width="150" height="4" rx="2" />
+                    <rect x="868" y="228" width="132" height="4" rx="2" />
+                    <rect x="868" y="240" width="94" height="4" rx="2" />
+                  </g>
+                  <path class="trn-div" d="M 868 264 L 1056 264" />
+                </g>
+
+                <!-- The reply, in the words the reader watched being typed. -->
+                <g id="agt-reply">
+                  <circle class="trn-ui-line" cx="882" cy="290" r="7" />
+                  <text class="agt-from" x="896" y="288">you</text>
+                  <text class="agt-msg" x="868" y="314">it hasn't arrived yet?</text>
+                  <path class="trn-div" d="M 868 334 L 1056 334" />
+                </g>
+
+                <!-- ── the answer ───────────────────────────────────────────
+                     The only thing this screen gains, and the last thing the
+                     scene builds. The citation under it is a full ladder step
+                     down: the sentence is what the user reads, the source is
+                     what an engineer checks. -->
+                <g id="agt-answer">
+                  <circle class="trn-ui-line" cx="882" cy="360" r="7" />
+                  <text class="agt-from" x="896" y="358">asyncify · agent</text>
+                  <text class="agt-msg" x="868" y="384">Your refund was reissued —</text>
+                  <text class="agt-msg" x="868" y="400">arriving in 2 days.</text>
+                  <text class="agt-cite" id="agt-cite" x="868" y="418">[source: refund-policy]</text>
+                </g>
+              </g>
+
+              <!-- OUR receipt for THEIR surface, hung under the wire that
+                   carried it — a caption under a rule, the same relation scene
+                   3 gives its receipts. Right-anchored 10u off the phone's
+                   wall, on the empty side, because the right side of the phone
+                   is the frame's edge. -->
+              <text class="eng-stamp" id="agt-receipt" x="838" y="328" text-anchor="end">delivered · email</text>
+              <!-- The platform event the delivery fires. Proven string:
+                   notification-system src/core/tenant-events.ts:29, emitted at
+                   src/workers/processors/status.processor.ts:47. Same treatment
+                   scene 3 gives it, one rung under the receipt it annotates. -->
+              <text class="trn-evt" id="agt-evt" x="838" y="350" text-anchor="end">websocket event: message.changed</text>
+
+              <!-- Every channel this same agent can answer on, as four line
+                   marks and four lowercase words (BRAND §6 — the channel names
+                   are lowercase because that is how the API spells them).
+                   Generated by agents.ts from CHANNELS so the row's spacing is
+                   arithmetic and not four hand-placed x values. -->
+              <g id="agt-channels"></g>
+
+              <!-- The door to scene 5. Faint, and said rather than built:
+                   scene 3's door earned an architectural wire because it was
+                   handing over the page's biggest promise, and this one hands
+                   over the evidence for a promise the reader has just watched
+                   being kept. A rule and a line is the right size for that. -->
+              <path class="agt-door-rule" id="agt-door-rule" d="M 260 540 L 364 540" />
+              <text class="agt-door" id="agt-door" x="260" y="566">and here's the proof →</text>
+
+              <!-- ── the glass ───────────────────────────────────────────────
+                   Three narrator sentences, the ONLY things in this scene that
+                   are not in the world, borrowing scene 3's caption system
+                   outright — sans against the world's mono, one at a time, a
+                   rule that draws out from its own middle and a block of text
+                   that rises under it.
+
+                   LOWER-LEFT, at the frame's own margin (x 60). The left column
+                   below y 400 is the one region no beat ever uses: the agent
+                   box bottoms out at 364, the card stack lives from x 550, and
+                   the phone is 800u to the right. A caption placed anywhere
+                   else in this composition would be printed over the work. -->
+              <g class="trn-l-glass" id="agt-glass">
+                <g class="trn-cap" id="agt-cap-1">
+                  <path class="trn-cap-rule" d="M 60 424 L 280 424" />
+                  <g class="trn-cap-text">
+                    <text x="60" y="456">It doesn't guess. It remembers,</text>
+                    <text x="60" y="482">and it looks things up.</text>
+                  </g>
+                </g>
+                <g class="trn-cap" id="agt-cap-2">
+                  <path class="trn-cap-rule" d="M 60 424 L 280 424" />
+                  <g class="trn-cap-text">
+                    <text x="60" y="456">Real actions wait for a human yes.</text>
+                  </g>
+                </g>
+                <g class="trn-cap" id="agt-cap-3">
+                  <path class="trn-cap-rule" d="M 60 424 L 280 424" />
+                  <g class="trn-cap-text">
+                    <text x="60" y="456">One agent.</text>
+                    <text x="60" y="482">Every channel your user lives on.</text>
+                  </g>
+                </g>
+              </g>
+
+              <!-- Travelling packets. Generated, and always painted last. -->
+              <g class="agt-l-dots" id="agt-dots"></g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Reduced motion and < 768px land here instead: no pin, no scrub.
+             agents.ts fills this with still clones of the composition above,
+             plus the checklist rebuilt as an actual list. -->
+        <div class="agt-still" id="agt-still" hidden></div>
+      </section>
+
+      <!-- Scene 5 lands in the next slice. Marker only. -->
       <section id="scene-cta"></section>
     </main>
 

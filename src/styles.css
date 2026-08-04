@@ -1793,3 +1793,409 @@ html {
   letter-spacing: 0.01em;
   color: var(--text-faint);
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE SECOND BRIDGE — the hinge between scene 3 and scene 4
+   ──────────────────────────────────────────────────────────────────────────
+   Layout and type are the first bridge's, borrowed outright (.bridge,
+   .bridge-copy): it is the same object doing the same job one scene later,
+   and a second set of near-identical rules would be two dialects that happen
+   to match today. Only the animated hook is scene-local — see the comment in
+   index.html for why it cannot be called .bridge-line.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.agt-bridge-line {
+  display: block;
+  color: var(--text-dim);
+}
+
+.agt-bridge-lead {
+  color: var(--text);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SCENE 4 — AGENTS
+   ──────────────────────────────────────────────────────────────────────────
+   Read this block, like scenes 2 and 3, as the composition's FINISHED state:
+   the last frame of the scrub, with all three tool cards returned, the
+   approval granted, the answer sitting in the thread and the door to scene 5
+   open. agents.ts pushes it back to the start.
+
+   Almost all the ink is borrowed rather than restated — .eng-wire, .eng-aside,
+   .eng-stamp, .eng-kicker, .trn-chip, .trn-mini, .trn-phone, .trn-screen,
+   .trn-ui-line, .trn-ui-stroke, .trn-ui-fill, .trn-div, .trn-evt, .trn-head,
+   .trn-cap-rule, .trn-l-glass, .trn-dot. Three scenes drawn in one dialect is
+   the point. What is new here is only what is new in the scene: a card, a
+   checkmark, a person, and a guardrail.
+
+   THE TYPE LADDER, AND WHY IT IS BIGGER THAN SCENE 3'S. This scene has NO
+   camera, so every string in it has to be legible at the wide shot — where
+   scenes 2 and 3 are allowed to set a label at a size that only becomes
+   readable once the lens has moved. The ladder is therefore chosen against
+   the RENDERED number rather than against the viewBox.
+
+   The measurement: on a 1250px CSS viewport — which is what a maximised
+   window on a 1536px display at 1.25 device-pixel-ratio actually gives you —
+   this scene's stage is about 940px wide, so the 1120u frame renders at 0.84.
+   11.5u lands at ~9.6 CSS px and 12u at ~10, which is BRAND §3's receipt
+   rung. The first draft of this ladder was a full step lower (10.5 / 11) and
+   measured 7.9px on the same screen: below the site's own floor, and the
+   asymmetry was visible — the checklist in the rail renders at scale 1 and
+   its 9.5px evidence rows were LARGER than the card lines they were the
+   receipts for. Nothing in the world is set below 9.5u now, and the frame is
+   1120 wide rather than 1200 for the same reason: the extra 80u of viewBox
+   cost every label 7% of its rendered size and bought nothing.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+#scene-agents {
+  position: relative;
+  display: block;
+}
+
+/* Scene 2's and scene 3's pin anatomy: rail column at the page margin, stage
+   beside it, so all three pinned scenes hang their titles on the same left
+   edge.
+
+   THE RAIL IS NARROWER HERE — clamp(210, 18vw, 300) against their
+   clamp(240, 24vw, 380) — and that is the one place this scene departs from
+   their grid, for a measured reason. Scenes 2 and 3 fill that column with
+   prose captions and need the measure; this one puts a 200px checklist in it
+   and a two-line head above, and everything past 210px is air. Handing the
+   difference to the stage is worth 12% of scene scale on a 1250px viewport,
+   which at this scene's type ladder is the difference between a card line at
+   8px and one at 10 — and this is the only scene on the site with no camera
+   to fall back on. */
+.agt-pin {
+  position: relative;
+  display: grid;
+  grid-template-columns: clamp(210px, 18vw, 300px) 1fr;
+  align-items: center;
+  gap: clamp(16px, 3vw, 48px);
+  height: 100dvh;
+  padding: clamp(24px, 5vh, 56px) var(--page-pad);
+  /* Faded up by the entry ScrollTrigger, so the scene materialises on the way
+     in rather than being parked under the bridge fully lit. */
+  opacity: 0;
+}
+
+/* `.agt-pin` sets display, so it out-specifies the UA's `[hidden]` rule; the
+   still fallback swaps the two halves of the section with `hidden`. */
+.agt-pin[hidden] {
+  display: none;
+}
+
+.agt-rail {
+  position: relative;
+  align-self: center;
+}
+
+.agt-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0; /* a grid child must be allowed to be narrower than its SVG */
+}
+
+.agt-svg {
+  width: 100%;
+  height: min(100%, 78vh);
+  overflow: hidden;
+}
+
+/* ── the checklist ───────────────────────────────────────────────────────
+   Fixed width = its viewBox width, so it renders at scale 1 and agents.ts's
+   row arithmetic is in real pixels — same construction as scene 3's tracker.
+
+   Everything here is painted at REST, not finished, because unlike the rest
+   of this scene the checklist never appears in a still clone: the still
+   fallback rebuilds it as an actual HTML list further down. */
+.agt-checklist {
+  display: block;
+  width: 200px;
+  max-width: 100%;
+  height: auto;
+  margin-top: 32px;
+  overflow: visible;
+}
+
+/* An empty box, listed from the pin's first frame. It is always drawn — the
+   claim is made up front and only the evidence arrives late — so it never
+   rests at zero length and the phantom-dot case cannot arise for it. */
+.agt-q-box {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The checkmark. THIS one rests at drawSVG "0% 0%", which is exactly the case
+   DESIGN §3's butt-cap law exists for: a zero-length dash with a round cap is
+   painted as a filled circle of stroke-width diameter, so five undrawn ticks
+   with round caps would be five stray dots sitting inside five empty boxes
+   before the reader has scrolled a pixel — and they would read as five
+   already-checked rows, which is the exact opposite of what the scene says.
+   Round JOINS are fine and wanted: a tick's corner is a corner. */
+.agt-q-tick {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.agt-q-word {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+/* The evidence for a claim, one rung under it, and hidden until the scene has
+   actually produced it. */
+.agt-q-evidence {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+  opacity: 0;
+}
+
+/* ── the world's own ink ─────────────────────────────────────────────────
+   The agent box borrows .trn-chip and its internals borrow .trn-mini, so the
+   machine in this scene is drawn at the same two weights the machine in the
+   last one was. Only what is genuinely new is written here. */
+
+/* One rung under .eng-aside in SIZE and not in ink: --text-faint is the
+   bottom of the ladder for a resting colour (BRAND §1), so the second line of
+   a two-line label has to get its quiet from the type scale. */
+.agt-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+/* A tool trace. Thinner in ink than the answer's road (--hairline against
+   --hairline-strong, both at 1u) because the work is not the point — the
+   answer is, and the one line that carries it should be the one line the eye
+   follows across the frame. */
+.agt-trace {
+  stroke: var(--hairline);
+}
+
+/* A tool card. --surface fill against --canvas, one hairline wall, 6u corner:
+   BRAND §4's chip step, because that is what these are — small labelled
+   objects, not panels. The stroke is tweened to --amber and back exactly once
+   in the scene, so this value is also what restState() has to put back. */
+.agt-card {
+  fill: var(--surface);
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+.agt-card-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text);
+}
+
+.agt-card-line {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-dim);
+}
+
+/* The policy that stops the third call. Faint ink and NOT amber: this scene
+   rations amber to exactly one object — the paused card's own border — so
+   that the pause has a colour of its own and its explanation does not compete
+   with it (BRAND §2). */
+.agt-guard {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+/* The world's own checkmark, on the action that completed. Same geometry and
+   same law as the checklist's ticks — it rests at zero length, so butt caps. */
+.agt-tick {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The one person on the site, in two strokes. Ink at the dim rung: a human is
+   not a machine part, but this scene is not about them either — it is about
+   the fact that the machine stopped and asked. */
+.agt-human {
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The affordance a person presses. 6u radius because it is a control, and the
+   only element in this scene drawn as one. */
+.agt-yes-box {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ── the phone's thread ──────────────────────────────────────────────────
+   Scene 3's screen ladder, one notch down because this device is smaller:
+   10.5u for a message anyone is meant to read, 10u for who sent it, 9.5u for
+   the citation and 9u for the recipient line. */
+.agt-msg {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+  fill: var(--text);
+}
+
+.agt-from {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  fill: var(--text-dim);
+}
+
+.agt-to {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+/* Where the sentence came from. The most developer-facing string inside the
+   phone and the quietest thing on the screen, which is the correct order: the
+   user reads the answer, an engineer checks the source. */
+.agt-cite {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+/* The channel row: four line marks and four lowercase words. */
+.agt-chan-glyph {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.agt-chan-word {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+/* ── the door to scene 5 ─────────────────────────────────────────────────
+   A rule and a line, both faint. Scene 3's door earned an architectural wire
+   because it was handing over the page's biggest promise; this one hands over
+   the evidence for a promise the reader has just watched being kept, and the
+   right size for that is a footnote that points. */
+.agt-door-rule {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+.agt-door {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+/* ── the still state (< 768px, and prefers-reduced-motion) ───────────────
+   Shares the page's still-card primitives with scenes 2 and 3 (.eng-card,
+   .eng-kicker, .eng-caption, .eng-still-lede, .trn-card-figure,
+   .trn-still-title, .trn-still-head, .trn-still-glass, .trn-still-event).
+
+   This scene needs NO per-phase figure overrides at all, which is worth
+   naming because the last two scenes needed many: nothing in this composition
+   is erased by a later beat. Every card, every result, the approval, the
+   answer and the receipt are all still standing in the final frame, so a
+   window cut into that frame is already the right picture. */
+.agt-still {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: clamp(56px, 9vh, 112px) var(--page-pad);
+}
+
+.agt-still[hidden] {
+  display: none;
+}
+
+.trn-card-figure .agt-svg {
+  height: auto;
+}
+
+/* The checklist, as an actual list. It is the one piece of this scene that
+   survives the fallback by changing form rather than by being cropped: a
+   checklist is a list, and a list is what a phone is good at. Every row
+   arrives already checked, because in a still there is no "yet" — DESIGN §3's
+   rule is that the reader must receive every piece of information the motion
+   carried, and what the motion carried here is the five claims and their five
+   pieces of evidence, not the order they arrived in. */
+.agt-still-list {
+  margin: 0 0 clamp(24px, 4vh, 40px);
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--hairline);
+}
+
+.agt-still-row {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 10px;
+  align-items: start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.agt-still-tick {
+  display: block;
+  width: 14px;
+  height: 14px;
+  margin-top: 1px;
+}
+
+.agt-still-q {
+  display: block;
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+
+.agt-still-e {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+  color: var(--text-faint);
+}

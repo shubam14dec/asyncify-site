@@ -20,6 +20,7 @@ import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 
+import { createAgentsScene } from "./agents";
 import { createBellScene } from "./bell";
 import { createEngineScene } from "./engine";
 import { createHangingHeadline } from "./headline";
@@ -63,6 +64,13 @@ const engine = createEngineScene();
    these too, which is why this file does not ask for a second one. */
 const turn = createTurnScene();
 
+/* Scene 4 owns the second bridge as well as its own pin, exactly as scene 3
+   owns the first — the two are one narrative move and the bridge exists only
+   to hand over. Built after scene 3 so its ScrollTriggers are registered in
+   document order; the fonts-ready ScrollTrigger.refresh() scene 2 asks for is
+   global and re-measures these too. */
+const agents = createAgentsScene();
+
 /* The entrance runs once. Waiting for the first font frame avoids the
    headline re-flowing underneath a mid-flight SplitText. */
 function boot(): void {
@@ -93,5 +101,6 @@ if (import.meta.hot) {
     headline.destroy();
     engine.destroy();
     turn.destroy();
+    agents.destroy();
   });
 }
