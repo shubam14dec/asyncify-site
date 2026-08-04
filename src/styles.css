@@ -2064,12 +2064,50 @@ html {
 
 /* One rung under .eng-aside in SIZE and not in ink: --text-faint is the
    bottom of the ladder for a resting colour (BRAND §1), so the second line of
-   a two-line label has to get its quiet from the type scale. */
+   a two-line label has to get its quiet from the type scale. It names the
+   BRAIN on the box's right wall rather than the box — "any model · your
+   system prompt" is the one claim in this scene that is about the thing
+   Asyncify does NOT own. */
 .agt-sub {
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.01em;
   fill: var(--text-faint);
+}
+
+/* ── the chassis's own rows ─────────────────────────────────────────
+   The five capability lines from the customer guide's §1 diagram, set inside
+   the agent box. Same SIZE as a tool card's result line and a full ink step
+   below it: these are internals, and scene 3's precedent is that internals are
+   detail rather than competition. The hierarchy here is ink, not scale,
+   because at any smaller size the rows stop being readable at the wide shot —
+   and a diagram nobody can read is a texture (see the type-ladder note above).
+
+   11.5u lands at ~9.7 CSS px on a 1250px viewport and ~12 on a 1536px one,
+   which is the same floor every other string in this scene is held to. */
+.agt-guts-row {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+/* THE BRAIN. The guide draws it as a separate thing hanging off the chassis's
+   right wall, and so does this: same weight as the box's own border, because
+   it is a peer object and not a detail of the box — it is the one part of the
+   drawing the customer supplies. No fill; the chassis behind it is already
+   --surface, so a second one would be a shape nobody can see.
+
+   It rests at drawSVG "0% 0%" like everything else that traces itself, which
+   is why it carries a butt cap: a zero-length dash with a round cap is painted
+   as a filled circle of stroke-width diameter, and on a circle that is a dot
+   sitting exactly where the packet is about to land (DESIGN §3). */
+.agt-brain {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
 }
 
 /* A tool trace. Thinner in ink than the answer's road (--hairline against

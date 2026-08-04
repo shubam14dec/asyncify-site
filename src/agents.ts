@@ -118,26 +118,46 @@ const FRAME_W = 1080;
 const FRAME_H = 600;
 const SPINE_Y = 306;
 
-/** The agent, as one box — scene 3's chip dialect, one scene on. */
-const AGENT_X = 240;
-const AGENT_Y = 248;
-const AGENT_W = 200;
-const AGENT_H = 116;
+/** The chassis, as one box — scene 3's chip dialect, one scene on. It grew
+ *  from 200 × 116 to 240 × 140 and moved 50u left when the customer guide's
+ *  five capability rows went into it: the rows need the measure, and the left
+ *  is where the frame had the room (it also hands the tool traces 88u of
+ *  runway where they used to have 78). */
+const AGENT_X = 190;
+const AGENT_Y = 236;
+const AGENT_W = 240;
+const AGENT_H = 140;
 
-/** The model inside it. The inbound reply comes to rest on this rectangle and
- *  not merely inside the box, because the first thing the checklist claims is
- *  "your own model" and a tick has to be earned by something the reader can
- *  point at. */
-const MODEL_X = 266;
-const MODEL_W = 34;
-const MODEL_CX = MODEL_X + MODEL_W / 2;
+/* ── the chassis's contents, from the customer guide ────────────────────
+   notification-system/docs/ASYNCIFY-AGENTS-GUIDE.md §1 draws Asyncify as a
+   chassis listing what it owns, handing off to a brain the customer supplies.
+   These five rows are that list, compressed to fit at a legible size and not
+   otherwise reworded (the guide's `identity` and `human` are the two words
+   that did not fit). The copy itself lives in the markup, next to the comment
+   that cites the source; what lives here is only the geometry that has to
+   agree with the packets. */
+const GUTS_X = 204;
+const GUTS_Y0 = 262;
+const GUTS_PITCH = 24;
+const GUTS_SIZE = 11.5;
 
-/** Where scene 3's door wire comes back into the frame. It is inside the
- *  agent box's x-range and 20u clear of its right wall, so the line reads as
- *  entering the machine rather than passing beside it — and it is far enough
- *  right that the box's two-line label, which is left-aligned on the box's own
- *  wall, never runs under it (asserted at boot). */
-const IN_X = 420;
+/** THE BRAIN, on the chassis's right wall where the guide puts it, and the
+ *  thing the "any model · your system prompt" label is naming. The inbound
+ *  reply comes to rest ON it — not merely inside the box — because the first
+ *  thing the checklist claims is "your own model" and a tick has to be earned
+ *  by something the reader can point at. With the box full of text it is also
+ *  the only landing point that is not a word. */
+const BRAIN_CX = 406;
+const BRAIN_CY = 306;
+const BRAIN_R = 14;
+
+/** Where scene 3's door wire comes back into the frame. It comes down on the
+ *  BRAIN's own centre line, so the reply drops straight into the thing that
+ *  thinks — no elbow, no curve, and nothing for it to cross on the way in.
+ *  It is also far enough right that the box's two-line label, which is
+ *  left-aligned on the box's own wall, never runs under it (asserted at
+ *  boot). */
+const IN_X = BRAIN_CX;
 
 /** The road to the person. Wall to wall, at the spine. */
 const WIRE_OUT_X0 = AGENT_X + AGENT_W;
@@ -228,11 +248,12 @@ const CAP_X = 40;
  *  asserted against it at boot, because the row is placed above it by
  *  arithmetic and nothing else in the system would notice them colliding. */
 const CAP_RULE_Y = 424;
-/** The channel words' baseline. The row sits between the agent box's bottom
- *  wall (364) and the caption rule (424) with roughly 20u of air either side —
- *  both clearances are asserted, because this is the one place in the scene
- *  where the glass and the world share a band of frame. */
-const CHAN_BASE_Y = 398;
+/** The channel words' baseline. The row sits between the chassis's bottom
+ *  wall (376) and the caption rule (424) with 14u of air either side — both
+ *  clearances are asserted, because this is the one place in the scene where
+ *  the glass and the world share a band of frame, and the chassis grew 24u
+ *  taller when the guide's rows went into it. */
+const CHAN_BASE_Y = 405;
 /** Each glyph is authored in a CHAN_ART box and PLACED at CHAN_GLYPH with a
  *  scale transform, so the marks grow and the hairline does not (the class
  *  carries vector-effect: non-scaling-stroke). 20 against the 12 it was:
@@ -292,7 +313,8 @@ const B1_PHONE = 5.0;
 const B1_LABEL = 5.4;
 const B1_SUB = 6.2;
 const B1_SCREEN = 6.6;
-const B1_GUTS = 6.8;
+const B1_BRAIN = 6.4;
+const B1_GUTS = 7.2;
 /** The queue's name arrives with the dot, not with the wire: the wire is a
  *  road and roads do not have job ids. */
 const B1_STAMP = 8.0;
@@ -536,7 +558,7 @@ const STILL_VIEW = [
   {
     chans: false,
     kicker: "the pickup",
-    text: "The reply comes out of the queue and into an agent that is yours — your endpoint, your prompt, your model.",
+    text: "The reply comes out of the queue and into an AI agent that is yours: Asyncify owns the conversation, the channels and the safety rails; any model you like does the thinking.",
     glass: "",
     event: "job · conversation-inbound",
     /* The wire from the top edge, the box, both label lines and the job stamp.
@@ -657,6 +679,9 @@ export function createAgentsScene(): AgentsScene {
   const agentLabel = q<SVGTextElement>(svg, "#agt-label");
   const agentSub = q<SVGTextElement>(svg, "#agt-sub");
   const guts = q<SVGGElement>(svg, "#agt-guts");
+  const gutsRows = Array.from(guts.querySelectorAll<SVGTextElement>(".agt-guts-row"));
+  const brain = q<SVGCircleElement>(svg, "#agt-brain");
+  const brainOut = q<SVGPathElement>(svg, "#agt-brain-out");
 
   const traces = [1, 2, 3].map((i) => q<SVGPathElement>(svg, `#agt-trace-${i}`));
   const cardBoxes = [1, 2, 3].map((i) => q<SVGRectElement>(svg, `#agt-card-${i}-box`));
@@ -827,11 +852,84 @@ export function createAgentsScene(): AgentsScene {
   if (AGENT_X + monoWidth(agentSub.textContent ?? "", AGENT_SUB_SIZE) > IN_X - 8) {
     throw new Error("[agents] the agent's second label line runs under the inbound wire");
   }
-  /* The dot has to come to rest ON the model, because "your own model" is the
+  /* The dot has to come to rest ON the brain, because "your own model" is the
      first thing the checklist claims and a tick has to be earned by something
      the reader can point at. */
-  if (MODEL_CX <= AGENT_X || MODEL_CX >= AGENT_X + AGENT_W) {
-    throw new Error("[agents] the model the reply lands on is outside the agent box");
+  if (
+    BRAIN_CX - BRAIN_R <= AGENT_X ||
+    BRAIN_CX + BRAIN_R >= AGENT_X + AGENT_W ||
+    BRAIN_CY !== SPINE_Y
+  ) {
+    throw new Error("[agents] the brain is not seated on the spine inside the chassis");
+  }
+  if (Number(brain.getAttribute("cx")) !== BRAIN_CX || Number(brain.getAttribute("r")) !== BRAIN_R) {
+    throw new Error("[agents] #agt-brain disagrees with BRAIN_CX / BRAIN_R");
+  }
+
+  /* ── the chassis rows vs the two things that move through the box ──────
+     This is the collision class this scene has already been burned by once: a
+     glyph placed on a latitude a packet travels. There are exactly two hazards
+     inside the chassis:
+
+       1  THE FALL. The reply drops down a column at BRAIN_CX from the box's
+          top wall to the spine, so no row may reach into that column anywhere
+          above SPINE_Y.
+       2  THE SEAT. The brain's disc is where the reply stops, and a row whose
+          em box entered it would be a word with a packet parked on it.
+
+     EVERY NUMBER BELOW IS ARITHMETIC, NOT A MEASUREMENT, and that is the fix
+     for a bug this assert caused on its first draft: it read getBBox() on the
+     rows, which at boot returns FALLBACK-FONT metrics, because the scene is
+     built before document.fonts has resolved. The rows were fine and the scene
+     refused to start. turn.ts states the same rule for the typed reply —
+     placement by arithmetic "does not depend on the web font having loaded
+     when the scene booted" — and a boot assert has to obey it twice over,
+     because an assert that fails on slow fonts is worse than no assert. */
+  {
+    const lane = BRAIN_CX - DOT_R - 6;
+    /* Geist Mono's em box, in ems: cap-and-ascender up, descender down. Wider
+       than the glyphs actually are, which is the direction an assert should
+       err in. */
+    const ROW_UP = GUTS_SIZE * 0.75;
+    const ROW_DOWN = GUTS_SIZE * 0.25;
+
+    if (gutsRows.length !== 5) {
+      throw new Error("[agents] the chassis does not have the guide's five rows");
+    }
+
+    for (const [i, row] of gutsRows.entries()) {
+      /* The markup is the source of the copy and this file is the source of
+         the geometry, so the two have to be checked against each other before
+         anything is computed from either. */
+      const baseline = GUTS_Y0 + i * GUTS_PITCH;
+      if (
+        Number(row.getAttribute("x")) !== GUTS_X ||
+        Number(row.getAttribute("y")) !== baseline
+      ) {
+        throw new Error(`[agents] chassis row ${i + 1} disagrees with GUTS_X / GUTS_Y0 / GUTS_PITCH`);
+      }
+
+      const x0 = GUTS_X;
+      const x1 = GUTS_X + monoWidth(row.textContent ?? "", GUTS_SIZE);
+      const y0 = baseline - ROW_UP;
+      const y1 = baseline + ROW_DOWN;
+
+      if (y0 < SPINE_Y && x1 > lane) {
+        throw new Error(`[agents] chassis row ${i + 1} reaches into the column the reply falls down`);
+      }
+      const nearestX = Math.max(x0, Math.min(BRAIN_CX, x1));
+      const nearestY = Math.max(y0, Math.min(BRAIN_CY, y1));
+      if (Math.hypot(nearestX - BRAIN_CX, nearestY - BRAIN_CY) < BRAIN_R + 4) {
+        throw new Error(`[agents] chassis row ${i + 1} runs into the brain`);
+      }
+      /* And every row has to fit the chassis it is the inside of. */
+      if (x0 < AGENT_X + 8 || x1 > AGENT_X + AGENT_W - 8) {
+        throw new Error(`[agents] chassis row ${i + 1} runs past the chassis wall`);
+      }
+      if (y0 < AGENT_Y + 8 || y1 > AGENT_Y + AGENT_H - 8) {
+        throw new Error(`[agents] chassis row ${i + 1} does not fit between the chassis walls`);
+      }
+    }
   }
 
   /* ── the card column ────────────────────────────────────────────────────
@@ -990,13 +1088,15 @@ export function createAgentsScene(): AgentsScene {
 
   /* A ROUTE and a LINE are two different objects, exactly as in scenes 2 and
      3. The reader sees two wires; the packets fly on guides that lie on top of
-     them and run further at the machine end, into the model itself — a guide
+     them and run further at the machine end, into the BRAIN itself — a guide
      that stopped at the box's wall would make the last leg of each journey a
-     jump. Both of them come to rest on the box's own through-line, which is
-     why the internals put the loop ABOVE that line rather than around it: a
-     packet in this scene never crosses drawn ink. */
-  gIn.setAttribute("d", `M ${IN_X} 0 L ${IN_X} 268 C ${IN_X} 292 424 ${SPINE_Y} 396 ${SPINE_Y} L ${MODEL_CX} ${SPINE_Y}`);
-  gOut.setAttribute("d", `M ${MODEL_CX} ${SPINE_Y} L ${PHONE_X} ${SPINE_Y}`);
+     jump. The route in is now a plain vertical: the wire comes down at the
+     brain's own centre line, so the reply falls into the thing that thinks
+     without turning a corner or crossing a single row of the chassis. A packet
+     in this scene never crosses drawn ink, and the boot asserts are what keep
+     that true when somebody edits a row. */
+  gIn.setAttribute("d", `M ${IN_X} 0 L ${IN_X} ${BRAIN_CY}`);
+  gOut.setAttribute("d", `M ${BRAIN_CX} ${BRAIN_CY} L ${PHONE_X} ${SPINE_Y}`);
 
   /* The checklist's five rows. A box, a checkmark resting at zero length
      inside it, the claim beside it, and the evidence under that — generated
@@ -1109,6 +1209,8 @@ export function createAgentsScene(): AgentsScene {
     wireOut,
     ...traces,
     agentBox,
+    brain,
+    brainOut,
     phone,
     screen,
     ...cardBoxes,
@@ -1203,7 +1305,7 @@ export function createAgentsScene(): AgentsScene {
       opacity: 0,
       fill: COLOR.greenDim,
       scale: 1,
-      x: MODEL_CX,
+      x: BRAIN_CX,
       y: SPINE_Y,
       transformOrigin: "50% 50%",
     });
@@ -1548,11 +1650,17 @@ export function createAgentsScene(): AgentsScene {
     fadeIn(agentLabel, B1_LABEL, 1.1);
     fadeIn(agentSub, B1_SUB, 1.1);
     drawBox(screen, B1_SCREEN, 2.6);
-    /* The internals come up as ONE fade, a beat after the box closes: the
-       reader gets the silhouette, and then sees there is something in it.
-       Simultaneous, the two read as one busy rectangle — and tracing a loop
-       line by line would be three events where the machine is one. */
-    fadeIn(guts, B1_GUTS, 1.3);
+    /* The brain is DRAWN, a beat after the chassis closes and before its
+       contents arrive: it is a peer object, not a detail, and the reader has
+       to see the chassis get its brain before the reply falls into it. */
+    draw(brain, B1_BRAIN, 1.0);
+    draw(brainOut, B1_BRAIN + 0.9, 0.4);
+    /* And the chassis's five rows come up as ONE fade: what the machine owns
+       is one fact, not five events, and five lines fading in sequence would be
+       the reader counting instead of reading. Same call scene 3 makes about
+       its miniature — a machine glimpsed inside a window either is there or is
+       not. */
+    fadeIn(guts, B1_GUTS, 1.4);
     fadeIn(thread, B1_THREAD, 1.6);
     fadeIn(replyMsg, B1_REPLY, 1.4);
 

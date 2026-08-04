@@ -1507,12 +1507,12 @@
                    says "a customer's reply is sitting in a queue", and a line
                    coming down out of the top of the next picture is the only
                    caption that needs. -->
-              <path class="eng-wire" id="agt-wire-in" d="M 420 0 L 420 248" />
+              <path class="eng-wire" id="agt-wire-in" d="M 406 0 L 406 236" />
               <!-- The queue the reply is sitting in, named on the wire that
                    carries it out — the same string scene 3 ends on, so the two
                    frames are demonstrably the same job. Right-anchored so it
                    hangs off the wire rather than crossing it. -->
-              <text class="trn-evt" id="agt-stamp-job" x="396" y="146" text-anchor="end">job · conversation-inbound</text>
+              <text class="trn-evt" id="agt-stamp-job" x="382" y="146" text-anchor="end">job · conversation-inbound</text>
 
               <!-- ── the agent, as one box ───────────────────────────────────
                    Drawn in scene 3's chip dialect — hairline-strong wall, 6u
@@ -1528,38 +1528,71 @@
                    opacity-faked grays for a resting colour), so quiet has to
                    come from the type scale. Same move as scene 3's tease. -->
               <g class="agt-l-agent">
-                <rect class="trn-chip" id="agt-box" x="240" y="248" width="200" height="116" rx="6" />
-                <text class="eng-aside" id="agt-label" x="240" y="222">your agent</text>
-                <text class="agt-sub" id="agt-sub" x="240" y="238">your model · your prompt</text>
+                <rect class="trn-chip" id="agt-box" x="190" y="236" width="240" height="140" rx="6" />
+                <text class="eng-aside" id="agt-label" x="190" y="206">AI agent</text>
+                <text class="agt-sub" id="agt-sub" x="190" y="222">any model · your system prompt</text>
 
-                <!-- The internals: an inlet, the model, a through-line, and a
-                     RETURN ARC over it. Four marks, no text, one full ladder
-                     step below the wall around them — scene 3's miniature
-                     precedent exactly.
+                <!-- ── THE CHASSIS, AND THE BRAIN ────────────────────────────
+                     This box used to hold four abstract marks — an inlet, a
+                     model rectangle, a through-line and a return arc — which
+                     said "a machine with a loop in it" and nothing more
+                     specific. It now says what the platform's own customer
+                     guide says, because the guide says it better.
 
-                     The arc is not decoration: it is the one true thing about
-                     an agent's shape, which is that it calls out and comes
-                     back, and the tool traces that leave this box in beat 2
-                     are that loop made visible outside the wall. It is an ARC
-                     OVER THE LINE rather than a closed ring beside it, and
-                     that is the second draft: a ring drawn as two curves
-                     meeting at a point read as a pennant — an arrowhead
-                     pointing back down its own inlet — and it also sat on the
-                     latitude both packets travel, so every dot in the scene
-                     crossed it twice. Above the line, the loop is unmistakable
-                     and the road under it is clear.
+                     SOURCE: notification-system/docs/ASYNCIFY-AGENTS-GUIDE.md
+                     §1, the ASCII diagram at line ~26. Its chassis lists:
 
-                     The through-line runs to the chip's own wall so it is
-                     continuous with the wire outside (scene 3's precedent):
-                     one line from the model to the phone, which is what makes
-                     the answer's departure read as leaving the machine rather
-                     than appearing beside it. -->
-                <g class="trn-mini" id="agt-guts">
-                  <path d="M 250 306 L 266 306" />
-                  <rect x="266" y="296" width="34" height="20" rx="2" />
-                  <path d="M 300 306 L 440 306" />
-                  <path d="M 336 306 C 336 282 392 282 392 306" />
+                         conversations, history, identity
+                         buttons/cards, typing, live progress
+                         tool execution + human approval
+                         workflows & notifications
+                         audit trail, dashboard
+
+                     and then hands off `──→ the BRAIN (yours or managed)`.
+                     That split IS the product: Asyncify owns everything around
+                     the brain so the brain only has to think. Five rows and one
+                     circle is the smallest drawing that carries it.
+
+                     THE ROWS ARE COMPRESSED, NOT PARAPHRASED. Each is the
+                     guide's own row with the words that would not fit at a
+                     legible size removed — `identity` off row 1, `human` off
+                     row 3 — and nothing added. The separator is the site's
+                     middot, and everything is lowercase, because these are API
+                     nouns and not sentences (BRAND §6).
+
+                     THE BRAIN IS A SEPARATE OBJECT, on the chassis's right
+                     wall exactly where the guide puts it, and it is what the
+                     "any model · your system prompt" label above the box is
+                     naming. It also solves a composition problem rather than
+                     adding one: the inbound reply has to come to rest
+                     somewhere DELIBERATE, and with the box full of text the
+                     only honest landing point is the thing that thinks. The
+                     dot drops straight down the wire into it.
+
+                     WHAT IS NOT HERE ANY MORE: the return arc. It was standing
+                     in for "it calls out and comes back" at a time when the box
+                     had nothing in it; the tool traces outside the wall now
+                     draw that literally, and the `tools · approvals` row names
+                     it. One drawing per idea.
+
+                     COLLISION GEOMETRY, all asserted in agents.ts: the packet
+                     falls down a column at x 406 and turns right at y 306, so
+                     no row may reach into x 392+ above the spine; the brain's
+                     disc is 392–420 × 292–320 and no row's em box may enter it;
+                     and the traces leave the wall at y 282 / 296 / 338, which
+                     is outside the box entirely. -->
+                <g id="agt-guts">
+                  <text class="agt-guts-row" x="204" y="262">conversations · history</text>
+                  <text class="agt-guts-row" x="204" y="286">cards · typing · progress</text>
+                  <text class="agt-guts-row" x="204" y="310">tools · approvals</text>
+                  <text class="agt-guts-row" x="204" y="334">workflows · notifications</text>
+                  <text class="agt-guts-row" x="204" y="358">audit trail · dashboard</text>
                 </g>
+                <circle class="agt-brain" id="agt-brain" cx="406" cy="306" r="14" />
+                <!-- The brain's own outlet to the chassis wall, so the answer's
+                     road is continuous from the thing that wrote it (scene 3's
+                     through-line precedent). -->
+                <path class="trn-mini" id="agt-brain-out" d="M 420 306 L 430 306" />
               </g>
 
               <!-- The road to the person. Wall to wall: it touches the agent
@@ -1567,7 +1600,7 @@
                    exactly the latitude of the box's own centre, so the answer
                    leaves from the middle of the machine rather than from a
                    corner of it. Asserted at boot. -->
-              <path class="eng-wire" id="agt-wire-out" d="M 440 306 L 816 306" />
+              <path class="eng-wire" id="agt-wire-out" d="M 430 306 L 816 306" />
 
               <!-- ── the tool traces ─────────────────────────────────────────
                    Three lines out of the box's right wall, each to its own
@@ -1577,9 +1610,9 @@
                    as a result line fading in inside the card — which is the
                    anatomy the real Turn Inspector shows, a call and then its
                    return, not a round trip animated twice. -->
-              <path class="eng-wire agt-trace" id="agt-trace-1" d="M 440 282 C 480 282 485 133 518 133" />
-              <path class="eng-wire agt-trace" id="agt-trace-2" d="M 440 296 C 480 296 485 237 518 237" />
-              <path class="eng-wire agt-trace" id="agt-trace-3" d="M 440 338 C 480 338 485 413 518 413" />
+              <path class="eng-wire agt-trace" id="agt-trace-1" d="M 430 282 C 470 282 478 133 518 133" />
+              <path class="eng-wire agt-trace" id="agt-trace-2" d="M 430 296 C 470 296 478 237 518 237" />
+              <path class="eng-wire agt-trace" id="agt-trace-3" d="M 430 338 C 470 338 478 413 518 413" />
 
               <!-- ── the tool cards ──────────────────────────────────────────
                    Small hairline boxes with mono lines, one per call, in the
@@ -1738,8 +1771,8 @@
                    handing over the page's biggest promise, and this one hands
                    over the evidence for a promise the reader has just watched
                    being kept. A rule and a line is the right size for that. -->
-              <path class="agt-door-rule" id="agt-door-rule" d="M 240 540 L 344 540" />
-              <text class="agt-door" id="agt-door" x="240" y="566">and here's the proof →</text>
+              <path class="agt-door-rule" id="agt-door-rule" d="M 190 540 L 294 540" />
+              <text class="agt-door" id="agt-door" x="190" y="566">and here's the proof →</text>
 
               <!-- ── the glass ───────────────────────────────────────────────
                    Three narrator sentences, the ONLY things in this scene that
