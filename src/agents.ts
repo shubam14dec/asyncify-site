@@ -454,6 +454,20 @@ const GRD_CURVES: readonly number[] = [34.4, 35.9, 37.4];
 const GRD_OUT = 39.2;
 const GRD_FOCUS_OUT = 39.9;
 
+/* -- The guarded footnote --------------------------------------------------
+   (user call) A third close-up, but deliberately NOT a third fan: guarded is
+   the one quality beat 3 dramatizes IN the world (the pause, the human, the
+   yes), so the rail owes only what the stage never shows -- the OTHER two
+   fences, and the sentence that makes all three matter. One curve, two-line
+   label, right after the action completes: the reader has just watched one
+   fence work, and this says there are more, built where the model cannot
+   talk its way past them. It fits the pocket between the world's tick and
+   the answer's flight, so nothing had to move. */
+const GUA_IN = 55.6;
+const GUA_CURVE = 56.4;
+const GUA_OUT = 59.0;
+const GUA_FOCUS_OUT = 59.6;
+
 const B2_T2 = 28.2;
 const B2_C2 = 29.4;
 const B2_C2_TITLE = 30.6;
@@ -655,6 +669,7 @@ const Q_PITCH = 46;
  *  (declared here, beside the geometry it is derived from). */
 const MEM_ORIGIN_Y = Q_Y0 + 1 * Q_PITCH + 6;
 const GRD_ORIGIN_Y = Q_Y0 + 2 * Q_PITCH + 6;
+const GUA_ORIGIN_Y = Q_Y0 + 3 * Q_PITCH + 6;
 const Q_MIN_PITCH = 38;
 const Q_WORD_DY = 11;
 /* Measured rather than eyeballed, twice. At the original 22 the word and its
@@ -835,6 +850,8 @@ export function createAgentsScene(): AgentsScene {
   const memLabels = [1, 2, 3].map((i) => q<SVGTextElement>(checklist, `#agt-mem-l${i}`));
   const grdCurves = [1, 2, 3].map((i) => q<SVGPathElement>(checklist, `#agt-grd-c${i}`));
   const grdLabels = [1, 2, 3].map((i) => q<SVGTextElement>(checklist, `#agt-grd-l${i}`));
+  const guaCurve = q<SVGPathElement>(checklist, "#agt-gua-c");
+  const guaLabel = q<SVGGElement>(checklist, "#agt-gua-label");
 
   const wireIn = q<SVGPathElement>(svg, "#agt-wire-in");
   const wireOut = q<SVGPathElement>(svg, "#agt-wire-out");
@@ -947,6 +964,19 @@ export function createAgentsScene(): AgentsScene {
      it is printed on. */
   if (CAPS[0]!.out + CAP_TEXT_OUT > GRD_IN) {
     throw new Error("[agents] caption 1 is still on the glass when the grounded close-up dims it");
+  }
+
+  /* The guarded footnote's own guards: caption 2 off the glass before the
+     dim, the label standing before the fold, the fold done before the
+     answer flies. */
+  if (CAPS[1]!.out + CAP_TEXT_OUT > GUA_IN) {
+    throw new Error("[agents] caption 2 is still on the glass when the guarded footnote dims it");
+  }
+  if (GUA_CURVE + MEM_CURVE_DRAW + MEM_LABEL_LAG >= GUA_OUT) {
+    throw new Error("[agents] the guarded footnote has no time to stand before it folds");
+  }
+  if (GUA_FOCUS_OUT + 0.9 > B4_FLY) {
+    throw new Error("[agents] the guarded footnote is still folding away when the answer flies");
   }
 
   /* And the last one has to land before the held ending: a checklist still
@@ -1631,8 +1661,9 @@ export function createAgentsScene(): AgentsScene {
     /* The memory close-up fully folded: curves at zero length, labels dark,
        the checklist at scale 1 about the pivot it will use, every row and the
        stage at full ink. */
-    gsap.set([...memCurves, ...grdCurves], { drawSVG: "0% 0%" });
-    gsap.set([...memLabels, ...grdLabels], { opacity: 0 });
+    gsap.set([...memCurves, ...grdCurves, guaCurve], { drawSVG: "0% 0%" });
+    gsap.set([...memLabels], { opacity: 0 });
+    gsap.set([...grdLabels, guaLabel], { opacity: 0 });
     gsap.set(checklist, { scale: 1, transformOrigin: `0px ${MEM_ORIGIN_Y}px` });
     gsap.set(svg, { opacity: 1 });
     gsap.set(rulesG, { opacity: 1 });
@@ -2178,6 +2209,27 @@ export function createAgentsScene(): AgentsScene {
        checkmark of the scene, drawn in the world instead of in the rail. */
     fadeIn(cardResults[2]!, B3_RESULT, 1.0);
     draw(cardTick, B3_RESULT + 0.2, 0.5);
+
+    /* -- the guarded footnote --------------------------------------------
+       One curve, not a fan: the stage already told guarded's story; this is
+       the footnote naming the fences the story did not need -- and the line
+       under the bar is the deepest claim on the page. Same camera, fourth
+       row's pivot. */
+    {
+      const others = rows.filter((_, i) => i !== 3).flatMap((r) => [r.word, r.box]);
+      ft(svg, { opacity: 1 }, { opacity: MEM_STAGE_DIM, duration: 0.7 }, GUA_IN);
+      ft(checklist, { scale: 1 }, { scale: MEM_SCALE, duration: 0.9, ease: "power2.inOut", transformOrigin: `0px ${GUA_ORIGIN_Y}px` }, GUA_IN);
+      ft(others, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GUA_IN);
+      ft(rulesG, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GUA_IN);
+      draw(guaCurve, GUA_CURVE, MEM_CURVE_DRAW);
+      fadeIn(guaLabel, GUA_CURVE + MEM_LABEL_LAG, 0.6);
+      ft(guaCurve, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8, ease: "power2.in" }, GUA_OUT);
+      ft(guaLabel, { opacity: 1 }, { opacity: 0, duration: 0.6 }, GUA_OUT);
+      ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: 0.8 }, GUA_FOCUS_OUT);
+      ft(checklist, { scale: MEM_SCALE }, { scale: 1, duration: 0.8, ease: "power2.inOut", transformOrigin: `0px ${GUA_ORIGIN_Y}px` }, GUA_FOCUS_OUT);
+      ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GUA_FOCUS_OUT);
+      ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GUA_FOCUS_OUT);
+    }
 
     /* ── BEAT 4 · the answer ─────────────────────────────────────────────
        Out of the model, under the loop, out of the box and down the one road
