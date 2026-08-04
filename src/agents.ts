@@ -1938,17 +1938,92 @@ export function createAgentsScene(): AgentsScene {
      ════════════════════════════════════════════════════════════════════════ */
 
   function buildBridge(): void {
+    /* ── the through-wire's path, measured off the real text ────────────────
+       Five anchors, all runtime boxes: scene 3's arrowhead (entry x), the era
+       phrase (the underline), the two sentences (the side rail's stations),
+       and scene 4's inbound wire (exit x). Built here rather than authored,
+       because centred responsive text has no author-time coordinates. Called
+       after fonts are ready (see the mm.add below), so the boxes are true. */
+    const svgB = doc.querySelector<SVGSVGElement>("#agt-bridge-svg");
+    const bwire = doc.querySelector<SVGPathElement>("#agt-bwire");
+    const bdot = doc.querySelector<SVGCircleElement>("#agt-bdot");
+    const eraCaret = doc.querySelector<HTMLElement>("#agt-era-caret");
+    const eraPhrase = doc.querySelector<HTMLElement>("#agt-era-phrase");
+    const eraLetters = Array.from(doc.querySelectorAll<HTMLElement>("#agt-era-word .agt-era-ch"));
+    const sectionB = doc.querySelector<HTMLElement>("#bridge-agents");
+
     gsap.set(bridgeLines, { opacity: 0, y: 22 });
+
+    let fractions: number[] = [];
+    let totalLen = 0;
+    if (svgB && bwire && bdot && eraPhrase && sectionB && bridgeLines.length >= 3) {
+      const r = sectionB.getBoundingClientRect();
+      const ph = eraPhrase.getBoundingClientRect();
+      const l2 = bridgeLines[1]!.getBoundingClientRect();
+      const l3 = bridgeLines[2]!.getBoundingClientRect();
+      const doorHead = doc.querySelector<SVGPathElement>("#trn-door-head");
+      const wireIn = doc.querySelector<SVGPathElement>("#agt-wire-in");
+      const dh = doorHead ? doorHead.getBoundingClientRect() : null;
+      const wi = wireIn ? wireIn.getBoundingClientRect() : null;
+      const entryX = dh ? dh.left + dh.width / 2 - r.left : r.width * 0.42;
+      const exitX = wi ? wi.left - r.left : r.width * 0.5;
+      const uy = ph.bottom - r.top + 10;
+      const ux0 = ph.left - r.left - 18;
+      const ux1 = ph.right - r.left + 4;
+      const sideX = Math.max(l2.right, l3.right) - r.left + 56;
+      const l2y = l2.top + l2.height / 2 - r.top;
+      const l3y = l3.top + l3.height / 2 - r.top;
+      const H = r.height;
+      /* One path, five segments, each continuing from the last point. The
+         fractions of the cumulative arc length at each seam are what the
+         timeline's tweens are written against -- geometry and schedule are
+         the same numbers, scene 3's tracker discipline. */
+      const segs = [
+        `M ${entryX.toFixed(1)} -6 C ${entryX.toFixed(1)} ${(uy * 0.55).toFixed(1)} ${(ux0 - 70).toFixed(1)} ${(uy - 80).toFixed(1)} ${ux0.toFixed(1)} ${uy.toFixed(1)}`,
+        `L ${ux1.toFixed(1)} ${uy.toFixed(1)}`,
+        `C ${(ux1 + 120).toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${(l2y - 70).toFixed(1)} ${sideX.toFixed(1)} ${l2y.toFixed(1)}`,
+        `C ${sideX.toFixed(1)} ${(l2y + 40).toFixed(1)} ${sideX.toFixed(1)} ${(l3y - 40).toFixed(1)} ${sideX.toFixed(1)} ${l3y.toFixed(1)}`,
+        `C ${sideX.toFixed(1)} ${(l3y + 100).toFixed(1)} ${exitX.toFixed(1)} ${(H - 120).toFixed(1)} ${exitX.toFixed(1)} ${(H + 8).toFixed(1)}`,
+      ];
+      bwire.setAttribute("d", segs.join(" "));
+      /* Seam fractions, measured: a temp path per prefix, appended so the
+         engine will measure it, then removed. */
+      const lens: number[] = [];
+      for (let k = 1; k <= segs.length; k++) {
+        const tmp = svgEl("path", { d: segs.slice(0, k).join(" "), fill: "none" });
+        svgB.appendChild(tmp);
+        lens.push((tmp as SVGPathElement).getTotalLength());
+        tmp.remove();
+      }
+      totalLen = lens[lens.length - 1]!;
+      fractions = lens.map((L) => L / totalLen);
+    }
+
+    /* The traveller's renderer: a pure function of one number, so the reverse
+       scrub takes the journey apart exactly (turn.ts's applyCam discipline).
+       The dot sits AT the draw head -- the wire exists because the dot has
+       been there, which is what "the dot inks the underline" means. */
+    const journey = { p: 0 };
+    const renderJourney = (): void => {
+      if (!bwire || !bdot || !totalLen) return;
+      const pt = bwire.getPointAtLength(journey.p * totalLen);
+      gsap.set(bdot, { attr: { cx: pt.x.toFixed(2), cy: pt.y.toFixed(2) } });
+      gsap.set(bwire, { drawSVG: `0% ${(journey.p * 100).toFixed(3)}%` });
+    };
+    if (bwire && bdot && totalLen) {
+      gsap.set(bwire, { drawSVG: "0% 0%" });
+      renderJourney();
+    }
+
     const tl = gsap.timeline({
       defaults: { ease: "power2.out" },
+      onUpdate: renderJourney,
       scrollTrigger: {
         trigger: "#bridge-agents",
-        start: "top 82%",
-        /* 18%, not 34%: the insertion beats live at the END of this span, and
-           they must play once the whole block stands centred (user call) --
-           the longer runway puts the caret-and-drop at the copy's centred
-           moment instead of mid-reveal. */
-        end: "top 18%",
+        start: "top 78%",
+        /* A long runway: this bridge is a scene now -- the wire's whole
+           journey (dive, underline, side rail, exit) plays across it. */
+        end: "top -55%",
         scrub: true,
       },
     });
@@ -1960,36 +2035,47 @@ export function createAgentsScene(): AgentsScene {
         i * 0.45,
       );
     });
-    /* The insertion, after the kicker line stands: caret appears under the
-       gap, "agentic" drops in from above it, caret leaves. Scrubbed back,
-       the era un-inserts itself -- which is its own kind of joke. */
-    const eraCaret = doc.querySelector<HTMLElement>("#agt-era-caret");
-    const eraLetters = Array.from(doc.querySelectorAll<HTMLElement>("#agt-era-word .agt-era-ch"));
-    if (eraCaret && eraLetters.length) {
+
+    if (bwire && bdot && totalLen && fractions.length === 5) {
+      const [f1, f2, f3, f4] = fractions;
+      /* The journey, seam by seam. The underline segment (f1..f2) is run at
+         ease "none" so the inking reads at the reader's own scroll speed;
+         the exit accelerates, because scene 4 is pulling. */
+      tl.fromTo(bdot, { opacity: 0 }, { opacity: 1, duration: 0.25, immediateRender: false }, 0.35);
+      tl.fromTo(journey, { p: 0 }, { p: f1!, duration: 1.9, ease: "power1.inOut", immediateRender: false }, 0.3);
+      tl.fromTo(journey, { p: f1! }, { p: f2!, duration: 1.4, ease: "none", immediateRender: false }, 2.3);
+      tl.fromTo(journey, { p: f2! }, { p: f3!, duration: 0.6, ease: "power1.inOut", immediateRender: false }, 3.8);
+      tl.fromTo(journey, { p: f3! }, { p: f4!, duration: 0.5, ease: "power1.inOut", immediateRender: false }, 4.5);
+      tl.fromTo(journey, { p: f4! }, { p: 1, duration: 0.6, ease: "power2.in", immediateRender: false }, 5.1);
+      tl.fromTo(bdot, { opacity: 1 }, { opacity: 0, duration: 0.2, immediateRender: false }, 5.55);
+
+      /* The era types itself WHILE the dot inks the underline beneath it --
+         the traveller writes the era in as it passes (user's wow). */
+      if (eraCaret && eraLetters.length) {
+        gsap.set(eraLetters, { opacity: 0 });
+        tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, 2.15);
+        eraLetters.forEach((ch, i) => {
+          tl.fromTo(ch, { opacity: 0 }, { opacity: 1, duration: 0.16, immediateRender: false }, 2.4 + i * 0.17);
+        });
+        tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 3.72);
+      }
+      if (eraPhrase) {
+        tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 3.8);
+      }
+      /* The reply passes the sentence about itself, and the sentence notices:
+         a brightness swell as the dot crosses its latitude, then it settles. */
+      tl.fromTo(bridgeLines[1]!, { color: "#a1a1a1" }, { color: "#ededed", duration: 0.35, immediateRender: false }, 4.3);
+      tl.fromTo(bridgeLines[1]!, { color: "#ededed" }, { color: "#a1a1a1", duration: 0.6, immediateRender: false }, 4.85);
+    } else if (eraCaret && eraLetters.length) {
+      /* No wire (svg missing or zero-length path): the typing still plays. */
       gsap.set(eraLetters, { opacity: 0 });
-      /* AFTER all three lines stand (last line lands at 1.9): the reader sees
-         the finished block, centred -- and THEN the edit happens to it. The
-         word WRITES itself letter by letter into the gap (user call) -- typed
-         under the caret, the same act scene 3's reply performs. */
-      tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.35, immediateRender: false }, 2.2);
+      tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, 2.15);
       eraLetters.forEach((ch, i) => {
-        tl.fromTo(ch, { opacity: 0 }, { opacity: 1, duration: 0.16, immediateRender: false }, 2.55 + i * 0.14);
+        tl.fromTo(ch, { opacity: 0 }, { opacity: 1, duration: 0.16, immediateRender: false }, 2.4 + i * 0.17);
       });
-      tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.35, immediateRender: false }, 3.75);
-      /* The commit (user call: the line was not earning attention): the word
-         has landed, so the SENTENCE reacts -- the whole line steps up a rung
-         of ink and a rule draws out from its centre underneath, the page's
-         standing gesture for "this just became true". */
-      const eraPhrase = doc.querySelector<HTMLElement>("#agt-era-phrase");
-      const eraRule = doc.querySelector<HTMLElement>("#agt-era-rule");
-      if (eraPhrase && eraRule) {
-        tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 3.85);
-        tl.fromTo(
-          eraRule,
-          { scaleX: 0 },
-          { scaleX: 1, duration: 0.55, ease: "power2.out", transformOrigin: "50% 50%", immediateRender: false },
-          3.9,
-        );
+      tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.3, immediateRender: false }, 3.72);
+      if (eraPhrase) {
+        tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 3.8);
       }
     }
   }
@@ -2421,7 +2507,13 @@ export function createAgentsScene(): AgentsScene {
 
   const mm = gsap.matchMedia();
 
-  mm.add("(prefers-reduced-motion: no-preference)", () => buildBridge());
+  mm.add("(prefers-reduced-motion: no-preference)", () => {
+    /* Deferred to font readiness: the through-wire's path is measured off the
+       REAL text boxes, and the serif "agentic" changes the phrase's width --
+       measuring before the faces load would draw the underline for the
+       fallback font. ScrollTrigger self-calibrates on late creation. */
+    void doc.fonts.ready.then(() => buildBridge());
+  });
 
   mm.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => {
     buildScrub();

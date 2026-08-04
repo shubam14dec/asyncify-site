@@ -1084,8 +1084,8 @@
                      size. The agents scene will pick this wire up. Routed
                      right then down at x 420 — past the stamp stack's widest
                      line (~x 337) — so it crosses no text. -->
-                  <path class="eng-wire" id="trn-door-wire" d="M 260 208 C 330 208 420 240 420 330 L 420 548" />
-                  <path class="eng-wire" id="trn-door-head" d="M 412 539 L 420 549 L 428 539" />
+                  <path class="eng-wire" id="trn-door-wire" d="M 260 208 C 330 208 420 240 420 330 L 420 590" />
+                  <path class="eng-wire" id="trn-door-head" d="M 412 581 L 420 591 L 428 581" />
                   <text class="eng-stamp trn-tease" id="trn-tease" x="434" y="446">handing to your agent →</text>
                 </g>
 
@@ -1379,6 +1379,19 @@
            in the document, so it keeps pointing at its own section.
            ───────────────────────────────────────────────────────────────── -->
       <section class="bridge" id="bridge-agents">
+        <!-- The through-wire (user call): scene 3's hand-off line actually
+             CROSSES this bridge, and the white dot -- the customer's reply
+             itself -- rides it while the reader scrolls. Its path is built at
+             runtime from the REAL boxes of the text (see buildBridge): it
+             dives in from the top edge, runs under the era phrase as its
+             underline (the dot inks the rule as it passes, while "agentic"
+             types above), S-curves past the two sentences -- lighting the one
+             about the reply as the reply passes it -- and exits the bottom
+             edge aimed at scene 4's inbound wire. -->
+        <svg class="agt-bridge-svg" id="agt-bridge-svg" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+          <path class="agt-bwire" id="agt-bwire" d="M 0 -10" />
+          <circle class="agt-bdot" id="agt-bdot" cx="0" cy="-10" r="5" />
+        </svg>
         <h2 class="bridge-copy">
           <!-- The era gets named here, at the door to the act that proves it
                (user call) -- a kicker over the bridge, in the mono register,
@@ -1392,7 +1405,7 @@
                design until the word lands. -->
           <span class="agt-bridge-line agt-bridge-kicker"><span class="agt-era-phrase" id="agt-era-phrase">The
             <span class="agt-era-slot"><span class="agt-era-caret" id="agt-era-caret" aria-hidden="true"></span><span class="agt-era-word" id="agt-era-word"><span class="agt-era-ch">a</span><span class="agt-era-ch">g</span><span class="agt-era-ch">e</span><span class="agt-era-ch">n</span><span class="agt-era-ch">t</span><span class="agt-era-ch">i</span><span class="agt-era-ch">c</span></span></span>
-            era of notifications<span class="agt-era-rule" id="agt-era-rule" aria-hidden="true"></span></span></span>
+            era of notifications</span></span>
           <span class="agt-bridge-line">A customer's reply is sitting in a queue.</span>
           <span class="agt-bridge-line agt-bridge-lead">Meet what answers it.</span>
         </h2>

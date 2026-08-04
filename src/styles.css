@@ -1809,6 +1809,44 @@ html {
   color: var(--text-dim);
 }
 
+/* The through-wire's bridge: taller than the other bridge, because it is a
+   scene now -- the wire needs sky above the copy and ground below it for the
+   dive in and the exit. The copy stacks above the svg. */
+#bridge-agents {
+  position: relative;
+  min-height: 115vh;
+}
+
+#bridge-agents .bridge-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.agt-bridge-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* Runtime-built path, plain user units (no non-scaling-stroke, so no
+   dasharray trap); butt caps because it rests at zero length. */
+.agt-bwire {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+}
+
+/* The traveller: the same neutral ink as scene 3's reply dot, because it IS
+   that reply, in transit between scenes. */
+.agt-bdot {
+  fill: var(--text);
+  opacity: 0;
+}
+
 /* The era kicker: mono and faint over the two sans sentences, the same
    eyebrow relation the rail titles use. It shares .agt-bridge-line so it
    rides the bridge's stagger as the first voice in. */
@@ -1830,17 +1868,8 @@ html {
   display: inline-block;
 }
 
-/* The commit: once "agentic" lands, this rule draws out from the centre --
-   the site's caption-rule grammar meaning "this just became true". */
-.agt-era-rule {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -8px;
-  height: 1px;
-  background: var(--hairline-strong);
-  transform: scaleX(0);
-}
+/* The era's underline is no longer its own element: it is a SEGMENT of the
+   through-wire, inked by the dot as it passes (see #agt-bridge-svg). */
 
 /* The insertion. The slot reserves the word's width at all times (the word
    hides by opacity, never by display), so the edit never reflows the line. */
