@@ -137,14 +137,41 @@ const AGENT_H = 140;
    that cites the source; what lives here is only the geometry that has to
    agree with the packets. */
 const GUTS_X = 204;
-const GUTS_Y0 = 262;
-const GUTS_PITCH = 24;
+const GUTS_Y0 = 272;
+/* 34, up from the 24 five rows needed. THE BOX DID NOT SHRINK WITH THE LIST,
+   and that is deliberate: the chassis is the guide's own picture of "Asyncify
+   owns everything around the brain", and a box that contracts every time a row
+   leaves reads as a list in a container rather than as a machine. It also has
+   to stay visibly bigger than the 28u brain seated in it, and its height is
+   load-bearing in four other places — the label stack above it, the channel
+   row's clearance below it, the three trace departure latitudes on its wall,
+   and SPINE_Y being its exact centre. Shrinking would ripple through all four
+   to buy nothing. The three rows take the space instead, which is the right
+   answer to a clutter complaint: air, not a tighter box.
+
+   The middle row lands on SPINE_Y exactly, which is the brain's own latitude
+   — the busiest line in the scene now reads as one continuous thought from
+   the chassis, through the brain, out to the phone. */
+const GUTS_PITCH = 34;
 const GUTS_SIZE = 11.5;
+/** What the rows drop to once the work starts. The chassis is the subject for
+ *  exactly one beat; after that it is scenery, and scenery that keeps talking
+ *  at reading weight competes with the three tool cards for the same eye.
+ *
+ *  THIS IS AN OPACITY AND NOT A LADDER STEP, which BRAND §1 discourages for
+ *  text — "no opacity-faked grays over the canvas for a resting colour". The
+ *  exception is argued rather than assumed: the rows already sit on
+ *  --text-faint, the bottom rung, so there is no darker step to tween to, and
+ *  what is wanted here is not a different colour but a state change the scene
+ *  drives and un-drives. 0.4 puts #6e6e6e at roughly --hairline-strong against
+ *  the canvas: the reader can still see there is a list, and has stopped
+ *  reading it. Which is the whole instruction. */
+const GUTS_DIM = 0.4;
 
 /** THE BRAIN, on the chassis's right wall where the guide puts it, and the
  *  thing the "any model · your system prompt" label is naming. The inbound
  *  reply comes to rest ON it — not merely inside the box — because the first
- *  thing the checklist claims is "your own model" and a tick has to be earned
+ *  thing the checklist claims is "any model" and a tick has to be earned
  *  by something the reader can point at. With the box full of text it is also
  *  the only landing point that is not a word. */
 const BRAIN_CX = 406;
@@ -470,7 +497,13 @@ const CAPS: readonly { at: number; out: number }[] = [
    with a 400, and a fictional string the real API would refuse is not a
    fiction, it is a mistake. */
 const QUALITIES: readonly { word: string; evidence: string; at: number }[] = [
-  { word: "your own model", evidence: "your endpoint · your prompt", at: T_MODEL },
+  /* The word follows the box's own label (user call): the box says "any
+     model", so a checklist that still claimed "your own model" was quoting a
+     line the scene no longer has. The EVIDENCE is unchanged on purpose — the
+     word is the claim the product makes, the evidence is the receipt the
+     customer supplies, and "any model" backed by "your endpoint · your prompt"
+     is those two facts in the right order. */
+  { word: "any model", evidence: "your endpoint · your prompt", at: T_MODEL },
   { word: "remembers", evidence: "search_history", at: T_MEMORY },
   { word: "grounded", evidence: "orders_lookup · cited", at: T_GROUND },
   { word: "guarded", evidence: "maxAutoCalls → approval", at: T_GUARD },
@@ -852,7 +885,7 @@ export function createAgentsScene(): AgentsScene {
   if (AGENT_X + monoWidth(agentSub.textContent ?? "", AGENT_SUB_SIZE) > IN_X - 8) {
     throw new Error("[agents] the agent's second label line runs under the inbound wire");
   }
-  /* The dot has to come to rest ON the brain, because "your own model" is the
+  /* The dot has to come to rest ON the brain, because "any model" is the
      first thing the checklist claims and a tick has to be earned by something
      the reader can point at. */
   if (
@@ -893,8 +926,17 @@ export function createAgentsScene(): AgentsScene {
     const ROW_UP = GUTS_SIZE * 0.75;
     const ROW_DOWN = GUTS_SIZE * 0.25;
 
-    if (gutsRows.length !== 5) {
-      throw new Error("[agents] the chassis does not have the guide's five rows");
+    if (gutsRows.length !== 3) {
+      throw new Error("[agents] the chassis does not have its three rows");
+    }
+    /* The rows have to be at full ink before the scene asks them to step back,
+       or the dim tween starts from a value that was never reached and the
+       reverse pass has nowhere to return to. */
+    if (B2_T1 < B1_GUTS + 1.4) {
+      throw new Error("[agents] the chassis rows are told to dim before they have finished arriving");
+    }
+    if (GUTS_DIM <= 0 || GUTS_DIM >= 1) {
+      throw new Error("[agents] the chassis rows dim to nothing, or do not dim at all");
     }
 
     for (const [i, row] of gutsRows.entries()) {
@@ -1655,10 +1697,10 @@ export function createAgentsScene(): AgentsScene {
        to see the chassis get its brain before the reply falls into it. */
     draw(brain, B1_BRAIN, 1.0);
     draw(brainOut, B1_BRAIN + 0.9, 0.4);
-    /* And the chassis's five rows come up as ONE fade: what the machine owns
-       is one fact, not five events, and five lines fading in sequence would be
-       the reader counting instead of reading. Same call scene 3 makes about
-       its miniature — a machine glimpsed inside a window either is there or is
+    /* And the chassis's rows come up as ONE fade: what the machine owns is one
+       fact, not three events, and lines fading in sequence would be the reader
+       counting instead of reading. Same call scene 3 makes about its
+       miniature — a machine glimpsed inside a window either is there or is
        not. */
     fadeIn(guts, B1_GUTS, 1.4);
     fadeIn(thread, B1_THREAD, 1.6);
@@ -1682,6 +1724,14 @@ export function createAgentsScene(): AgentsScene {
        Two calls, four events each, and the gap between the third and the
        fourth is the beat: a request that returned in the same frame it was
        sent in is a request nobody believes. */
+    /* THE CHASSIS STEPS BACK. The rows have had the whole of beat 1 at
+       reading weight, which is the beat they are the subject of; the instant
+       the first trace starts drawing out of the wall they drop to a whisper
+       and stay there. It is one tween, explicit at both ends, so scrubbing
+       back up brings the list to full ink again exactly where it dimmed — the
+       box does not "remember" that it has spoken. */
+    ft(guts, { opacity: 1 }, { opacity: GUTS_DIM, duration: 1.8 }, B2_T1);
+
     draw(traces[0]!, B2_T1, 2.0);
     drawBox(cardBoxes[0]!, B2_C1, 2.0);
     fadeIn(cardTitles[0]!, B2_C1_TITLE, 1.0);
