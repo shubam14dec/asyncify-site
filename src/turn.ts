@@ -1693,7 +1693,18 @@ export function createTurnScene(): TurnScene {
        last beat, so the pin releases with the line still alive and the
        bridge continues a motion instead of resuming a corpse. The label
        appears as the wire passes its latitude. */
-    draw(doorWire, 55.6, 15.6); // starts the moment the dock stamps settle -- no idle beat (user call)
+    /* THE MESSAGE RIDES ITS OWN ROAD OUT (user call: the docked dot just sat
+       there while the door drew itself empty). The seated mark unseats, the
+       traveller re-lights at the door's mouth, and it rides AT THE WIRE'S
+       DRAW HEAD -- the dot draws the road down, the same grammar as the
+       bridge -- leaving the queue exactly as "handing to your agent" says
+       so, and standing on the arrowhead as the scene ends, where the
+       bridge's traveller takes over. Ease "none" on BOTH the wire and the
+       ride is what keeps the dot on the head. */
+    fadeOut(markIn, 55.2, 0.4);
+    fadeIn(dotIn, 55.5, 0.3);
+    ft(doorWire, { drawSVG: "0% 0%" }, { drawSVG: "0% 100%", duration: 15.6, ease: "none" }, 55.6);
+    run(dotIn, doorWire, 55.6, 15.6, "none");
     fadeIn(tease, 60.0, 1.3); // early in the descent, not waited for
     draw(doorHead, 71.2, 0.5);
   }
