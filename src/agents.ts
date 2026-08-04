@@ -1964,21 +1964,18 @@ export function createAgentsScene(): AgentsScene {
        gap, "agentic" drops in from above it, caret leaves. Scrubbed back,
        the era un-inserts itself -- which is its own kind of joke. */
     const eraCaret = doc.querySelector<HTMLElement>("#agt-era-caret");
-    const eraWord = doc.querySelector<HTMLElement>("#agt-era-word");
-    if (eraCaret && eraWord) {
-      gsap.set(eraWord, { opacity: 0, y: -13 });
+    const eraLetters = Array.from(doc.querySelectorAll<HTMLElement>("#agt-era-word .agt-era-ch"));
+    if (eraCaret && eraLetters.length) {
+      gsap.set(eraLetters, { opacity: 0 });
       /* AFTER all three lines stand (last line lands at 1.9): the reader sees
          the finished block, centred -- and THEN the edit happens to it. The
-         insertion is a correction to something complete, not a piece of the
-         assembly (user call). */
+         word WRITES itself letter by letter into the gap (user call) -- typed
+         under the caret, the same act scene 3's reply performs. */
       tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.35, immediateRender: false }, 2.2);
-      tl.fromTo(
-        eraWord,
-        { opacity: 0, y: -13 },
-        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", immediateRender: false },
-        2.55,
-      );
-      tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.35, immediateRender: false }, 3.2);
+      eraLetters.forEach((ch, i) => {
+        tl.fromTo(ch, { opacity: 0 }, { opacity: 1, duration: 0.16, immediateRender: false }, 2.55 + i * 0.14);
+      });
+      tl.fromTo(eraCaret, { opacity: 1 }, { opacity: 0, duration: 0.35, immediateRender: false }, 3.75);
       /* The commit (user call: the line was not earning attention): the word
          has landed, so the SENTENCE reacts -- the whole line steps up a rung
          of ink and a rule draws out from its centre underneath, the page's
@@ -1986,12 +1983,12 @@ export function createAgentsScene(): AgentsScene {
       const eraPhrase = doc.querySelector<HTMLElement>("#agt-era-phrase");
       const eraRule = doc.querySelector<HTMLElement>("#agt-era-rule");
       if (eraPhrase && eraRule) {
-        tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 3.3);
+        tl.fromTo(eraPhrase, { color: "#6e6e6e" }, { color: "#a1a1a1", duration: 0.5, immediateRender: false }, 3.85);
         tl.fromTo(
           eraRule,
           { scaleX: 0 },
           { scaleX: 1, duration: 0.55, ease: "power2.out", transformOrigin: "50% 50%", immediateRender: false },
-          3.35,
+          3.9,
         );
       }
     }
