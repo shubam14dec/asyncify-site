@@ -2107,7 +2107,7 @@ export function createAgentsScene(): AgentsScene {
     });
 
     if (bwire && bdot && totalLen && fractions.length === 5) {
-      const [f1, f2, f3] = fractions;
+      const [f1, f2, f3, f4] = fractions;
       /* The journey, seam by seam. The underline segment (f1..f2) is run at
          ease "none" so the inking reads at the reader's own scroll speed;
          the exit accelerates, because scene 4 is pulling. */
@@ -2123,9 +2123,23 @@ export function createAgentsScene(): AgentsScene {
          the path. */
       const CRUISE = 4.0;
       const t0 = 3.25; // dive ends, cruise begins
-      const at = (f: number): number => t0 + (CRUISE * (f - f1!)) / (1 - f1!);
+      /* The exit accelerates again (user call) -- but VELOCITY-CONTINUOUSLY.
+         A stock accelerating ease starts at zero speed, which is the stall we
+         just killed. This ease, e(t) = (t + c*t^2)/(1+c), starts at exactly
+         1/(1+c) of the segment's average slope; the exit leg's duration is
+         then SOLVED so that starting slope times its average speed equals the
+         cruise speed. The dot leaves the last bend at cruise pace and is
+         doing ~3.4x by the time it crosses into scene 4. */
+      const ACCEL_C = 1.2;
+      const accelEase = (x: number): number => (x + ACCEL_C * x * x) / (1 + ACCEL_C);
+      const cruiseSpan = f4! - f1!;
+      const exitSpan = 1 - f4!;
+      const dCruise = CRUISE / (1 + exitSpan / ((1 + ACCEL_C) * cruiseSpan));
+      const dExit = CRUISE - dCruise;
+      const at = (f: number): number => t0 + (dCruise * (f - f1!)) / cruiseSpan;
       tl.fromTo(journey, { p: 0 }, { p: f1!, duration: 3.2, ease: "power1.in", immediateRender: false }, 0.05);
-      tl.fromTo(journey, { p: f1! }, { p: 1, duration: CRUISE, ease: "none", immediateRender: false }, t0);
+      tl.fromTo(journey, { p: f1! }, { p: f4!, duration: dCruise, ease: "none", immediateRender: false }, t0);
+      tl.fromTo(journey, { p: f4! }, { p: 1, duration: dExit, ease: accelEase, immediateRender: false }, t0 + dCruise);
       tl.fromTo(bdot, { opacity: 1 }, { opacity: 0, duration: 0.1, immediateRender: false }, t0 + CRUISE - 0.1);
 
       /* The era types itself WHILE the dot inks the underline beneath it --
