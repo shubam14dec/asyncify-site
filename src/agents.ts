@@ -2134,13 +2134,21 @@ export function createAgentsScene(): AgentsScene {
       const accelEase = (x: number): number => (x + ACCEL_C * x * x) / (1 + ACCEL_C);
       const cruiseSpan = f4! - f1!;
       const exitSpan = 1 - f4!;
-      const dCruise = CRUISE / (1 + exitSpan / ((1 + ACCEL_C) * cruiseSpan));
-      const dExit = CRUISE - dCruise;
-      const at = (f: number): number => t0 + (dCruise * (f - f1!)) / cruiseSpan;
+      /* The cruise keeps ITS approved speed -- (1-f1)/CRUISE, the pacing the
+         whole middle was tuned at -- and the exit's duration is derived ON
+         TOP of it (first attempt solved both inside a fixed total, which
+         silently compressed the underline and the sentences by a third to
+         pay for the surge: worse, correctly called). The timeline simply
+         ends earlier; the scrub maps to whatever the total is, and the dot
+         still lands at the pin instant because the landing IS the end. */
+      const vCruise = (1 - f1!) / CRUISE;
+      const dCruise = cruiseSpan / vCruise;
+      const dExit = exitSpan / ((1 + ACCEL_C) * vCruise);
+      const at = (f: number): number => t0 + (f - f1!) / vCruise;
       tl.fromTo(journey, { p: 0 }, { p: f1!, duration: 3.2, ease: "power1.in", immediateRender: false }, 0.05);
       tl.fromTo(journey, { p: f1! }, { p: f4!, duration: dCruise, ease: "none", immediateRender: false }, t0);
       tl.fromTo(journey, { p: f4! }, { p: 1, duration: dExit, ease: accelEase, immediateRender: false }, t0 + dCruise);
-      tl.fromTo(bdot, { opacity: 1 }, { opacity: 0, duration: 0.1, immediateRender: false }, t0 + CRUISE - 0.1);
+      tl.fromTo(bdot, { opacity: 1 }, { opacity: 0, duration: 0.1, immediateRender: false }, t0 + dCruise + dExit - 0.1);
 
       /* The era types itself WHILE the dot inks the underline beneath it --
          the traveller writes the era in as it passes (user's wow). */
