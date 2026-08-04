@@ -1877,15 +1877,25 @@ html {
    felt — see the type-ladder note below. */
 .agt-pin {
   position: relative;
+  height: 100dvh;
+  padding: clamp(24px, 5vh, 56px) var(--page-pad);
+  /* The camera inside zooms to 1.9x; transformed content extends the page's
+     scrollable area unless clipped, and a scrollbar that jitters mid-scrub is
+     a broken scrub. The pin is the viewport during the pin -- clip at it. */
+  overflow: clip;
+  /* Faded up by the entry ScrollTrigger, so the scene materialises on the way
+     in rather than being parked under the bridge fully lit. */
+  opacity: 0;
+}
+
+/* The camera: carries the grid the pin used to, so one transform moves both
+   columns as a single filmed frame. */
+.agt-cam {
   display: grid;
   grid-template-columns: clamp(232px, 19vw, 320px) 1fr;
   align-items: center;
   gap: clamp(16px, 3vw, 48px);
-  height: 100dvh;
-  padding: clamp(24px, 5vh, 56px) var(--page-pad);
-  /* Faded up by the entry ScrollTrigger, so the scene materialises on the way
-     in rather than being parked under the bridge fully lit. */
-  opacity: 0;
+  height: 100%;
 }
 
 /* `.agt-pin` sets display, so it out-specifies the UA's `[hidden]` rule; the

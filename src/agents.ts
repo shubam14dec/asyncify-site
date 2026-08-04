@@ -859,6 +859,20 @@ export function createAgentsScene(): AgentsScene {
   /* Rail-column furniture: the HTML title and the checklist's own svg, both
      outside the stage svg and queried from the document. */
   const title = q<HTMLElement>(doc, "#agt-title");
+  const cam = q<HTMLElement>(doc, "#agt-cam");
+  /** Where the camera aims: a subject row's point in the CAMERA's own box,
+   *  measured lazily (function-based tween values evaluate on first render,
+   *  which is after fonts and layout have settled -- the boot-font-metrics
+   *  trap does not apply). The checklist renders at scale 1, so svg units are
+   *  pixels. x aims a third into the fan so row + labels centre together. */
+  const camAim = (originY: number) => {
+    const c = cam.getBoundingClientRect();
+    const k = checklist.getBoundingClientRect();
+    return { x: k.left - c.left + 150, y: k.top - c.top + originY };
+  };
+  /** translate that keeps aim-point fixed while the frame scales about 0,0 */
+  const camX = (originY: number) => () => (1 - MEM_SCALE) * camAim(originY).x;
+  const camY = (originY: number) => () => (1 - MEM_SCALE) * camAim(originY).y;
   const checklist = q<SVGSVGElement>(doc, "#agt-checklist");
   const rulesG = q<SVGGElement>(checklist, "#agt-rules");
   const qualitiesG = q<SVGGElement>(checklist, "#agt-qualities");
@@ -1680,7 +1694,7 @@ export function createAgentsScene(): AgentsScene {
     gsap.set([...memCurves, ...grdCurves, guaCurve], { drawSVG: "0% 0%" });
     gsap.set([...memLabels], { opacity: 0 });
     gsap.set([...grdLabels, guaLabel], { opacity: 0 });
-    gsap.set(checklist, { scale: 1, transformOrigin: `0px ${MEM_ORIGIN_Y}px` });
+    gsap.set(cam, { scale: 1, x: 0, y: 0, transformOrigin: "0px 0px" });
     gsap.set(svg, { opacity: 1 });
     gsap.set(rulesG, { opacity: 1 });
     gsap.set(
@@ -2125,7 +2139,7 @@ export function createAgentsScene(): AgentsScene {
     {
       const others = rows.filter((_, i) => i !== 1).flatMap((r) => [r.word, r.box]);
       ft(svg, { opacity: 1 }, { opacity: MEM_STAGE_DIM, duration: 0.7 }, MEM_IN);
-      ft(checklist, { scale: 1 }, { scale: MEM_SCALE, duration: 0.9, ease: "power2.inOut", transformOrigin: `0px ${MEM_ORIGIN_Y}px` }, MEM_IN);
+      ft(cam, { scale: 1, x: 0, y: 0 }, { scale: MEM_SCALE, x: camX(MEM_ORIGIN_Y), y: camY(MEM_ORIGIN_Y), duration: 0.9, ease: "power2.inOut", transformOrigin: "0px 0px" }, MEM_IN);
       ft(others, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, MEM_IN);
       ft(rulesG, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, MEM_IN);
       ft(title, { opacity: 1 }, { opacity: MEM_TITLE_DIM, duration: 0.7 }, MEM_IN);
@@ -2136,7 +2150,7 @@ export function createAgentsScene(): AgentsScene {
       ft(memCurves, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8, ease: "power2.in" }, MEM_OUT);
       ft(memLabels, { opacity: 1 }, { opacity: 0, duration: 0.6 }, MEM_OUT);
       ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
-      ft(checklist, { scale: MEM_SCALE }, { scale: 1, duration: 0.8, ease: "power2.inOut", transformOrigin: `0px ${MEM_ORIGIN_Y}px` }, MEM_FOCUS_OUT);
+      ft(cam, { scale: MEM_SCALE, x: camX(MEM_ORIGIN_Y), y: camY(MEM_ORIGIN_Y) }, { scale: 1, x: 0, y: 0, duration: 0.8, ease: "power2.inOut", transformOrigin: "0px 0px" }, MEM_FOCUS_OUT);
       ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
       ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
       ft(title, { opacity: MEM_TITLE_DIM }, { opacity: 1, duration: 0.8 }, MEM_FOCUS_OUT);
@@ -2154,7 +2168,7 @@ export function createAgentsScene(): AgentsScene {
     {
       const others = rows.filter((_, i) => i !== 2).flatMap((r) => [r.word, r.box]);
       ft(svg, { opacity: 1 }, { opacity: MEM_STAGE_DIM, duration: 0.7 }, GRD_IN);
-      ft(checklist, { scale: 1 }, { scale: MEM_SCALE, duration: 0.9, ease: "power2.inOut", transformOrigin: `0px ${GRD_ORIGIN_Y}px` }, GRD_IN);
+      ft(cam, { scale: 1, x: 0, y: 0 }, { scale: MEM_SCALE, x: camX(GRD_ORIGIN_Y), y: camY(GRD_ORIGIN_Y), duration: 0.9, ease: "power2.inOut", transformOrigin: "0px 0px" }, GRD_IN);
       ft(others, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GRD_IN);
       ft(rulesG, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GRD_IN);
       ft(title, { opacity: 1 }, { opacity: MEM_TITLE_DIM, duration: 0.7 }, GRD_IN);
@@ -2165,7 +2179,7 @@ export function createAgentsScene(): AgentsScene {
       ft(grdCurves, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8, ease: "power2.in" }, GRD_OUT);
       ft(grdLabels, { opacity: 1 }, { opacity: 0, duration: 0.6 }, GRD_OUT);
       ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: 0.8 }, GRD_FOCUS_OUT);
-      ft(checklist, { scale: MEM_SCALE }, { scale: 1, duration: 0.8, ease: "power2.inOut", transformOrigin: `0px ${GRD_ORIGIN_Y}px` }, GRD_FOCUS_OUT);
+      ft(cam, { scale: MEM_SCALE, x: camX(GRD_ORIGIN_Y), y: camY(GRD_ORIGIN_Y) }, { scale: 1, x: 0, y: 0, duration: 0.8, ease: "power2.inOut", transformOrigin: "0px 0px" }, GRD_FOCUS_OUT);
       ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GRD_FOCUS_OUT);
       ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GRD_FOCUS_OUT);
       ft(title, { opacity: MEM_TITLE_DIM }, { opacity: 1, duration: 0.8 }, GRD_FOCUS_OUT);
@@ -2238,7 +2252,7 @@ export function createAgentsScene(): AgentsScene {
     {
       const others = rows.filter((_, i) => i !== 3).flatMap((r) => [r.word, r.box]);
       ft(svg, { opacity: 1 }, { opacity: MEM_STAGE_DIM, duration: 0.7 }, GUA_IN);
-      ft(checklist, { scale: 1 }, { scale: MEM_SCALE, duration: 0.9, ease: "power2.inOut", transformOrigin: `0px ${GUA_ORIGIN_Y}px` }, GUA_IN);
+      ft(cam, { scale: 1, x: 0, y: 0 }, { scale: MEM_SCALE, x: camX(GUA_ORIGIN_Y), y: camY(GUA_ORIGIN_Y), duration: 0.9, ease: "power2.inOut", transformOrigin: "0px 0px" }, GUA_IN);
       ft(others, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GUA_IN);
       ft(rulesG, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GUA_IN);
       ft(title, { opacity: 1 }, { opacity: MEM_TITLE_DIM, duration: 0.7 }, GUA_IN);
@@ -2247,7 +2261,7 @@ export function createAgentsScene(): AgentsScene {
       ft(guaCurve, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8, ease: "power2.in" }, GUA_OUT);
       ft(guaLabel, { opacity: 1 }, { opacity: 0, duration: 0.6 }, GUA_OUT);
       ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: 0.8 }, GUA_FOCUS_OUT);
-      ft(checklist, { scale: MEM_SCALE }, { scale: 1, duration: 0.8, ease: "power2.inOut", transformOrigin: `0px ${GUA_ORIGIN_Y}px` }, GUA_FOCUS_OUT);
+      ft(cam, { scale: MEM_SCALE, x: camX(GUA_ORIGIN_Y), y: camY(GUA_ORIGIN_Y) }, { scale: 1, x: 0, y: 0, duration: 0.8, ease: "power2.inOut", transformOrigin: "0px 0px" }, GUA_FOCUS_OUT);
       ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GUA_FOCUS_OUT);
       ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: 0.8 }, GUA_FOCUS_OUT);
       ft(title, { opacity: MEM_TITLE_DIM }, { opacity: 1, duration: 0.8 }, GUA_FOCUS_OUT);
