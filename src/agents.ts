@@ -462,7 +462,7 @@ const MEM_OUT = 26.6;
    with the fold, the re-brighten and the next act. Now it starts AS the fold
    collapses (film grammar: the aside folds while the camera leaves) and
    lands just before the scene resumes. */
-const CAM_RETURN = 1.3;
+const CAM_RETURN = 0.9; // the user's ruling: the pull-back IS the push-in reversed -- same span, same ease
 const MEM_FOCUS_OUT = 26.7; // 26.8 put the landing at B2_T2 exactly; the assert (rightly) wants real margin
 
 /* -- The grounded close-up ------------------------------------------------
@@ -866,34 +866,36 @@ export function createAgentsScene(): AgentsScene {
      outside the stage svg and queried from the document. */
   const title = q<HTMLElement>(doc, "#agt-title");
   const cam = q<HTMLElement>(doc, "#agt-cam");
-  /** ONE framing for all three asides (user call: the masthead rides the
-   *  close-up too): the whole rail block -- kicker, head, and the full
-   *  checklist -- fitted top-to-bottom in the frame. The subject row is
-   *  already marked by full ink and its fan, so the camera does not chase
-   *  rows; it makes the same move every time, which is also what makes it
-   *  read as a camera. The zoom computes itself: MEM_SCALE if the block
-   *  fits, else whatever does -- so no viewport can cut the list. All
-   *  measured lazily (function-based tween values evaluate on first render,
-   *  after fonts and layout; the boot-font-metrics trap does not apply). */
+  /** ONE framing for all three asides: the whole rail block -- kicker, head,
+   *  full checklist -- fitted top-to-bottom. THE POSE IS MEASURED ONCE, WITH
+   *  THE CAMERA HOME, AND CACHED. This is not an optimisation, it is the
+   *  bug fix (user catch: "the return isn't smooth"): getBoundingClientRect
+   *  returns TRANSFORMED geometry, so a pull-back that measured at its own
+   *  first render -- mid-zoom -- launched from garbage coordinates and
+   *  lurched home. The push-in always renders first (timeline children
+   *  render in time order, and restState parks the camera at home), so the
+   *  first evaluation is guaranteed untransformed; every later reader gets
+   *  the cache, and both directions travel the same line. Stale on resize
+   *  mid-scene -- accepted and documented: a resize re-fires the stills
+   *  decision anyway. */
   const CAM_MARGIN = 20;
-  const camBlock = () => {
-    const c = cam.getBoundingClientRect();
-    const ttl = title.getBoundingClientRect();
-    const k = checklist.getBoundingClientRect();
-    return { c, top: ttl.top - c.top, left: Math.min(ttl.left, k.left) - c.left, height: k.bottom - ttl.top };
+  let camPose: { s: number; x: number; y: number } | null = null;
+  const pose = () => {
+    if (!camPose) {
+      const c = cam.getBoundingClientRect();
+      const ttl = title.getBoundingClientRect();
+      const k = checklist.getBoundingClientRect();
+      const top = ttl.top - c.top;
+      const left = Math.min(ttl.left, k.left) - c.left;
+      const height = k.bottom - ttl.top;
+      const s = Math.min(MEM_SCALE, (c.height - 2 * CAM_MARGIN) / height);
+      camPose = { s, x: CAM_MARGIN - s * left, y: CAM_MARGIN - s * top };
+    }
+    return camPose;
   };
-  const camScale = () => {
-    const b = camBlock();
-    return Math.min(MEM_SCALE, (b.c.height - 2 * CAM_MARGIN) / b.height);
-  };
-  const camX = () => () => {
-    const b = camBlock();
-    return CAM_MARGIN - camScale() * b.left;
-  };
-  const camY = () => () => {
-    const b = camBlock();
-    return CAM_MARGIN - camScale() * b.top;
-  };
+  const camS = () => pose().s;
+  const camX = () => pose().x;
+  const camY = () => pose().y;
   const checklist = q<SVGSVGElement>(doc, "#agt-checklist");
   const rulesG = q<SVGGElement>(checklist, "#agt-rules");
   const qualitiesG = q<SVGGElement>(checklist, "#agt-qualities");
@@ -2160,7 +2162,7 @@ export function createAgentsScene(): AgentsScene {
     {
       const others = rows.filter((_, i) => i !== 1).flatMap((r) => [r.word, r.box]);
       ft(svg, { opacity: 1 }, { opacity: MEM_STAGE_DIM, duration: 0.7 }, MEM_IN);
-      ft(cam, { scale: 1, x: 0, y: 0 }, { scale: camScale, x: camX(), y: camY(), duration: 0.9, ease: "power2.inOut", transformOrigin: "0px 0px" }, MEM_IN);
+      ft(cam, { scale: 1, x: 0, y: 0 }, { scale: camS, x: camX, y: camY, duration: 0.9, ease: "power2.inOut", transformOrigin: "0px 0px" }, MEM_IN);
       ft(others, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, MEM_IN);
       ft(rulesG, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, MEM_IN);
       MEM_CURVES.forEach((at, i) => {
@@ -2170,7 +2172,7 @@ export function createAgentsScene(): AgentsScene {
       ft(memCurves, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8, ease: "power2.in" }, MEM_OUT);
       ft(memLabels, { opacity: 1 }, { opacity: 0, duration: 0.6 }, MEM_OUT);
       ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: CAM_RETURN }, MEM_FOCUS_OUT);
-      ft(cam, { scale: camScale, x: camX(), y: camY() }, { scale: 1, x: 0, y: 0, duration: CAM_RETURN, ease: "power2.inOut", transformOrigin: "0px 0px" }, MEM_FOCUS_OUT);
+      ft(cam, { scale: camS, x: camX, y: camY }, { scale: 1, x: 0, y: 0, duration: CAM_RETURN, ease: "power2.inOut", transformOrigin: "0px 0px" }, MEM_FOCUS_OUT);
       ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: CAM_RETURN }, MEM_FOCUS_OUT);
       ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: CAM_RETURN }, MEM_FOCUS_OUT);
     }
@@ -2187,7 +2189,7 @@ export function createAgentsScene(): AgentsScene {
     {
       const others = rows.filter((_, i) => i !== 2).flatMap((r) => [r.word, r.box]);
       ft(svg, { opacity: 1 }, { opacity: MEM_STAGE_DIM, duration: 0.7 }, GRD_IN);
-      ft(cam, { scale: 1, x: 0, y: 0 }, { scale: camScale, x: camX(), y: camY(), duration: 0.9, ease: "power2.inOut", transformOrigin: "0px 0px" }, GRD_IN);
+      ft(cam, { scale: 1, x: 0, y: 0 }, { scale: camS, x: camX, y: camY, duration: 0.9, ease: "power2.inOut", transformOrigin: "0px 0px" }, GRD_IN);
       ft(others, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GRD_IN);
       ft(rulesG, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GRD_IN);
       GRD_CURVES.forEach((at, i) => {
@@ -2197,7 +2199,7 @@ export function createAgentsScene(): AgentsScene {
       ft(grdCurves, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8, ease: "power2.in" }, GRD_OUT);
       ft(grdLabels, { opacity: 1 }, { opacity: 0, duration: 0.6 }, GRD_OUT);
       ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: CAM_RETURN }, GRD_FOCUS_OUT);
-      ft(cam, { scale: camScale, x: camX(), y: camY() }, { scale: 1, x: 0, y: 0, duration: CAM_RETURN, ease: "power2.inOut", transformOrigin: "0px 0px" }, GRD_FOCUS_OUT);
+      ft(cam, { scale: camS, x: camX, y: camY }, { scale: 1, x: 0, y: 0, duration: CAM_RETURN, ease: "power2.inOut", transformOrigin: "0px 0px" }, GRD_FOCUS_OUT);
       ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: CAM_RETURN }, GRD_FOCUS_OUT);
       ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: CAM_RETURN }, GRD_FOCUS_OUT);
     }
@@ -2269,7 +2271,7 @@ export function createAgentsScene(): AgentsScene {
     {
       const others = rows.filter((_, i) => i !== 3).flatMap((r) => [r.word, r.box]);
       ft(svg, { opacity: 1 }, { opacity: MEM_STAGE_DIM, duration: 0.7 }, GUA_IN);
-      ft(cam, { scale: 1, x: 0, y: 0 }, { scale: camScale, x: camX(), y: camY(), duration: 0.9, ease: "power2.inOut", transformOrigin: "0px 0px" }, GUA_IN);
+      ft(cam, { scale: 1, x: 0, y: 0 }, { scale: camS, x: camX, y: camY, duration: 0.9, ease: "power2.inOut", transformOrigin: "0px 0px" }, GUA_IN);
       ft(others, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GUA_IN);
       ft(rulesG, { opacity: 1 }, { opacity: MEM_ROW_DIM, duration: 0.7 }, GUA_IN);
       draw(guaCurve, GUA_CURVE, MEM_CURVE_DRAW);
@@ -2277,7 +2279,7 @@ export function createAgentsScene(): AgentsScene {
       ft(guaCurve, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8, ease: "power2.in" }, GUA_OUT);
       ft(guaLabel, { opacity: 1 }, { opacity: 0, duration: 0.6 }, GUA_OUT);
       ft(svg, { opacity: MEM_STAGE_DIM }, { opacity: 1, duration: CAM_RETURN }, GUA_FOCUS_OUT);
-      ft(cam, { scale: camScale, x: camX(), y: camY() }, { scale: 1, x: 0, y: 0, duration: CAM_RETURN, ease: "power2.inOut", transformOrigin: "0px 0px" }, GUA_FOCUS_OUT);
+      ft(cam, { scale: camS, x: camX, y: camY }, { scale: 1, x: 0, y: 0, duration: CAM_RETURN, ease: "power2.inOut", transformOrigin: "0px 0px" }, GUA_FOCUS_OUT);
       ft(others, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: CAM_RETURN }, GUA_FOCUS_OUT);
       ft(rulesG, { opacity: MEM_ROW_DIM }, { opacity: 1, duration: CAM_RETURN }, GUA_FOCUS_OUT);
     }
