@@ -2699,13 +2699,19 @@ export function createAgentsScene(): AgentsScene {
       const oldPerf = cloneRoot.querySelector(".agt-tkt-perf");
       if (oldPerf) (oldPerf as SVGElement).style.opacity = "0";
       const NS = "http://www.w3.org/2000/svg";
-      const topCover = doc.createElementNS(NS, "rect");
-      topCover.setAttribute("x", "928");
-      topCover.setAttribute("y", "542");
-      topCover.setAttribute("width", "124");
-      topCover.setAttribute("height", "17.5");
-      topCover.setAttribute("fill", "#0a0a0a");
-      topCover.setAttribute("stroke", "none");
+      /* No cover rect (user catch: it painted a black slab between the two
+         torn edges). The clean-topped body is HIDDEN and replaced by a body
+         with no top at all -- sides and rounded bottom starting at the tear
+         line, the fill closing invisibly under the ragged stroke. Nothing to
+         hide, nothing black. */
+      const oldBody = cloneRoot.querySelector(".agt-tkt-body");
+      if (oldBody) (oldBody as SVGElement).style.opacity = "0";
+      const tornBody = doc.createElementNS(NS, "path");
+      tornBody.setAttribute("class", "agt-tkt-body");
+      tornBody.setAttribute(
+        "d",
+        "M 936 560 L 936 621 Q 936 628 943 628 L 1037 628 Q 1044 628 1044 621 L 1044 560",
+      );
       const stubEdge = doc.createElementNS(NS, "path");
       stubEdge.setAttribute("class", "agt-tkt-stub-edge");
       stubEdge.setAttribute(
@@ -2714,7 +2720,10 @@ export function createAgentsScene(): AgentsScene {
       );
       const paperInClone = cloneRoot.querySelector("#agt-tkt-paper");
       if (paperInClone) {
-        paperInClone.appendChild(topCover);
+        /* Torn body under everything the clone already draws (inner frame,
+           type), then the ragged edge over it. insertBefore keeps the text
+           above the paper it is printed on. */
+        paperInClone.insertBefore(tornBody, paperInClone.firstChild);
         paperInClone.appendChild(stubEdge);
       }
       doc.body.appendChild(fall);
