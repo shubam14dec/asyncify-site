@@ -2708,22 +2708,25 @@ export function createAgentsScene(): AgentsScene {
       if (clonePerf) {
         stub.fromTo(clonePerf, { drawSVG: "0% 100%" }, { drawSVG: "100% 100%", duration: TEAR_RUN, ease: roughTear }, 0);
       }
-      stub.to(fall, { rotation: 78, duration: TEAR_RUN, ease: roughTear, transformOrigin: "86% 12%" }, 0);
-      stub.to(fall, { skewY: 3, duration: TEAR_RUN * 0.7, ease: "power1.in" }, 0);
+      /* NEGATIVE rotation: screen-space positive is clockwise, which with a
+         right-corner hinge sweeps the sheet UP -- anti-gravity (user catch).
+         Counter-clockwise is what hanging looks like from this hinge. */
+      stub.to(fall, { rotation: -78, duration: TEAR_RUN, ease: roughTear, transformOrigin: "86% 12%" }, 0);
+      stub.to(fall, { skewY: -2, duration: TEAR_RUN * 0.7, ease: "power1.in" }, 0);
 
       /* THE DANGLE. Fully torn but for the corner: the sheet hangs and
          swings once, damped -- the beat that sells the gravity -- before the
          last hold gives. */
-      stub.to(fall, { rotation: 69, skewY: 1, duration: 0.24, ease: "sine.out" }, TEAR_RUN);
-      stub.to(fall, { rotation: 80, duration: 0.3, ease: "sine.inOut" }, TEAR_RUN + 0.24);
-      stub.to(fall, { rotation: 75, duration: 0.22, ease: "sine.inOut" }, TEAR_RUN + 0.54);
+      stub.to(fall, { rotation: -69, skewY: -1, duration: 0.24, ease: "sine.out" }, TEAR_RUN);
+      stub.to(fall, { rotation: -80, duration: 0.3, ease: "sine.inOut" }, TEAR_RUN + 0.24);
+      stub.to(fall, { rotation: -75, duration: 0.22, ease: "sine.inOut" }, TEAR_RUN + 0.54);
 
       /* THE RELEASE. True fall: gravity's accelerating ease, the rotation
          carrying on from the hang rather than resetting, a paper sway, gone
          before it lands. */
       const REL = TEAR_RUN + 0.76;
       stub.to(fall, { y: `+=${Math.round(window.innerHeight * 0.66)}`, duration: 1.0, ease: "power2.in" }, REL);
-      stub.to(fall, { rotation: 112, skewY: 0, duration: 1.0, ease: "power1.in" }, REL);
+      stub.to(fall, { rotation: -112, skewY: 0, duration: 1.0, ease: "power1.in" }, REL);
       stub.to(fall, { x: "-=18", duration: 0.45, ease: "sine.inOut" }, REL);
       stub.to(fall, { x: "+=36", duration: 0.5, ease: "sine.inOut" }, REL + 0.45);
       stub.to(fall, { opacity: 0, duration: 0.42, ease: "power1.in" }, REL + 0.5);
