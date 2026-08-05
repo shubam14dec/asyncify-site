@@ -2625,9 +2625,9 @@ html {
 }
 
 .prf-masthead .agt-head {
-  /* In-pin scale: one line, a title that shares a frame with a 600px table.
-     The section-head band belongs to scenes whose heads own a full width. */
-  font-size: clamp(19px, 1.7vw, 24px);
+  /* Scene 4's rail-head scale exactly (user call): the five scene titles
+     should read as one family, and the frame's budget covers it. */
+  font-size: clamp(25px, 2.1vw, 29px);
   max-width: none;
 }
 
