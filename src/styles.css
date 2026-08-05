@@ -2612,6 +2612,119 @@ html {
   max-width: 20ch;
 }
 
+/* ── the notarized sentence ──────────────────────────────────────────────
+   The block reserves the seal's own height as padding rather than as a
+   min-height, because the seal is positioned off the SENTENCE and the sentence
+   is one line of flowed text: 82px above and below is what keeps a 160px seal
+   centred on that line inside its own box, at every width, with no measuring.
+
+   The bottom margin is also the entrance wire's runway — proof.ts drops that
+   hairline PRF WIRE_H px above the table and asserts against the constant
+   below, so this clamp's floor may not go under it. */
+.prf-testimony {
+  box-sizing: border-box;
+  width: min(var(--page-max), 100% - 2 * var(--page-pad));
+  margin: 0 auto clamp(120px, 17vh, 190px);
+  /* Asymmetric, because the seal does not sit ON the line — it sits ACROSS it,
+     high and to the right, so the sentence passes through the ring's lower
+     field instead of through the word in its middle. 104 above is that offset
+     plus the seal's own half; 62 below is what is left under it. */
+  padding: 104px 0 62px;
+}
+
+/* The tilt lives HERE and is never animated, so the seal — a child positioned
+   off the sentence's own tail — travels with it. Origin at the left margin:
+   the line is anchored to the page's own edge and lifts to the right, which is
+   how a hand-placed line sits on a page. */
+.prf-oath-wrap {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  transform: rotate(-4deg);
+  transform-origin: 0% 50%;
+}
+
+/* Between the head above it and the receipts' mono below: this is testimony,
+   not a heading, so it sits under BRAND §3's section-head band and over the
+   body size — and it takes the display face's tracking, because it is a
+   sentence somebody said rather than a label. */
+.prf-oath {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: clamp(17px, 1.35vw, 19px);
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+/* Rendered at 160 against a 168 viewBox, so the authored 1.5/1 strokes land at
+   1.43/0.95. −8° on top of the wrap's −4° is the −12° a stamp lands at.
+
+   PLACED ACROSS THE TAIL, NOT OVER IT. The first pass centred the seal on the
+   sentence's own baseline and hung it 44px past the end: the ring then covered
+   the last third of the line and PROOF landed exactly on `the results`, so two
+   pieces of type occupied one place and neither could be read. It now sits
+   24px high (margin-top is the seal's half plus that offset) and 78px past the
+   tail, which puts the sentence through the ring's lower field — hairline over
+   words, which is what a stamp on a document actually looks like — and leaves
+   the dense centre type clear of it entirely. */
+.prf-seal {
+  position: absolute;
+  right: -78px;
+  top: 50%;
+  width: 160px;
+  height: 160px;
+  margin-top: -104px;
+  transform: rotate(-8deg);
+  transform-origin: 50% 50%;
+  overflow: visible;
+}
+
+/* Ink only — no green, no amber. A seal that certified in the accent colour
+   would be spending the page's one delivery colour on a decoration (BRAND §2).
+   No vector-effect: the stamp-in scales this whole drawing, and a screen-space
+   dash pattern would crawl across the rings during the press. */
+.prf-seal-ring {
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-width: 1;
+  stroke-linecap: butt;
+}
+
+.prf-seal-ring-out {
+  stroke-width: 1.5;
+}
+
+.prf-seal-arc {
+  font-family: var(--mono);
+  font-size: 7.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  fill: var(--text-dim);
+}
+
+.prf-seal-star {
+  fill: var(--text-dim);
+  stroke: none;
+}
+
+.prf-seal-word {
+  font-family: var(--mono);
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  fill: var(--text);
+}
+
+.prf-seal-sub {
+  font-family: var(--mono);
+  font-size: 7px;
+  letter-spacing: 0.06em;
+  fill: var(--text-dim);
+}
+
 /* ── the tabletop ────────────────────────────────────────────────────────
    A LINE, NOT A CARD. The obvious build is --surface plus a hairline, one step
    up from the canvas; that would put four --surface receipts inside a
@@ -3030,6 +3143,16 @@ html {
   gap: 5px;
 }
 
+/* The authored row break. A zero-height item with a full flex-basis forces the
+   line to end after `knowledge`, so the seven pillars read 4 + 3 the way the
+   guide lists them instead of 5 + 2, which is what the strip's width would
+   otherwise produce. It carries no ink and no height — the row gap does the
+   spacing — so it is structure, not a spacer element. */
+.prf-sumbreak {
+  flex: 0 0 100%;
+  height: 0;
+}
+
 /* ── the finale ──────────────────────────────────────────────────────────
    Thirty viewport-percent of nothing above it — the largest piece of
    deliberate emptiness on the page, doing the job scene 4's pause does: the
@@ -3171,6 +3294,38 @@ html {
    DESIGN §3's rule is that the still carries every piece of information the
    motion did — it is only re-laid. */
 @media (max-width: 767px) {
+  /* The testimony survives the fallback intact — it is information, not
+     decoration, and DESIGN §3's rule is that the still carries everything the
+     motion did. It only gets smaller and allowed to wrap: a nowrap sentence on
+     a 330px column would run off the side of the phone. */
+  .prf-testimony {
+    padding: 78px 0 48px;
+    margin-bottom: clamp(120px, 17vh, 160px);
+  }
+
+  .prf-oath {
+    white-space: normal;
+    font-size: 16px;
+  }
+
+  .prf-seal {
+    right: -18px;
+    width: 118px;
+    height: 118px;
+    margin-top: -77px;
+  }
+
+  /* The total line's value is now a sentence, and at this width it needs its
+     own line: the label keeps the leader (which is what a leader is FOR — it
+     points at an answer), and the answer wraps underneath it. */
+  .prf-totrow {
+    flex-wrap: wrap;
+  }
+
+  .prf-totval {
+    flex: 1 1 100%;
+  }
+
   .prf-table {
     padding: 18px;
   }

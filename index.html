@@ -2051,6 +2051,88 @@
           <p class="agt-head">Don't take our word. Take the receipts.</p>
         </div>
 
+        <!-- ── the notarized sentence ───────────────────────────────────────
+             A line of testimony with a notary seal stamped over its tail. It
+             is the masthead's claim said a second way, and then certified —
+             which is the whole move this scene is: not "believe us", but "here
+             is the document".
+
+             THE TILT IS ONE ROTATION, NOT TWO. .prf-oath-wrap carries −4° and
+             nothing ever animates it, so the seal — a child, positioned off
+             the sentence's own tail — stays glued to that tail at every
+             viewport instead of being placed at a pixel that only holds at one
+             width. The seal then adds its own −8° on top, which is the −12° a
+             stamp lands at. Two elements, two jobs, no arithmetic.
+
+             THE UPPERCASE IS THE ONE SANCTIONED EXCEPTION on this site. BRAND
+             §7 bans the tracked-uppercase eyebrow outright and every kicker in
+             scenes 2–5 is lowercase because of it. This is not UI type: it is
+             lettering on a physical object, and a notary seal that said
+             "production-ready" in lowercase would not read as a seal at all.
+             The ban is about a typographic habit; this is a drawing of a thing.
+
+             THE STARS ARE DRAWN, not typed. U+2605 is not in the self-hosted
+             latin subset — the same trap as U+2713 on the receipts and U+258E
+             in scene 4's rail — and a fallback star mid-run would also break
+             the arc arithmetic, because it would carry another font's advance.
+
+             INK-SKIP: each ring carries an authored, irregular stroke-dasharray
+             whose values sum to that ring's own circumference, so the pattern
+             completes exactly once around and reads as a rubber stamp that did
+             not take ink evenly — rather than as a dashed circle, which is what
+             any pattern that tiled would look like. The sums are asserted at
+             boot. Deterministic, never random: a scrub has to be a pure
+             function of its position, and a seal that re-rolled its own gaps on
+             every reload could not be reviewed. -->
+        <div class="prf-testimony">
+          <div class="prf-oath-wrap">
+            <p class="prf-oath">Don't trust the pitch. Trust the results.</p>
+            <!-- 168-unit viewBox rendered at 160px, so the authored 1.5/1
+                 stroke weights land at 1.43/0.95 on screen — a hairline that
+                 has been pressed rather than drawn. No non-scaling-stroke
+                 anywhere in here, deliberately: the seal is scaled by its own
+                 stamp-in tween, and a screen-space dash pattern would crawl
+                 during that press (DESIGN §3). In user units the gaps scale
+                 with the ink, which is what pressing something actually does. -->
+            <svg class="prf-seal" id="prf-seal" viewBox="0 0 168 168" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <!-- The lettering arcs. Two of them, not one full circle: a
+                     single circular path puts everything past 6 o'clock upside
+                     down, and the longest phrase in this string would have
+                     landed exactly there. The top arc runs clockwise over the
+                     top (β −118°→118°); the bottom arc runs COUNTER-clockwise
+                     (β 214°→146°, sweep 0) so its text is upright too — text on
+                     a path stands to the left of the direction of travel, and
+                     at 6 o'clock that means travelling in +x. -->
+                <path id="prf-arc-top" d="M 27.49 114.05 A 64 64 0 1 1 140.51 114.05" />
+                <path id="prf-arc-bot" d="M 48.21 137.06 A 64 64 0 0 0 119.79 137.06" />
+              </defs>
+
+              <circle class="prf-seal-ring prf-seal-ring-out" cx="84" cy="84" r="80"
+                      stroke-dasharray="84 2.6 71 1.8 108 3.4 52 2.1 93 2.8 79.4 2.5" stroke-dashoffset="37" />
+              <circle class="prf-seal-ring" cx="84" cy="84" r="74"
+                      stroke-dasharray="96 1.9 63 2.7 112 1.6 58 2.3 87 2 36.8 1.7" stroke-dashoffset="118" />
+              <circle class="prf-seal-ring" cx="84" cy="84" r="50"
+                      stroke-dasharray="61 2.2 88 1.7 44 2.6 73 1.9 38.3 1.5" stroke-dashoffset="64" />
+
+              <text class="prf-seal-arc"><textPath href="#prf-arc-top" startOffset="11.82%">PRODUCTION-READY</textPath></text>
+              <text class="prf-seal-arc"><textPath href="#prf-arc-top" startOffset="55.96%">VERIFIED BY RECEIPTS</textPath></text>
+              <text class="prf-seal-arc"><textPath href="#prf-arc-bot" startOffset="34.54%">ASYNCIFY</textPath></text>
+
+              <!-- The three ornaments, on the lettering radius at the three
+                   gaps the arc arithmetic leaves for them. Upright rather than
+                   rotated with the ring: a five-point star turned 202° reads as
+                   a different shape, and stamp ornaments are set upright. -->
+              <path class="prf-seal-star" transform="translate(21.90 99.48)" d="M 0 -4.6 L 1.12 -1.54 L 4.38 -1.42 L 1.81 0.59 L 2.70 3.72 L 0 1.9 L -2.70 3.72 L -1.81 0.59 L -4.38 -1.42 L -1.12 -1.54 Z" />
+              <path class="prf-seal-star" transform="translate(84.15 20.00)" d="M 0 -4.6 L 1.12 -1.54 L 4.38 -1.42 L 1.81 0.59 L 2.70 3.72 L 0 1.9 L -2.70 3.72 L -1.81 0.59 L -4.38 -1.42 L -1.12 -1.54 Z" />
+              <path class="prf-seal-star" transform="translate(59.74 143.22)" d="M 0 -4.6 L 1.12 -1.54 L 4.38 -1.42 L 1.81 0.59 L 2.70 3.72 L 0 1.9 L -2.70 3.72 L -1.81 0.59 L -4.38 -1.42 L -1.12 -1.54 Z" />
+
+              <text class="prf-seal-word" x="84" y="84" text-anchor="middle">PROOF</text>
+              <text class="prf-seal-sub" x="84" y="99" text-anchor="middle">asyncify · 2026</text>
+            </svg>
+          </div>
+        </div>
+
         <div class="prf-table" id="prf-table">
           <!-- No viewBox and no non-scaling-stroke, both deliberate: with the
                svg laid out at 100% of its own box, one user unit IS one CSS
@@ -2321,8 +2403,35 @@
 
                  The dot leaders are real U+00B7 middle dots (already all over
                  this site: `delivered · 214ms`), clipped by overflow rather
-                 than counted, so the row is one line at every width. The four
-                 ticks are drawn, for the same U+2713 reason as receipt 1. -->
+                 than counted, so the row is one line at every width. The seven
+                 ticks are drawn, for the same U+2713 reason as receipt 1.
+
+                 THE SEVEN NAMES ARE NOT A COPY DECISION. They are the seven
+                 pillars from notification-system/docs/ASYNCIFY-AGENTS-GUIDE.md
+                 §"Production-ready, not demo-ready: the seven pillars"
+                 (:42-88), in the doc's own order, shortened only where the
+                 heading carries a parenthetical:
+
+                   Observability (§13)          → observability
+                   Evals (§10)                  → evals
+                   Guardrails (§6)              → guardrails
+                   Knowledge with citations (§8)→ knowledge
+                   Memory (§8–9)                → memory
+                   Cost control (§9)            → cost
+                   Human handoff (§7)           → human handoff
+
+                 That is also why the strip's line now says "production-ready":
+                 the doc's claim is that an agent needs ALL SEVEN before it can
+                 be put in front of customers, and the four receipts above only
+                 demonstrate four of them. The total is where the other three
+                 get named — a bill lists what was supplied, not only what was
+                 shown.
+
+                 THE ROW BREAK IS AUTHORED, not left to flex-wrap. At the
+                 strip's width the fifth item still fits on the first line, so
+                 wrapping naturally gives 5 + 2; the guide's list reads as
+                 4 + 3, and a zero-height full-basis spacer is the quietest way
+                 to say so without animating or measuring anything. -->
             <article class="prf-rcpt prf-total" id="prf-total" data-rcpt="4">
               <div class="prf-slot" aria-hidden="true"></div>
               <div class="prf-sheet">
@@ -2330,13 +2439,17 @@
                   <p class="prf-totrow prf-line" data-row="0" data-ink="text">
                     <span class="prf-totlabel">TOTAL</span>
                     <span class="prf-dots" aria-hidden="true">····································································································</span>
-                    <span class="prf-totval">production-ready</span>
+                    <span class="prf-totval">production-ready AI agents in your channels</span>
                   </p>
                   <p class="prf-totsum prf-line" data-row="1" data-ink="faint">
+                    <span class="prf-sumitem">observability<svg class="prf-mark" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path class="prf-mark-tick" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" /></svg></span>
                     <span class="prf-sumitem">evals<svg class="prf-mark" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path class="prf-mark-tick" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" /></svg></span>
-                    <span class="prf-sumitem">trace<svg class="prf-mark" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path class="prf-mark-tick" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" /></svg></span>
-                    <span class="prf-sumitem">handoff<svg class="prf-mark" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path class="prf-mark-tick" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" /></svg></span>
+                    <span class="prf-sumitem">guardrails<svg class="prf-mark" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path class="prf-mark-tick" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" /></svg></span>
+                    <span class="prf-sumitem">knowledge<svg class="prf-mark" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path class="prf-mark-tick" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" /></svg></span>
+                    <span class="prf-sumbreak" aria-hidden="true"></span>
+                    <span class="prf-sumitem">memory<svg class="prf-mark" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path class="prf-mark-tick" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" /></svg></span>
                     <span class="prf-sumitem">cost<svg class="prf-mark" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path class="prf-mark-tick" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" /></svg></span>
+                    <span class="prf-sumitem">human handoff<svg class="prf-mark" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path class="prf-mark-tick" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" /></svg></span>
                   </p>
                   <div class="prf-perf" aria-hidden="true"></div>
                 </div>

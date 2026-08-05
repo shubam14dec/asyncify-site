@@ -140,12 +140,12 @@ const WIRE_RUN = 96; // horizontal runway for that curve
 const WIRE_EASE = 0.35; // first control point, as a fraction of the elbow's depth
 
 const TABLE_AT = 2;
-const TABLE_DUR = 11;
+const TABLE_DUR = 10;
 /** The slots the paper will come out of, listed before any paper does — the
  *  same construction scene 4's checklist uses for its five empty boxes. Four
  *  hairlines on an empty table say "four things are coming" without the scene
  *  having to say it. */
-const SLOTS_AT = 11;
+const SLOTS_AT = 10;
 const SLOTS_DUR = 2.5;
 
 /* ── the printing ──────────────────────────────────────────────────────────
@@ -158,8 +158,8 @@ const SLOTS_DUR = 2.5;
    card, and four of them plus the bill is 76 of the 100 units. The rest is the
    table arriving at one end and the reader being left with a finished table at
    the other. */
-const PRINT_AT: readonly number[] = [14, 23, 32, 41];
-const PRINT_DUR = 15;
+const PRINT_AT: readonly number[] = [13, 22, 31, 40];
+const PRINT_DUR = 14;
 /** The print head fades in with the first line and is gone before the last —
  *  a head that was still lit when the paper stopped moving would be a printer
  *  that never finished. */
@@ -214,7 +214,7 @@ const TICK_DUR = 0.9;
    seven). Growing them under an opaque panel would be eight tweens nobody
    sees, and growing them after the print would make the chart a second event. */
 const BAR_START = 0.525; // as a fraction of PRINT_DUR, from that card's print start
-const BAR_STEP = 0.42;
+const BAR_STEP = 0.40;
 const BAR_DUR = 1.1;
 /** Bars grow from 0.08, never from 0 (DESIGN §3). On an 88px chart that is a
  *  7px mark sitting on the axis — a tick on a chart that has not been filled
@@ -230,23 +230,30 @@ const FLAT_SPREAD = 4;
 /* ── the bill ──────────────────────────────────────────────────────────────
    Last, and after everything: the assert below refuses a schedule where it
    starts before the fourth receipt has finished. */
-const TOTAL_AT = 58;
-const TOTAL_DUR = 9;
+const TOTAL_AT = 56;
+const TOTAL_DUR = 8;
 const TOTAL_TEAR_LAG = 0.6;
 
 /** Where the scene stops building. Everything past this is the finished table
  *  standing still and travelling up out of frame — the payoff the window
  *  arithmetic at the top of this file exists to protect.
  *
- *  70, AND THE NUMBER IS DERIVED RATHER THAN FELT. The table is fully in frame
+ *  67, AND THE NUMBER IS DERIVED RATHER THAN FELT. The table is fully in frame
  *  for p ∈ [H/range, vh/range]; with E = 0.45 that upper bound is
- *  vh / (H + 0.55·vh), which for a ~575px table is 0.71 at a 674px viewport,
- *  0.84 at 900px and 0.97 at 1200px. HOLD_FROM has to sit at or under the
- *  WORST of those — the short laptop BRAND §3 sizes the whole site against —
- *  or the last receipt tears off after the table's top has already left the
- *  screen. The thirty units left over are not padding: they are the finished
- *  table crossing the viewport with nothing left to do. */
-const HOLD_FROM = 70;
+ *  vh / (H + 0.55·vh), which for today's 609px table is 0.688 at a 674px
+ *  viewport, 0.83 at 900px and 0.96 at 1200px. HOLD_FROM has to sit UNDER the
+ *  worst of those — the short laptop BRAND §3 sizes the whole site against —
+ *  or the bill tears off after the table's top has already left the screen.
+ *
+ *  It moved from 70 to 67 when the total strip grew a second line of ticks:
+ *  the seven pillars took the strip from 79px to 112px, the table from 576 to
+ *  609, and 609 pushed that upper bound from 0.712 down to 0.688. The whole
+ *  schedule below came in with it rather than being squeezed at the end — a
+ *  scene that hurried its last beat to make room would be paying for the
+ *  strip's extra line with the bill's own moment. The thirty-odd units left
+ *  over are not padding: they are the finished table crossing the viewport
+ *  with nothing left to do. */
+const HOLD_FROM = 67;
 
 /* ── the interaction (desktop pointer only) ────────────────────────────────
    A torn-off receipt is paper: you can pick it up, throw it, and it slides to
@@ -282,6 +289,79 @@ const TABLE_PAD = 24;
 /** The widest a receipt can get: half the page column, which is what the 2×2
  *  grid gives it. Used only by the assert below. */
 const CARD_W_MAX = 540;
+
+/* ── the notarized sentence ────────────────────────────────────────────────
+   A line of testimony, and then a notary seal pressed over its tail. Its own
+   scrub, on its own trigger, because it sits ABOVE the table and has to have
+   happened before the table's timeline starts — the reader reads the claim,
+   watches it get certified, and only then does the printer start.
+
+   Two beats and a hold. The sentence rises the way every quiet entrance on
+   this site rises; the seal then STAMPS: 1.15 → 1 with the opacity, one fast
+   settle. Down rather than up, because a stamp is a thing being pressed onto
+   paper, and DESIGN §3's "never from scale(0)" is about things appearing out
+   of nothing — this one arrives bigger than it lands, which is the same
+   gesture the hero's clapper makes when it strikes. */
+const OATH_AT = 1;
+const OATH_DUR = 5;
+const OATH_RISE = 18; // px
+/** The press. Explicit-from at both ends like everything else here, so
+ *  scrolling back un-stamps it — the seal grows and lifts off the paper. */
+const SEAL_AT = 9;
+const SEAL_DUR = 3.2;
+const SEAL_PRESS = 1.15;
+const TESTIMONY_END = 20;
+
+/* ── the seal's own geometry ───────────────────────────────────────────────
+   Everything here is authored in index.html and CHECKED here, the same way the
+   cost chart's bar heights are: the markup is the drawing, this file is the
+   arithmetic that says the drawing is possible. Nothing below is measured —
+   the seal is built before the fonts resolve, so every fit check is mono
+   advance times a character count, never a text box. */
+const SEAL_BOX = 168; // the viewBox, in user units
+const SEAL_CX = 84;
+const SEAL_CY = 84;
+/** The three rings, outermost first. Radii only; the stroke weights and the
+ *  ink live in the stylesheet. */
+const SEAL_RINGS: readonly number[] = [80, 74, 50];
+/** The radius the lettering sits on, and the two arcs cut from it. Spans are
+ *  in degrees of bearing measured clockwise from 12 o'clock. */
+const SEAL_TEXT_R = 64;
+const SEAL_ARC_TOP_SPAN = 236; // β −118° → +118°, clockwise over the top
+const SEAL_ARC_BOT_SPAN = 68; // β 214° → 146°, counter-clockwise under the bottom
+/** Geist Mono's advance at 1em plus the arc run's own tracking. MUST match
+ *  .prf-seal-arc in styles.css — a stylesheet cannot tell this file what it
+ *  chose (scene 4's rule, and this file already keeps it for the ink ladder). */
+const MONO_ADVANCE = 0.61;
+const SEAL_ARC_SIZE = 7.5;
+const SEAL_ARC_TRACK = 0.1; // em
+/** How much arc a drawn star occupies, and the smallest gap that may sit
+ *  between any two things on the ring. Below this the lettering stops reading
+ *  as separate phrases and becomes one texture. */
+const SEAL_STAR_SPAN = 12;
+const SEAL_GAP_MIN = 7;
+/** How close a dasharray's sum has to come to its ring's circumference. The
+ *  point of the ink-skip is that the pattern completes exactly ONCE around; a
+ *  pattern that tiles reads as a dashed circle, which is a different object. */
+const SEAL_DASH_TOL = 2.5;
+/** Where the arc phrases live, so the fit check reads the same strings the
+ *  markup renders rather than a copy of them. */
+const SEAL_ARC_TOP_IDS = "#prf-arc-top";
+const SEAL_ARC_BOT_IDS = "#prf-arc-bot";
+
+/** The two tilts, in degrees. The wrap carries the first and never moves; the
+ *  seal adds the second, so a stamp lands at their sum. Bounded because a
+ *  sentence past about fifteen degrees stops being a tilted line and starts
+ *  being a diagonal. */
+const OATH_TILT = -4;
+const SEAL_TILT = -8;
+const TILT_MAX = 15;
+
+/** The testimony block's bottom margin at its narrowest, from styles.css.
+ *  Duplicated here for one reason: the entrance wire drops WIRE_H above the
+ *  table, and if that runway ever grew past this gap the wire would start
+ *  behind the seal. Asserted below. */
+const TESTIMONY_GAP_MIN = 120;
 
 /* ── the finale ────────────────────────────────────────────────────────────
    Not a scrub. The page has finished arguing; this is the site's ordinary
@@ -335,7 +415,33 @@ const HAIRLINE_STRONG = "#3f3f3f";
    badly wrong are paid for in slots — the cost chart takes three of card 4's
    seven, and the handoff's wrapping last line takes card 3 to six. */
 const REC_LINES: readonly number[] = [7, 9, 10, 6, 2];
-const REC_ROWS: readonly number[] = [5, 6, 6, 7, 2];
+/** The bill went from two slots to three when its tick row became the seven
+ *  pillars over two lines: one slot for the total line, two for the ticks. */
+const REC_ROWS: readonly number[] = [5, 6, 6, 7, 3];
+
+/** THE SEVEN PILLARS, verified in the platform docs rather than written from
+ *  memory: notification-system/docs/ASYNCIFY-AGENTS-GUIDE.md:42-88,
+ *  "Production-ready, not demo-ready: the seven pillars". In the doc's own
+ *  order, shortened only where its heading carries a parenthetical
+ *  ("Knowledge with citations" → knowledge, "Cost control" → cost). The strip
+ *  is the one place on this page that names all seven, because the four
+ *  receipts above it only demonstrate four — and the doc's whole claim is that
+ *  an agent needs every one of them before it goes in front of a customer.
+ *
+ *  Declared here and checked against the markup at boot by COUNTING and by
+ *  string equality, so a pillar cannot be renamed on one side only. */
+const PILLARS: readonly string[] = [
+  "observability",
+  "evals",
+  "guardrails",
+  "knowledge",
+  "memory",
+  "cost",
+  "human handoff",
+];
+/** Where the authored row break goes, so the seven read 4 + 3 the way the
+ *  guide lists them instead of the 5 + 2 the strip's width would produce. */
+const PILLAR_BREAK_AFTER = 4;
 /** How far the declared row count may run past the highest data-row actually
  *  used. Slack is what buys a tall element its extra slots; unbounded slack
  *  would let a card claim any height at all. */
@@ -435,6 +541,13 @@ export function createProofScene(): ProofScene {
      by its own padding, so the padding becomes the margin the tilt leans into
      and the traced edge is never crossed. */
   const tray = q<HTMLElement>(section, ".prf-grid");
+
+  /* The notarized sentence and the thing that certifies it. The WRAP is never
+     queried for animation on purpose — it carries the tilt in CSS and nothing
+     touches it, which is what keeps the seal glued to the sentence's tail. */
+  const testimony = q<HTMLElement>(section, ".prf-testimony");
+  const oath = q<HTMLElement>(section, ".prf-oath");
+  const seal = q<SVGSVGElement>(section, "#prf-seal");
 
   /** When a card stops being a print job and becomes an object. Derived from
    *  the schedule rather than typed twice — the tear and the drag permission
@@ -632,6 +745,174 @@ export function createProofScene(): ProofScene {
   }
   if (WIRE_RUN < TABLE_R * 2) {
     throw new Error("[proof] the entrance wire turns a corner instead of levelling into the table");
+  }
+  /* And it has to start BELOW the testimony. The wire drops out of empty page
+     and runs into the tabletop; a runway longer than the gap the stylesheet
+     leaves would have it starting behind the seal, which would read as the
+     seal being plugged into the table. */
+  if (WIRE_H >= TESTIMONY_GAP_MIN) {
+    throw new Error("[proof] the entrance wire starts behind the notarized sentence");
+  }
+
+  /* ── the seal ───────────────────────────────────────────────────────────
+     The markup is the drawing; this is the arithmetic that says the drawing is
+     possible. Everything here is a character count times a mono advance or a
+     number parsed out of an attribute — nothing measures a text box, because
+     the seal is built before the fonts resolve and an assert that read one
+     would be asserting about the fallback face. */
+
+  /* The sentence and its stamp have to arrive in that order: a seal that
+     landed on a line the reader had not read yet would be certifying nothing. */
+  if (SEAL_AT < OATH_AT + OATH_DUR) {
+    throw new Error("[proof] the seal stamps before the sentence it certifies has arrived");
+  }
+  if (SEAL_AT + SEAL_DUR > TESTIMONY_END) {
+    throw new Error("[proof] the seal is still pressing when its own timeline ends");
+  }
+  if (SEAL_PRESS <= 1) {
+    throw new Error("[proof] the seal does not press — it grows into place");
+  }
+  if (Math.abs(OATH_TILT) + Math.abs(SEAL_TILT) > TILT_MAX) {
+    throw new Error("[proof] the notarized sentence is a diagonal rather than a tilted line");
+  }
+
+  /* Concentric, ordered, and inside their own box. Three rings that crossed
+     would not be a double ring with an inner field, they would be a target. */
+  {
+    for (const [i, r] of SEAL_RINGS.entries()) {
+      const prev = SEAL_RINGS[i - 1];
+      if (prev !== undefined && r >= prev) {
+        throw new Error(`[proof] the seal's ring ${i + 1} is not inside the one outside it`);
+      }
+      if (SEAL_CX - r < 0 || SEAL_CX + r > SEAL_BOX || SEAL_CY - r < 0 || SEAL_CY + r > SEAL_BOX) {
+        throw new Error(`[proof] the seal's ring ${i + 1} runs outside its own viewBox`);
+      }
+    }
+    /* The lettering has to sit between the second ring and the inner one, or
+       it crosses the ink it is supposed to sit between. */
+    if (SEAL_TEXT_R >= SEAL_RINGS[1]! || SEAL_TEXT_R <= SEAL_RINGS[2]!) {
+      throw new Error("[proof] the seal's lettering does not sit between its rings");
+    }
+  }
+
+  /* THE INK-SKIP. Each ring's dasharray has to sum to that ring's own
+     circumference: the pattern then completes exactly once around and reads as
+     a stamp that did not take ink evenly. A pattern that tiled would read as a
+     dashed circle, which is a different object entirely — and it is the kind
+     of thing an edit to one number does silently. */
+  {
+    const ringEls = all<SVGCircleElement>(seal, ".prf-seal-ring");
+    if (ringEls.length !== SEAL_RINGS.length) {
+      throw new Error("[proof] the seal does not have the rings this file was written for");
+    }
+    for (const [i, el] of ringEls.entries()) {
+      const r = Number(el.getAttribute("r"));
+      if (r !== SEAL_RINGS[i]) {
+        throw new Error(`[proof] the seal's ring ${i + 1} disagrees with SEAL_RINGS`);
+      }
+      const dash = (el.getAttribute("stroke-dasharray") ?? "")
+        .split(/[\s,]+/)
+        .filter(Boolean)
+        .map(Number);
+      if (dash.length < 4 || dash.length % 2 !== 0 || dash.some((n) => !Number.isFinite(n) || n <= 0)) {
+        throw new Error(`[proof] the seal's ring ${i + 1} has no usable ink-skip pattern`);
+      }
+      const sum = dash.reduce((a, b) => a + b, 0);
+      const circumference = 2 * Math.PI * r;
+      if (Math.abs(sum - circumference) > SEAL_DASH_TOL) {
+        throw new Error(
+          `[proof] the seal's ring ${i + 1} ink-skip tiles instead of completing once around`,
+        );
+      }
+    }
+  }
+
+  /* THE LETTERING FITS ITS ARC. Two arcs, three phrases, three ornaments, and
+     the check is the one that would actually fail in practice: somebody
+     lengthens a phrase and the ring silently overlaps itself. Character counts
+     and a mono advance — never a measured box. */
+  {
+    const advance = SEAL_ARC_SIZE * MONO_ADVANCE + SEAL_ARC_SIZE * SEAL_ARC_TRACK;
+    const arcs: readonly { sel: string; span: number; stars: number }[] = [
+      { sel: SEAL_ARC_TOP_IDS, span: SEAL_ARC_TOP_SPAN, stars: 2 },
+      { sel: SEAL_ARC_BOT_IDS, span: SEAL_ARC_BOT_SPAN, stars: 1 },
+    ];
+    let phrases = 0;
+    for (const arc of arcs) {
+      const runs = all<SVGTextPathElement>(seal, `textPath[href="${arc.sel}"]`);
+      if (!runs.length) {
+        throw new Error(`[proof] the seal has no lettering on ${arc.sel}`);
+      }
+      phrases += runs.length;
+      const ink = runs.reduce((acc, t) => acc + (t.textContent ?? "").length * advance, 0);
+      const ornament = arc.stars * SEAL_STAR_SPAN;
+      /* One gap before and after every object on the arc. */
+      const gaps = (runs.length + arc.stars + 1) * SEAL_GAP_MIN;
+      const length = (arc.span / 360) * 2 * Math.PI * SEAL_TEXT_R;
+      if (ink + ornament + gaps > length) {
+        throw new Error(`[proof] the seal's lettering on ${arc.sel} is longer than the arc it is set on`);
+      }
+      /* And every run has to start inside the arc it is set on. */
+      for (const t of runs) {
+        const off = Number.parseFloat(t.getAttribute("startOffset") ?? "");
+        if (!Number.isFinite(off) || off < 0 || off > 100) {
+          throw new Error(`[proof] a run of the seal's lettering starts off its own arc`);
+        }
+      }
+    }
+    if (phrases !== 3) {
+      throw new Error("[proof] the seal does not carry its three phrases");
+    }
+  }
+
+  /* The three ornaments have to sit ON the lettering radius. They are placed by
+     a translate in the markup and the arc positions they came from are
+     arithmetic here; nothing else in the system would notice them drifting off
+     the ring into the empty field. */
+  {
+    const stars = all<SVGPathElement>(seal, ".prf-seal-star");
+    if (stars.length !== 3) {
+      throw new Error("[proof] the seal does not carry its three ornaments");
+    }
+    for (const [i, s] of stars.entries()) {
+      const m = /translate\(\s*(-?[\d.]+)[\s,]+(-?[\d.]+)\s*\)/.exec(s.getAttribute("transform") ?? "");
+      if (!m) {
+        throw new Error(`[proof] the seal's ornament ${i + 1} is not placed by a translate`);
+      }
+      const d = Math.hypot(Number(m[1]) - SEAL_CX, Number(m[2]) - SEAL_CY);
+      if (Math.abs(d - SEAL_TEXT_R) > 1) {
+        throw new Error(`[proof] the seal's ornament ${i + 1} has drifted off the lettering ring`);
+      }
+    }
+  }
+
+  /* ── the seven pillars ──────────────────────────────────────────────────
+     The strip's tick row is a quotation from the customer guide, and a
+     quotation that drifts is worse than no quotation. Names checked one by one
+     against PILLARS, count checked, and the authored row break checked to be
+     where the guide's own 4 + 3 reading needs it. */
+  {
+    const sum = q<HTMLElement>(section, ".prf-totsum");
+    const items = all<HTMLElement>(sum, ".prf-sumitem");
+    if (items.length !== PILLARS.length) {
+      throw new Error(`[proof] the total lists ${items.length} pillars and the guide has ${PILLARS.length}`);
+    }
+    for (const [i, el] of items.entries()) {
+      /* The tick is an svg inside the item, so the name is the text content
+         with whitespace collapsed — the same string the guide's heading gives. */
+      const name = (el.textContent ?? "").replace(/\s+/g, " ").trim();
+      if (name !== PILLARS[i]) {
+        throw new Error(`[proof] pillar ${i + 1} reads "${name}" and the guide says "${PILLARS[i]}"`);
+      }
+      if (!el.querySelector(".prf-mark-tick")) {
+        throw new Error(`[proof] pillar ${i + 1} has no drawn tick`);
+      }
+    }
+    const kids = Array.from(sum.children);
+    const brk = kids.findIndex((el) => el.classList.contains("prf-sumbreak"));
+    if (brk !== PILLAR_BREAK_AFTER) {
+      throw new Error("[proof] the pillars do not break where the guide's list breaks");
+    }
   }
 
   /* ════════════════════════════════════════════════════════════════════════
@@ -1029,6 +1310,73 @@ export function createProofScene(): ProofScene {
   }
 
   /* ════════════════════════════════════════════════════════════════════════
+     THE NOTARIZED SENTENCE
+     Its own scrub on its own trigger, because it happens ABOVE the table and
+     has to be over before the printer starts: the reader is shown the claim,
+     watches it certified, and only then does the paper come out. Scrubbed
+     rather than played, so scrolling back lifts the seal off the page again —
+     which is the same contract every other stroke in this scene keeps.
+     ════════════════════════════════════════════════════════════════════════ */
+
+  function buildTestimony(): void {
+    /* Rest is the inverse of the stylesheet, exactly as everywhere else here.
+       The WRAP's tilt is not in this list and never will be: it is the one
+       transform in the scene that belongs to the layout rather than to a
+       timeline, and it is what keeps the seal on the sentence's tail. */
+    gsap.set(oath, { opacity: 0, y: OATH_RISE });
+    gsap.set(seal, { opacity: 0, scale: SEAL_PRESS, rotation: SEAL_TILT, transformOrigin: "50% 50%" });
+
+    const tl = gsap.timeline({
+      defaults: { ease: "none" },
+      scrollTrigger: {
+        trigger: testimony,
+        start: "top 85%",
+        end: "top 34%",
+        scrub: SCRUB,
+        invalidateOnRefresh: true,
+      },
+    });
+
+    /* The sentence, in the site's own quiet entrance grammar. */
+    tl.fromTo(
+      oath,
+      { opacity: 0, y: OATH_RISE },
+      { opacity: 1, y: 0, duration: OATH_DUR, ease: "power2.out", immediateRender: false },
+      OATH_AT,
+    );
+
+    /* THE PRESS. Explicit at both ends and rotation stated on both, so the
+       seal never borrows an angle from whatever the matrix happened to hold —
+       the same lesson the covers taught about yPercent. power3.out is a hand
+       coming down hard and stopping: fast at the head, nothing at the tail,
+       which is what a stamp does and is why this is not an overshoot ease
+       (DESIGN §3 bans those outright). */
+    tl.fromTo(
+      seal,
+      { opacity: 0, scale: SEAL_PRESS, rotation: SEAL_TILT },
+      {
+        opacity: 1,
+        scale: 1,
+        rotation: SEAL_TILT,
+        duration: SEAL_DUR,
+        ease: "power3.out",
+        transformOrigin: "50% 50%",
+        immediateRender: false,
+      },
+      SEAL_AT,
+    );
+
+    /* The hold, made explicit for the same reason the table's is: a timeline is
+       as long as its last tween, and without this the certified sentence would
+       be handed back to the scrollbar the instant the seal landed. */
+    const built = tl.duration();
+    if (TESTIMONY_END - built < 2) {
+      throw new Error("[proof] there is no still frame left after the seal lands");
+    }
+    tl.to({}, { duration: TESTIMONY_END - built, ease: "none" }, built);
+  }
+
+  /* ════════════════════════════════════════════════════════════════════════
      THE FINALE
      Not a scrub, and deliberately not: the page has finished arguing. This is
      the site's ordinary entrance grammar — a rise, expo-out, staggered inside
@@ -1066,6 +1414,13 @@ export function createProofScene(): ProofScene {
   );
 
   mm.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => buildScrub());
+
+  /* The testimony is a rise and a press; both work at any width, so it is
+     gated on the motion preference alone — same call the bridge in agents.ts
+     makes about its own fade. Under reduced motion the stylesheet's finished
+     state stands: the sentence is there, tilted, with the seal already
+     stamped on it, which is every piece of information the motion carried. */
+  mm.add("(prefers-reduced-motion: no-preference)", () => buildTestimony());
 
   /* The finale is a fade and a 14px rise; it works at any width. Under reduced
      motion it does not run at all and the stylesheet's finished state stands,
