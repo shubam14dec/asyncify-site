@@ -115,7 +115,7 @@ import { Draggable } from "gsap/Draggable";
  *  its pinned siblings). The old unpinned window arithmetic above is kept as
  *  history -- the pin dissolves the visibility trade it describes: the table
  *  is in frame for the WHOLE timeline now. */
-const PIN_HEIGHTS = 2.2;
+const PIN_HEIGHTS = 1.5; // rescaled with TL_END 100 -> 62 to keep ~0.022vh/unit; the approach owns the trace now
 
 /** Scrub catch-up, in seconds. Matched to scenes 2–4 on purpose: four scenes
  *  read in one continuous scroll, and a fifth that lagged differently would
@@ -123,7 +123,7 @@ const PIN_HEIGHTS = 2.2;
 const SCRUB = 0.55;
 
 /** The timeline's length in units. Everything below is a position on it. */
-const TL_END = 100;
+const TL_END = 62; // press ends ~58.4; a short beat, then the pin releases into the finale (user call)
 
 /* ── the table's entrance ──────────────────────────────────────────────────
    One stroke: down, level out, and round the tabletop counter-clockwise. The
@@ -148,14 +148,10 @@ const WIRE_ELBOW = 44; // where the straight drop ends and the levelling curve b
 const WIRE_RUN = 280; // horizontal runway for that curve
 const WIRE_EASE = 0.35; // first control point, as a fraction of the elbow's depth
 
-const TABLE_AT = 2;
-const TABLE_DUR = 10;
 /** The slots the paper will come out of, listed before any paper does — the
  *  same construction scene 4's checklist uses for its five empty boxes. Four
  *  hairlines on an empty table say "four things are coming" without the scene
  *  having to say it. */
-const SLOTS_AT = 10;
-const SLOTS_DUR = 2.5;
 
 /* ── the printing ──────────────────────────────────────────────────────────
    Reading order — top-left, top-right, bottom-left, bottom-right — on a
@@ -167,7 +163,7 @@ const SLOTS_DUR = 2.5;
    card, and four of them plus the bill is 76 of the 100 units. The rest is the
    table arriving at one end and the reader being left with a finished table at
    the other. */
-const PRINT_AT: readonly number[] = [13, 22, 31, 40];
+const PRINT_AT: readonly number[] = [1.5, 10.5, 19.5, 28.5];
 const PRINT_DUR = 14;
 /** The print head fades in with the first line and is gone before the last —
  *  a head that was still lit when the paper stopped moving would be a printer
@@ -239,7 +235,7 @@ const FLAT_SPREAD = 4;
 /* ── the bill ──────────────────────────────────────────────────────────────
    Last, and after everything: the assert below refuses a schedule where it
    starts before the fourth receipt has finished. */
-const TOTAL_AT = 55;
+const TOTAL_AT = 43.5;
 const TOTAL_DUR = 8;
 const TOTAL_TEAR_LAG = 0.6;
 
@@ -262,7 +258,10 @@ const TOTAL_TEAR_LAG = 0.6;
  *  strip's extra line with the bill's own moment. The thirty-odd units left
  *  over are not padding: they are the finished table crossing the viewport
  *  with nothing left to do. */
-const HOLD_FROM = 65;
+/* 54 now, and the ending is SHORT by design (user call): the stamp is the
+ * scene's last event and the pin releases right after it -- the finale should
+ * arrive on the release, not after a long still frame. */
+const HOLD_FROM = 54;
 
 /* ── the interaction (desktop pointer only) ────────────────────────────────
    A torn-off receipt is paper: you can pick it up, throw it, and it slides to
@@ -315,8 +314,6 @@ const CARD_W_MAX = 540;
    paper, and DESIGN §3's "never from scale(0)" is about things appearing out
    of nothing — this one arrives bigger than it lands, which is the same
    gesture the hero's clapper makes when it strikes. */
-const OATH_AT = 1;
-const OATH_DUR = 5;
 const OATH_RISE = 18; // px
 /** The press. Explicit-from at both ends like everything else here, so
  *  scrolling back un-stamps it — the seal grows and lifts off the paper. */
@@ -609,8 +606,11 @@ export function createProofScene(): ProofScene {
     if (prev !== undefined && at <= prev) {
       throw new Error(`[proof] receipt ${i + 1} starts printing before the one before it`);
     }
-    if (at <= TABLE_AT + TABLE_DUR) {
-      throw new Error(`[proof] receipt ${i + 1} prints before the table it prints onto is drawn`);
+    if (at <= 0.5) {
+      /* The trace completes AT the pin's start by construction (the approach
+         window ends there), so the only rule left is that no paper prints in
+         the pin's very first breath. */
+      throw new Error(`[proof] receipt ${i + 1} prints before the pin has drawn breath`);
     }
   }
   /* The bill is the bill: it may not begin until every item on it has been
@@ -1217,17 +1217,45 @@ export function createProofScene(): ProofScene {
   function buildScrub(): void {
     restState();
 
-    /* The scene materialises on the way in, the family grammar of every pin
-       on this page. */
+    /* The scene materialises IMMEDIATELY as it enters -- the trace draws on
+       the approach, so the frame has to be lit for it. */
     gsap.fromTo(
       pin,
       { opacity: 0 },
       {
         opacity: 1,
         ease: "none",
-        scrollTrigger: { trigger: section, start: "top 85%", end: "top 12%", scrub: true },
+        scrollTrigger: { trigger: pin, start: "top 98%", end: "top 72%", scrub: true },
       },
     );
+
+    /* ── THE APPROACH ────────────────────────────────────────────────────
+       Everything that must already be true when the pin engages, drawn while
+       the section scrolls INTO view (user call: no black beat after the
+       masthead) -- the tabletop traces itself under the departing heading,
+       the four slots list themselves, the sentence settles on the tip. The
+       window ends AT the pin's start, so the last approach frame and the
+       first pinned frame are the same picture. */
+    {
+      const app = gsap.timeline({
+        defaults: { ease: "none" },
+        onUpdate: renderEdge,
+        scrollTrigger: { trigger: pin, start: "top 96%", end: "top top", scrub: true },
+      });
+      app.fromTo(edgeState, { p: 0 }, { p: 100, duration: 8, immediateRender: false }, 0);
+      app.fromTo(
+        cards.map((c) => c.slot),
+        { opacity: 0 },
+        { opacity: 1, duration: 1.6, immediateRender: false },
+        6.6,
+      );
+      app.fromTo(
+        oath,
+        { opacity: 0, y: OATH_RISE },
+        { opacity: 1, y: 0, duration: 1.8, ease: "power2.out", immediateRender: false },
+        6.9,
+      );
+    }
 
     const tl = gsap.timeline({
       defaults: { ease: "none" },
@@ -1270,17 +1298,10 @@ export function createProofScene(): ProofScene {
     const fadeOut = (t: gsap.TweenTarget, at: number, dur: number): void =>
       ft(t, { opacity: 1 }, { opacity: 0, duration: dur }, at);
 
-    /* ── THE TABLE ───────────────────────────────────────────────────────
-       One stroke, at the reader's own pace: ease "none", because this is a
-       line being drawn by the scroll and any curve on it would be the page
-       pretending to draw faster than the reader is scrolling. Then the four
-       slots, listed empty before any paper comes out of them. */
-    ft(edgeState, { p: 0 }, { p: 100, duration: TABLE_DUR }, TABLE_AT);
-    fadeIn(
-      cards.map((c) => c.slot),
-      SLOTS_AT,
-      SLOTS_DUR,
-    );
+    /* THE TABLE'S TRACE LIVES ON THE APPROACH NOW (user call: the heading
+       scrolled away onto black -- the table must be drawing itself the moment
+       the heading passes, not waiting for the pin). See buildApproach(). The
+       printing therefore starts almost immediately once the pin engages. */
 
     /* ── THE PRINTING ────────────────────────────────────────────────────
        Written as one block over all five cards rather than scattered per
@@ -1381,15 +1402,7 @@ export function createProofScene(): ProofScene {
     if (TL_END - built < 4) {
       throw new Error("[proof] there is no still frame left at the end of the scene");
     }
-    /* The notarized sentence, on the scrub's own clock now (the pin retired
-       its private trigger): it reveals as the table finishes tracing, read
-       long before the bill it certifies exists. */
-    ft(
-      oath,
-      { opacity: 0, y: OATH_RISE },
-      { opacity: 1, y: 0, duration: OATH_DUR, ease: "power2.out" },
-      OATH_AT + 3,
-    );
+    /* The sentence reveals on the approach (see buildApproach block above). */
 
     /* THE BILL GETS STAMPED. The one event inside the held ending: the table
        is complete and fully in frame at HOLD_FROM, the reader is looking at
