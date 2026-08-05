@@ -2099,11 +2099,16 @@ export function createAgentsScene(): AgentsScene {
       scrollTrigger: {
         trigger: "#bridge-agents",
         start: "top 92%",
-        /* A long runway: this bridge is a scene now -- the wire's whole
-           journey (dive, underline, side rail, exit) plays across it. -85%,
-           not -55%: the traveller read as rushed (user call), and a scrub's
-           only brake is scroll distance. */
-        end: "top -85%",
+        /* The runway ends where the NEXT scene's pin begins -- BY REFERENCE,
+           not arithmetic. "top -85%" missed a ~140px layout interaction
+           between the sections, so the pin engaged while the journey was
+           still ~4% from done and the hand-off tore (the user saw the seam
+           mismatch; a parallel session had instrumented the same bug and its
+           fix was lost in a revert). endTrigger states the intent directly:
+           this timeline's end IS the moment scene 4's top reaches the
+           viewport top, whatever the layout between here and there does. */
+        endTrigger: "#scene-agents",
+        end: "top top",
         scrub: true,
       },
     });
