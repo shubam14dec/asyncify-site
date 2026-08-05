@@ -2136,7 +2136,8 @@ export function createAgentsScene(): AgentsScene {
          it needs to come down, there is no room up"). So: the dive (from
          rest, arriving at speed), the underline leg AT the cruise pace (the
          inking and the typing read at the reader's own speed), then the
-         descent running the same wire 2.4x faster -- the dot finishes
+         descent running the same wire 6x faster (2.4x still read as a crawl
+         -- user call: speed the RIDER, not the scroll) -- the dot finishes
          writing and GOES, because scene 4 is pulling. It arrives early; the
          pad at the end holds the completed wire still for a beat before the
          pin takes over. Arrival is a state, not a wait. The landmark times
@@ -2146,7 +2147,7 @@ export function createAgentsScene(): AgentsScene {
       const t0 = 3.25; // dive ends, cruise begins
       const SPEED = (1 - f1!) / 4.0; // arc-length per timeline unit: the cruise pace
       const CRUISE_UL = (f2! - f1!) / SPEED;
-      const DROP = (1 - f2!) / (SPEED * 2.4);
+      const DROP = (1 - f2!) / (SPEED * 6);
       const tU1 = t0 + CRUISE_UL;
       const tEnd = tU1 + DROP;
       tl.fromTo(journey, { p: 0 }, { p: f1!, duration: 3.2, ease: "power1.in", immediateRender: false }, 0.05);
