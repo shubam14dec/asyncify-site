@@ -2023,18 +2023,7 @@ export function createAgentsScene(): AgentsScene {
       const ux1 = ph.right - r.left + 4;
       const l2y = l2.top + l2.height / 2 - r.top;
       const l3y = l3.top + l3.height / 2 - r.top;
-      /* THE BEND WAITS FOR THE TEXT (user catch, narrower viewports: the
-         sweep's early descent sliced through "queue."). The wire holds the
-         underline's own height -- the corridor between the era and the
-         sentences -- until it has CLEARED the widest sentence, then takes
-         one wide quarter-turn down to the rail. Bend start and rail are
-         both derived from the sentences' measured right edge, so every
-         pixel of descent happens beyond the text by construction, at any
-         width. The rail is clamped inside the section so the turn tightens
-         gracefully on narrow screens instead of leaving the frame. */
       const maxSentRight = Math.max(l2.right, l3.right) - r.left;
-      const bendX = Math.max(maxSentRight + 8, ux1 + 24);
-      const sideX = Math.min(bendX + 130, r.width - 6);
       /* One path, five segments, each continuing from the last point. The
          fractions of the cumulative arc length at each seam are what the
          timeline's tweens are written against -- geometry and schedule are
@@ -2045,20 +2034,43 @@ export function createAgentsScene(): AgentsScene {
          second control point sits at the underline's own height, so the
          curve arrives horizontal -- already flowing into the rule it is
          about to draw. One sweep, no corner. */
-      /* The exit: ONE sweep off the underline (a straight reach then a far
-         turn read as "bending too far" -- user call -- and an unpinned sweep
-         sliced through "queue." on narrower screens). The resolution is in
-         the first control: it sits AT the text's cleared edge (bendX), so
-         the curve starts bending gently the moment the underline ends, yet
-         its early half stays shallow -- inside the corridor above the
-         sentence -- and all the steep descent happens beyond the text. The
-         second control low on the rail brings it in vertical at the third
-         sentence's latitude, flowing into the drop. */
-      const bd = l3y - uy;
+      /* THE EXIT IS THE ENTRY'S MIRROR (user call, insisted on: "it should
+         be the same curve or the angle... so that symmetry is maintained").
+         The dive's recipe is: control along the incoming tangent at HALF the
+         travel, control on the target line 170px before the endpoint. The
+         exit is that recipe reflected across the underline: 170px back-off
+         leaving the rule (mirror of the arrival's 170), and a control at
+         half the drop on the rail (mirror of the dive's half-travel). Same
+         numbers, same angles, opposite corner.
+
+         The one thing the mirror cannot copy is the terrain: the entry
+         curves over EMPTY air, the exit curves over the sentence. So the
+         rail's x starts just past the widest sentence and is pushed right
+         only until the mirrored curve's sag clears the corridor above the
+         text -- sampled on the actual cubic, not guessed -- keeping the
+         bend's SHAPE fixed and moving only its landing. */
+      const drop = l3y - uy;
+      const corridor = l2.top - r.top - uy - 6;
+      let sideX = maxSentRight + 60;
+      for (let g = 0; g < 10; g++) {
+        let clear = true;
+        for (let s = 1; s < 40; s++) {
+          const t = s / 40;
+          const mt = 1 - t;
+          const cx = mt * mt * mt * ux1 + 3 * mt * mt * t * (ux1 + 170) + 3 * mt * t * t * sideX + t * t * t * sideX;
+          const cy = 3 * mt * t * t * (drop * 0.5) + t * t * t * drop;
+          if (cx < maxSentRight + 8 && cy > corridor) {
+            clear = false;
+            break;
+          }
+        }
+        if (clear || sideX >= r.width - 6) break;
+        sideX = Math.min(sideX + 40, r.width - 6);
+      }
       const segs = [
         `M ${entryX.toFixed(1)} ${entryY.toFixed(1)} C ${entryX.toFixed(1)} ${(entryY + dive).toFixed(1)} ${(ux0 - 170).toFixed(1)} ${uy.toFixed(1)} ${ux0.toFixed(1)} ${uy.toFixed(1)}`,
         `L ${ux1.toFixed(1)} ${uy.toFixed(1)}`,
-        `C ${bendX.toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${(uy + bd * 0.35).toFixed(1)} ${sideX.toFixed(1)} ${l3y.toFixed(1)}`,
+        `C ${(ux1 + 170).toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${(l3y - drop * 0.5).toFixed(1)} ${sideX.toFixed(1)} ${l3y.toFixed(1)}`,
         `C ${sideX.toFixed(1)} ${(l3y + 120).toFixed(1)} ${exitX.toFixed(1)} ${(exitY - 160).toFixed(1)} ${exitX.toFixed(1)} ${exitY.toFixed(1)}`,
       ];
       bwire.setAttribute("d", segs.join(" "));
