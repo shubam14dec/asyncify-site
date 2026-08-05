@@ -2604,7 +2604,7 @@ html {
   justify-content: center;
   /* Asymmetric: the testimony hangs ~36px ABOVE the table's top edge, and a
      centred frame on a short laptop clipped its sentence at the fold. */
-  padding: clamp(40px, 6vh, 64px) 0 clamp(8px, 1.5vh, 24px);
+  padding: clamp(20px, 3vh, 36px) 0 clamp(8px, 1.5vh, 20px);
   opacity: 0;
 }
 
@@ -2616,30 +2616,19 @@ html {
    BRAND §3's 32–44px section-head band is actually written for. */
 .prf-masthead {
   box-sizing: border-box;
-  width: min(var(--page-max), 100% - 2 * var(--page-pad));
-  /* THE ONLY CLEARANCE ABOVE THE SEAL, now that the testimony hangs off the
-     table's top-left corner instead of sitting in the flow. This gap has to
-     clear the seal's ink (~139px above the table) as well as the entrance
-     wire's 104px runway; proof.ts asserts both against MASTHEAD_GAP_MIN, which
-     is this clamp's floor. */
-  /* Nudged down (top margin) and toward the table (bottom margin trimmed) --
-     user call. The floor still clears the wire's runway (MASTHEAD_GAP_MIN). */
-  margin: clamp(40px, 7vh, 80px) auto clamp(112px, 14vh, 144px);
+  /* Inside the pin now: compact, left on the page's own margin (user call,
+     "again it should be left" + "it should be there when the scene is
+     pinned"). The bottom margin is small because the frame's height budget
+     is the table's -- the fit arithmetic lives with PIN fit notes below. */
+  width: fit-content;
+  margin: 0 0 clamp(14px, 2.4vh, 28px) var(--page-pad);
 }
 
 .prf-masthead .agt-head {
-  font-size: clamp(28px, 3.4vw, 40px);
-  max-width: 20ch;
-}
-
-/* A step off the shared left edge (user call: "a little left") -- transform,
-   not margin, so the centred width math above stays untouched; gated to wide
-   viewports where the page has margin to give. GSAP never touches this
-   element, so the transform is safe to own in CSS. */
-@media (min-width: 1200px) {
-  .prf-masthead {
-    transform: translateX(-44px);
-  }
+  /* In-pin scale: one line, a title that shares a frame with a 600px table.
+     The section-head band belongs to scenes whose heads own a full width. */
+  font-size: clamp(19px, 1.7vw, 24px);
+  max-width: none;
 }
 
 /* Rendered at 160 against a 168 viewBox, so the authored 1.5/1 strokes land at
@@ -2752,7 +2741,7 @@ html {
      exactly on this padding, so the extra 8px is the clearance between them.
      A tabletop with a little more room at the end where the slip was laid is
      also just what a desk looks like. MUST match TABLE_PAD_TOP in proof.ts. */
-  padding: 32px 24px 24px;
+  padding: 22px 24px 18px;
 }
 
 /* No viewBox, so one user unit is one CSS pixel and drawSVG's percentages are

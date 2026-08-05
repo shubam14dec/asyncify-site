@@ -2050,15 +2050,19 @@
              table hold the viewport while the receipts print; the finale
              stays OUTSIDE the pin and scrolls normally after release -- the
              page's last ask should arrive on a free thumb. -->
-        <div class="prf-masthead">
-          <p class="agt-kicker"><span class="agt-kicker-num">05</span> · <span>proof</span></p>
-          <p class="agt-head">Don't take my word. See the proof.</p>
-        </div>
+        
 
         <!-- The pin holds the TABLE alone (masthead + full table do not fit
              one viewport together -- the head reads on approach and scrolls
              away, the table is the pinned subject, scene 2's own physics). -->
         <div class="prf-pin" id="prf-pin">
+        <!-- The masthead rides the pin (user call: the line speaks for the
+             scene, so it stays while the scene plays). Compact in-pin form,
+             left on the page's own margin like the other scenes' rails. -->
+        <div class="prf-masthead">
+          <p class="agt-kicker"><span class="agt-kicker-num">05</span> · <span>proof</span></p>
+          <p class="agt-head">Don't take my word. See the proof.</p>
+        </div>
         <div class="prf-table" id="prf-table">
           <!-- No viewBox and no non-scaling-stroke, both deliberate: with the
                svg laid out at 100% of its own box, one user unit IS one CSS

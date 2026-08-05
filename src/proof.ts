@@ -145,7 +145,7 @@ const WIRE_ELBOW = 44; // where the straight drop ends and the levelling curve b
    instead and takes a longer, lazier sweep into the corner, and the assert
    below is what keeps it clear of the seal's ink whatever either of them
    is edited to. */
-const WIRE_RUN = 280; // horizontal runway for that curve
+const WIRE_RUN = 560; // the drop moved to the table's right half: the in-pin masthead owns the top-left band at every width
 const WIRE_EASE = 0.35; // first control point, as a fraction of the elbow's depth
 
 /** The slots the paper will come out of, listed before any paper does — the
@@ -383,10 +383,6 @@ const SEAL_RENDER = 160;
 const SEAL_BILL_LEFT = -18;
 const TABLE_PAD_SIDE = 24;
 
-/** The masthead's bottom margin at its narrowest, from styles.css. It is the
- *  only clearance above the seal now that the testimony has left the flow, and
- *  it has to cover both the stamp and the wire's runway. */
-const MASTHEAD_GAP_MIN = 176;
 
 /* ── the finale ────────────────────────────────────────────────────────────
    Not a scrub. The page has finished arguing; this is the site's ordinary
@@ -773,12 +769,10 @@ export function createProofScene(): ProofScene {
   if (WIRE_RUN < TABLE_R * 2) {
     throw new Error("[proof] the entrance wire turns a corner instead of levelling into the table");
   }
-  /* And it has to start below the masthead. The wire drops out of empty page
-     and runs into the tabletop; a runway longer than the gap the stylesheet
-     leaves would have it starting behind the head above it. */
-  if (WIRE_H >= MASTHEAD_GAP_MIN) {
-    throw new Error("[proof] the entrance wire starts behind the masthead");
-  }
+  /* The masthead lives INSIDE the pin now, at the frame's top-left; the
+     wire's drop moved to the table's right half (WIRE_RUN), so the two can
+     never meet at any width -- the old vertical-gap assert retired with the
+     geometry it guarded. */
 
   /* ── the seal on the bill ───────────────────────────────────────────────
      The stamp moved from the table's corner to the TOTAL strip (user call): a
