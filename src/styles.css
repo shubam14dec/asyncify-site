@@ -2683,16 +2683,25 @@ html {
    pass over the words, and PROOF and the date line stay clear of type
    entirely. That was the failure of an earlier pass, where the seal sat on the
    sentence's own baseline and its centre word landed on `the results`. */
+.prf-total {
+  position: relative;
+}
+
+/* Beside the bill's total (user call): anchored against .prf-total, hanging a
+   step past the strip's left edge but INSIDE the table -- asserted. GSAP owns
+   the transform (SEAL_TILT + the press), so no rotate here; decorative, so it
+   must never catch the cursor over the draggable paper. */
 .prf-seal {
   position: absolute;
-  left: -126px;
+  left: -18px;
   top: 50%;
   width: 160px;
   height: 160px;
-  margin-top: -130px;
-  transform: rotate(-8deg);
+  margin-top: -80px;
   transform-origin: 50% 50%;
   overflow: visible;
+  pointer-events: none;
+  z-index: 7;
 }
 
 /* Ink only — no green, no amber. A seal that certified in the accent colour
@@ -3333,10 +3342,10 @@ html {
   }
 
   .prf-seal {
-    left: -104px;
+    left: -10px;
     width: 118px;
     height: 118px;
-    margin-top: -96px;
+    margin-top: -59px;
   }
 
   /* The seal's dip scales with the seal, so the tabletop's own top padding

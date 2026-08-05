@@ -2373,64 +2373,7 @@
                 </div>
                 <div class="prf-cover" aria-hidden="true"><div class="prf-printhead"></div></div>
               </div>
-            </article>
-          </div>
-
-          <!-- ── the notarized sentence, at the table's top-left tip ─────────
-               A line of testimony with a notary seal pressed half onto the
-               corner of the desk. It is the masthead's claim said a second way
-               and then certified — which is the whole move this scene is: not
-               "believe us", but "here is the document".
-
-               IT LIVES INSIDE THE TABLE (user call). It used to be its own
-               block in the flow between the masthead and the table, which read
-               as a third thing on the page rather than as something lying ON
-               the table. Absolutely positioned against .prf-table now, anchored
-               at that container's top-left, and the flow gap it used to occupy
-               is gone — the table simply moved up into it.
-
-               IT STRADDLES THE CORNER, and that is two facts rather than a
-               placement: the seal's ink hangs past the table's LEFT edge, and
-               it dips BELOW the table's top edge onto the tabletop border. Both
-               are asserted in proof.ts as inequalities on the offsets in
-               styles.css, together with the two clearances that matter — the
-               masthead above and receipt 1's slot below.
-
-               pointer-events: none, because the receipts under it are
-               draggable and a decorative slip must never be the thing your
-               cursor catches.
-
-               THE TILT IS ONE ROTATION, NOT TWO. .prf-oath-wrap carries −4° and
-               nothing ever animates it, so the seal — a child positioned off
-               the wrap's own left end — stays put at the corner while the
-               sentence lifts away to the right. The seal then adds its own −8°
-               on top, which is the −12° a stamp lands at. Two elements, two
-               jobs, no arithmetic.
-
-               THE UPPERCASE IS THE ONE SANCTIONED EXCEPTION on this site. BRAND
-               §7 bans the tracked-uppercase eyebrow outright and every kicker in
-               scenes 2–5 is lowercase because of it. This is not UI type: it is
-               lettering on a physical object, and a notary seal that said
-               "production-ready" in lowercase would not read as a seal at all.
-               The ban is about a typographic habit; this is a drawing of a thing.
-
-               THE STARS ARE DRAWN, not typed. U+2605 is not in the self-hosted
-               latin subset — the same trap as U+2713 on the receipts and U+258E
-               in scene 4's rail — and a fallback star mid-run would also break
-               the arc arithmetic, because it would carry another font's advance.
-
-               INK-SKIP: each ring carries an authored, irregular stroke-dasharray
-               whose values sum to that ring's own circumference, so the pattern
-               completes exactly once around and reads as a rubber stamp that did
-               not take ink evenly — rather than as a dashed circle, which is what
-               any pattern that tiled would look like. The sums are asserted at
-               boot. Deterministic, never random: a scrub has to be a pure
-               function of its position, and a seal that re-rolled its own gaps on
-               every reload could not be reviewed. -->
-          <div class="prf-testimony">
-            <div class="prf-oath-wrap">
-              <p class="prf-oath">Don't trust the pitch. Trust the results.</p>
-              <!-- 168-unit viewBox rendered at 160px, so the authored 1.5/1
+                          <!-- 168-unit viewBox rendered at 160px, so the authored 1.5/1
                    stroke weights land at 1.43/0.95 on screen — a hairline that
                    has been pressed rather than drawn. No non-scaling-stroke
                    anywhere in here, deliberately: the seal is scaled by its own
@@ -2473,6 +2416,52 @@
                 <text class="prf-seal-word" x="84" y="84" text-anchor="middle">PROOF</text>
                 <text class="prf-seal-sub" x="84" y="99" text-anchor="middle">asyncify · 2026</text>
               </svg>
+            </article>
+          </div>
+
+          <!-- ── the notarized sentence, at the table's top-left tip ─────────
+               A line of testimony with a notary seal pressed half onto the
+               corner of the desk. It is the masthead's claim said a second way
+               and then certified — which is the whole move this scene is: not
+               "believe us", but "here is the document".
+
+               IT LIVES INSIDE THE TABLE (user call). It used to be its own
+               block in the flow between the masthead and the table, which read
+               as a third thing on the page rather than as something lying ON
+               the table. Absolutely positioned against .prf-table now, anchored
+               at that container's top-left, and the flow gap it used to occupy
+               is gone — the table simply moved up into it.
+
+               THE SEAL LIVES ON THE BILL NOW, NOT HERE (user call): a notary
+               seal beside the TOTAL is what a certified bill looks like, so the
+               stamp moved into .prf-total and presses in during the held
+               ending, after the bill has torn off. This block keeps only the
+               tilted sentence, lying on the table's top edge.
+
+               THE UPPERCASE IS THE ONE SANCTIONED EXCEPTION on this site. BRAND
+               §7 bans the tracked-uppercase eyebrow outright and every kicker in
+               scenes 2–5 is lowercase because of it. This is not UI type: it is
+               lettering on a physical object, and a notary seal that said
+               "production-ready" in lowercase would not read as a seal at all.
+               The ban is about a typographic habit; this is a drawing of a thing.
+
+               THE STARS ARE DRAWN, not typed. U+2605 is not in the self-hosted
+               latin subset — the same trap as U+2713 on the receipts and U+258E
+               in scene 4's rail — and a fallback star mid-run would also break
+               the arc arithmetic, because it would carry another font's advance.
+
+               INK-SKIP: each ring carries an authored, irregular stroke-dasharray
+               whose values sum to that ring's own circumference, so the pattern
+               completes exactly once around and reads as a rubber stamp that did
+               not take ink evenly — rather than as a dashed circle, which is what
+               any pattern that tiled would look like. The sums are asserted at
+               boot. Deterministic, never random: a scrub has to be a pure
+               function of its position, and a seal that re-rolled its own gaps on
+               every reload could not be reviewed. -->
+          <div class="prf-testimony">
+            <div class="prf-oath-wrap">
+              <p class="prf-oath">Don't trust the pitch. Trust the results.</p>
+
             </div>
           </div>
         </div>

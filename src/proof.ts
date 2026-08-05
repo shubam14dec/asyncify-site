@@ -296,7 +296,6 @@ const TABLE_PAD = 24;
  *  spent out of: receipt 1's slot sits exactly on it, so the difference between
  *  this and how far the stamp comes down is the clearance between them. MUST
  *  match `.prf-table` in styles.css. */
-const TABLE_PAD_TOP = 32;
 /** The widest a receipt can get: half the page column, which is what the 2×2
  *  grid gives it. Used only by the assert below. */
 const CARD_W_MAX = 540;
@@ -318,8 +317,11 @@ const OATH_DUR = 5;
 const OATH_RISE = 18; // px
 /** The press. Explicit-from at both ends like everything else here, so
  *  scrolling back un-stamps it — the seal grows and lifts off the paper. */
-const SEAL_AT = 9;
 const SEAL_DUR = 3.2;
+/** When the press lands, in SCRUB units now: the bill is fully in frame at
+ *  HOLD_FROM, and certification is the held ending's one event -- document
+ *  first, stamp second. */
+const SEAL_AT_SCRUB_LAG = 1.2;
 const SEAL_PRESS = 1.15;
 const TESTIMONY_END = 20;
 
@@ -365,8 +367,7 @@ const SEAL_ARC_BOT_IDS = "#prf-arc-bot";
  *  sentence past about fifteen degrees stops being a tilted line and starts
  *  being a diagonal. */
 const OATH_TILT = -4;
-const SEAL_TILT = -8;
-const TILT_MAX = 15;
+const SEAL_TILT = -12; // the full stamp angle -- the seal no longer inherits the wrap's -4
 
 /** The testimony block's bottom margin at its narrowest, from styles.css.
  *  Duplicated here for one reason: the entrance wire drops WIRE_H above the
@@ -385,27 +386,11 @@ const TILT_MAX = 15;
    above and receipt 1's slot below — are checked against the same arithmetic. */
 const TESTIMONY_LEFT = 112;
 const TESTIMONY_TOP = -22;
-const SEAL_LEFT_OFF = -126;
-const SEAL_TOP_OFF = -130;
-/** How much daylight the sentence has to keep from the seal's BOTTOM arc.
- *  This is the one clearance that cannot be bought vertically: the seal has to
- *  dip onto the tabletop and the sentence has to sit just above the same edge,
- *  so their y-bands necessarily overlap, and `ASYNCIFY` at 7.5px underneath
- *  `Don't trust` at 19px — both at --text-dim — is mush rather than a stamp.
- *  The sentence therefore starts to the RIGHT of that arc, and the outermost
- *  ring is what crosses its first letter. */
-const SEAL_ARC_BOT_CLEAR = 6;
-/** The seal's CSS box, against its 168-unit viewBox. */
+/** The seal's CSS box against its 168-unit viewBox, and where it hangs on the
+ *  bill: left of the TOTAL strip's edge, inside the table (styles.css). */
 const SEAL_RENDER = 160;
-/** The wrap's half-height, bounded rather than measured: it is one line of
- *  17–19px type at line-height 1.3, so 11–13px, and the asserts take whichever
- *  end of that range is the worse case for the clearance they are checking. A
- *  measured value here would be a fallback-font value, because this scene is
- *  built before the fonts resolve. */
-const OATH_HALF_MIN = 10;
-const OATH_HALF_MAX = 14;
-/** How much daylight the entrance wire has to keep from the seal's ink. */
-const WIRE_SEAL_CLEAR = 24;
+const SEAL_BILL_LEFT = -18;
+const TABLE_PAD_SIDE = 24;
 
 /** The masthead's bottom margin at its narrowest, from styles.css. It is the
  *  only clearance above the seal now that the testimony has left the flow, and
@@ -802,69 +787,27 @@ export function createProofScene(): ProofScene {
     throw new Error("[proof] the entrance wire starts behind the masthead");
   }
 
-  /* ── the slip on the corner ─────────────────────────────────────────────
-     The seal's ink, in table-relative pixels. Its radius is the outer ring plus
-     half that ring's stroke, scaled from the viewBox to the rendered box; the
-     inset is what is left of the square around it. Everything below is
-     arithmetic on the offsets in styles.css — nothing here measures anything,
-     because this runs before the fonts resolve. */
+  /* ── the seal on the bill ───────────────────────────────────────────────
+     The stamp moved from the table's corner to the TOTAL strip (user call): a
+     notary seal beside the amount line is what a certified bill looks like.
+     One inequality replaces the corner's two -- the seal is INSIDE the table
+     now: its ink may overlap the bill's edge, never the table's. */
   {
     const k = SEAL_RENDER / SEAL_BOX;
-    const inkR = (SEAL_RINGS[0]! + 0.75) * k; // 0.75 = half the 1.5 outer stroke
-    const inkInset = SEAL_RENDER / 2 - inkR;
-
-    const boxLeft = TESTIMONY_LEFT + SEAL_LEFT_OFF;
-    const inkLeft = boxLeft + inkInset;
-    const inkRight = boxLeft + SEAL_RENDER - inkInset;
-    /* Worst case at each end: the shallowest wrap puts the seal highest, the
-       deepest wrap puts it lowest. */
-    const inkTop = TESTIMONY_TOP + OATH_HALF_MIN + SEAL_TOP_OFF + inkInset;
-    const inkBottom = TESTIMONY_TOP + OATH_HALF_MAX + SEAL_TOP_OFF + SEAL_RENDER - inkInset;
-
-    /* IT STRADDLES, and these two lines are what that word means. A seal that
-       cleared the left edge would be a seal sitting beside the table; one that
-       stopped short of the top edge would be a seal floating above it. It has
-       to be over the corner, in both directions, or it is not a stamp pressed
-       half onto the tip of the desk. */
-    if (inkLeft >= 0) {
-      throw new Error("[proof] the seal does not reach past the table's left edge");
+    const inkInset = SEAL_RENDER / 2 - (SEAL_RINGS[0]! + 0.75) * k;
+    if (TABLE_PAD_SIDE + SEAL_BILL_LEFT + inkInset <= 0) {
+      throw new Error("[proof] the seal hangs out of the table it certifies from inside");
     }
-    if (inkBottom <= 0) {
-      throw new Error("[proof] the seal never comes down onto the tabletop");
-    }
-
-    /* And the two things it must not touch. Receipt 1's slot sits exactly on
-       the table's top padding, so that padding IS the budget the dip is spent
-       out of; the masthead is the only thing above the seal now. */
-    if (inkBottom >= TABLE_PAD_TOP) {
-      throw new Error("[proof] the seal's dip reaches receipt 1's print slot");
-    }
-    if (-inkTop >= MASTHEAD_GAP_MIN) {
-      throw new Error("[proof] the seal runs up into the masthead");
-    }
-
-    /* The entrance wire comes down TABLE_R + WIRE_RUN in from the left corner.
-       It used to come down at 112, which is inside this ink — the drop ran
-       straight through the stamp. */
-    if (TABLE_R + WIRE_RUN < inkRight + WIRE_SEAL_CLEAR) {
-      throw new Error("[proof] the entrance wire drops through the seal");
-    }
-
-    /* The sentence itself never leaves the page column: only the seal is
-       allowed to hang off, and the column's own margin at the narrowest
-       desktop width is --page-pad, 32px. */
-    if (TESTIMONY_LEFT < 0 || -inkLeft > 32) {
-      throw new Error("[proof] the slip hangs further off the table than the page's own margin");
-    }
-
-    /* AND THE SENTENCE CLEARS THE SEAL'S BOTTOM ARC. The bottom lettering runs
-       from β 214° to 146° on the lettering radius, so its rightmost point is
-       84 + SEAL_TEXT_R·sin(146°) in viewBox units. The sentence has to start
-       past it — see SEAL_ARC_BOT_CLEAR for why this one is horizontal. */
-    const arcBotRight = boxLeft + (SEAL_CX + SEAL_TEXT_R * Math.sin((146 * Math.PI) / 180)) * k;
-    if (TESTIMONY_LEFT < arcBotRight + SEAL_ARC_BOT_CLEAR) {
-      throw new Error("[proof] the sentence starts on top of the seal's own lettering");
-    }
+  }
+  /* The slip's sentence still lies on the table's top edge, from inside the
+     column. */
+  if (TESTIMONY_LEFT < 0 || TESTIMONY_TOP >= 0) {
+    throw new Error("[proof] the slip's sentence left the table's top edge");
+  }
+  /* The press is the held ending's event and must still leave a beat of true
+     stillness after it. */
+  if (HOLD_FROM + SEAL_AT_SCRUB_LAG + SEAL_DUR > TL_END - 2) {
+    throw new Error("[proof] the seal is still pressing when the scene ends");
   }
 
   /* ── the seal ───────────────────────────────────────────────────────────
@@ -874,19 +817,16 @@ export function createProofScene(): ProofScene {
      the seal is built before the fonts resolve and an assert that read one
      would be asserting about the fallback face. */
 
-  /* The sentence and its stamp have to arrive in that order: a seal that
-     landed on a line the reader had not read yet would be certifying nothing. */
-  if (SEAL_AT < OATH_AT + OATH_DUR) {
-    throw new Error("[proof] the seal stamps before the sentence it certifies has arrived");
-  }
-  if (SEAL_AT + SEAL_DUR > TESTIMONY_END) {
-    throw new Error("[proof] the seal is still pressing when its own timeline ends");
-  }
-  if (SEAL_PRESS <= 1) {
-    throw new Error("[proof] the seal does not press — it grows into place");
-  }
-  if (Math.abs(OATH_TILT) + Math.abs(SEAL_TILT) > TILT_MAX) {
+  /* The press lives on the scrub's clock now (see SEAL_AT_SCRUB_LAG): the
+     sentence is read long before the bill exists, so the old order assert is
+     satisfied by construction. And the old COMBINED tilt bound died with the
+     shared corner: sentence and seal are separate objects on separate parts
+     of the table now, so each answers for its own angle alone. */
+  if (Math.abs(OATH_TILT) > 6) {
     throw new Error("[proof] the notarized sentence is a diagonal rather than a tilted line");
+  }
+  if (Math.abs(SEAL_TILT) > 15) {
+    throw new Error("[proof] the seal's angle stopped reading as a stamp");
   }
 
   /* Concentric, ordered, and inside their own box. Three rings that crossed
@@ -1419,6 +1359,26 @@ export function createProofScene(): ProofScene {
     if (TL_END - built < 4) {
       throw new Error("[proof] there is no still frame left at the end of the scene");
     }
+    /* THE BILL GETS STAMPED. The one event inside the held ending: the table
+       is complete and fully in frame at HOLD_FROM, the reader is looking at
+       the finished document, and THEN the seal presses in beside the total --
+       certification after the fact, which is the only order a notary knows.
+       power3.out is a hand coming down hard and stopping (DESIGN §3 bans
+       overshoot). */
+    ft(
+      seal,
+      { opacity: 0, scale: SEAL_PRESS, rotation: SEAL_TILT },
+      {
+        opacity: 1,
+        scale: 1,
+        rotation: SEAL_TILT,
+        duration: SEAL_DUR,
+        ease: "power3.out",
+        transformOrigin: "50% 50%",
+      },
+      HOLD_FROM + SEAL_AT_SCRUB_LAG,
+    );
+
     tl.to({}, { duration: TL_END - built, ease: "none" }, built);
   }
 
@@ -1458,26 +1418,7 @@ export function createProofScene(): ProofScene {
       OATH_AT,
     );
 
-    /* THE PRESS. Explicit at both ends and rotation stated on both, so the
-       seal never borrows an angle from whatever the matrix happened to hold —
-       the same lesson the covers taught about yPercent. power3.out is a hand
-       coming down hard and stopping: fast at the head, nothing at the tail,
-       which is what a stamp does and is why this is not an overshoot ease
-       (DESIGN §3 bans those outright). */
-    tl.fromTo(
-      seal,
-      { opacity: 0, scale: SEAL_PRESS, rotation: SEAL_TILT },
-      {
-        opacity: 1,
-        scale: 1,
-        rotation: SEAL_TILT,
-        duration: SEAL_DUR,
-        ease: "power3.out",
-        transformOrigin: "50% 50%",
-        immediateRender: false,
-      },
-      SEAL_AT,
-    );
+    /* The press moved to the scrub (the bill's clock) -- see buildScrub. */
 
     /* The hold, made explicit for the same reason the table's is: a timeline is
        as long as its last tween, and without this the certified sentence would
