@@ -2640,8 +2640,7 @@ export function createAgentsScene(): AgentsScene {
          the machine keeps as the sheet leaves. */
       /* A tremor, not a rattle (user catch: the sheet shook far too much --
          a hand tearing a ticket is mostly steady). */
-      const roughRun =
-        "rough({ strength: 0.35, points: 11, taper: 'none', randomize: false, template: 'power1.inOut' })";
+      const roughRun = "power1.inOut"; // the jitter retired entirely (user call, twice): the edge textures carry the tear; the motion is a steady hand
       gsap.set(tktFibers, { opacity: 1, drawSVG: "0% 0%" });
       gsap.set(tktRemnant, { opacity: 1, scaleX: 0 });
       gsap.to(tktFibers, { drawSVG: "0% 100%", duration: 1.45, ease: roughRun });
@@ -2741,8 +2740,7 @@ export function createAgentsScene(): AgentsScene {
          half-second was nearly MOTIONLESS, which read as nothing happening
          (user catch: "doesn't feel like tearing"). A tear must be visible
          from its first instant. */
-      const roughTear =
-        "rough({ strength: 0.35, points: 11, taper: 'none', randomize: false, template: 'power1.inOut' })";
+      const roughTear = "power1.inOut"; // no jitter -- see roughRun
       stub.fromTo(stubEdge, { drawSVG: "0% 0%" }, { drawSVG: "0% 100%", duration: TEAR_RUN, ease: roughTear }, 0);
       /* THE INITIAL RIP: the first fibres snap fast -- a quick visible give
          to -11 deg in the first quarter second -- and only then does the slow
