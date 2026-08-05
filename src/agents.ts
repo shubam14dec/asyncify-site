@@ -2043,34 +2043,38 @@ export function createAgentsScene(): AgentsScene {
          half the drop on the rail (mirror of the dive's half-travel). Same
          numbers, same angles, opposite corner.
 
-         The one thing the mirror cannot copy is the terrain: the entry
-         curves over EMPTY air, the exit curves over the sentence. So the
-         rail's x starts just past the widest sentence and is pushed right
-         only until the mirrored curve's sag clears the corridor above the
-         text -- sampled on the actual cubic, not guessed -- keeping the
-         bend's SHAPE fixed and moving only its landing. */
+         The mirror cannot copy the terrain (the entry curves over empty
+         air; the exit curves over the sentence), and the descent must land
+         JUST past "queue." -- not out in the far field (user call, twice).
+         So: the second control sits HIGH on the rail (0.8 of the drop above
+         the landing), which holds the curve shallow across the sentence's
+         tail and concentrates the whole fall immediately after the text.
+         The rail starts a step past the sentence's measured edge and the
+         clearance check nudges it out only in small increments, capped
+         close -- nearness wins over a few pixels of graze. */
       const drop = l3y - uy;
-      const corridor = l2.top - r.top - uy - 6;
-      let sideX = maxSentRight + 60;
-      for (let g = 0; g < 10; g++) {
+      const corridor = l2.top - r.top - uy - 4;
+      const sideCap = Math.min(maxSentRight + 132, r.width - 6);
+      let sideX = maxSentRight + 48;
+      for (let g = 0; g < 6; g++) {
         let clear = true;
         for (let s = 1; s < 40; s++) {
           const t = s / 40;
           const mt = 1 - t;
           const cx = mt * mt * mt * ux1 + 3 * mt * mt * t * (ux1 + 170) + 3 * mt * t * t * sideX + t * t * t * sideX;
-          const cy = 3 * mt * t * t * (drop * 0.5) + t * t * t * drop;
+          const cy = 3 * mt * t * t * (drop * 0.2) + t * t * t * drop;
           if (cx < maxSentRight + 8 && cy > corridor) {
             clear = false;
             break;
           }
         }
-        if (clear || sideX >= r.width - 6) break;
-        sideX = Math.min(sideX + 40, r.width - 6);
+        if (clear || sideX >= sideCap) break;
+        sideX = Math.min(sideX + 24, sideCap);
       }
       const segs = [
         `M ${entryX.toFixed(1)} ${entryY.toFixed(1)} C ${entryX.toFixed(1)} ${(entryY + dive).toFixed(1)} ${(ux0 - 170).toFixed(1)} ${uy.toFixed(1)} ${ux0.toFixed(1)} ${uy.toFixed(1)}`,
         `L ${ux1.toFixed(1)} ${uy.toFixed(1)}`,
-        `C ${(ux1 + 170).toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${(l3y - drop * 0.5).toFixed(1)} ${sideX.toFixed(1)} ${l3y.toFixed(1)}`,
+        `C ${(ux1 + 170).toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${(l3y - drop * 0.8).toFixed(1)} ${sideX.toFixed(1)} ${l3y.toFixed(1)}`,
         `C ${sideX.toFixed(1)} ${(l3y + 120).toFixed(1)} ${exitX.toFixed(1)} ${(exitY - 160).toFixed(1)} ${exitX.toFixed(1)} ${exitY.toFixed(1)}`,
       ];
       bwire.setAttribute("d", segs.join(" "));
