@@ -2592,12 +2592,12 @@ export function createAgentsScene(): AgentsScene {
     draw(tktSlot, B4_DOOR_RULE - 1.6, 0.7);
     draw(tktJaw, B4_DOOR_RULE - 1.1, 0.4);
     ft(tktFeed, { y: -84 }, { y: 0, duration: 2.0, ease: "power2.out" }, B4_DOOR_TEXT - 1.8);
-    /* THE ANNOTATION: the word first, then the arrow sets off, loops its one
-       circle, and lands on the ticket -- the whole doodle drawn by the
-       reader's own scroll after the dispense. */
-    fadeIn(clickMe, 76.0, 0.6);
-    draw(clickArrow, 76.2, 1.5);
-    draw(clickHead, 77.65, 0.25);
+    /* THE ANNOTATION, quiet draft: strictly AFTER the ticket has settled
+       (feed completes at 76.0) -- a whispered word, one short dip of a
+       curve, a small head on the ticket's shoulder. */
+    fadeIn(clickMe, 76.4, 0.5);
+    draw(clickArrow, 76.8, 0.7);
+    draw(clickHead, 77.5, 0.2);
 
     /* AND THE HELD ENDING, AS A LENGTH.
        A gsap timeline is exactly as long as its last tween, and ScrollTrigger

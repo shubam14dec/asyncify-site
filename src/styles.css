@@ -2459,14 +2459,15 @@ html {
 .agt-clickme {
   font-family: "Instrument Serif", Georgia, serif;
   font-style: italic;
-  font-size: 17px;
-  fill: var(--text-dim);
+  /* Whisper scale (user call: "just visible"). */
+  font-size: 13px;
+  fill: var(--text-faint);
 }
 
 .agt-clickme-arrow {
   fill: none;
   stroke: var(--hairline-strong);
-  stroke-width: 1.25;
+  stroke-width: 1;
   stroke-linecap: butt;
   stroke-linejoin: round;
 }
