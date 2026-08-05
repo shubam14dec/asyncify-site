@@ -2638,8 +2638,10 @@ export function createAgentsScene(): AgentsScene {
       /* The separation's stationary half: the remnant sliver and its fibre
          edge are revealed left-to-right BEHIND the tear front -- the strip
          the machine keeps as the sheet leaves. */
+      /* A tremor, not a rattle (user catch: the sheet shook far too much --
+         a hand tearing a ticket is mostly steady). */
       const roughRun =
-        "rough({ strength: 1.4, points: 22, taper: 'none', randomize: false, template: 'power1.inOut' })";
+        "rough({ strength: 0.35, points: 11, taper: 'none', randomize: false, template: 'power1.inOut' })";
       gsap.set(tktFibers, { opacity: 1, drawSVG: "0% 0%" });
       gsap.set(tktRemnant, { opacity: 1, scaleX: 0 });
       gsap.to(tktFibers, { drawSVG: "0% 100%", duration: 1.45, ease: roughRun });
@@ -2684,7 +2686,35 @@ export function createAgentsScene(): AgentsScene {
       fall.setAttribute("viewBox", "920 544 144 96");
       fall.setAttribute("aria-hidden", "true");
       fall.style.cssText = `position:fixed;left:${box.left - 8}px;top:${box.top - 8}px;width:${box.width + 16}px;height:${box.height + 16}px;overflow:visible;pointer-events:none;z-index:60;`;
-      fall.appendChild(tktTilt.cloneNode(true));
+      const cloneRoot = tktTilt.cloneNode(true) as SVGGElement;
+      fall.appendChild(cloneRoot);
+      /* THE STUB'S TORN EDGE (user catch: only the machine's half was
+         ragged). The clone's clean top strip -- rounded corners, old
+         perforation -- is erased under a canvas cover, and a complementary
+         zigzag becomes the stub's new top, drawn in behind the tear front
+         exactly as the remnant's fringe is on the other side. Both halves
+         of one perforation, each ragged. */
+      const oldPerf = cloneRoot.querySelector(".agt-tkt-perf");
+      if (oldPerf) (oldPerf as SVGElement).style.opacity = "0";
+      const NS = "http://www.w3.org/2000/svg";
+      const topCover = doc.createElementNS(NS, "rect");
+      topCover.setAttribute("x", "928");
+      topCover.setAttribute("y", "542");
+      topCover.setAttribute("width", "124");
+      topCover.setAttribute("height", "17.5");
+      topCover.setAttribute("fill", "#0a0a0a");
+      topCover.setAttribute("stroke", "none");
+      const stubEdge = doc.createElementNS(NS, "path");
+      stubEdge.setAttribute("class", "agt-tkt-stub-edge");
+      stubEdge.setAttribute(
+        "d",
+        "M 936 560 l 4 -2 5 2 3 -3 6 3 4 -2 5 2 4 -2 6 2 3 -3 5 3 4 -2 5 2 4 -3 6 3 3 -2 5 2 4 -2 5 2 4 -3 5 3 4 -2 4 2",
+      );
+      const paperInClone = cloneRoot.querySelector("#agt-tkt-paper");
+      if (paperInClone) {
+        paperInClone.appendChild(topCover);
+        paperInClone.appendChild(stubEdge);
+      }
       doc.body.appendChild(fall);
       gsap.set(tktPaper, { opacity: 0 });
       tearFibersIn();
@@ -2712,11 +2742,8 @@ export function createAgentsScene(): AgentsScene {
          (user catch: "doesn't feel like tearing"). A tear must be visible
          from its first instant. */
       const roughTear =
-        "rough({ strength: 1.4, points: 22, taper: 'none', randomize: false, template: 'power1.inOut' })";
-      const clonePerf = fall.querySelector(".agt-tkt-perf");
-      if (clonePerf) {
-        stub.fromTo(clonePerf, { drawSVG: "0% 100%" }, { drawSVG: "100% 100%", duration: TEAR_RUN, ease: roughTear }, 0);
-      }
+        "rough({ strength: 0.35, points: 11, taper: 'none', randomize: false, template: 'power1.inOut' })";
+      stub.fromTo(stubEdge, { drawSVG: "0% 0%" }, { drawSVG: "0% 100%", duration: TEAR_RUN, ease: roughTear }, 0);
       /* THE INITIAL RIP: the first fibres snap fast -- a quick visible give
          to -11 deg in the first quarter second -- and only then does the slow
          gravity-hang take over. Real tears announce themselves. NEGATIVE
@@ -2726,13 +2753,18 @@ export function createAgentsScene(): AgentsScene {
       stub.to(fall, { rotation: -78, duration: TEAR_RUN - 0.22, ease: roughTear, transformOrigin: "86% 12%" }, 0.22);
       /* And the sheet SETTLES a few px as fibres let go -- weight, not just
          angle. */
-      stub.to(fall, { y: "+=7", duration: TEAR_RUN, ease: roughTear }, 0);
-      stub.to(fall, { skewY: -2, duration: TEAR_RUN * 0.7, ease: "power1.in" }, 0);
+      stub.to(fall, { y: "+=5", duration: TEAR_RUN, ease: "power1.in" }, 0);
+      /* THE CONE (user's observation): a pulled ticket is not rigid -- it
+         bunches slightly toward the held corner, a shallow conical flex.
+         Approximated on a rigid clone as a growing skew + a breath of
+         vertical compression, both anchored at the grip -- and it SPRINGS
+         FLAT at the release, which is exactly what freed paper does. */
+      stub.to(fall, { skewX: -6, scaleY: 0.965, duration: TEAR_RUN * 0.85, ease: "power1.in", transformOrigin: "86% 12%" }, 0);
 
       /* THE DANGLE. Fully torn but for the corner: the sheet hangs and
          swings once, damped -- the beat that sells the gravity -- before the
          last hold gives. */
-      stub.to(fall, { rotation: -69, skewY: -1, duration: 0.24, ease: "sine.out" }, TEAR_RUN);
+      stub.to(fall, { rotation: -69, duration: 0.24, ease: "sine.out" }, TEAR_RUN);
       stub.to(fall, { rotation: -80, duration: 0.3, ease: "sine.inOut" }, TEAR_RUN + 0.24);
       stub.to(fall, { rotation: -75, duration: 0.22, ease: "sine.inOut" }, TEAR_RUN + 0.54);
 
@@ -2741,7 +2773,8 @@ export function createAgentsScene(): AgentsScene {
          before it lands. */
       const REL = TEAR_RUN + 0.76;
       stub.to(fall, { y: `+=${Math.round(window.innerHeight * 0.66)}`, duration: 1.0, ease: "power2.in" }, REL);
-      stub.to(fall, { rotation: -112, skewY: 0, duration: 1.0, ease: "power1.in" }, REL);
+      stub.to(fall, { rotation: -112, duration: 1.0, ease: "power1.in" }, REL);
+      stub.to(fall, { skewX: 0, scaleY: 1, duration: 0.25, ease: "power2.out" }, REL);
       stub.to(fall, { x: "-=18", duration: 0.45, ease: "sine.inOut" }, REL);
       stub.to(fall, { x: "+=36", duration: 0.5, ease: "sine.inOut" }, REL + 0.45);
       stub.to(fall, { opacity: 0, duration: 0.42, ease: "power1.in" }, REL + 0.5);

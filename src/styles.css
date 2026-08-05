@@ -2491,6 +2491,16 @@ html {
   transform-origin: 936px 558px;
 }
 
+/* The stub's OWN torn edge -- the complement of the remnant's fringe. Real
+   separation leaves both halves ragged (user catch: only the machine's side
+   was torn). Lives on the falling clone. */
+.agt-tkt-stub-edge {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+}
+
 .agt-tkt-fibers {
   fill: none;
   stroke: var(--hairline-strong);
