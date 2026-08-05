@@ -2075,7 +2075,13 @@ export function createAgentsScene(): AgentsScene {
         `M ${entryX.toFixed(1)} ${entryY.toFixed(1)} C ${entryX.toFixed(1)} ${(entryY + dive).toFixed(1)} ${(ux0 - 170).toFixed(1)} ${uy.toFixed(1)} ${ux0.toFixed(1)} ${uy.toFixed(1)}`,
         `L ${ux1.toFixed(1)} ${uy.toFixed(1)}`,
         `C ${(ux1 + 170).toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${(l3y - drop * 0.8).toFixed(1)} ${sideX.toFixed(1)} ${l3y.toFixed(1)}`,
-        `C ${sideX.toFixed(1)} ${(l3y + 120).toFixed(1)} ${exitX.toFixed(1)} ${(exitY - 160).toFixed(1)} ${exitX.toFixed(1)} ${exitY.toFixed(1)}`,
+        /* Short control reaches (60/90, was 120/160): the shoulder already
+           spent its turn, so the run to the drop is a near-straight glide --
+           one curve at the top, one straight fall, done (user call: the
+           circular curvature belongs at the beginning; the end had too much
+           curve). The 90 keeps just enough blend to arrive vertical at the
+           tip. */
+        `C ${sideX.toFixed(1)} ${(l3y + 60).toFixed(1)} ${exitX.toFixed(1)} ${(exitY - 90).toFixed(1)} ${exitX.toFixed(1)} ${exitY.toFixed(1)}`,
       ];
       bwire.setAttribute("d", segs.join(" "));
       if (eraHl && eraHlWord && eraWordEl) {
