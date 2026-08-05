@@ -2687,10 +2687,15 @@ html {
   position: relative;
 }
 
-/* Beside the bill's total (user call): anchored against .prf-total, hanging a
-   step past the strip's left edge but INSIDE the table -- asserted. GSAP owns
-   the transform (SEAL_TILT + the press), so no rotate here; decorative, so it
-   must never catch the cursor over the draggable paper. */
+/* Beside the bill's total (user call, twice: first beside, then NOT
+   overlapping it). The strip is 520px centred in a ~1030px grid, so at wide
+   viewports there is ~256px of true empty tabletop either side -- the seal
+   sits fully in the left one (right:100% pins its right edge to the strip's
+   left, margin is the daylight). Below 1200px that side gap shrinks under
+   the seal's own width, so the narrow-desktop fallback keeps the old slight
+   overlap rather than poking through the table's border. GSAP owns the
+   transform (SEAL_TILT + the press); decorative, so it must never catch the
+   cursor over the draggable paper. */
 .prf-seal {
   position: absolute;
   left: -18px;
@@ -2702,6 +2707,14 @@ html {
   overflow: visible;
   pointer-events: none;
   z-index: 7;
+}
+
+@media (min-width: 1200px) {
+  .prf-seal {
+    left: auto;
+    right: 100%;
+    margin-right: 26px;
+  }
 }
 
 /* Ink only — no green, no amber. A seal that certified in the accent colour
