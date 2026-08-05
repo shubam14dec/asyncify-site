@@ -2130,22 +2130,35 @@ export function createAgentsScene(): AgentsScene {
       /* THE JOURNEY IS TWO TWEENS, NOT FIVE (user catch, twice: the dot kept
          "waiting"). Per-segment inOut eases start and end at ZERO VELOCITY --
          no gap on the clock, but the traveller braked to a halt at every
-         seam. Now: the dive (from rest, arriving at speed), then ONE
-         constant-speed tween for everything else. Uniform motion has no
-         seams to stall at. The landmark times below are COMPUTED from the
-         measured arc-length fractions, so the letters and pulses fire when
-         the dot actually passes, whatever this viewport's geometry made of
-         the path. */
-      const CRUISE = 4.0;
+         seam. Constant speed has no seams to stall at -- but ONE constant
+         speed gave the descent (the longest arc, playing over an
+         already-empty frame) most of the remaining scroll (user call: "when
+         it needs to come down, there is no room up"). So: the dive (from
+         rest, arriving at speed), the underline leg AT the cruise pace (the
+         inking and the typing read at the reader's own speed), then the
+         descent running the same wire 2.4x faster -- the dot finishes
+         writing and GOES, because scene 4 is pulling. It arrives early; the
+         pad at the end holds the completed wire still for a beat before the
+         pin takes over. Arrival is a state, not a wait. The landmark times
+         are COMPUTED from the measured arc-length fractions, so the letters
+         and pulses fire when the dot actually passes, whatever this
+         viewport's geometry made of the path. */
       const t0 = 3.25; // dive ends, cruise begins
-      const at = (f: number): number => t0 + (CRUISE * (f - f1!)) / (1 - f1!);
+      const SPEED = (1 - f1!) / 4.0; // arc-length per timeline unit: the cruise pace
+      const CRUISE_UL = (f2! - f1!) / SPEED;
+      const DROP = (1 - f2!) / (SPEED * 2.4);
+      const tU1 = t0 + CRUISE_UL;
+      const tEnd = tU1 + DROP;
       tl.fromTo(journey, { p: 0 }, { p: f1!, duration: 3.2, ease: "power1.in", immediateRender: false }, 0.05);
-      tl.fromTo(journey, { p: f1! }, { p: 1, duration: CRUISE, ease: "none", immediateRender: false }, t0);
-      tl.fromTo(bdot, { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, t0 + CRUISE - 0.25);
+      tl.fromTo(journey, { p: f1! }, { p: f2!, duration: CRUISE_UL, ease: "none", immediateRender: false }, t0);
+      tl.fromTo(journey, { p: f2! }, { p: 1, duration: DROP, ease: "none", immediateRender: false }, tU1);
+      tl.fromTo(bdot, { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, tEnd - 0.25);
+      /* The settled beat: an empty spacer so the scroll after arrival shows
+         the finished, connected wire -- not a crawling dot. */
+      tl.to({}, { duration: Math.max(0, 6.6 - tEnd) }, tEnd);
 
       /* The era types itself WHILE the dot inks the underline beneath it --
          the traveller writes the era in as it passes (user's wow). */
-      const tU1 = at(f2!);
       if (eraCaret && eraLetters.length) {
         gsap.set(eraLetters, { opacity: 0 });
         tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, t0 - 0.2);
@@ -2168,7 +2181,7 @@ export function createAgentsScene(): AgentsScene {
       }
       /* The reply passes the sentence about itself, and the sentence notices:
          a brightness swell as the dot crosses its latitude, then it settles. */
-      const tL2 = at(f3!);
+      const tL2 = tU1 + (DROP * (f3! - f2!)) / (1 - f2!);
       tl.fromTo(bridgeLines[1]!, { color: "#a1a1a1" }, { color: "#ededed", duration: 0.35, immediateRender: false }, tL2 - 0.15);
       tl.fromTo(bridgeLines[1]!, { color: "#ededed" }, { color: "#a1a1a1", duration: 0.6, immediateRender: false }, tL2 + 0.4);
     } else if (eraCaret && eraLetters.length) {
