@@ -2633,61 +2633,6 @@ html {
   max-width: 20ch;
 }
 
-/* ── the notarized sentence, at the table's top-left tip ──────────────────
-   Absolutely positioned against .prf-table, so the slip is attached to the
-   table rather than floating in the flow above it — and so the gap it used to
-   occupy collapses entirely.
-
-   THESE TWO NUMBERS ARE LOAD-BEARING and are duplicated in proof.ts as
-   TESTIMONY_LEFT / TESTIMONY_TOP. Everything the boot asserts check about the
-   corner — that the seal hangs past the left edge, that it dips onto the
-   tabletop, that it clears the masthead above and receipt 1's slot below — is
-   arithmetic on these two plus the seal's own two offsets.
-
-   top is NEGATIVE: the sentence's baseline lands a couple of pixels above the
-   table's top edge, which is what "a line written at the edge of the desk"
-   means. left is INSIDE the table, so the sentence itself never leaves the
-   page column — only the seal hangs off, and only by eleven pixels, which is
-   what keeps this safe down to a 768px viewport where the column's own margin
-   is just 32.
-
-   pointer-events: none. The receipts underneath are draggable, and a slip laid
-   on the desk must never be the thing the cursor catches. */
-.prf-testimony {
-  position: absolute;
-  left: 112px;
-  top: -22px;
-  z-index: 2;
-  pointer-events: none;
-}
-
-/* The tilt lives HERE and is never animated. Origin at the LEFT end, which is
-   now doing real work: the seal is pinned to that end, so the pivot keeps the
-   stamp still on the corner while the sentence lifts away to the right —
-   exactly the way a slip pinned under a stamp fans out. */
-.prf-oath-wrap {
-  position: relative;
-  display: inline-block;
-  max-width: 100%;
-  transform: rotate(-4deg);
-  transform-origin: 0% 50%;
-}
-
-/* Between the head above it and the receipts' mono below: this is testimony,
-   not a heading, so it sits under BRAND §3's section-head band and over the
-   body size — and it takes the display face's tracking, because it is a
-   sentence somebody said rather than a label. */
-.prf-oath {
-  margin: 0;
-  font-family: var(--sans);
-  font-size: clamp(17px, 1.35vw, 19px);
-  font-weight: 400;
-  line-height: 1.3;
-  letter-spacing: -0.015em;
-  color: var(--text-dim);
-  white-space: nowrap;
-}
-
 /* Rendered at 160 against a 168 viewBox, so the authored 1.5/1 strokes land at
    1.43/0.95. −8° on top of the wrap's −4° is the −12° a stamp lands at.
 
@@ -3353,26 +3298,6 @@ html {
    DESIGN §3's rule is that the still carries every piece of information the
    motion did — it is only re-laid. */
 @media (max-width: 767px) {
-  /* The testimony survives the fallback intact — it is information, not
-     decoration, and DESIGN §3's rule is that the still carries everything the
-     motion did. It keeps the corner it was given: the seal still straddles the
-     table's top-left tip, and the sentence still runs out of it to the right.
-     It only gets smaller, and it is allowed to wrap, because a nowrap sentence
-     on a 330px column would run off the side of the phone.
-
-     The sentence starts further in (86 against 46) because the seal is now
-     nearly a third of the column wide: at the desktop offset the stamp would
-     have covered half the words instead of crossing the first one. */
-  .prf-testimony {
-    left: 86px;
-    top: -14px;
-  }
-
-  .prf-oath {
-    white-space: normal;
-    font-size: 14px;
-  }
-
   .prf-seal {
     left: -10px;
     width: 118px;

@@ -314,7 +314,6 @@ const CARD_W_MAX = 540;
    paper, and DESIGN §3's "never from scale(0)" is about things appearing out
    of nothing — this one arrives bigger than it lands, which is the same
    gesture the hero's clapper makes when it strikes. */
-const OATH_RISE = 18; // px
 /** The press. Explicit-from at both ends like everything else here, so
  *  scrolling back un-stamps it — the seal grows and lifts off the paper. */
 const SEAL_DUR = 3.2;
@@ -361,11 +360,6 @@ const SEAL_DASH_TOL = 2.5;
 const SEAL_ARC_TOP_IDS = "#prf-arc-top";
 const SEAL_ARC_BOT_IDS = "#prf-arc-bot";
 
-/** The two tilts, in degrees. The wrap carries the first and never moves; the
- *  seal adds the second, so a stamp lands at their sum. Bounded because a
- *  sentence past about fifteen degrees stops being a tilted line and starts
- *  being a diagonal. */
-const OATH_TILT = -4;
 const SEAL_TILT = -12; // the full stamp angle -- the seal no longer inherits the wrap's -4
 
 /** The testimony block's bottom margin at its narrowest, from styles.css.
@@ -383,8 +377,6 @@ const SEAL_TILT = -12; // the full stamp angle -- the seal no longer inherits th
    seal's ink must reach past the left edge, and it must come down past the top
    edge onto the tabletop. The two clearances that could go wrong — the masthead
    above and receipt 1's slot below — are checked against the same arithmetic. */
-const TESTIMONY_LEFT = 112;
-const TESTIMONY_TOP = -22;
 /** The seal's CSS box against its 168-unit viewBox, and where it hangs on the
  *  bill: left of the TOTAL strip's edge, inside the table (styles.css). */
 const SEAL_RENDER = 160;
@@ -579,7 +571,6 @@ export function createProofScene(): ProofScene {
   /* The notarized sentence and the thing that certifies it. The WRAP is never
      queried for animation on purpose — it carries the tilt in CSS and nothing
      touches it, which is what keeps the seal glued to the sentence's tail. */
-  const oath = q<HTMLElement>(section, ".prf-oath");
   const seal = q<SVGSVGElement>(section, "#prf-seal");
 
   /** When a card stops being a print job and becomes an object. Derived from
@@ -801,11 +792,6 @@ export function createProofScene(): ProofScene {
       throw new Error("[proof] the seal hangs out of the table it certifies from inside");
     }
   }
-  /* The slip's sentence still lies on the table's top edge, from inside the
-     column. */
-  if (TESTIMONY_LEFT < 0 || TESTIMONY_TOP >= 0) {
-    throw new Error("[proof] the slip's sentence left the table's top edge");
-  }
   /* The press is the held ending's event and must still leave a beat of true
      stillness after it. */
   if (HOLD_FROM + SEAL_AT_SCRUB_LAG + SEAL_DUR > TL_END - 2) {
@@ -824,9 +810,6 @@ export function createProofScene(): ProofScene {
      satisfied by construction. And the old COMBINED tilt bound died with the
      shared corner: sentence and seal are separate objects on separate parts
      of the table now, so each answers for its own angle alone. */
-  if (Math.abs(OATH_TILT) > 6) {
-    throw new Error("[proof] the notarized sentence is a diagonal rather than a tilted line");
-  }
   if (Math.abs(SEAL_TILT) > 15) {
     throw new Error("[proof] the seal's angle stopped reading as a stamp");
   }
@@ -1183,7 +1166,6 @@ export function createProofScene(): ProofScene {
      ════════════════════════════════════════════════════════════════════════ */
 
   function restState(): void {
-    gsap.set(oath, { opacity: 0, y: OATH_RISE });
     gsap.set(seal, { opacity: 0, scale: SEAL_PRESS, rotation: SEAL_TILT, transformOrigin: "50% 50%" });
     edgeState.p = 0;
     renderEdge();
@@ -1248,12 +1230,6 @@ export function createProofScene(): ProofScene {
         { opacity: 0 },
         { opacity: 1, duration: 1.6, immediateRender: false },
         6.6,
-      );
-      app.fromTo(
-        oath,
-        { opacity: 0, y: OATH_RISE },
-        { opacity: 1, y: 0, duration: 1.8, ease: "power2.out", immediateRender: false },
-        6.9,
       );
     }
 
@@ -1402,7 +1378,6 @@ export function createProofScene(): ProofScene {
     if (TL_END - built < 4) {
       throw new Error("[proof] there is no still frame left at the end of the scene");
     }
-    /* The sentence reveals on the approach (see buildApproach block above). */
 
     /* THE BILL GETS STAMPED. The one event inside the held ending: the table
        is complete and fully in frame at HOLD_FROM, the reader is looking at
