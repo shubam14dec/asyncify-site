@@ -2601,10 +2601,12 @@ html {
 .prf-masthead {
   box-sizing: border-box;
   width: min(var(--page-max), 100% - 2 * var(--page-pad));
-  /* The bottom margin is the entrance wire's runway: proof.ts draws that
-     hairline PRF_WIRE_H px above the table on an overflow-visible svg, so this
-     gap has to stay comfortably larger than that constant. */
-  margin: 0 auto clamp(112px, 16vh, 176px);
+  /* THE ONLY CLEARANCE ABOVE THE SEAL, now that the testimony hangs off the
+     table's top-left corner instead of sitting in the flow. This gap has to
+     clear the seal's ink (~139px above the table) as well as the entrance
+     wire's 104px runway; proof.ts asserts both against MASTHEAD_GAP_MIN, which
+     is this clamp's floor. */
+  margin: 0 auto clamp(176px, 24vh, 240px);
 }
 
 .prf-masthead .agt-head {
@@ -2612,30 +2614,38 @@ html {
   max-width: 20ch;
 }
 
-/* ── the notarized sentence ──────────────────────────────────────────────
-   The block reserves the seal's own height as padding rather than as a
-   min-height, because the seal is positioned off the SENTENCE and the sentence
-   is one line of flowed text: 82px above and below is what keeps a 160px seal
-   centred on that line inside its own box, at every width, with no measuring.
+/* ── the notarized sentence, at the table's top-left tip ──────────────────
+   Absolutely positioned against .prf-table, so the slip is attached to the
+   table rather than floating in the flow above it — and so the gap it used to
+   occupy collapses entirely.
 
-   The bottom margin is also the entrance wire's runway — proof.ts drops that
-   hairline PRF WIRE_H px above the table and asserts against the constant
-   below, so this clamp's floor may not go under it. */
+   THESE TWO NUMBERS ARE LOAD-BEARING and are duplicated in proof.ts as
+   TESTIMONY_LEFT / TESTIMONY_TOP. Everything the boot asserts check about the
+   corner — that the seal hangs past the left edge, that it dips onto the
+   tabletop, that it clears the masthead above and receipt 1's slot below — is
+   arithmetic on these two plus the seal's own two offsets.
+
+   top is NEGATIVE: the sentence's baseline lands a couple of pixels above the
+   table's top edge, which is what "a line written at the edge of the desk"
+   means. left is INSIDE the table, so the sentence itself never leaves the
+   page column — only the seal hangs off, and only by eleven pixels, which is
+   what keeps this safe down to a 768px viewport where the column's own margin
+   is just 32.
+
+   pointer-events: none. The receipts underneath are draggable, and a slip laid
+   on the desk must never be the thing the cursor catches. */
 .prf-testimony {
-  box-sizing: border-box;
-  width: min(var(--page-max), 100% - 2 * var(--page-pad));
-  margin: 0 auto clamp(120px, 17vh, 190px);
-  /* Asymmetric, because the seal does not sit ON the line — it sits ACROSS it,
-     high and to the right, so the sentence passes through the ring's lower
-     field instead of through the word in its middle. 104 above is that offset
-     plus the seal's own half; 62 below is what is left under it. */
-  padding: 104px 0 62px;
+  position: absolute;
+  left: 112px;
+  top: -22px;
+  z-index: 2;
+  pointer-events: none;
 }
 
-/* The tilt lives HERE and is never animated, so the seal — a child positioned
-   off the sentence's own tail — travels with it. Origin at the left margin:
-   the line is anchored to the page's own edge and lifts to the right, which is
-   how a hand-placed line sits on a page. */
+/* The tilt lives HERE and is never animated. Origin at the LEFT end, which is
+   now doing real work: the seal is pinned to that end, so the pivot keeps the
+   stamp still on the corner while the sentence lifts away to the right —
+   exactly the way a slip pinned under a stamp fans out. */
 .prf-oath-wrap {
   position: relative;
   display: inline-block;
@@ -2662,21 +2672,24 @@ html {
 /* Rendered at 160 against a 168 viewBox, so the authored 1.5/1 strokes land at
    1.43/0.95. −8° on top of the wrap's −4° is the −12° a stamp lands at.
 
-   PLACED ACROSS THE TAIL, NOT OVER IT. The first pass centred the seal on the
-   sentence's own baseline and hung it 44px past the end: the ring then covered
-   the last third of the line and PROOF landed exactly on `the results`, so two
-   pieces of type occupied one place and neither could be read. It now sits
-   24px high (margin-top is the seal's half plus that offset) and 78px past the
-   tail, which puts the sentence through the ring's lower field — hairline over
-   words, which is what a stamp on a document actually looks like — and leaves
-   the dense centre type clear of it entirely. */
+   PINNED TO THE WRAP'S LEFT END, which is what puts it on the corner: `left`
+   is negative, so the seal reaches back past the sentence's first character
+   and past the table's own left edge, and `margin-top` lifts it far enough
+   that only the bottom of its ring comes down onto the tabletop.
+
+   The two offsets are chosen against each other rather than separately. At
+   this height the sentence crosses the seal about 50px below its centre, which
+   is outside the inner ring (r 47.6 on screen) — so only the outer two rings
+   pass over the words, and PROOF and the date line stay clear of type
+   entirely. That was the failure of an earlier pass, where the seal sat on the
+   sentence's own baseline and its centre word landed on `the results`. */
 .prf-seal {
   position: absolute;
-  right: -78px;
+  left: -126px;
   top: 50%;
   width: 160px;
   height: 160px;
-  margin-top: -104px;
+  margin-top: -130px;
   transform: rotate(-8deg);
   transform-origin: 50% 50%;
   overflow: visible;
@@ -2739,7 +2752,12 @@ html {
   box-sizing: border-box;
   width: min(var(--page-max), 100% - 2 * var(--page-pad));
   margin: 0 auto;
-  padding: 24px;
+  /* 32 at the top against 24 elsewhere, and the asymmetry is the seal's. The
+     stamp dips ~19px past the top edge onto the tabletop; receipt 1's slot sits
+     exactly on this padding, so the extra 8px is the clearance between them.
+     A tabletop with a little more room at the end where the slip was laid is
+     also just what a desk looks like. MUST match TABLE_PAD_TOP in proof.ts. */
+  padding: 32px 24px 24px;
 }
 
 /* No viewBox, so one user unit is one CSS pixel and drawSVG's percentages are
@@ -3296,23 +3314,36 @@ html {
 @media (max-width: 767px) {
   /* The testimony survives the fallback intact — it is information, not
      decoration, and DESIGN §3's rule is that the still carries everything the
-     motion did. It only gets smaller and allowed to wrap: a nowrap sentence on
-     a 330px column would run off the side of the phone. */
+     motion did. It keeps the corner it was given: the seal still straddles the
+     table's top-left tip, and the sentence still runs out of it to the right.
+     It only gets smaller, and it is allowed to wrap, because a nowrap sentence
+     on a 330px column would run off the side of the phone.
+
+     The sentence starts further in (86 against 46) because the seal is now
+     nearly a third of the column wide: at the desktop offset the stamp would
+     have covered half the words instead of crossing the first one. */
   .prf-testimony {
-    padding: 78px 0 48px;
-    margin-bottom: clamp(120px, 17vh, 160px);
+    left: 86px;
+    top: -14px;
   }
 
   .prf-oath {
     white-space: normal;
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .prf-seal {
-    right: -18px;
+    left: -104px;
     width: 118px;
     height: 118px;
-    margin-top: -77px;
+    margin-top: -96px;
+  }
+
+  /* The seal's dip scales with the seal, so the tabletop's own top padding
+     scales with it too — same clearance argument as the desktop rule, smaller
+     numbers. */
+  .prf-masthead {
+    margin-bottom: clamp(136px, 20vh, 180px);
   }
 
   /* The total line's value is now a sentence, and at this width it needs its
@@ -3326,8 +3357,11 @@ html {
     flex: 1 1 100%;
   }
 
+  /* Same clearance argument as the desktop rule, smaller numbers: the seal
+     dips ~19px past the top edge here too, and receipt 1's slot sits on this
+     padding, so 30 leaves the same order of daylight between them. */
   .prf-table {
-    padding: 18px;
+    padding: 30px 18px 18px;
   }
 
   .prf-grid {

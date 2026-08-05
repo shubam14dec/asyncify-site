@@ -136,7 +136,13 @@ const TL_END = 100;
 const TABLE_R = 16; // --r-card, and the table is the only 16px radius in the scene
 const WIRE_H = 104;
 const WIRE_ELBOW = 44; // where the straight drop ends and the levelling curve begins
-const WIRE_RUN = 96; // horizontal runway for that curve
+/* 280, up from 96. The wire used to come down 112px in from the table's left
+   corner, which is exactly where the notary seal now sits — the drop would
+   have run straight through the stamp. It enters further along the top edge
+   instead and takes a longer, lazier sweep into the corner, and the assert
+   below is what keeps it clear of the seal's ink whatever either of them
+   is edited to. */
+const WIRE_RUN = 280; // horizontal runway for that curve
 const WIRE_EASE = 0.35; // first control point, as a fraction of the elbow's depth
 
 const TABLE_AT = 2;
@@ -230,7 +236,7 @@ const FLAT_SPREAD = 4;
 /* ── the bill ──────────────────────────────────────────────────────────────
    Last, and after everything: the assert below refuses a schedule where it
    starts before the fourth receipt has finished. */
-const TOTAL_AT = 56;
+const TOTAL_AT = 55;
 const TOTAL_DUR = 8;
 const TOTAL_TEAR_LAG = 0.6;
 
@@ -238,9 +244,9 @@ const TOTAL_TEAR_LAG = 0.6;
  *  standing still and travelling up out of frame — the payoff the window
  *  arithmetic at the top of this file exists to protect.
  *
- *  67, AND THE NUMBER IS DERIVED RATHER THAN FELT. The table is fully in frame
+ *  65, AND THE NUMBER IS DERIVED RATHER THAN FELT. The table is fully in frame
  *  for p ∈ [H/range, vh/range]; with E = 0.45 that upper bound is
- *  vh / (H + 0.55·vh), which for today's 609px table is 0.688 at a 674px
+ *  vh / (H + 0.55·vh), which for today's 617px table is 0.682 at a 674px
  *  viewport, 0.83 at 900px and 0.96 at 1200px. HOLD_FROM has to sit UNDER the
  *  worst of those — the short laptop BRAND §3 sizes the whole site against —
  *  or the bill tears off after the table's top has already left the screen.
@@ -253,7 +259,7 @@ const TOTAL_TEAR_LAG = 0.6;
  *  strip's extra line with the bill's own moment. The thirty-odd units left
  *  over are not padding: they are the finished table crossing the viewport
  *  with nothing left to do. */
-const HOLD_FROM = 67;
+const HOLD_FROM = 65;
 
 /* ── the interaction (desktop pointer only) ────────────────────────────────
    A torn-off receipt is paper: you can pick it up, throw it, and it slides to
@@ -286,6 +292,11 @@ const DRAG_EDGE_RESIST = 0.86;
  *  same reason the ink map must: a stylesheet cannot tell this file what it
  *  chose. It is load-bearing here rather than decorative — see below. */
 const TABLE_PAD = 24;
+/** And the TOP padding, which is larger. It is the budget the seal's dip is
+ *  spent out of: receipt 1's slot sits exactly on it, so the difference between
+ *  this and how far the stamp comes down is the clearance between them. MUST
+ *  match `.prf-table` in styles.css. */
+const TABLE_PAD_TOP = 32;
 /** The widest a receipt can get: half the page column, which is what the 2×2
  *  grid gives it. Used only by the assert below. */
 const CARD_W_MAX = 540;
@@ -361,7 +372,45 @@ const TILT_MAX = 15;
  *  Duplicated here for one reason: the entrance wire drops WIRE_H above the
  *  table, and if that runway ever grew past this gap the wire would start
  *  behind the seal. Asserted below. */
-const TESTIMONY_GAP_MIN = 120;
+/* ── where the slip lies on the table ──────────────────────────────────────
+   The testimony is absolutely positioned against .prf-table and anchored at its
+   top-left, so every number below is in TABLE-RELATIVE pixels with the table's
+   own top-left corner at (0, 0). Negative is above the top edge or left of the
+   left edge. All four MUST match styles.css.
+
+   The point of having them here is that "straddles the corner" then stops being
+   a look and becomes two inequalities the scene refuses to boot without: the
+   seal's ink must reach past the left edge, and it must come down past the top
+   edge onto the tabletop. The two clearances that could go wrong — the masthead
+   above and receipt 1's slot below — are checked against the same arithmetic. */
+const TESTIMONY_LEFT = 112;
+const TESTIMONY_TOP = -22;
+const SEAL_LEFT_OFF = -126;
+const SEAL_TOP_OFF = -130;
+/** How much daylight the sentence has to keep from the seal's BOTTOM arc.
+ *  This is the one clearance that cannot be bought vertically: the seal has to
+ *  dip onto the tabletop and the sentence has to sit just above the same edge,
+ *  so their y-bands necessarily overlap, and `ASYNCIFY` at 7.5px underneath
+ *  `Don't trust` at 19px — both at --text-dim — is mush rather than a stamp.
+ *  The sentence therefore starts to the RIGHT of that arc, and the outermost
+ *  ring is what crosses its first letter. */
+const SEAL_ARC_BOT_CLEAR = 6;
+/** The seal's CSS box, against its 168-unit viewBox. */
+const SEAL_RENDER = 160;
+/** The wrap's half-height, bounded rather than measured: it is one line of
+ *  17–19px type at line-height 1.3, so 11–13px, and the asserts take whichever
+ *  end of that range is the worse case for the clearance they are checking. A
+ *  measured value here would be a fallback-font value, because this scene is
+ *  built before the fonts resolve. */
+const OATH_HALF_MIN = 10;
+const OATH_HALF_MAX = 14;
+/** How much daylight the entrance wire has to keep from the seal's ink. */
+const WIRE_SEAL_CLEAR = 24;
+
+/** The masthead's bottom margin at its narrowest, from styles.css. It is the
+ *  only clearance above the seal now that the testimony has left the flow, and
+ *  it has to cover both the stamp and the wire's runway. */
+const MASTHEAD_GAP_MIN = 176;
 
 /* ── the finale ────────────────────────────────────────────────────────────
    Not a scrub. The page has finished arguing; this is the site's ordinary
@@ -746,12 +795,76 @@ export function createProofScene(): ProofScene {
   if (WIRE_RUN < TABLE_R * 2) {
     throw new Error("[proof] the entrance wire turns a corner instead of levelling into the table");
   }
-  /* And it has to start BELOW the testimony. The wire drops out of empty page
+  /* And it has to start below the masthead. The wire drops out of empty page
      and runs into the tabletop; a runway longer than the gap the stylesheet
-     leaves would have it starting behind the seal, which would read as the
-     seal being plugged into the table. */
-  if (WIRE_H >= TESTIMONY_GAP_MIN) {
-    throw new Error("[proof] the entrance wire starts behind the notarized sentence");
+     leaves would have it starting behind the head above it. */
+  if (WIRE_H >= MASTHEAD_GAP_MIN) {
+    throw new Error("[proof] the entrance wire starts behind the masthead");
+  }
+
+  /* ── the slip on the corner ─────────────────────────────────────────────
+     The seal's ink, in table-relative pixels. Its radius is the outer ring plus
+     half that ring's stroke, scaled from the viewBox to the rendered box; the
+     inset is what is left of the square around it. Everything below is
+     arithmetic on the offsets in styles.css — nothing here measures anything,
+     because this runs before the fonts resolve. */
+  {
+    const k = SEAL_RENDER / SEAL_BOX;
+    const inkR = (SEAL_RINGS[0]! + 0.75) * k; // 0.75 = half the 1.5 outer stroke
+    const inkInset = SEAL_RENDER / 2 - inkR;
+
+    const boxLeft = TESTIMONY_LEFT + SEAL_LEFT_OFF;
+    const inkLeft = boxLeft + inkInset;
+    const inkRight = boxLeft + SEAL_RENDER - inkInset;
+    /* Worst case at each end: the shallowest wrap puts the seal highest, the
+       deepest wrap puts it lowest. */
+    const inkTop = TESTIMONY_TOP + OATH_HALF_MIN + SEAL_TOP_OFF + inkInset;
+    const inkBottom = TESTIMONY_TOP + OATH_HALF_MAX + SEAL_TOP_OFF + SEAL_RENDER - inkInset;
+
+    /* IT STRADDLES, and these two lines are what that word means. A seal that
+       cleared the left edge would be a seal sitting beside the table; one that
+       stopped short of the top edge would be a seal floating above it. It has
+       to be over the corner, in both directions, or it is not a stamp pressed
+       half onto the tip of the desk. */
+    if (inkLeft >= 0) {
+      throw new Error("[proof] the seal does not reach past the table's left edge");
+    }
+    if (inkBottom <= 0) {
+      throw new Error("[proof] the seal never comes down onto the tabletop");
+    }
+
+    /* And the two things it must not touch. Receipt 1's slot sits exactly on
+       the table's top padding, so that padding IS the budget the dip is spent
+       out of; the masthead is the only thing above the seal now. */
+    if (inkBottom >= TABLE_PAD_TOP) {
+      throw new Error("[proof] the seal's dip reaches receipt 1's print slot");
+    }
+    if (-inkTop >= MASTHEAD_GAP_MIN) {
+      throw new Error("[proof] the seal runs up into the masthead");
+    }
+
+    /* The entrance wire comes down TABLE_R + WIRE_RUN in from the left corner.
+       It used to come down at 112, which is inside this ink — the drop ran
+       straight through the stamp. */
+    if (TABLE_R + WIRE_RUN < inkRight + WIRE_SEAL_CLEAR) {
+      throw new Error("[proof] the entrance wire drops through the seal");
+    }
+
+    /* The sentence itself never leaves the page column: only the seal is
+       allowed to hang off, and the column's own margin at the narrowest
+       desktop width is --page-pad, 32px. */
+    if (TESTIMONY_LEFT < 0 || -inkLeft > 32) {
+      throw new Error("[proof] the slip hangs further off the table than the page's own margin");
+    }
+
+    /* AND THE SENTENCE CLEARS THE SEAL'S BOTTOM ARC. The bottom lettering runs
+       from β 214° to 146° on the lettering radius, so its rightmost point is
+       84 + SEAL_TEXT_R·sin(146°) in viewBox units. The sentence has to start
+       past it — see SEAL_ARC_BOT_CLEAR for why this one is horizontal. */
+    const arcBotRight = boxLeft + (SEAL_CX + SEAL_TEXT_R * Math.sin((146 * Math.PI) / 180)) * k;
+    if (TESTIMONY_LEFT < arcBotRight + SEAL_ARC_BOT_CLEAR) {
+      throw new Error("[proof] the sentence starts on top of the seal's own lettering");
+    }
   }
 
   /* ── the seal ───────────────────────────────────────────────────────────
