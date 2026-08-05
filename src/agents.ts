@@ -2635,7 +2635,11 @@ export function createAgentsScene(): AgentsScene {
        sweep the perforation gives -- not a fade, a propagation. */
     const tearFibersIn = (): void => {
       gsap.set(tktFibers, { opacity: 1, drawSVG: "0% 0%" });
-      gsap.to(tktFibers, { drawSVG: "0% 100%", duration: 0.3, ease: "power1.in" });
+      gsap.to(tktFibers, {
+        drawSVG: "0% 100%",
+        duration: 1.45,
+        ease: "rough({ strength: 1.4, points: 22, taper: 'none', randomize: false, template: 'power2.in' })",
+      });
     };
     let gliding: gsap.core.Tween | null = null;
     const killGlide = (): void => {
@@ -2682,31 +2686,50 @@ export function createAgentsScene(): AgentsScene {
       tearFibersIn();
 
       const stub = gsap.timeline({ onComplete: () => fall.remove() });
-      /* THE TEAR PROPAGATES (user call: it starts at one end and RUNS to the
-         other, and only then does the paper fall). Three synchronized reads
-         of one event, all over the same 0.3s window:
-           - the clone's own perforation dashes ERASE left-to-right -- the
-             tear front travelling along the line;
-           - the fibres draw in behind it at the mouth (tearFibersIn above);
-           - the stub's peel angle GROWS as its attachment shrinks, hinged on
-             the right punch -- the last corner still holding -- with a
-             breath of skew so the freed left edge sags the way paper does. */
+      /* THE TEAR, AS PHYSICS (user's spec, verbatim intent): it starts at
+         one end and runs SLOWLY; while it runs, the freed part HANGS under
+         gravity from what still holds; only when the last fibre gives does
+         it free-fall.
+
+         Model: the hinge is the right punch corner (the tear runs left to
+         right, so the right corner is what holds longest). Gravity pulls the
+         freed sheet toward vertical, so the hang angle grows toward ~78 deg
+         as the attachment shrinks -- slowly at first (most of the perforation
+         still holds the weight), accelerating as less does: a power2.in
+         template. And perforations do not give smoothly -- they give in
+         little steps, dash by dash -- so a deterministic RoughEase rides the
+         same curve (randomize:false: one authored jitter, replayed
+         identically; the scrub laws' spirit, kept even off-scrub).
+
+         1.45s for the run: a real ticket torn deliberately, not snatched. */
+      const TEAR_RUN = 1.45;
+      const roughTear = "rough({ strength: 1.4, points: 22, taper: 'none', randomize: false, template: 'power2.in' })";
       const clonePerf = fall.querySelector(".agt-tkt-perf");
       if (clonePerf) {
-        stub.fromTo(clonePerf, { drawSVG: "0% 100%" }, { drawSVG: "100% 100%", duration: 0.3, ease: "power1.in" }, 0);
+        stub.fromTo(clonePerf, { drawSVG: "0% 100%" }, { drawSVG: "100% 100%", duration: TEAR_RUN, ease: roughTear }, 0);
       }
-      stub.to(fall, { rotation: 10, skewY: 2, duration: 0.3, ease: "power1.in", transformOrigin: "86% 12%" }, 0);
-      /* RELEASE -- the last corner gives: paper falls the way paper falls,
-         accelerating but swaying, tumbling further as it goes, gone before
-         it lands. */
-      stub.to(fall, { y: `+=${Math.round(window.innerHeight * 0.62)}`, duration: 1.05, ease: "power1.in" }, 0.3);
-      stub.to(fall, { x: "-=26", skewY: 0, duration: 0.5, ease: "sine.inOut" }, 0.3);
-      stub.to(fall, { x: "+=44", duration: 0.55, ease: "sine.inOut" }, 0.8);
-      stub.to(fall, { rotation: -24, duration: 1.05, ease: "power1.in" }, 0.3);
-      stub.to(fall, { opacity: 0, duration: 0.4, ease: "power1.in" }, 0.87);
+      stub.to(fall, { rotation: 78, duration: TEAR_RUN, ease: roughTear, transformOrigin: "86% 12%" }, 0);
+      stub.to(fall, { skewY: 3, duration: TEAR_RUN * 0.7, ease: "power1.in" }, 0);
+
+      /* THE DANGLE. Fully torn but for the corner: the sheet hangs and
+         swings once, damped -- the beat that sells the gravity -- before the
+         last hold gives. */
+      stub.to(fall, { rotation: 69, skewY: 1, duration: 0.24, ease: "sine.out" }, TEAR_RUN);
+      stub.to(fall, { rotation: 80, duration: 0.3, ease: "sine.inOut" }, TEAR_RUN + 0.24);
+      stub.to(fall, { rotation: 75, duration: 0.22, ease: "sine.inOut" }, TEAR_RUN + 0.54);
+
+      /* THE RELEASE. True fall: gravity's accelerating ease, the rotation
+         carrying on from the hang rather than resetting, a paper sway, gone
+         before it lands. */
+      const REL = TEAR_RUN + 0.76;
+      stub.to(fall, { y: `+=${Math.round(window.innerHeight * 0.66)}`, duration: 1.0, ease: "power2.in" }, REL);
+      stub.to(fall, { rotation: 112, skewY: 0, duration: 1.0, ease: "power1.in" }, REL);
+      stub.to(fall, { x: "-=18", duration: 0.45, ease: "sine.inOut" }, REL);
+      stub.to(fall, { x: "+=36", duration: 0.5, ease: "sine.inOut" }, REL + 0.45);
+      stub.to(fall, { opacity: 0, duration: 0.42, ease: "power1.in" }, REL + 0.5);
 
       /* The dispenser serves the next number once the stub is clearly gone. */
-      const next = gsap.timeline({ delay: 1.15 });
+      const next = gsap.timeline({ delay: 3.0 });
       next.set(tktPaper, { y: -84, rotation: 0 });
       next.to(tktPaper, { opacity: 1, duration: 0.01 });
       next.to(tktFibers, { opacity: 0, duration: 0.3 }, 0.1);
@@ -2726,7 +2749,7 @@ export function createAgentsScene(): AgentsScene {
           scrollTo: { y: target, autoKill: false },
           duration: 1.3,
           ease: "power2.inOut",
-          delay: 0.3, // the glide leaves WITH the release, after the tear has run its line
+          delay: 2.21, // TEAR_RUN + the dangle: the glide leaves exactly at the release
           onComplete: () => {
             gliding = null;
           },
