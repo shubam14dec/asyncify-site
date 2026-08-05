@@ -2134,8 +2134,9 @@ export function createAgentsScene(): AgentsScene {
          speed gave the descent (the longest arc, playing over an
          already-empty frame) most of the remaining scroll (user call: "when
          it needs to come down, there is no room up"). So: the dive (from
-         rest, arriving at speed), the underline leg AT the cruise pace (the
-         inking and the typing read at the reader's own speed), then the
+         rest, arriving at speed), the underline leg at 2x the cruise (user
+         call: the writing wanted pace too -- the typing compresses with it,
+         it is computed from the same window), then the
          descent running the same wire 6x faster (2.4x still read as a crawl
          -- user call: speed the RIDER, not the scroll) -- the dot finishes
          writing and GOES, because scene 4 is pulling. It arrives early; the
@@ -2146,7 +2147,7 @@ export function createAgentsScene(): AgentsScene {
          viewport's geometry made of the path. */
       const t0 = 3.25; // dive ends, cruise begins
       const SPEED = (1 - f1!) / 4.0; // arc-length per timeline unit: the cruise pace
-      const CRUISE_UL = (f2! - f1!) / SPEED;
+      const CRUISE_UL = (f2! - f1!) / (SPEED * 2);
       const DROP = (1 - f2!) / (SPEED * 6);
       const tU1 = t0 + CRUISE_UL;
       const tEnd = tU1 + DROP;
