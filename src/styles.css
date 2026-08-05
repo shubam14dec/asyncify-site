@@ -2621,7 +2621,7 @@ html {
      pinned"). The bottom margin is small because the frame's height budget
      is the table's -- the fit arithmetic lives with PIN fit notes below. */
   width: fit-content;
-  margin: 0 0 clamp(14px, 2.4vh, 28px) var(--page-pad);
+  margin: 0 0 clamp(34px, 5vh, 56px) var(--page-pad); /* user-tuned: more air pushes the table down off the masthead */
 }
 
 .prf-masthead .agt-head {
