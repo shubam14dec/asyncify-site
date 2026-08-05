@@ -2164,7 +2164,10 @@ export function createAgentsScene(): AgentsScene {
       if (eraCaret && eraLetters.length) {
         gsap.set(eraLetters, { opacity: 0 });
         tl.fromTo(eraCaret, { opacity: 0 }, { opacity: 1, duration: 0.3, immediateRender: false }, t0 - 0.2);
-        const step = Math.max(0.12, (tU1 - t0 - 0.25) / eraLetters.length);
+        /* Floor low enough that the word always fits the (now 2x faster)
+           underline window -- 0.12 was authored for the wide window and
+           would push the last letters past the caret's exit. */
+        const step = Math.max(0.05, (tU1 - t0 - 0.25) / eraLetters.length);
         eraLetters.forEach((ch, i) => {
           tl.fromTo(ch, { opacity: 0 }, { opacity: 1, duration: 0.16, immediateRender: false }, t0 + 0.1 + i * step);
         });
