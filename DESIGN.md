@@ -84,6 +84,13 @@ storytelling, feedback, or state change. "It looked cool" is not an answer — d
 - **Physics is simulated, not faked.** Where an object should feel like an object (the bell on
   its thread), run a real damped-oscillator integration on `gsap.ticker` with named, commented
   constants — not a keyframed swing.
+- **Scroll endpoints that mean "when that scene arrives" are stated by reference, not
+  arithmetic.** `end: "top -85%"` is a guess about the layout between two sections; the layout
+  changed by ~140px and the guess silently missed, so scene 4's pin engaged while the bridge
+  wire was still 4% from done and the hand-off tore. `endTrigger: "#scene-agents", end: "top
+  top"` states the intent itself — the timeline ends at the moment the next scene pins,
+  whatever the page between them does. Any scrub whose finale must coincide with another
+  element's arrival gets an `endTrigger` on that element, never a tuned offset.
 
 ### `prefers-reduced-motion`
 
