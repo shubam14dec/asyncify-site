@@ -123,7 +123,7 @@ const PIN_HEIGHTS = 1.5; // rescaled with TL_END 100 -> 62 to keep ~0.022vh/unit
 const SCRUB = 0.55;
 
 /** The timeline's length in units. Everything below is a position on it. */
-const TL_END = 62; // press ends ~58.4; a short beat, then the pin releases into the finale (user call)
+const TL_END = 67; // press ends ~58.4; the tail is real scroll now -- with scrub smoothing, a 3.6-unit tail released the pin mid-press (user catch)
 
 /* ── the table's entrance ──────────────────────────────────────────────────
    One stroke: down, level out, and round the tabletop counter-clockwise. The
@@ -1201,7 +1201,7 @@ export function createProofScene(): ProofScene {
       {
         opacity: 1,
         ease: "none",
-        scrollTrigger: { trigger: pin, start: "top 98%", end: "top 72%", scrub: true },
+        scrollTrigger: { trigger: pin, start: "top 80%", end: "top 55%", scrub: true },
       },
     );
 
@@ -1216,7 +1216,11 @@ export function createProofScene(): ProofScene {
       const app = gsap.timeline({
         defaults: { ease: "none" },
         onUpdate: renderEdge,
-        scrollTrigger: { trigger: pin, start: "top 96%", end: "top top", scrub: true },
+        /* Starts at 82%, not 96% (user catch: with the inter-scene breath the
+           trace was drawing while scene 4's last frame still held the screen
+           -- two scenes talking at once). By 82% the previous scene has fully
+           left. */
+        scrollTrigger: { trigger: pin, start: "top 82%", end: "top top", scrub: true },
       });
       app.fromTo(edgeState, { p: 0 }, { p: 100, duration: 8, immediateRender: false }, 0);
       app.fromTo(
