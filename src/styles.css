@@ -2589,9 +2589,10 @@ html {
 #scene-proof {
   position: relative;
   display: block;
-  /* Top padding retired: the pin owns its own frame now. Bottom padding stays
-     for the finale's run-out. */
-  padding: 0 0 clamp(72px, 11vh, 128px);
+  /* Top padding is the breath between scene 4's release and this scene's
+     arrival (user call): the agents scene finishes, the page rests, and THEN
+     the proof begins. Bottom padding stays for the finale's run-out. */
+  padding: clamp(160px, 28vh, 300px) 0 clamp(72px, 11vh, 128px);
 }
 
 /* The pinned frame (user call: scene 5 joined its pinned siblings). One
