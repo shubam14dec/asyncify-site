@@ -2631,8 +2631,11 @@ export function createAgentsScene(): AgentsScene {
      (#agt-tkt-paper is inside the scrub's feed group but the scrub only
      moves the group). */
   function wireTicket(): void {
-    const fadeInOnce = (el: Element): void => {
-      gsap.to(el, { opacity: 1, duration: 0.16, ease: "power1.out" });
+    /* The fibres draw in BEHIND the tear front, left to right, in the same
+       sweep the perforation gives -- not a fade, a propagation. */
+    const tearFibersIn = (): void => {
+      gsap.set(tktFibers, { opacity: 1, drawSVG: "0% 0%" });
+      gsap.to(tktFibers, { drawSVG: "0% 100%", duration: 0.3, ease: "power1.in" });
     };
     let gliding: gsap.core.Tween | null = null;
     const killGlide = (): void => {
@@ -2676,23 +2679,34 @@ export function createAgentsScene(): AgentsScene {
       fall.appendChild(tktTilt.cloneNode(true));
       doc.body.appendChild(fall);
       gsap.set(tktPaper, { opacity: 0 });
-      fadeInOnce(tktFibers);
+      tearFibersIn();
 
       const stub = gsap.timeline({ onComplete: () => fall.remove() });
-      /* Peel about the attached corner (the right perforation punch, at
-         authored (1044,559) -- stated as the transform origin of the clone's
-         own box). */
-      stub.to(fall, { rotation: 9, duration: 0.18, ease: "power1.in", transformOrigin: "86% 12%" });
-      /* Release: paper falls the way paper falls -- accelerating but
-         swaying, tumbling further as it goes, gone before it lands. */
-      stub.to(fall, { y: `+=${Math.round(window.innerHeight * 0.62)}`, duration: 1.05, ease: "power1.in" }, 0.18);
-      stub.to(fall, { x: "-=26", duration: 0.5, ease: "sine.inOut" }, 0.18);
-      stub.to(fall, { x: "+=44", duration: 0.55, ease: "sine.inOut" }, 0.68);
-      stub.to(fall, { rotation: -24, duration: 1.05, ease: "power1.in" }, 0.18);
-      stub.to(fall, { opacity: 0, duration: 0.4, ease: "power1.in" }, 0.75);
+      /* THE TEAR PROPAGATES (user call: it starts at one end and RUNS to the
+         other, and only then does the paper fall). Three synchronized reads
+         of one event, all over the same 0.3s window:
+           - the clone's own perforation dashes ERASE left-to-right -- the
+             tear front travelling along the line;
+           - the fibres draw in behind it at the mouth (tearFibersIn above);
+           - the stub's peel angle GROWS as its attachment shrinks, hinged on
+             the right punch -- the last corner still holding -- with a
+             breath of skew so the freed left edge sags the way paper does. */
+      const clonePerf = fall.querySelector(".agt-tkt-perf");
+      if (clonePerf) {
+        stub.fromTo(clonePerf, { drawSVG: "0% 100%" }, { drawSVG: "100% 100%", duration: 0.3, ease: "power1.in" }, 0);
+      }
+      stub.to(fall, { rotation: 10, skewY: 2, duration: 0.3, ease: "power1.in", transformOrigin: "86% 12%" }, 0);
+      /* RELEASE -- the last corner gives: paper falls the way paper falls,
+         accelerating but swaying, tumbling further as it goes, gone before
+         it lands. */
+      stub.to(fall, { y: `+=${Math.round(window.innerHeight * 0.62)}`, duration: 1.05, ease: "power1.in" }, 0.3);
+      stub.to(fall, { x: "-=26", skewY: 0, duration: 0.5, ease: "sine.inOut" }, 0.3);
+      stub.to(fall, { x: "+=44", duration: 0.55, ease: "sine.inOut" }, 0.8);
+      stub.to(fall, { rotation: -24, duration: 1.05, ease: "power1.in" }, 0.3);
+      stub.to(fall, { opacity: 0, duration: 0.4, ease: "power1.in" }, 0.87);
 
       /* The dispenser serves the next number once the stub is clearly gone. */
-      const next = gsap.timeline({ delay: 1.0 });
+      const next = gsap.timeline({ delay: 1.15 });
       next.set(tktPaper, { y: -84, rotation: 0 });
       next.to(tktPaper, { opacity: 1, duration: 0.01 });
       next.to(tktFibers, { opacity: 0, duration: 0.3 }, 0.1);
@@ -2712,7 +2726,7 @@ export function createAgentsScene(): AgentsScene {
           scrollTo: { y: target, autoKill: false },
           duration: 1.3,
           ease: "power2.inOut",
-          delay: 0.18,
+          delay: 0.3, // the glide leaves WITH the release, after the tear has run its line
           onComplete: () => {
             gliding = null;
           },
