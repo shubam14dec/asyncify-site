@@ -2482,6 +2482,14 @@ html {
   stroke-dasharray: 3 3.5;
 }
 
+.agt-tkt-fibers {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  opacity: 0;
+}
+
 .agt-tkt-punch {
   fill: var(--canvas);
   stroke: var(--hairline-strong);

@@ -953,6 +953,8 @@ export function createAgentsScene(): AgentsScene {
   const tktJaw = q<SVGPathElement>(svg, ".agt-tkt-jaw");
   const tktFeed = q<SVGGElement>(svg, "#agt-tkt-feed");
   const tktPaper = q<SVGGElement>(svg, "#agt-tkt-paper");
+  const tktTilt = q<SVGGElement>(svg, ".agt-tkt-tilt");
+  const tktFibers = q<SVGPathElement>(svg, "#agt-tkt-fibers");
 
   const glass = q<SVGGElement>(svg, "#agt-glass");
   const caps = [1, 2].map((i) => {
@@ -2629,6 +2631,9 @@ export function createAgentsScene(): AgentsScene {
      (#agt-tkt-paper is inside the scrub's feed group but the scrub only
      moves the group). */
   function wireTicket(): void {
+    const fadeInOnce = (el: Element): void => {
+      gsap.to(el, { opacity: 1, duration: 0.16, ease: "power1.out" });
+    };
     let gliding: gsap.core.Tween | null = null;
     const killGlide = (): void => {
       if (gliding) {
@@ -2646,16 +2651,56 @@ export function createAgentsScene(): AgentsScene {
       gsap.to(tktPaper, { y: 0, duration: 0.3, ease: "power2.out" });
     });
     tktPaper.addEventListener("click", () => {
-      const taken = gsap.timeline();
-      /* The tear: off its perforation, rotating the way pulled paper does,
-         gone -- then the next Nº 05 feeds out (the scene's number is the
-         scene's number). */
-      taken.to(tktPaper, { y: 34, rotation: -7, opacity: 0, duration: 0.38, ease: "power2.in", transformOrigin: "50% 0%" });
-      taken.set(tktPaper, { y: -84, rotation: 0 });
-      taken.to(tktPaper, { opacity: 1, duration: 0.01 });
-      taken.to(tktPaper, { y: 0, duration: 0.55, ease: "power2.out" }, "+=0.35");
-      /* The glide: computed at click time (pin spacers move page geometry),
-         landing on the proof scene's pinned frame. */
+      /* THE TEAR, FOR REAL (user catch: the first draft animated the fall
+         INSIDE the dispenser's clip aperture, so the mask that makes the
+         feed-out work swallowed the tear whole -- invisible by
+         construction). The torn stub therefore ESCAPES the clip: the tilted
+         paper is cloned into a tiny position:fixed svg overlaid exactly on
+         its screen box (same authored coordinates via a matching viewBox, so
+         the clone is pixel-identical), the original vanishes in the same
+         frame, and the clone does what torn paper does:
+           1. PEELS -- the left corner lets go first, the stub pivoting
+              ~14 deg about the still-attached RIGHT perforation corner;
+           2. RELEASES into a viewport-space free fall -- tumbling, drifting
+              sideways like paper (not plumbing straight down), while the
+              glide scrolls the page underneath it, and it fades out
+              mid-flight on the way to scene 5;
+           3. leaves FIBRES at the mouth -- the irregular fringe a real
+              perforation leaves -- which vanish when the dispenser feeds
+              the next ticket. */
+      const box = tktTilt.getBoundingClientRect();
+      const fall = doc.createElementNS("http://www.w3.org/2000/svg", "svg");
+      fall.setAttribute("viewBox", "920 544 144 96");
+      fall.setAttribute("aria-hidden", "true");
+      fall.style.cssText = `position:fixed;left:${box.left - 8}px;top:${box.top - 8}px;width:${box.width + 16}px;height:${box.height + 16}px;overflow:visible;pointer-events:none;z-index:60;`;
+      fall.appendChild(tktTilt.cloneNode(true));
+      doc.body.appendChild(fall);
+      gsap.set(tktPaper, { opacity: 0 });
+      fadeInOnce(tktFibers);
+
+      const stub = gsap.timeline({ onComplete: () => fall.remove() });
+      /* Peel about the attached corner (the right perforation punch, at
+         authored (1044,559) -- stated as the transform origin of the clone's
+         own box). */
+      stub.to(fall, { rotation: 9, duration: 0.18, ease: "power1.in", transformOrigin: "86% 12%" });
+      /* Release: paper falls the way paper falls -- accelerating but
+         swaying, tumbling further as it goes, gone before it lands. */
+      stub.to(fall, { y: `+=${Math.round(window.innerHeight * 0.62)}`, duration: 1.05, ease: "power1.in" }, 0.18);
+      stub.to(fall, { x: "-=26", duration: 0.5, ease: "sine.inOut" }, 0.18);
+      stub.to(fall, { x: "+=44", duration: 0.55, ease: "sine.inOut" }, 0.68);
+      stub.to(fall, { rotation: -24, duration: 1.05, ease: "power1.in" }, 0.18);
+      stub.to(fall, { opacity: 0, duration: 0.4, ease: "power1.in" }, 0.75);
+
+      /* The dispenser serves the next number once the stub is clearly gone. */
+      const next = gsap.timeline({ delay: 1.0 });
+      next.set(tktPaper, { y: -84, rotation: 0 });
+      next.to(tktPaper, { opacity: 1, duration: 0.01 });
+      next.to(tktFibers, { opacity: 0, duration: 0.3 }, 0.1);
+      next.to(tktPaper, { y: 0, duration: 0.55, ease: "power2.out" }, 0.15);
+
+      /* The glide starts AT the release, so the fall and the travel are one
+         event: the stub tumbles over a page already moving toward the place
+         it pointed at. Computed at click time (pin spacers move geometry). */
       const proofPin = doc.querySelector<HTMLElement>("#prf-pin");
       if (proofPin) {
         const target = window.scrollY + proofPin.getBoundingClientRect().top;
@@ -2663,11 +2708,11 @@ export function createAgentsScene(): AgentsScene {
           /* autoKill OFF: the pinned scenes' scrub nudges scrollTop every
              tick, which autoKill reads as "the user scrolled" and kills the
              glide on its first frame (caught live). We manage the kill
-             ourselves -- the wheel/touch listeners above -- which is the
-             only intervention that should win. */
+             ourselves -- the wheel/touch listeners above. */
           scrollTo: { y: target, autoKill: false },
-          duration: 1.25,
+          duration: 1.3,
           ease: "power2.inOut",
+          delay: 0.18,
           onComplete: () => {
             gliding = null;
           },
