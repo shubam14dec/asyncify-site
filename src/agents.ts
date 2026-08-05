@@ -2755,15 +2755,20 @@ export function createAgentsScene(): AgentsScene {
          freed sliver droops; the attached remainder stays glued at the
          mouth, which is what tearing IS. NEGATIVE rotation throughout
          (screen-space positive would sweep the sheet UP -- earlier catch). */
-      gsap.set(cloneRoot, { smoothOrigin: true });
-      /* svgOrigin, not percentage origins: the appended cover-rect widened the
-         group bbox, so "86%" no longer meant the punch (user catch: hinge off
-         the corner). These are the DRAWN points -- each front's position on
-         the perforation, the last one the right punch itself. */
-      stub.to(cloneRoot, { rotation: -7, duration: 0.3, ease: "power2.out", svgOrigin: "958 559" }, 0);
-      stub.to(cloneRoot, { rotation: -20, duration: 0.35, ease: roughTear, svgOrigin: "981 559" }, 0.3);
-      stub.to(cloneRoot, { rotation: -44, duration: 0.35, ease: roughTear, svgOrigin: "1006 559" }, 0.65);
-      stub.to(cloneRoot, { rotation: -78, duration: TEAR_RUN - 1.0, ease: roughTear, svgOrigin: "1044 559" }, 1.0);
+
+      /* ONE FIXED HINGE, THE RIGHT PUNCH, FOR THE WHOLE TEAR (user catch,
+         final form: the travelling-pivot draft slid the sheet leftward --
+         every pivot hand-off moved the held corner, which a held corner
+         must never do). The physics both complaints share: a rigid sheet
+         whose perforation mostly still holds CANNOT rotate more than a few
+         degrees -- so proportionality lives in the ANGLE SCHEDULE, not in
+         the pivot: near-flat while the front crosses the first half, a
+         lean as it passes three-quarters, and the full gravity sweep only
+         when the last stretch gives. The corner never moves. */
+      stub.to(cloneRoot, { rotation: -2, duration: 0.3, ease: "power1.out", svgOrigin: "1044 559" }, 0);
+      stub.to(cloneRoot, { rotation: -6, duration: 0.35, ease: roughTear, svgOrigin: "1044 559" }, 0.3);
+      stub.to(cloneRoot, { rotation: -15, duration: 0.35, ease: roughTear, svgOrigin: "1044 559" }, 0.65);
+      stub.to(cloneRoot, { rotation: -78, duration: TEAR_RUN - 1.0, ease: "power2.in", svgOrigin: "1044 559" }, 1.0);
       /* And the sheet SETTLES a few px as fibres let go -- weight, not just
          angle. */
       stub.to(fall, { y: "+=5", duration: TEAR_RUN, ease: "power1.in" }, 0);
