@@ -2454,6 +2454,23 @@ html {
    inner frame is the PRINTED rule on the paper -- a step fainter than the
    die-cut edge, which is how real tickets read. The punches are canvas-fill:
    holes, not dots. */
+/* The hand-drawn annotation: the display italic as handwriting, and a
+   wandering hairline that loops before it points. */
+.agt-clickme {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-style: italic;
+  font-size: 17px;
+  fill: var(--text-dim);
+}
+
+.agt-clickme-arrow {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+}
+
 .agt-tkt-slot,
 .agt-tkt-jaw {
   fill: none;

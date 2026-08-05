@@ -949,6 +949,9 @@ export function createAgentsScene(): AgentsScene {
   const evt = q<SVGTextElement>(svg, "#agt-evt");
   const channelsG = q<SVGGElement>(svg, "#agt-channels");
 
+  const clickMe = q<SVGTextElement>(svg, "#agt-clickme");
+  const clickArrow = q<SVGPathElement>(svg, "#agt-clickme-arrow");
+  const clickHead = q<SVGPathElement>(svg, "#agt-clickme-head");
   const tktSlot = q<SVGPathElement>(svg, ".agt-tkt-slot");
   const tktJaw = q<SVGPathElement>(svg, ".agt-tkt-jaw");
   const tktFeed = q<SVGGElement>(svg, "#agt-tkt-feed");
@@ -1667,6 +1670,8 @@ export function createAgentsScene(): AgentsScene {
     yesBox,
     tktSlot,
     tktJaw,
+    clickArrow,
+    clickHead,
     ...rows.map((r) => r.tick),
   ];
   /** The boxes whose fill comes up behind their own outline, so each is a line
@@ -1706,6 +1711,7 @@ export function createAgentsScene(): AgentsScene {
      ════════════════════════════════════════════════════════════════════════ */
 
   function restState(): void {
+    gsap.set(clickMe, { opacity: 0 });
     /* The ticket parked fully behind the dispenser's mouth: the feed group
        carries the whole paper above the static clip aperture. 84 = the
        paper's height (78) plus the tilt's reach. */
@@ -2583,9 +2589,15 @@ export function createAgentsScene(): AgentsScene {
        static aperture -- paper advancing, the scene 5 printers' own physics,
        previewed here as a single stub. power2.out: dispensers push hard and
        settle. */
-    draw(tktSlot, B4_DOOR_RULE - 0.6, 0.7);
-    draw(tktJaw, B4_DOOR_RULE - 0.1, 0.4);
-    ft(tktFeed, { y: -84 }, { y: 0, duration: 2.2, ease: "power2.out" }, B4_DOOR_TEXT - 0.6);
+    draw(tktSlot, B4_DOOR_RULE - 1.6, 0.7);
+    draw(tktJaw, B4_DOOR_RULE - 1.1, 0.4);
+    ft(tktFeed, { y: -84 }, { y: 0, duration: 2.0, ease: "power2.out" }, B4_DOOR_TEXT - 1.8);
+    /* THE ANNOTATION: the word first, then the arrow sets off, loops its one
+       circle, and lands on the ticket -- the whole doodle drawn by the
+       reader's own scroll after the dispense. */
+    fadeIn(clickMe, 76.0, 0.6);
+    draw(clickArrow, 76.2, 1.5);
+    draw(clickHead, 77.65, 0.25);
 
     /* AND THE HELD ENDING, AS A LENGTH.
        A gsap timeline is exactly as long as its last tween, and ScrollTrigger
