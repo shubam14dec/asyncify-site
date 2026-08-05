@@ -2482,6 +2482,15 @@ html {
   stroke-dasharray: 3 3.5;
 }
 
+.agt-tkt-remnant {
+  fill: var(--surface);
+  stroke: var(--hairline);
+  stroke-width: 0.75;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: 936px 558px;
+}
+
 .agt-tkt-fibers {
   fill: none;
   stroke: var(--hairline-strong);

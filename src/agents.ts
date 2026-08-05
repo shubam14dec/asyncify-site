@@ -955,6 +955,7 @@ export function createAgentsScene(): AgentsScene {
   const tktPaper = q<SVGGElement>(svg, "#agt-tkt-paper");
   const tktTilt = q<SVGGElement>(svg, ".agt-tkt-tilt");
   const tktFibers = q<SVGPathElement>(svg, "#agt-tkt-fibers");
+  const tktRemnant = q<SVGPathElement>(svg, "#agt-tkt-remnant");
 
   const glass = q<SVGGElement>(svg, "#agt-glass");
   const caps = [1, 2].map((i) => {
@@ -2634,12 +2635,15 @@ export function createAgentsScene(): AgentsScene {
     /* The fibres draw in BEHIND the tear front, left to right, in the same
        sweep the perforation gives -- not a fade, a propagation. */
     const tearFibersIn = (): void => {
+      /* The separation's stationary half: the remnant sliver and its fibre
+         edge are revealed left-to-right BEHIND the tear front -- the strip
+         the machine keeps as the sheet leaves. */
+      const roughRun =
+        "rough({ strength: 1.4, points: 22, taper: 'none', randomize: false, template: 'power1.inOut' })";
       gsap.set(tktFibers, { opacity: 1, drawSVG: "0% 0%" });
-      gsap.to(tktFibers, {
-        drawSVG: "0% 100%",
-        duration: 1.45,
-        ease: "rough({ strength: 1.4, points: 22, taper: 'none', randomize: false, template: 'power2.in' })",
-      });
+      gsap.set(tktRemnant, { opacity: 1, scaleX: 0 });
+      gsap.to(tktFibers, { drawSVG: "0% 100%", duration: 1.45, ease: roughRun });
+      gsap.to(tktRemnant, { scaleX: 1, duration: 1.45, ease: roughRun });
     };
     let gliding: gsap.core.Tween | null = null;
     const killGlide = (): void => {
@@ -2703,15 +2707,26 @@ export function createAgentsScene(): AgentsScene {
 
          1.45s for the run: a real ticket torn deliberately, not snatched. */
       const TEAR_RUN = 1.45;
-      const roughTear = "rough({ strength: 1.4, points: 22, taper: 'none', randomize: false, template: 'power2.in' })";
+      /* power1.inOut template, not power2.in: the gravity curve's first
+         half-second was nearly MOTIONLESS, which read as nothing happening
+         (user catch: "doesn't feel like tearing"). A tear must be visible
+         from its first instant. */
+      const roughTear =
+        "rough({ strength: 1.4, points: 22, taper: 'none', randomize: false, template: 'power1.inOut' })";
       const clonePerf = fall.querySelector(".agt-tkt-perf");
       if (clonePerf) {
         stub.fromTo(clonePerf, { drawSVG: "0% 100%" }, { drawSVG: "100% 100%", duration: TEAR_RUN, ease: roughTear }, 0);
       }
-      /* NEGATIVE rotation: screen-space positive is clockwise, which with a
-         right-corner hinge sweeps the sheet UP -- anti-gravity (user catch).
-         Counter-clockwise is what hanging looks like from this hinge. */
-      stub.to(fall, { rotation: -78, duration: TEAR_RUN, ease: roughTear, transformOrigin: "86% 12%" }, 0);
+      /* THE INITIAL RIP: the first fibres snap fast -- a quick visible give
+         to -11 deg in the first quarter second -- and only then does the slow
+         gravity-hang take over. Real tears announce themselves. NEGATIVE
+         rotation throughout: screen-space positive is clockwise, which from
+         a right hinge sweeps the sheet UP -- anti-gravity (earlier catch). */
+      stub.to(fall, { rotation: -11, duration: 0.22, ease: "power2.out", transformOrigin: "86% 12%" }, 0);
+      stub.to(fall, { rotation: -78, duration: TEAR_RUN - 0.22, ease: roughTear, transformOrigin: "86% 12%" }, 0.22);
+      /* And the sheet SETTLES a few px as fibres let go -- weight, not just
+         angle. */
+      stub.to(fall, { y: "+=7", duration: TEAR_RUN, ease: roughTear }, 0);
       stub.to(fall, { skewY: -2, duration: TEAR_RUN * 0.7, ease: "power1.in" }, 0);
 
       /* THE DANGLE. Fully torn but for the corner: the sheet hangs and
@@ -2735,7 +2750,7 @@ export function createAgentsScene(): AgentsScene {
       const next = gsap.timeline({ delay: 3.0 });
       next.set(tktPaper, { y: -84, rotation: 0 });
       next.to(tktPaper, { opacity: 1, duration: 0.01 });
-      next.to(tktFibers, { opacity: 0, duration: 0.3 }, 0.1);
+      next.to([tktFibers, tktRemnant], { opacity: 0, duration: 0.3 }, 0.1);
       next.to(tktPaper, { y: 0, duration: 0.55, ease: "power2.out" }, 0.15);
 
       /* The glide starts AT the release, so the fall and the travel are one
