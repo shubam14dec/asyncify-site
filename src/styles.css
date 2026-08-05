@@ -2622,15 +2622,24 @@ html {
      clear the seal's ink (~139px above the table) as well as the entrance
      wire's 104px runway; proof.ts asserts both against MASTHEAD_GAP_MIN, which
      is this clamp's floor. */
-  /* Was clamp(176,24vh,240) for the unpinned flow; inside the pin's fixed
-     frame it only needs to clear the seal's ink and the wire's runway
-     (asserted against MASTHEAD_GAP_MIN, still this clamp's floor). */
-  margin: 0 auto clamp(150px, 18vh, 176px);
+  /* Nudged down (top margin) and toward the table (bottom margin trimmed) --
+     user call. The floor still clears the wire's runway (MASTHEAD_GAP_MIN). */
+  margin: clamp(40px, 7vh, 80px) auto clamp(112px, 14vh, 144px);
 }
 
 .prf-masthead .agt-head {
   font-size: clamp(28px, 3.4vw, 40px);
   max-width: 20ch;
+}
+
+/* A step off the shared left edge (user call: "a little left") -- transform,
+   not margin, so the centred width math above stays untouched; gated to wide
+   viewports where the page has margin to give. GSAP never touches this
+   element, so the transform is safe to own in CSS. */
+@media (min-width: 1200px) {
+  .prf-masthead {
+    transform: translateX(-44px);
+  }
 }
 
 /* Rendered at 160 against a 168 viewBox, so the authored 1.5/1 strokes land at
