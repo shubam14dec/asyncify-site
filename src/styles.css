@@ -2459,8 +2459,8 @@ html {
 .agt-clickme {
   font-family: "Instrument Serif", Georgia, serif;
   font-style: italic;
-  /* Whisper scale (user call: "just visible"). */
-  font-size: 13px;
+  /* Whisper-plus scale (user-tuned: 17 too loud, 13 too shy). */
+  font-size: 15px;
   fill: var(--text-faint);
 }
 
