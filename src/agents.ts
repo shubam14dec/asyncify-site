@@ -1971,6 +1971,10 @@ export function createAgentsScene(): AgentsScene {
 
     let fractions: number[] = [];
     let totalLen = 0;
+    /* Arc-length fraction where the rider crosses the second sentence's
+       latitude -- found by bisection on the measured path (the grand sweep
+       is one curve; there is no seam at that latitude to read it from). */
+    let fL2 = 0;
     /* The selection's geometry, captured with the path's: the base band's box,
        the serif word's own (taller) band, and the underline's x-range that
        maps the dot's position onto both. */
@@ -2030,11 +2034,21 @@ export function createAgentsScene(): AgentsScene {
          second control point sits at the underline's own height, so the
          curve arrives horizontal -- already flowing into the rule it is
          about to draw. One sweep, no corner. */
+      /* The exit off the underline is ONE GRAND SWEEP, the dive's mirror
+         (user call: the entry's long tangent glide is the good-looking one;
+         the old exit was a tight two-part hook -- horizontal, forced
+         vertical within ~70px, then a flat rail). Same recipe as the dive:
+         the first control extends the incoming tangent (horizontal, off the
+         underline), the second sits on the target line (the rail at sideX)
+         well before the endpoint, so the curve straightens to vertical over
+         a long run and arrives at the third sentence's latitude already
+         flowing into the drop. */
+      const c1x = ux1 + Math.min(170, (sideX - ux1) * 0.6);
+      const c2y = uy + (l3y - uy) * 0.55;
       const segs = [
         `M ${entryX.toFixed(1)} ${entryY.toFixed(1)} C ${entryX.toFixed(1)} ${(entryY + dive).toFixed(1)} ${(ux0 - 170).toFixed(1)} ${uy.toFixed(1)} ${ux0.toFixed(1)} ${uy.toFixed(1)}`,
         `L ${ux1.toFixed(1)} ${uy.toFixed(1)}`,
-        `C ${(ux1 + 120).toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${(l2y - 70).toFixed(1)} ${sideX.toFixed(1)} ${l2y.toFixed(1)}`,
-        `C ${sideX.toFixed(1)} ${(l2y + 40).toFixed(1)} ${sideX.toFixed(1)} ${(l3y - 40).toFixed(1)} ${sideX.toFixed(1)} ${l3y.toFixed(1)}`,
+        `C ${c1x.toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${c2y.toFixed(1)} ${sideX.toFixed(1)} ${l3y.toFixed(1)}`,
         `C ${sideX.toFixed(1)} ${(l3y + 120).toFixed(1)} ${exitX.toFixed(1)} ${(exitY - 160).toFixed(1)} ${exitX.toFixed(1)} ${exitY.toFixed(1)}`,
       ];
       bwire.setAttribute("d", segs.join(" "));
@@ -2060,6 +2074,19 @@ export function createAgentsScene(): AgentsScene {
       }
       totalLen = lens[lens.length - 1]!;
       fractions = lens.map((L) => L / totalLen);
+      /* The second sentence's latitude, bisected on the sweep (y is
+         monotonic there: both controls sit between the underline and the
+         endpoint). 24 halvings of a few-hundred-px span is sub-pixel. */
+      if (lens.length === 4) {
+        let lo = lens[1]!;
+        let hi = lens[2]!;
+        for (let k = 0; k < 24; k++) {
+          const mid = (lo + hi) / 2;
+          if (bwire.getPointAtLength(mid).y < l2y) lo = mid;
+          else hi = mid;
+        }
+        fL2 = lo / totalLen;
+      }
     }
 
     /* The traveller's renderer: a pure function of one number, so the reverse
@@ -2121,8 +2148,8 @@ export function createAgentsScene(): AgentsScene {
       );
     });
 
-    if (bwire && bdot && totalLen && fractions.length === 5) {
-      const [f1, f2, f3] = fractions;
+    if (bwire && bdot && totalLen && fractions.length === 4) {
+      const [f1, f2] = fractions;
       /* The journey, seam by seam. The underline segment (f1..f2) is run at
          ease "none" so the inking reads at the reader's own scroll speed;
          the exit accelerates, because scene 4 is pulling. */
@@ -2186,7 +2213,7 @@ export function createAgentsScene(): AgentsScene {
       }
       /* The reply passes the sentence about itself, and the sentence notices:
          a brightness swell as the dot crosses its latitude, then it settles. */
-      const tL2 = tU1 + (DROP * (f3! - f2!)) / (1 - f2!);
+      const tL2 = tU1 + (DROP * (fL2 - f2!)) / (1 - f2!);
       tl.fromTo(bridgeLines[1]!, { color: "#a1a1a1" }, { color: "#ededed", duration: 0.35, immediateRender: false }, tL2 - 0.15);
       tl.fromTo(bridgeLines[1]!, { color: "#ededed" }, { color: "#a1a1a1", duration: 0.6, immediateRender: false }, tL2 + 0.4);
     } else if (eraCaret && eraLetters.length) {
