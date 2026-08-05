@@ -18,7 +18,9 @@ import "@fontsource/geist-mono/latin-500.css";
 import "./styles.css";
 
 import { gsap } from "gsap";
+import { Draggable } from "gsap/Draggable";
 import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
+import { InertiaPlugin } from "gsap/InertiaPlugin";
 import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
@@ -27,11 +29,27 @@ import { createAgentsScene } from "./agents";
 import { createBellScene } from "./bell";
 import { createEngineScene } from "./engine";
 import { createHangingHeadline } from "./headline";
+import { createProofScene } from "./proof";
 import { createTurnScene } from "./turn";
 
 /* Individual imports, never `gsap/all` — that pulls every plugin into the
-   bundle. Budget is in DESIGN.md §6. */
-gsap.registerPlugin(DrawSVGPlugin, MotionPathPlugin, ScrollTrigger, SplitText);
+   bundle. Budget is in DESIGN.md §6.
+
+   Draggable and InertiaPlugin are the last two on the list and the only two
+   the page pays for a single scene: scene 5's torn-off receipts are real paper
+   you can pick up and throw. They cost about 15KB gzipped between them, which
+   the budget has room for, and the alternative — hand-rolled pointer physics
+   for a throw with bounds and friction — would cost more than that in code
+   nobody has debugged. InertiaPlugin is registered rather than imported by
+   proof.ts because Draggable reaches for it by name (`inertia: true`). */
+gsap.registerPlugin(
+  Draggable,
+  DrawSVGPlugin,
+  InertiaPlugin,
+  MotionPathPlugin,
+  ScrollTrigger,
+  SplitText,
+);
 
 /* GSAP defaults, so nothing in this codebase can accidentally ship a linear
    0.5s tween. The house curve is expo-out. */
@@ -74,6 +92,14 @@ const turn = createTurnScene();
    global and re-measures these too. */
 const agents = createAgentsScene();
 
+/* Scene 5 is the only unpinned scene on the page, and the only one that owns
+   pointer physics as well as a scrub. Built last so its ScrollTriggers are
+   registered in document order behind the four pins above it; scene 2's
+   fonts-ready ScrollTrigger.refresh() is global and re-measures this one too,
+   which matters more here than anywhere else — the table's own height is what
+   the scrub's window is derived from. */
+const proof = createProofScene();
+
 /* The entrance runs once. Waiting for the first font frame avoids the
    headline re-flowing underneath a mid-flight SplitText. */
 function boot(): void {
@@ -105,5 +131,6 @@ if (import.meta.hot) {
     engine.destroy();
     turn.destroy();
     agents.destroy();
+    proof.destroy();
   });
 }

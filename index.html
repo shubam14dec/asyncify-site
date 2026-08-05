@@ -179,7 +179,7 @@
           </p>
           <div class="actions">
             <!-- Ghost only. The one green CTA on this site lives at the bottom
-                 of the page, in scene 5 (#scene-cta). See BRAND.md §2. -->
+                 of the page, in scene 5 (#scene-proof). See BRAND.md §2. -->
             <a class="btn-ghost" href="/docs">Get started</a>
             <a class="btn-text" href="https://github.com/" rel="noreferrer">
               GitHub <span class="arrow" aria-hidden="true">↗</span>
@@ -1993,8 +1993,389 @@
         <div class="agt-still" id="agt-still" hidden></div>
       </section>
 
-      <!-- Scene 5 lands in the next slice. Marker only. -->
-      <section id="scene-cta"></section>
+      <!-- ─────────────────────────────────────────────────────────────────
+           SCENE 5 — PROOF + CTA.  "Don't take our word. Take the receipts."
+           The last scene, and the only one that is NOT pinned: four scenes
+           have taken the scrollbar away and the page owes it back before it
+           asks for anything. Normal scroll, one scrub, about a screen and a
+           half.
+
+           THE TABLE IS A DRAWN LINE, NOT A FILLED CARD. The brief asked for a
+           --surface tabletop under --surface receipts; DESIGN §1 bans nested
+           cards outright, and two boxes at the same fill IS that ban's exact
+           case. So the tabletop keeps its 16px radius and its hairline and
+           gives up its fill: it is the line that says where the surface is,
+           and the receipts are the only raised objects in the frame. The
+           cover panels are --canvas for the same reason — the table's
+           interior is the canvas, so an unprinted slot reads as bare table.
+
+           THE ENTRANCE IS ONE STROKE. A hairline drops out of the section's
+           top (scene 4's story continuing downward), levels out, and runs
+           straight into the tabletop's own top edge, which then traces itself
+           counter-clockwise all the way round. Wire and border are ONE path
+           with one drawSVG — not two objects timed to look continuous. The
+           path is written by proof.ts from the measured table, because a
+           responsive box has no author-time coordinates.
+
+           THE RECEIPTS PRINT. Each is laid out at full size from the first
+           frame (nothing here ever reflows); an opaque --canvas cover sits
+           over it and slides DOWN on a transform, so the paper is revealed
+           top-first at exactly the reader's scroll speed. Scrolling up
+           un-prints it. The bright line riding the cover's top edge is the
+           print head. `overflow: hidden` on .prf-sheet is the printer's
+           APERTURE — a static hole in a machine, never animated, which is
+           what stops a finished cover from parking over the card below it.
+
+           As in scenes 2–4, the markup is the ANATOMY, authored in its
+           FINISHED state, and CSS paints it that way: covers already slid
+           away, ticks drawn, bars at full height. That is why mobile and
+           reduced-motion need no clones and no per-phase overrides at all —
+           the still state IS the stylesheet, and proof.ts's restState()
+           inverts it only when there is a scrub to run.
+           ───────────────────────────────────────────────────────────────── -->
+      <section id="scene-proof" aria-labelledby="prf-heading">
+        <h2 class="sr-only" id="prf-heading">
+          Proof: four receipts printed off the platform — an eval run replayed against the real
+          agent, a fully traced turn, a handoff to a human, and the token cost per turn — and then
+          the one button on this page.
+        </h2>
+
+        <!-- The masthead. Scene 4's rail anatomy exactly (.agt-kicker with its
+             two-tone number, .agt-head), moved onto the section's own left
+             margin because this scene has no rail to hang it on. It is the
+             only head on the page that owns a full page width rather than a
+             column, which is why the stylesheet takes it up into BRAND §3's
+             32–44px section-head band here and nowhere else. -->
+        <div class="prf-masthead">
+          <p class="agt-kicker"><span class="agt-kicker-num">05</span> · <span>proof</span></p>
+          <p class="agt-head">Don't take our word. Take the receipts.</p>
+        </div>
+
+        <div class="prf-table" id="prf-table">
+          <!-- No viewBox and no non-scaling-stroke, both deliberate: with the
+               svg laid out at 100% of its own box, one user unit IS one CSS
+               pixel, so drawSVG's percentages are exact and DESIGN §3's
+               screen-space dash trap cannot arise. The `d` is written by
+               proof.ts from the table's measured size and rewritten on
+               resize; the outline is rendered from a proxy number on every
+               scrub frame, so a path that changes underneath it is not a
+               problem the way a cached tween length would be. -->
+          <svg class="prf-surface" id="prf-surface" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+            <path class="prf-edge" id="prf-edge" d="M 0 0" />
+          </svg>
+
+          <div class="prf-grid">
+            <!-- ── receipt 1 · evals ───────────────────────────────────────
+                 STRINGS CHECKED in the platform repo, not invented:
+                   tool / pendingApproval / replyContains
+                       src/core/eval-runner.ts:41,47,44 — the three `expect`
+                       matchers this receipt uses, spelled exactly as the
+                       interface declares them (the evaluator's if-chain is at
+                       :207-242; docs/AGENT-TOOLS.md:604 calls them "Expect
+                       kinds"). There is no `kind` discriminator — they are
+                       optional fields on one Expect, which is why the receipt
+                       lists them as three separate assertions rather than as
+                       three of one type.
+                   attempts   src/core/eval-runner.ts:55 (Scenario input, zod
+                       min 1 max 10 at :69) and :473 (the result field). Eval
+                       RETRIES — a flaky scenario that passed on the second
+                       run says so on its own receipt.
+                 The scenario name, the tool names and the 312ms are story
+                 values: plausible, and marked as fiction in proof.ts. -->
+            <article class="prf-rcpt" id="prf-r1" data-rcpt="0">
+              <div class="prf-slot" aria-hidden="true"></div>
+              <div class="prf-sheet">
+                <div class="prf-paper">
+                  <p class="prf-kicker prf-line" data-row="0" data-ink="faint">evals · replayed, not mocked</p>
+                  <p class="prf-lead prf-line" data-row="1" data-ink="text">run: refund-scenarios · 3 of 3 passed</p>
+                  <div class="prf-rows">
+                    <div class="prf-row">
+                      <!-- A DRAWN tick, never a glyph. U+2713 is not in the
+                           self-hosted latin subset (the same trap scene 4's
+                           checklist and its quote-bar hit), so a typed ✓ here
+                           would render as the fallback font's checkmark in the
+                           middle of a Geist Mono line — or as nothing. -->
+                      <svg class="prf-mark" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path class="prf-mark-tick" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" /></svg>
+                      <span class="prf-k prf-line" data-row="2" data-ink="dim">tool: orders_lookup</span>
+                      <span class="prf-v prf-line" data-row="2" data-ink="faint">312ms</span>
+                    </div>
+                    <div class="prf-row">
+                      <svg class="prf-mark" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path class="prf-mark-tick" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" /></svg>
+                      <span class="prf-k prf-line" data-row="3" data-ink="dim">pendingApproval: refund_reissue</span>
+                      <span class="prf-v"></span>
+                    </div>
+                    <div class="prf-row">
+                      <svg class="prf-mark" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path class="prf-mark-tick" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" /></svg>
+                      <span class="prf-k prf-line" data-row="4" data-ink="dim">replyContains: "2 days"</span>
+                      <span class="prf-v prf-line" data-row="4" data-ink="faint">attempts: 2</span>
+                    </div>
+                  </div>
+                  <!-- The corner tick. Scene 4's checklist vocabulary exactly:
+                       a 13u box and the same two-segment checkmark, drawn from
+                       the same offsets. It rests at drawSVG "0% 0%" during the
+                       scrub, so butt caps — a round cap on a zero-length dash
+                       paints a filled dot, and a dot sitting in the box before
+                       the receipt has torn off would say the opposite of what
+                       the box means (DESIGN §3). -->
+                  <svg class="prf-tick" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+                    <rect class="prf-tick-box" x="0.5" y="0.5" width="13" height="13" rx="2" />
+                    <path class="prf-tick-mark" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" />
+                  </svg>
+                  <!-- The perforation. The paper's bottom edge is dashed and
+                       square where the other three are solid and rounded,
+                       which is the whole reason the radius is 6/6/2/2: this is
+                       the edge it comes off the roll at. -->
+                  <div class="prf-perf" aria-hidden="true"></div>
+                </div>
+                <div class="prf-cover" aria-hidden="true"><div class="prf-printhead"></div></div>
+              </div>
+            </article>
+
+            <!-- ── receipt 2 · observability ───────────────────────────────
+                 THIS RECEIPT QUOTES THE DASHBOARD'S RENDERING, NOT ITS FIELD
+                 NAMES, and the difference is checked rather than assumed:
+                   `cached 1,847`  dashboard/src/pages/Conversations.tsx:325 —
+                       the turn inspector literally renders
+                       `· cached {e.cacheRead.toLocaleString()}`. The FIELD is
+                       `cacheRead` (src/core/managed-brain.ts:122); `cached` is
+                       the label. A receipt shows what the UI shows.
+                   durations  the trace's step field is `ms` and the turn total
+                       is `totalMs` (src/core/managed-brain.ts:122-128) — NOT
+                       `duration_ms`, which is a column on agent_tool_calls
+                       (src/db/schema.sql:701). Rendered as `89ms` / `3.2s`,
+                       which is what both of them mean on screen.
+                   `model call` / `tool:`  the trace's event discriminator is
+                       `t: 'model_call' | 'tool_call'` (managed-brain.ts:122-124),
+                       rendered in the inspector as these two rows.
+                 Token counts, turn number and the four durations are story
+                 values. The BARS are those durations to scale: the model call
+                 is 2.7s of a 3.2s turn, which is why one bar is the chart. -->
+            <article class="prf-rcpt" id="prf-r2" data-rcpt="1">
+              <div class="prf-slot" aria-hidden="true"></div>
+              <div class="prf-sheet">
+                <div class="prf-paper">
+                  <p class="prf-kicker prf-line" data-row="0" data-ink="faint">observability · every turn traced</p>
+                  <p class="prf-lead prf-line" data-row="1" data-ink="text">turn #14 · 3.2s</p>
+                  <div class="prf-rows">
+                    <!-- --o and --w are the span's offset and width as a
+                         percentage of the turn, so the waterfall is the
+                         durations to scale and not four decorative dashes. -->
+                    <div class="prf-wf" style="--o: 0; --w: 84.4">
+                      <span class="prf-track" aria-hidden="true"><i class="prf-span"></i></span>
+                      <span class="prf-k prf-line" data-row="2" data-ink="dim">model call</span>
+                      <span class="prf-v prf-line" data-row="2" data-ink="faint">claude · 1,204 tokens · cached 1,847</span>
+                    </div>
+                    <div class="prf-wf prf-wf-in" style="--o: 84.4; --w: 2.8">
+                      <span class="prf-track" aria-hidden="true"><i class="prf-span"></i></span>
+                      <span class="prf-k prf-line" data-row="3" data-ink="dim">tool: search_history</span>
+                      <span class="prf-v prf-line" data-row="3" data-ink="faint">89ms</span>
+                    </div>
+                    <div class="prf-wf prf-wf-in" style="--o: 87.2; --w: 9.8">
+                      <span class="prf-track" aria-hidden="true"><i class="prf-span"></i></span>
+                      <span class="prf-k prf-line" data-row="4" data-ink="dim">tool: orders_lookup</span>
+                      <span class="prf-v prf-line" data-row="4" data-ink="faint">312ms</span>
+                    </div>
+                    <div class="prf-wf" style="--o: 96.9; --w: 3.1">
+                      <span class="prf-track" aria-hidden="true"><i class="prf-span"></i></span>
+                      <span class="prf-k prf-line" data-row="5" data-ink="dim">reply · delivered</span>
+                      <span class="prf-v"></span>
+                    </div>
+                  </div>
+                  <svg class="prf-tick" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+                    <rect class="prf-tick-box" x="0.5" y="0.5" width="13" height="13" rx="2" />
+                    <path class="prf-tick-mark" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" />
+                  </svg>
+                  <div class="prf-perf" aria-hidden="true"></div>
+                </div>
+                <div class="prf-cover" aria-hidden="true"><div class="prf-printhead"></div></div>
+              </div>
+            </article>
+
+            <!-- ── receipt 3 · handoff ─────────────────────────────────────
+                 STRINGS CHECKED:
+                   handoff_to_human   src/core/managed-brain.ts:1005 (the
+                       built-in tool's registered name), dispatched at :1419,
+                       reserved against custom tools at
+                       src/api/routes/agent-tools.ts:41, documented at
+                       docs/AGENT-TOOLS.md:158.
+                   active → waiting_human   src/db/conversations.repo.ts:66 is
+                       the status enum ('active' | 'resolved' | 'waiting_human'
+                       | 'human'); setConversationWaitingHuman() at :796-806 is
+                       exactly this transition, and the worker stops running
+                       the brain while a conversation is in it
+                       (src/workers/processors/conversation.processor.ts:175).
+                       The receipt stops at the flip: the FIRST operator reply
+                       moves it on to `human` (:813-822), which is a fact this
+                       card does not need to make its point.
+                 The sentences and "Sam" are story values.
+
+                 THE FLIP IS INK, NOT AMBER. Scene 4 spends the page's only
+                 amber on its guarded pause, and BRAND §2 keeps amber for
+                 retry / backoff / degraded. A conversation waiting for a human
+                 is none of those — it is working exactly as designed — so the
+                 state change is carried the way this site carries every other
+                 emphasis: the old value at --text-faint, the new one at
+                 --text, one step of the ladder apart. -->
+            <article class="prf-rcpt" id="prf-r3" data-rcpt="2">
+              <div class="prf-slot" aria-hidden="true"></div>
+              <div class="prf-sheet">
+                <div class="prf-paper">
+                  <p class="prf-kicker prf-line" data-row="0" data-ink="faint">handoff · it knows its limits</p>
+                  <div class="prf-rows prf-rows-talk">
+                    <div class="prf-hrow">
+                      <span class="prf-who prf-line" data-row="1" data-ink="faint">agent</span>
+                      <span class="prf-said prf-line" data-row="1" data-ink="dim">I can't override the delivery date.</span>
+                    </div>
+                    <div class="prf-hrow">
+                      <span class="prf-who" aria-hidden="true"></span>
+                      <span class="prf-said prf-line" data-row="2" data-ink="dim">→ handoff_to_human</span>
+                    </div>
+                    <div class="prf-hrow">
+                      <span class="prf-who prf-line" data-row="3" data-ink="faint">status</span>
+                      <span class="prf-said prf-flip">
+                        <span class="prf-line" data-row="3" data-ink="faint">active</span>
+                        <span class="prf-line" data-row="3" data-ink="faint">→</span>
+                        <span class="prf-line" data-row="3" data-ink="text">waiting_human</span>
+                      </span>
+                    </div>
+                    <div class="prf-hrow">
+                      <span class="prf-who prf-line" data-row="4" data-ink="dim">Sam (team)</span>
+                      <span class="prf-said prf-line" data-row="4" data-ink="text">I've flagged this with our courier — you'll hear from me today.</span>
+                    </div>
+                  </div>
+                  <svg class="prf-tick" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+                    <rect class="prf-tick-box" x="0.5" y="0.5" width="13" height="13" rx="2" />
+                    <path class="prf-tick-mark" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" />
+                  </svg>
+                  <div class="prf-perf" aria-hidden="true"></div>
+                </div>
+                <div class="prf-cover" aria-hidden="true"><div class="prf-printhead"></div></div>
+              </div>
+            </article>
+
+            <!-- ── receipt 4 · cost ────────────────────────────────────────
+                 STRINGS CHECKED:
+                   rolling fold   src/core/rolling.ts:157 ("Enqueue a
+                       rolling-fold recompute"); the same phrase is used at
+                       src/workers/processors/knowledge.processor.ts:35 and
+                       src/api/routes/agents.ts:973. The feature is "rolling
+                       summarization" (rolling.ts:2); the OPERATION this chart
+                       marks is the fold, which is the right word for a line
+                       drawn where the transcript got folded up.
+                   cache_control   src/core/managed-brain.ts:317 — the
+                       Anthropic cache_control: { type: 'ephemeral' } marker on
+                       the stable system block, explained at :304-311. It is
+                       why the last four turns cost what they do.
+                 The eight token counts are story values, and they are the
+                 argument: 820 / 1,480 / 2,310 / 3,260 climbing, then the fold,
+                 then 1,180 / 1,210 / 1,160 / 1,240 flat. Bar heights are those
+                 numbers over the tallest, to the pixel.
+
+                 NO GREEN IN THIS CHART. It would be the obvious place for it —
+                 flat cost is the good news — and that is exactly the reach
+                 BRAND §2 forbids. The flat bars get --text-faint against the
+                 climbing bars' --hairline-strong: one rung of the ladder, which
+                 is all the emphasis a chart with a point needs. -->
+            <article class="prf-rcpt" id="prf-r4" data-rcpt="3">
+              <div class="prf-slot" aria-hidden="true"></div>
+              <div class="prf-sheet">
+                <div class="prf-paper">
+                  <p class="prf-kicker prf-line" data-row="0" data-ink="faint">cost · flat, not climbing</p>
+                  <p class="prf-lead prf-line" data-row="1" data-ink="text">tokens per turn · last 8 turns</p>
+                  <div class="prf-chart" aria-hidden="true">
+                    <i class="prf-bar" style="--h: 25.2"></i>
+                    <i class="prf-bar" style="--h: 45.4"></i>
+                    <i class="prf-bar" style="--h: 70.9"></i>
+                    <i class="prf-bar" style="--h: 100"></i>
+                    <i class="prf-fold"></i>
+                    <i class="prf-bar prf-bar-flat" style="--h: 36.2"></i>
+                    <i class="prf-bar prf-bar-flat" style="--h: 37.1"></i>
+                    <i class="prf-bar prf-bar-flat" style="--h: 35.6"></i>
+                    <i class="prf-bar prf-bar-flat" style="--h: 38.0"></i>
+                  </div>
+                  <!-- data-row jumps to 5 because the chart above occupies
+                       three of this card's seven row-slots. The slots are how
+                       proof.ts knows when the cover's edge reaches a line, so
+                       a tall element has to be paid for in slots or the ink
+                       under it cools before it has been printed. -->
+                  <div class="prf-chartfoot">
+                    <span class="prf-line" data-row="5" data-ink="faint">turns 1–4</span>
+                    <span class="prf-line prf-foldlab" data-row="5" data-ink="faint">rolling fold</span>
+                    <span class="prf-line" data-row="5" data-ink="faint">turns 5–8</span>
+                  </div>
+                  <p class="prf-note prf-line" data-row="6" data-ink="faint">cache_control · the prefix is cached, not re-paid</p>
+                  <svg class="prf-tick" viewBox="0 0 14 14" aria-hidden="true" focusable="false">
+                    <rect class="prf-tick-box" x="0.5" y="0.5" width="13" height="13" rx="2" />
+                    <path class="prf-tick-mark" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" />
+                  </svg>
+                  <div class="prf-perf" aria-hidden="true"></div>
+                </div>
+                <div class="prf-cover" aria-hidden="true"><div class="prf-printhead"></div></div>
+              </div>
+            </article>
+
+            <!-- ── the total ───────────────────────────────────────────────
+                 The bill. Narrower than the receipts, centred under them, and
+                 printed last on the same mechanism — then it settles harder
+                 than they do, because a total is not another item.
+
+                 The dot leaders are real U+00B7 middle dots (already all over
+                 this site: `delivered · 214ms`), clipped by overflow rather
+                 than counted, so the row is one line at every width. The four
+                 ticks are drawn, for the same U+2713 reason as receipt 1. -->
+            <article class="prf-rcpt prf-total" id="prf-total" data-rcpt="4">
+              <div class="prf-slot" aria-hidden="true"></div>
+              <div class="prf-sheet">
+                <div class="prf-paper">
+                  <p class="prf-totrow prf-line" data-row="0" data-ink="text">
+                    <span class="prf-totlabel">TOTAL</span>
+                    <span class="prf-dots" aria-hidden="true">····································································································</span>
+                    <span class="prf-totval">production-ready</span>
+                  </p>
+                  <p class="prf-totsum prf-line" data-row="1" data-ink="faint">
+                    <span class="prf-sumitem">evals<svg class="prf-mark" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path class="prf-mark-tick" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" /></svg></span>
+                    <span class="prf-sumitem">trace<svg class="prf-mark" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path class="prf-mark-tick" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" /></svg></span>
+                    <span class="prf-sumitem">handoff<svg class="prf-mark" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path class="prf-mark-tick" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" /></svg></span>
+                    <span class="prf-sumitem">cost<svg class="prf-mark" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path class="prf-mark-tick" d="M 3.90 7.70 L 6.20 10.60 L 10.70 4.40" /></svg></span>
+                  </p>
+                  <div class="prf-perf" aria-hidden="true"></div>
+                </div>
+                <div class="prf-cover" aria-hidden="true"><div class="prf-printhead"></div></div>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <!-- ── the finale ──────────────────────────────────────────────────
+             Thirty viewport-percent of nothing, and then the page asks. The
+             brand mark returns as itself — the delivered-dot, with the same
+             gentle pulse it has carried in the nav since the first frame — and
+             the hero's own sentence comes back dim so that the second line can
+             answer it in full ink. Weight, not colour (BRAND §3).
+
+             THE BUTTON IS THE ONLY GREEN FILL ON THIS SITE. Everything else
+             green on the page is a 6px dot or a packet in flight. BRAND §2
+             names this button as one of exactly three places the accent is
+             allowed, and it is the third. -->
+        <div class="prf-finale">
+          <!-- The dot is wrapped rather than animated directly: .brand-dot
+               carries a CSS opacity keyframe (its pulse), and an inline
+               opacity from a reveal tween would be fighting a running
+               animation for the same property. The wrapper takes the reveal;
+               the dot keeps its pulse. -->
+          <span class="prf-finale-dot prf-fin" aria-hidden="true"><span class="brand-dot"></span></span>
+          <p class="prf-say prf-fin">Your product has something to say.</p>
+          <p class="prf-hear prf-fin">And now it can hear the answer.</p>
+          <div class="prf-cta prf-fin">
+            <a class="btn-green" href="/docs">Start building <span class="arrow" aria-hidden="true">→</span></a>
+            <a class="btn-text" href="/docs">read the docs</a>
+          </div>
+          <p class="prf-footer prf-fin">
+            <a class="prf-wordmark" href="/" aria-label="asyncify, home">asyncify</a>
+            <span>built from scratch · engine, agents, and this page</span>
+          </p>
+        </div>
+      </section>
     </main>
 
     <script type="module" src="/src/main.ts"></script>

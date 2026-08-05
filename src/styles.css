@@ -640,15 +640,6 @@ html {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   SCENES 4–5 — next slice.
-   ══════════════════════════════════════════════════════════════════════════ */
-
-#scene-agents,
-#scene-cta {
-  display: none;
-}
-
-/* ══════════════════════════════════════════════════════════════════════════
    SCENE 2 — THE ENGINE
    ──────────────────────────────────────────────────────────────────────────
    Read this file as the schematic's FINISHED state. Every rule below paints
@@ -2577,4 +2568,663 @@ html {
   font-size: 11px;
   letter-spacing: 0.01em;
   color: var(--text-faint);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SCENE 5 — PROOF + CTA
+   ──────────────────────────────────────────────────────────────────────────
+   Read this block as the scene's FINISHED state, exactly like scenes 2–4:
+   every cover is already slid away, every corner tick is drawn, every bar in
+   the cost chart stands at full height. proof.ts pushes all of it back to the
+   start and scrubs it forward.
+
+   That inversion is also the entire reduced-motion and mobile story. The other
+   three scenes need still CLONES because their compositions are one SVG that
+   only makes sense whole; this one is HTML that is already a document, so the
+   still state is simply the stylesheet with no timeline attached to it. No
+   clones, no id-stripping, no per-phase overrides — the trap those scenes
+   document cannot arise here, because nothing here is ever cloned.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+#scene-proof {
+  position: relative;
+  display: block;
+  padding: clamp(88px, 15vh, 184px) 0 clamp(72px, 11vh, 128px);
+}
+
+/* Scene 4's rail masthead, moved onto the page's own left margin — same two
+   elements, same classes, same two-tone kicker. Only the head's size changes,
+   and it changes because its JOB changed: in scene 4 it shares a column with a
+   five-row checklist and is held to 25–29px so it does not read as that list's
+   caption. Here it owns a full page width above a table, which is the case
+   BRAND §3's 32–44px section-head band is actually written for. */
+.prf-masthead {
+  box-sizing: border-box;
+  width: min(var(--page-max), 100% - 2 * var(--page-pad));
+  /* The bottom margin is the entrance wire's runway: proof.ts draws that
+     hairline PRF_WIRE_H px above the table on an overflow-visible svg, so this
+     gap has to stay comfortably larger than that constant. */
+  margin: 0 auto clamp(112px, 16vh, 176px);
+}
+
+.prf-masthead .agt-head {
+  font-size: clamp(28px, 3.4vw, 40px);
+  max-width: 20ch;
+}
+
+/* ── the tabletop ────────────────────────────────────────────────────────
+   A LINE, NOT A CARD. The obvious build is --surface plus a hairline, one step
+   up from the canvas; that would put four --surface receipts inside a
+   --surface panel, which is DESIGN §1's nested-card ban in its purest form.
+   So the table gives up its fill and keeps its geometry: 16px radius, one
+   hairline, and the canvas showing through. The receipts are then the only
+   raised objects in the frame — which is what a table full of paper looks
+   like anyway, and it is why the cover panels can be --canvas: an unprinted
+   slot reads as bare table rather than as a hidden card. */
+.prf-table {
+  position: relative;
+  box-sizing: border-box;
+  width: min(var(--page-max), 100% - 2 * var(--page-pad));
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* No viewBox, so one user unit is one CSS pixel and drawSVG's percentages are
+   exact; no vector-effect, so DESIGN §3's screen-space dash trap cannot arise
+   at all. overflow is visible because the entrance wire lives at negative y —
+   it is the same path as the border, and the border is where it lands. */
+.prf-surface {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.prf-edge {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+}
+
+.prf-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* The receipt's outer box. The SCRUB owns this element's transform — the
+   tear-off drop and the resting angle — and nothing else ever touches it, so
+   that the interaction layer inside can drag, straighten and drift without the
+   two of them fighting over one matrix. */
+.prf-rcpt {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  /* A grid item's automatic minimum is its MIN-CONTENT, so one unbreakable run
+     anywhere inside a receipt can push the whole track wider than the table.
+     The dot leaders on the total strip are exactly such a run — 920px of
+     nowrap middle dots — and at one column they took the grid to 1099px and
+     carried every card off the side of a phone. min-width: 0 is the standard
+     answer and it costs nothing here: the cards are sized by the grid, never
+     by their own contents. */
+  min-width: 0;
+}
+
+/* The bill: narrower than the receipts and centred under them, because a total
+   is not a fifth item. It is also the one card with no corner tick — it IS
+   what the ticks add up to — so it keeps none of the bottom padding the others
+   reserve for one. */
+.prf-total {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(100%, 520px);
+}
+
+.prf-total .prf-paper {
+  padding: 16px 18px;
+}
+
+/* The print slot. It belongs to the TABLE, not to the paper — a child of the
+   outer box rather than of the sheet — so that dragging a torn-off receipt
+   away leaves the slot it came out of exactly where it was. */
+.prf-slot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--hairline-strong);
+  z-index: 2;
+}
+
+/* THE APERTURE, and the one piece of clipping in this scene. `overflow:
+   hidden` here is a static hole in a machine: it is never animated, and no
+   transform on it is ever used as a reveal. It exists because a cover that has
+   finished sliding sits one whole card-height down the page, and without an
+   aperture it would park on top of the receipt below it.
+
+   The INTERACTION layer owns this element: Draggable's x/y, the hover lift's
+   scale, and the post-toss rotation drift all live here. */
+.prf-sheet {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+.prf-paper {
+  position: relative;
+  box-sizing: border-box;
+  height: 100%;
+  padding: 16px 18px 26px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  /* Rounded at the top, square at the bottom: this edge is perforated, and
+     paper does not come off a roll with a radius on its tear line. */
+  border-radius: var(--r-chip) var(--r-chip) 0 0;
+  border-bottom: none;
+}
+
+/* The perforation. Inset by −1px on both sides so it lands flush with the
+   outer edges of the two side borders rather than inside them. */
+.prf-perf {
+  position: absolute;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  height: 0;
+  border-bottom: 1px dashed var(--hairline);
+}
+
+/* THE COVER. The FINISHED state is fully slid away; proof.ts is what puts it
+   back over the card and scrubs it down again. */
+.prf-cover {
+  position: absolute;
+  inset: 0;
+  background: var(--canvas);
+  transform: translateY(100%);
+}
+
+/* THE PRINT HEAD, riding the cover's own top edge — so it needs no schedule of
+   its own beyond fading in and out; the cover's transform carries it. Finished
+   state is gone, because the head is a thing that was passing. */
+.prf-printhead {
+  position: absolute;
+  top: 0;
+  left: 10px;
+  right: 10px;
+  height: 1px;
+  background: var(--text);
+  opacity: 0;
+}
+
+/* ── the ink ─────────────────────────────────────────────────────────────
+   Every element carrying a colour the print "cools" is a .prf-line with a
+   data-ink of text / dim / faint, and the value here MUST agree with the map
+   in proof.ts. A stylesheet cannot tell that file what it chose, so the two
+   agree by hand or the scene refuses to boot — scene 4's rule for its type
+   ladder, applied to a colour ladder. */
+.prf-kicker {
+  margin: 0 0 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  color: var(--text-faint);
+}
+
+.prf-lead {
+  margin: 0 0 12px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.prf-rows {
+  display: grid;
+  gap: 7px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+}
+
+.prf-row {
+  display: grid;
+  grid-template-columns: 13px 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.prf-k {
+  color: var(--text-dim);
+}
+
+.prf-v {
+  color: var(--text-faint);
+  text-align: right;
+}
+
+/* A drawn checkmark used inline, in ink rather than in green: these are eval
+   assertions that held, not messages that arrived (BRAND §2). Butt caps here
+   are house style rather than the phantom-dot law — these never rest at zero
+   length, because they are printed with their row rather than drawn. */
+.prf-mark {
+  display: block;
+  width: 11px;
+  height: 11px;
+}
+
+.prf-mark-tick {
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-width: 1.6;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+}
+
+/* ── the turn's waterfall ────────────────────────────────────────────────
+   A 72px track per row, with a segment on it at the span's real offset and
+   width. The proportions are the argument: the model call is 2.7s of a 3.2s
+   turn, so one bar is nearly the whole track and the two tool calls are the
+   slivers they actually are. max() keeps an 89ms span from disappearing. */
+.prf-wf {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.prf-track {
+  position: relative;
+  height: 8px;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.prf-span {
+  position: absolute;
+  bottom: 2px;
+  left: calc(var(--o) * 1%);
+  width: max(2px, calc(var(--w) * 1%));
+  height: 1px;
+  background: var(--text-dim);
+}
+
+/* The nested calls, indented under the model call that made them. */
+.prf-wf-in .prf-k {
+  margin-left: 2px;
+  padding-left: 10px;
+  border-left: 1px solid var(--hairline);
+}
+
+/* ── the handoff transcript ──────────────────────────────────────────── */
+.prf-rows-talk {
+  gap: 9px;
+}
+
+.prf-hrow {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.prf-who {
+  color: var(--text-faint);
+}
+
+.prf-said {
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* The state change. Two rungs of one ladder with an arrow between them: the
+   value it was at --text-faint, the value it is at --text. No amber — a
+   conversation waiting for a person is not degraded, it is working (BRAND §2). */
+.prf-flip {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ── the cost chart ──────────────────────────────────────────────────────
+   Eight bars, heights in percent of the tallest, so the numbers in the markup
+   ARE the drawing. transform-origin is the axis, because the bars grow with a
+   scaleY and a bar growing about its own middle would be a bar sinking into
+   the floor at the same time as it rose out of it. */
+.prf-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 9px;
+  height: 76px;
+  margin: 2px 0 8px;
+}
+
+.prf-bar {
+  flex: 1;
+  height: calc(var(--h) * 1%);
+  background: var(--hairline-strong);
+  transform-origin: 50% 100%;
+}
+
+/* One rung brighter, and that is the whole point of the chart. Not green: this
+   is the good news, which is exactly the moment BRAND §2 exists to refuse. */
+.prf-bar-flat {
+  background: var(--text-faint);
+}
+
+/* Where the transcript got folded up. Dashed, like the perforation, because
+   both of them mark a place something was cut. */
+.prf-fold {
+  flex: 0 0 1px;
+  align-self: stretch;
+  border-left: 1px dashed var(--hairline-strong);
+}
+
+.prf-chartfoot {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+  color: var(--text-faint);
+}
+
+.prf-note {
+  margin: 10px 0 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  color: var(--text-faint);
+}
+
+/* ── the corner tick ─────────────────────────────────────────────────────
+   Scene 4's checklist vocabulary, in the world: a 13u box and the same
+   two-segment checkmark drawn from the same offsets, so a checkmark on this
+   page is always the same checkmark. It rests at drawSVG "0% 0%" during the
+   scrub, which is precisely the case DESIGN §3's butt-cap law is written for. */
+.prf-tick {
+  position: absolute;
+  right: 16px;
+  bottom: 9px;
+  width: 14px;
+  height: 14px;
+}
+
+.prf-tick-box {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+.prf-tick-mark {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1.75;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ── the total strip ─────────────────────────────────────────────────── */
+.prf-totrow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 10px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
+
+.prf-totlabel,
+.prf-totval {
+  flex: none;
+}
+
+/* Real dot leaders — U+00B7, the same middle dot every receipt on this site is
+   written with. Clipped by overflow rather than counted, so the row is one line
+   at every width the table runs at.
+
+   `flex: 1 1 0`, NOT `1 1 auto`: with an auto basis the item's flex base size
+   is the full 920px of dots, and Chrome carries that into the flex container's
+   own min-content — so the strip claimed a width no phone has. A zero basis
+   makes the run pure leftover space, which is all a dot leader has ever been. */
+.prf-dots {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  letter-spacing: 0.3em;
+  color: var(--hairline-strong);
+}
+
+.prf-totsum {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  color: var(--text-faint);
+}
+
+.prf-sumitem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ── the finale ──────────────────────────────────────────────────────────
+   Thirty viewport-percent of nothing above it — the largest piece of
+   deliberate emptiness on the page, doing the job scene 4's pause does: the
+   reader has just been handed four documents, and the button is not allowed to
+   arrive in the same breath. */
+.prf-finale {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30vh var(--page-pad) 0;
+  text-align: center;
+}
+
+.prf-finale-dot {
+  display: block;
+  margin-bottom: clamp(28px, 4.5vh, 46px);
+  line-height: 0;
+}
+
+/* .brand-dot is a bare <span> and gets its 6px box from the nav's flex row —
+   an inline span ignores width and height, so dropped into this column it
+   measured 0×0 and the mark simply was not there. It is the SAME dot as the
+   nav's, so the fix belongs here rather than in .brand-dot: the anatomy is
+   unchanged and only its display is stated for a context that is not a flex
+   row. */
+.prf-finale-dot .brand-dot {
+  display: block;
+  margin: 0 auto;
+}
+
+/* The hero's own headline, returning — at --text-faint, so the line under it
+   can answer in full ink. Weight and ink, never colour (BRAND §3). */
+.prf-say,
+.prf-hear {
+  margin: 0;
+  font-size: clamp(20px, 2.3vw, 28px);
+  font-weight: 400;
+  line-height: 1.24;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.prf-say {
+  color: var(--text-faint);
+}
+
+.prf-hear {
+  margin-top: 8px;
+  color: var(--text);
+}
+
+.prf-cta {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-top: clamp(34px, 5.5vh, 56px);
+}
+
+/* THE ONE GREEN BUTTON ON THIS SITE (BRAND §2, use 3 of 3). Full --green at
+   rest rather than --green-dim: the two permanent identity greens sit dim
+   because they are always on screen and need somewhere to go at a delivery
+   moment, and this IS the delivery moment — it is the last thing on the page,
+   and it is what the page is for.
+
+   HOVER BRIGHTENS WITH A FILTER, not with a fifth green. There is no rung
+   above --green on the token ladder and BRAND §1 forbids inventing one, so the
+   rung is expressed as brightness(1.08): a paint-only, layout-free hover that
+   means exactly "one step brighter" without adding a hex to the contract. */
+.btn-green {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 44px;
+  padding: 0 22px;
+  border-radius: var(--r-chip);
+  background: var(--green);
+  color: var(--canvas);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  transition:
+    filter 180ms ease,
+    transform 160ms var(--ease-out);
+}
+
+.btn-green .arrow {
+  font-size: 13px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-green:hover {
+    filter: brightness(1.08);
+    transform: scale(1.02);
+  }
+}
+
+/* After the hover rule, so a press always wins over a hover (DESIGN §5). */
+.btn-green:active {
+  transform: scale(0.97);
+}
+
+.prf-footer {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: clamp(64px, 10vh, 104px);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  color: var(--text-faint);
+}
+
+.prf-wordmark {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--text-dim);
+}
+
+/* ── the interaction layer (desktop pointer only) ────────────────────────
+   proof.ts adds .prf-live to a sheet the instant its receipt has torn off, and
+   only where the pointer is fine, hover is real and reduced motion is off. A
+   sheet that is still printing carries no cursor affordance, because it is not
+   yet an object. */
+.prf-live {
+  cursor: grab;
+}
+
+.prf-live.prf-grabbing {
+  cursor: grabbing;
+}
+
+/* ── mobile ──────────────────────────────────────────────────────────────
+   One column, and every row that spends horizontal budget on alignment gives
+   it back: the waterfall keeps its track but loses its right-aligned value
+   column, the eval rows drop their value under the assertion, and the handoff
+   transcript stacks its speaker over what they said. Nothing is removed —
+   DESIGN §3's rule is that the still carries every piece of information the
+   motion did — it is only re-laid. */
+@media (max-width: 767px) {
+  .prf-table {
+    padding: 18px;
+  }
+
+  .prf-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .prf-total {
+    width: 100%;
+  }
+
+  .prf-rows {
+    font-size: 11px;
+  }
+
+  .prf-row {
+    grid-template-columns: 13px 1fr;
+  }
+
+  .prf-row .prf-v,
+  .prf-wf .prf-v {
+    grid-column: 2;
+    text-align: left;
+  }
+
+  .prf-wf {
+    grid-template-columns: 48px 1fr;
+    row-gap: 3px;
+  }
+
+  .prf-hrow {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .prf-chart {
+    height: 72px;
+    gap: 6px;
+  }
+
+  .prf-totrow {
+    font-size: 11.5px;
+  }
+
+  .prf-dots {
+    letter-spacing: 0.2em;
+  }
+
+  .prf-footer {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+  }
 }
