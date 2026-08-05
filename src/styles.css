@@ -2589,7 +2589,23 @@ html {
 #scene-proof {
   position: relative;
   display: block;
-  padding: clamp(88px, 15vh, 184px) 0 clamp(72px, 11vh, 128px);
+  /* Top padding retired: the pin owns its own frame now. Bottom padding stays
+     for the finale's run-out. */
+  padding: 0 0 clamp(72px, 11vh, 128px);
+}
+
+/* The pinned frame (user call: scene 5 joined its pinned siblings). One
+   viewport, masthead over table, vertically composed; faded up on approach
+   like every other pin on the page. */
+.prf-pin {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* Asymmetric: the testimony hangs ~36px ABOVE the table's top edge, and a
+     centred frame on a short laptop clipped its sentence at the fold. */
+  padding: clamp(40px, 6vh, 64px) 0 clamp(8px, 1.5vh, 24px);
+  opacity: 0;
 }
 
 /* Scene 4's rail masthead, moved onto the page's own left margin — same two
@@ -2606,7 +2622,10 @@ html {
      clear the seal's ink (~139px above the table) as well as the entrance
      wire's 104px runway; proof.ts asserts both against MASTHEAD_GAP_MIN, which
      is this clamp's floor. */
-  margin: 0 auto clamp(176px, 24vh, 240px);
+  /* Was clamp(176,24vh,240) for the unpinned flow; inside the pin's fixed
+     frame it only needs to clear the seal's ink and the wire's runway
+     (asserted against MASTHEAD_GAP_MIN, still this clamp's floor). */
+  margin: 0 auto clamp(150px, 18vh, 176px);
 }
 
 .prf-masthead .agt-head {

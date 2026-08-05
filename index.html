@@ -2046,11 +2046,19 @@
              only head on the page that owns a full page width rather than a
              column, which is why the stylesheet takes it up into BRAND §3's
              32–44px section-head band here and nowhere else. -->
+        <!-- The pin (user call): this scene joined its siblings. Masthead +
+             table hold the viewport while the receipts print; the finale
+             stays OUTSIDE the pin and scrolls normally after release -- the
+             page's last ask should arrive on a free thumb. -->
         <div class="prf-masthead">
           <p class="agt-kicker"><span class="agt-kicker-num">05</span> · <span>proof</span></p>
           <p class="agt-head">Don't take our word. Take the receipts.</p>
         </div>
 
+        <!-- The pin holds the TABLE alone (masthead + full table do not fit
+             one viewport together -- the head reads on approach and scrolls
+             away, the table is the pinned subject, scene 2's own physics). -->
+        <div class="prf-pin" id="prf-pin">
         <div class="prf-table" id="prf-table">
           <!-- No viewBox and no non-scaling-stroke, both deliberate: with the
                svg laid out at 100% of its own box, one user unit IS one CSS
@@ -2465,6 +2473,7 @@
             </div>
           </div>
         </div>
+        </div><!-- /prf-pin -->
 
         <!-- ── the finale ──────────────────────────────────────────────────
              Thirty viewport-percent of nothing, and then the page asks. The

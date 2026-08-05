@@ -111,8 +111,11 @@ import { Draggable } from "gsap/Draggable";
    E = 0.45 buys the held ending its own scroll: range is H + 0.55·vh, so
    after the table is complete there is still a third of the window left for it
    to stand finished and travel up out of frame before the finale. */
-const START = "top bottom";
-const END = "bottom 45%";
+/** The pin's scroll budget, in viewport heights (user call: this scene joined
+ *  its pinned siblings). The old unpinned window arithmetic above is kept as
+ *  history -- the pin dissolves the visibility trade it describes: the table
+ *  is in frame for the WHOLE timeline now. */
+const PIN_HEIGHTS = 2.2;
 
 /** Scrub catch-up, in seconds. Matched to scenes 2–4 on purpose: four scenes
  *  read in one continuous scroll, and a fifth that lagged differently would
@@ -323,7 +326,6 @@ const SEAL_DUR = 3.2;
  *  first, stamp second. */
 const SEAL_AT_SCRUB_LAG = 1.2;
 const SEAL_PRESS = 1.15;
-const TESTIMONY_END = 20;
 
 /* ── the seal's own geometry ───────────────────────────────────────────────
    Everything here is authored in index.html and CHECKED here, the same way the
@@ -541,6 +543,7 @@ export function createProofScene(): ProofScene {
   const doc = document;
 
   const section = q<HTMLElement>(doc, "#scene-proof");
+  const pin = q<HTMLElement>(doc, "#prf-pin");
   const table = q<HTMLElement>(doc, "#prf-table");
   const edge = q<SVGPathElement>(doc, "#prf-edge");
   const finale = q<HTMLElement>(section, ".prf-finale");
@@ -579,7 +582,6 @@ export function createProofScene(): ProofScene {
   /* The notarized sentence and the thing that certifies it. The WRAP is never
      queried for animation on purpose — it carries the tilt in CSS and nothing
      touches it, which is what keeps the seal glued to the sentence's tail. */
-  const testimony = q<HTMLElement>(section, ".prf-testimony");
   const oath = q<HTMLElement>(section, ".prf-oath");
   const seal = q<SVGSVGElement>(section, "#prf-seal");
 
@@ -1181,6 +1183,8 @@ export function createProofScene(): ProofScene {
      ════════════════════════════════════════════════════════════════════════ */
 
   function restState(): void {
+    gsap.set(oath, { opacity: 0, y: OATH_RISE });
+    gsap.set(seal, { opacity: 0, scale: SEAL_PRESS, rotation: SEAL_TILT, transformOrigin: "50% 50%" });
     edgeState.p = 0;
     renderEdge();
     for (const c of cards) {
@@ -1213,6 +1217,18 @@ export function createProofScene(): ProofScene {
   function buildScrub(): void {
     restState();
 
+    /* The scene materialises on the way in, the family grammar of every pin
+       on this page. */
+    gsap.fromTo(
+      pin,
+      { opacity: 0 },
+      {
+        opacity: 1,
+        ease: "none",
+        scrollTrigger: { trigger: section, start: "top 85%", end: "top 12%", scrub: true },
+      },
+    );
+
     const tl = gsap.timeline({
       defaults: { ease: "none" },
       onUpdate: () => {
@@ -1225,9 +1241,15 @@ export function createProofScene(): ProofScene {
         for (const [i, c] of cards.entries()) applyLive(i, t >= liveAt(c));
       },
       scrollTrigger: {
-        trigger: table,
-        start: START,
-        end: END,
+        /* The PIN is its own trigger: the section's top is the masthead, and
+           triggering there froze the frame while the table still sat low
+           inside it (caught on screen). The pin's top reaching the viewport's
+           top IS the moment the masthead has finished leaving. */
+        trigger: pin,
+        start: "top top",
+        end: `+=${PIN_HEIGHTS * 100}%`,
+        pin,
+        pinSpacing: true,
         scrub: SCRUB,
         invalidateOnRefresh: true,
       },
@@ -1359,6 +1381,16 @@ export function createProofScene(): ProofScene {
     if (TL_END - built < 4) {
       throw new Error("[proof] there is no still frame left at the end of the scene");
     }
+    /* The notarized sentence, on the scrub's own clock now (the pin retired
+       its private trigger): it reveals as the table finishes tracing, read
+       long before the bill it certifies exists. */
+    ft(
+      oath,
+      { opacity: 0, y: OATH_RISE },
+      { opacity: 1, y: 0, duration: OATH_DUR, ease: "power2.out" },
+      OATH_AT + 3,
+    );
+
     /* THE BILL GETS STAMPED. The one event inside the held ending: the table
        is complete and fully in frame at HOLD_FROM, the reader is looking at
        the finished document, and THEN the seal presses in beside the total --
@@ -1391,44 +1423,9 @@ export function createProofScene(): ProofScene {
      which is the same contract every other stroke in this scene keeps.
      ════════════════════════════════════════════════════════════════════════ */
 
-  function buildTestimony(): void {
-    /* Rest is the inverse of the stylesheet, exactly as everywhere else here.
-       The WRAP's tilt is not in this list and never will be: it is the one
-       transform in the scene that belongs to the layout rather than to a
-       timeline, and it is what keeps the seal on the sentence's tail. */
-    gsap.set(oath, { opacity: 0, y: OATH_RISE });
-    gsap.set(seal, { opacity: 0, scale: SEAL_PRESS, rotation: SEAL_TILT, transformOrigin: "50% 50%" });
-
-    const tl = gsap.timeline({
-      defaults: { ease: "none" },
-      scrollTrigger: {
-        trigger: testimony,
-        start: "top 85%",
-        end: "top 34%",
-        scrub: SCRUB,
-        invalidateOnRefresh: true,
-      },
-    });
-
-    /* The sentence, in the site's own quiet entrance grammar. */
-    tl.fromTo(
-      oath,
-      { opacity: 0, y: OATH_RISE },
-      { opacity: 1, y: 0, duration: OATH_DUR, ease: "power2.out", immediateRender: false },
-      OATH_AT,
-    );
-
-    /* The press moved to the scrub (the bill's clock) -- see buildScrub. */
-
-    /* The hold, made explicit for the same reason the table's is: a timeline is
-       as long as its last tween, and without this the certified sentence would
-       be handed back to the scrollbar the instant the seal landed. */
-    const built = tl.duration();
-    if (TESTIMONY_END - built < 2) {
-      throw new Error("[proof] there is no still frame left after the seal lands");
-    }
-    tl.to({}, { duration: TESTIMONY_END - built, ease: "none" }, built);
-  }
+  /* buildTestimony retired with the pin: a pinned element cannot host its own
+     approach trigger, so the sentence joined the scrub's clock (see the oath
+     tween in buildScrub) and the rest sets moved to restState. */
 
   /* ════════════════════════════════════════════════════════════════════════
      THE FINALE
@@ -1474,7 +1471,6 @@ export function createProofScene(): ProofScene {
      makes about its own fade. Under reduced motion the stylesheet's finished
      state stands: the sentence is there, tilted, with the seal already
      stamped on it, which is every piece of information the motion carried. */
-  mm.add("(prefers-reduced-motion: no-preference)", () => buildTestimony());
 
   /* The finale is a fade and a 14px rise; it works at any width. Under reduced
      motion it does not run at all and the stylesheet's finished state stands,
