@@ -949,8 +949,10 @@ export function createAgentsScene(): AgentsScene {
   const evt = q<SVGTextElement>(svg, "#agt-evt");
   const channelsG = q<SVGGElement>(svg, "#agt-channels");
 
-  const doorRule = q<SVGPathElement>(svg, "#agt-door-rule");
-  const doorText = q<SVGTextElement>(svg, "#agt-door");
+  const tktSlot = q<SVGPathElement>(svg, ".agt-tkt-slot");
+  const tktJaw = q<SVGPathElement>(svg, ".agt-tkt-jaw");
+  const tktFeed = q<SVGGElement>(svg, "#agt-tkt-feed");
+  const tktPaper = q<SVGGElement>(svg, "#agt-tkt-paper");
 
   const glass = q<SVGGElement>(svg, "#agt-glass");
   const caps = [1, 2].map((i) => {
@@ -1660,7 +1662,8 @@ export function createAgentsScene(): AgentsScene {
     conn,
     approveBox,
     yesBox,
-    doorRule,
+    tktSlot,
+    tktJaw,
     ...rows.map((r) => r.tick),
   ];
   /** The boxes whose fill comes up behind their own outline, so each is a line
@@ -1689,7 +1692,7 @@ export function createAgentsScene(): AgentsScene {
     receipt,
     evt,
     ...chanItems,
-    doorText,
+
     ...caps.map((c) => c.text),
     closeText,
     ...rows.map((r) => r.evidence),
@@ -1700,6 +1703,10 @@ export function createAgentsScene(): AgentsScene {
      ════════════════════════════════════════════════════════════════════════ */
 
   function restState(): void {
+    /* The ticket parked fully behind the dispenser's mouth: the feed group
+       carries the whole paper above the static clip aperture. 84 = the
+       paper's height (78) plus the tilt's reach. */
+    gsap.set(tktFeed, { y: -84 });
     gsap.set(pin, { opacity: 0 });
     /* Fully standing at rest — the pin's entry fade is the only entrance the
        rail column gets, so the scene is named and its five promises are made
@@ -2569,8 +2576,13 @@ export function createAgentsScene(): AgentsScene {
        Six units in which nothing leaves. The only thing still being built is
        the door to scene 5 — drawn, so that the last motion on the frame points
        at the next one rather than at itself. */
-    draw(doorRule, B4_DOOR_RULE, 1.2);
-    fadeIn(doorText, B4_DOOR_TEXT, 1.4);
+    /* THE DISPENSE. The mouth draws, then the ticket feeds out through the
+       static aperture -- paper advancing, the scene 5 printers' own physics,
+       previewed here as a single stub. power2.out: dispensers push hard and
+       settle. */
+    draw(tktSlot, B4_DOOR_RULE - 0.6, 0.7);
+    draw(tktJaw, B4_DOOR_RULE - 0.1, 0.4);
+    ft(tktFeed, { y: -84 }, { y: 0, duration: 2.2, ease: "power2.out" }, B4_DOOR_TEXT - 0.6);
 
     /* AND THE HELD ENDING, AS A LENGTH.
        A gsap timeline is exactly as long as its last tween, and ScrollTrigger
@@ -2606,6 +2618,64 @@ export function createAgentsScene(): AgentsScene {
      gated on both, same as scenes 2 and 3.
      ════════════════════════════════════════════════════════════════════════ */
 
+  /* ── the ticket's pointer half ──────────────────────────────────────────
+     The same two-regime split as the bell and the receipts: the scrub owns
+     the dispense; after it, the PAPER belongs to the hand. Hover: the stub
+     eases out a step, wanting to be taken. Click: the perforation gives --
+     the stub drops off rotating, the page GLIDES to the proof (killed the
+     instant the reader's own scroll disagrees), and the dispenser feeds the
+     next ticket, because that is what dispensers do. Wall-clock and
+     pointer-owned, layered on transforms the scrub never touches
+     (#agt-tkt-paper is inside the scrub's feed group but the scrub only
+     moves the group). */
+  function wireTicket(): void {
+    let gliding: gsap.core.Tween | null = null;
+    const killGlide = (): void => {
+      if (gliding) {
+        gliding.kill();
+        gliding = null;
+      }
+    };
+    window.addEventListener("wheel", killGlide, { passive: true });
+    window.addEventListener("touchmove", killGlide, { passive: true });
+
+    tktPaper.addEventListener("mouseenter", () => {
+      gsap.to(tktPaper, { y: 3, duration: 0.22, ease: "power2.out" });
+    });
+    tktPaper.addEventListener("mouseleave", () => {
+      gsap.to(tktPaper, { y: 0, duration: 0.3, ease: "power2.out" });
+    });
+    tktPaper.addEventListener("click", () => {
+      const taken = gsap.timeline();
+      /* The tear: off its perforation, rotating the way pulled paper does,
+         gone -- then the next Nº 05 feeds out (the scene's number is the
+         scene's number). */
+      taken.to(tktPaper, { y: 34, rotation: -7, opacity: 0, duration: 0.38, ease: "power2.in", transformOrigin: "50% 0%" });
+      taken.set(tktPaper, { y: -84, rotation: 0 });
+      taken.to(tktPaper, { opacity: 1, duration: 0.01 });
+      taken.to(tktPaper, { y: 0, duration: 0.55, ease: "power2.out" }, "+=0.35");
+      /* The glide: computed at click time (pin spacers move page geometry),
+         landing on the proof scene's pinned frame. */
+      const proofPin = doc.querySelector<HTMLElement>("#prf-pin");
+      if (proofPin) {
+        const target = window.scrollY + proofPin.getBoundingClientRect().top;
+        gliding = gsap.to(window, {
+          /* autoKill OFF: the pinned scenes' scrub nudges scrollTop every
+             tick, which autoKill reads as "the user scrolled" and kills the
+             glide on its first frame (caught live). We manage the kill
+             ourselves -- the wheel/touch listeners above -- which is the
+             only intervention that should win. */
+          scrollTo: { y: target, autoKill: false },
+          duration: 1.25,
+          ease: "power2.inOut",
+          onComplete: () => {
+            gliding = null;
+          },
+        });
+      }
+    });
+  }
+
   const mm = gsap.matchMedia();
 
   mm.add("(prefers-reduced-motion: no-preference)", () => {
@@ -2619,6 +2689,10 @@ export function createAgentsScene(): AgentsScene {
   mm.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => {
     buildScrub();
   });
+
+  mm.add("(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)", () =>
+    wireTicket(),
+  );
 
   mm.add("(max-width: 767.98px) and (prefers-reduced-motion: no-preference)", () =>
     buildStill(false),

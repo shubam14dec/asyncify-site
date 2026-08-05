@@ -1909,8 +1909,49 @@
                    at the phone, which is exactly where a pointer to the next
                    one wants to be, and the arrow now runs off the frame in the
                    direction they are about to scroll. -->
-              <path class="agt-door-rule" id="agt-door-rule" d="M 940 574 L 1044 574" />
-              <text class="agt-door" id="agt-door" x="1044" y="600" text-anchor="end">and here's the proof →</text>
+              <!-- TAKE A NUMBER (user call, replacing the "and here's the proof"
+                   cue): four scenes about queues end by handing the reader a
+                   literal queue ticket. Built at the seal's realism bar:
+                   - the SLOT is a dispenser mouth -- a hairline with two short
+                     jaw ticks, the way a real wall dispenser's lip reads;
+                   - the TICKET is paper: rounded corners, an inner printed
+                     frame a step fainter than the edge, a perforation row at
+                     the mouth, and two half-punches where the perforation
+                     meets the edges (canvas-fill circles) -- the die-cut
+                     notches real tear-off tickets have;
+                   - "Nº" uses U+00BA (latin-1, IN the subset) -- U+2116 is
+                     not, the same trap as the checkmark, star and block;
+                   - the uppercase is the physical-object exception (BRAND §7),
+                     the seal's own argument: lettering on a thing;
+                   - it hangs at -2 deg (nothing dispensed is ever straight),
+                     and it FEEDS OUT under the scrub through a static
+                     clip aperture (the clip never animates -- the aperture
+                     law from scene 5's sheets).
+                   The inner group #agt-tkt-paper belongs to the POINTER after
+                   feed-out (hover wiggle, click tears it off and the page
+                   glides to the proof; the dispenser then feeds the next
+                   ticket) -- the same two-regime split as the bell and the
+                   receipts. -->
+              <g class="agt-tkt" id="agt-tkt">
+                <path class="agt-tkt-slot" d="M 926 556 L 1054 556" />
+                <path class="agt-tkt-jaw" d="M 926 556 L 926 561 M 1054 556 L 1054 561" />
+                <clipPath id="agt-tkt-clip"><rect x="916" y="557" width="148" height="96" /></clipPath>
+                <g clip-path="url(#agt-tkt-clip)">
+                  <g id="agt-tkt-feed">
+                    <g class="agt-tkt-tilt" transform="rotate(-2 990 560)">
+                      <g id="agt-tkt-paper">
+                        <rect class="agt-tkt-body" x="936" y="550" width="108" height="78" rx="7" />
+                        <rect class="agt-tkt-inner" x="943" y="561" width="94" height="60" rx="4" />
+                        <path class="agt-tkt-perf" d="M 936 559 L 1044 559" />
+                        <circle class="agt-tkt-punch" cx="936" cy="559" r="3.2" />
+                        <circle class="agt-tkt-punch" cx="1044" cy="559" r="3.2" />
+                        <text class="agt-tkt-no" x="990" y="597" text-anchor="middle">Nº 05</text>
+                        <text class="agt-tkt-lbl" x="990" y="613" text-anchor="middle">THE PROOF →</text>
+                      </g>
+                    </g>
+                  </g>
+                </g>
+              </g>
 
               <!-- ── the glass ───────────────────────────────────────────────
                    Three narrator sentences, the ONLY things in this scene that

@@ -2449,19 +2449,67 @@ html {
    because it was handing over the page's biggest promise; this one hands over
    the evidence for a promise the reader has just watched being kept, and the
    right size for that is a footnote that points. */
-.agt-door-rule {
+/* ── the queue ticket (the door cue's successor) ─────────────────────────
+   Paper out of a dispenser. The body is one elevation step up (surface), the
+   inner frame is the PRINTED rule on the paper -- a step fainter than the
+   die-cut edge, which is how real tickets read. The punches are canvas-fill:
+   holes, not dots. */
+.agt-tkt-slot,
+.agt-tkt-jaw {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+}
+
+.agt-tkt-body {
+  fill: var(--surface);
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+}
+
+.agt-tkt-inner {
   fill: none;
   stroke: var(--hairline);
   stroke-width: 1;
-  stroke-linecap: butt;
-  vector-effect: non-scaling-stroke;
 }
 
-.agt-door {
+.agt-tkt-perf {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  stroke-dasharray: 3 3.5;
+}
+
+.agt-tkt-punch {
+  fill: var(--canvas);
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+}
+
+.agt-tkt-no {
   font-family: var(--mono);
-  font-size: 13px;
-  letter-spacing: 0.01em;
-  fill: var(--text-faint);
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  fill: var(--text);
+}
+
+/* The physical-object uppercase exception, the seal's own argument. */
+.agt-tkt-lbl {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  fill: var(--text-dim);
+}
+
+/* The pointer's half: only the paper is touchable, only on real pointers. */
+@media (hover: hover) and (pointer: fine) {
+  #agt-tkt-paper {
+    cursor: pointer;
+    pointer-events: all;
+  }
 }
 
 /* ── the still state (< 768px, and prefers-reduced-motion) ───────────────
