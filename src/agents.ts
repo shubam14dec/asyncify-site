@@ -2756,32 +2756,36 @@ export function createAgentsScene(): AgentsScene {
          mouth, which is what tearing IS. NEGATIVE rotation throughout
          (screen-space positive would sweep the sheet UP -- earlier catch). */
       gsap.set(cloneRoot, { smoothOrigin: true });
-      stub.to(cloneRoot, { rotation: -7, duration: 0.3, ease: "power2.out", transformOrigin: "18% 12%" }, 0);
-      stub.to(cloneRoot, { rotation: -20, duration: 0.35, ease: roughTear, transformOrigin: "42% 12%" }, 0.3);
-      stub.to(cloneRoot, { rotation: -44, duration: 0.35, ease: roughTear, transformOrigin: "64% 12%" }, 0.65);
-      stub.to(cloneRoot, { rotation: -78, duration: TEAR_RUN - 1.0, ease: roughTear, transformOrigin: "86% 12%" }, 1.0);
+      /* svgOrigin, not percentage origins: the appended cover-rect widened the
+         group bbox, so "86%" no longer meant the punch (user catch: hinge off
+         the corner). These are the DRAWN points -- each front's position on
+         the perforation, the last one the right punch itself. */
+      stub.to(cloneRoot, { rotation: -7, duration: 0.3, ease: "power2.out", svgOrigin: "958 559" }, 0);
+      stub.to(cloneRoot, { rotation: -20, duration: 0.35, ease: roughTear, svgOrigin: "981 559" }, 0.3);
+      stub.to(cloneRoot, { rotation: -44, duration: 0.35, ease: roughTear, svgOrigin: "1006 559" }, 0.65);
+      stub.to(cloneRoot, { rotation: -78, duration: TEAR_RUN - 1.0, ease: roughTear, svgOrigin: "1044 559" }, 1.0);
       /* And the sheet SETTLES a few px as fibres let go -- weight, not just
          angle. */
       stub.to(fall, { y: "+=5", duration: TEAR_RUN, ease: "power1.in" }, 0);
       /* THE CONE (user's observation): a pulled ticket is not rigid -- it
          bunches slightly toward the held corner, a shallow conical flex,
          and it SPRINGS FLAT at the release. */
-      stub.to(cloneRoot, { skewX: -6, scaleY: 0.965, duration: TEAR_RUN * 0.85, ease: "power1.in", transformOrigin: "86% 12%" }, 0);
+      stub.to(cloneRoot, { skewX: -6, scaleY: 0.965, duration: TEAR_RUN * 0.85, ease: "power1.in", svgOrigin: "1044 559" }, 0);
 
       /* THE DANGLE. Fully torn but for the corner: the sheet hangs and
          swings once, damped -- the beat that sells the gravity -- before the
          last hold gives. */
-      stub.to(cloneRoot, { rotation: -69, duration: 0.24, ease: "sine.out", transformOrigin: "86% 12%" }, TEAR_RUN);
-      stub.to(cloneRoot, { rotation: -80, duration: 0.3, ease: "sine.inOut", transformOrigin: "86% 12%" }, TEAR_RUN + 0.24);
-      stub.to(cloneRoot, { rotation: -75, duration: 0.22, ease: "sine.inOut", transformOrigin: "86% 12%" }, TEAR_RUN + 0.54);
+      stub.to(cloneRoot, { rotation: -69, duration: 0.24, ease: "sine.out", svgOrigin: "1044 559" }, TEAR_RUN);
+      stub.to(cloneRoot, { rotation: -80, duration: 0.3, ease: "sine.inOut", svgOrigin: "1044 559" }, TEAR_RUN + 0.24);
+      stub.to(cloneRoot, { rotation: -75, duration: 0.22, ease: "sine.inOut", svgOrigin: "1044 559" }, TEAR_RUN + 0.54);
 
       /* THE RELEASE. True fall: gravity's accelerating ease, the rotation
          carrying on from the hang rather than resetting, a paper sway, gone
          before it lands. */
       const REL = TEAR_RUN + 0.76;
       stub.to(fall, { y: `+=${Math.round(window.innerHeight * 0.66)}`, duration: 1.0, ease: "power2.in" }, REL);
-      stub.to(cloneRoot, { rotation: -112, duration: 1.0, ease: "power1.in", transformOrigin: "86% 12%" }, REL);
-      stub.to(cloneRoot, { skewX: 0, scaleY: 1, duration: 0.25, ease: "power2.out", transformOrigin: "86% 12%" }, REL);
+      stub.to(cloneRoot, { rotation: -112, duration: 1.0, ease: "power1.in", svgOrigin: "1044 559" }, REL);
+      stub.to(cloneRoot, { skewX: 0, scaleY: 1, duration: 0.25, ease: "power2.out", svgOrigin: "1044 559" }, REL);
       stub.to(fall, { x: "-=18", duration: 0.45, ease: "sine.inOut" }, REL);
       stub.to(fall, { x: "+=36", duration: 0.5, ease: "sine.inOut" }, REL + 0.45);
       stub.to(fall, { opacity: 0, duration: 0.42, ease: "power1.in" }, REL + 0.5);
