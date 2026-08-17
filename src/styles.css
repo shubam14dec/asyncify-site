@@ -703,7 +703,9 @@ html {
 .install-doodle-wire,
 .install-doodle-head {
   fill: none;
-  stroke: var(--hairline-strong);
+  /* Brightened from hairline-strong (user call): the annotation should be
+     read, not discovered. */
+  stroke: var(--text-dim);
   stroke-width: 1;
   stroke-linecap: butt;
   stroke-linejoin: round;
@@ -713,7 +715,7 @@ html {
   font-family: "Instrument Serif", Georgia, serif;
   font-style: italic;
   font-size: 17px;
-  fill: var(--text-faint);
+  fill: var(--text-dim);
   opacity: 0;
 }
 

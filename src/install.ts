@@ -113,59 +113,22 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
     doodle.setAttribute("viewBox", `0 0 ${hr.width.toFixed(0)} ${hr.height.toFixed(0)}`);
     const cy = lr.top + lr.height / 2 - hr.top;
     const tx = lr.left - hr.left - 14;
-    /* The reference is a handwritten pigtail (user's sketch): the stroke
-       ITSELF rises into one self-crossing loop and falls out of it toward
-       the target -- not a circle attached to a line (the first draft's
-       mistake, caught by the user along with its screen-edge start).
-       Authored as cubics in a 250-wide local frame whose origin sits 250px
-       left of the box at the line's own height -- "start from somewhere
-       between", mid-field -- then a glide that arrives horizontal. */
-    /* Half the flight (user call: 250px of arrow was too much): the whole
-       doodle lives in a 125px local frame now. */
+    /* The final form (user call, after four rounds of loop tuning: "remove
+       that circular curve path, just give the arrow the install now
+       label"): scene 4's exact grammar -- the caption IS the annotation and
+       a short quiet arrow carries the eye from it to the box. One gentle
+       ~50px sweep rising into the line's centre height; no loop, no
+       flourish. */
     const ox = tx - 125;
     const oy = cy - 58;
     const P = (x: number, y: number) => `${(ox + x).toFixed(1)} ${(oy + y).toFixed(1)}`;
-    /* The loop is a PROLATE TROCHOID, not guessed cubics (two hand-authored
-       attempts read as lumpy circles -- user verdict was blunt). A pen
-       making a cursive loop traces exactly this curve: x = a·t + b·sin t,
-       y = b·cos t with b > a, which self-crosses once by construction --
-       the crossing falls where 30·sin s = 11·s (s ≈ 2.2 about the crown),
-       smooth everywhere, no seams to mis-tune. Sampled at 60 points (a
-       polyline is invisible at hairline weight); a tangent-matched lead-in
-       ahead of it, a tangent-matched glide after it. */
-    /* Scaled down and TILTED (user calls, twice: smaller, then HALF): a
-       32px loop riding high in a 125px flight, the glide falling into the
-       box so the arrow reads as thrown down-and-right, not laid flat. */
-    const A = 6;
-    const B = 16;
-    const LX = 62;
-    /* ONE LEVEL (user call: the loop rode above the flight): the loop's
-       entry/exit height IS the flight line -- start, loop and glide all sit
-       at the box's own centre height, the curl bulging up off it the way a
-       written loop bulges off its baseline. entry_y = LY + B*cos(T0), so
-       LY = 58 - 0.732*B puts that entry exactly on the line. */
-    const LY = 58 - 0.732 * B;
-    const T0 = 0.75;
-    const T1 = 5.55;
-    const loopPt = (t: number) => ({
-      x: LX + A * (t - Math.PI) + B * Math.sin(t),
-      y: LY + B * Math.cos(t),
-    });
-    const e0 = loopPt(T0);
-    const e1 = loopPt(T1);
-    const seg: string[] = [
-      `M ${P(0, 58)}`,
-      /* lead-in: level, with the pen's small dip as it swings into the loop */
-      `C ${P(14, 58)} ${P(e0.x - 15.9, e0.y + 9.8)} ${P(e0.x, e0.y)}`,
-    ];
-    const N = 60;
-    for (let i = 1; i <= N; i++) {
-      const p = loopPt(T0 + (i / N) * (T1 - T0));
-      seg.push(`L ${P(p.x, p.y)}`);
-    }
-    /* glide: leaves along the exit tangent, levels off at the box */
-    seg.push(`C ${P(e1.x + 15.9, e1.y + 9.8)} ${P(104, 58)} ${P(125, 58)}`);
-    doodleWire.setAttribute("d", seg.join(" "));
+    /* From the TOP into the middle (user call): the stroke drops from above
+       the box's band and hooks rightward into its centre height — scene 4's
+       falling quarter-arc, not a level run. */
+    doodleWire.setAttribute(
+      "d",
+      `M ${P(68, 20)} C ${P(74, 40)} ${P(94, 53)} ${P(121, 58.5)}`,
+    );
     /* Barbs ±26° about the measured end tangent, 7.5px long. */
     const L = doodleWire.getTotalLength();
     const p1 = doodleWire.getPointAtLength(Math.max(0, L - 6));
@@ -179,9 +142,9 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
       "d",
       `M ${barb(1)} L ${p2.x.toFixed(1)} ${p2.y.toFixed(1)} L ${barb(-1)}`,
     );
-    /* The caption hangs UNDER the arrow (user call), beneath the loop. */
-    doodleNote.setAttribute("x", (ox + LX).toFixed(1));
-    doodleNote.setAttribute("y", (oy + LY + B + 20).toFixed(1));
+    /* The caption stands beside the arrow's tail, up top. */
+    doodleNote.setAttribute("x", (ox + 24).toFixed(1));
+    doodleNote.setAttribute("y", (oy + 24).toFixed(1));
   }
 
   function drawDoodle(): void {
