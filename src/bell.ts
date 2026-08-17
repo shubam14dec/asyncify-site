@@ -423,26 +423,18 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
        the bell can never collide with the headline at any viewport. */
     const copyRect = copy.getBoundingClientRect();
     const bandBottom = Math.max(220, copyRect.top - heroRect.top - 24);
-    /* The install line lives in the copy block but is the copy's footnote,
-       not the stage's tax: when it arrived it grew the copy, shrank the band,
-       and the bell shrank with it (user catch — the bell must keep the size
-       it had before the line existed). So the bell and its pivot are sized to
-       the band the hero would have WITHOUT the unit — its measured height,
-       margin included, credited back — while the chips keep the band that
-       actually exists: their fan already narrows to fit rather than shrink
-       the bell, which is this file's own stated trade. */
-    const installEl = doc.querySelector<HTMLElement>(".install");
-    const installH = installEl
-      ? installEl.getBoundingClientRect().height +
-        Number.parseFloat(getComputedStyle(installEl).marginTop)
-      : 0;
-    const bellBand = bandBottom + installH;
+    /* When the install line arrived it first paid for itself out of this
+       band, and the whole stage — bell, fan, wires — shrank with it (user
+       catch, twice: crediting the height back to the bell alone left the
+       fan flattened). The copy block's type was tightened instead (user
+       call), so the band measured here IS the stage's true, original room
+       again and every piece below reads from it unmodified. */
     const isMobile = W < 768;
 
-    pivotY = clamp(bellBand * PIVOT_BAND_SHARE, PIVOT_MIN_PX, PIVOT_MAX_PX);
+    pivotY = clamp(bandBottom * PIVOT_BAND_SHARE, PIVOT_MIN_PX, PIVOT_MAX_PX);
     const targetH = isMobile
-      ? clamp(bellBand * 0.42, 118, 240)
-      : clamp(bellBand * BELL_BAND_SHARE, BELL_MIN_PX, BELL_MAX_PX);
+      ? clamp(bandBottom * 0.42, 118, 240)
+      : clamp(bandBottom * BELL_BAND_SHARE, BELL_MIN_PX, BELL_MAX_PX);
     bellScale = targetH / BELL.H;
     bellPxH = targetH;
     cx = W / 2;
