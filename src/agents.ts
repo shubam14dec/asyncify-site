@@ -2308,7 +2308,12 @@ export function createAgentsScene(): AgentsScene {
         pinSpacing: true,
         anticipatePin: 1,
         scrub: SCRUB,
-        invalidateOnRefresh: true,
+        /* false, deliberately (profiled): every tween here is an explicit-
+           constant fromTo in viewBox units, so invalidation re-parses the
+           same numbers -- while costing a full re-init of every aligned
+           motionPath tween per refresh, each one forcing layout of a
+           five-SVG page. It was half of a multi-second boot. */
+        invalidateOnRefresh: false,
       },
     });
 

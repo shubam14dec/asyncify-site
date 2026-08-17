@@ -140,21 +140,21 @@ if (reducedMotion) install.start();
    it. It also owns its own media gating (gsap.matchMedia), because the choice
    between a pinned scrub and a still figure depends on viewport width as well
    as on the motion preference, and width can change after boot. */
-const engine = createEngineScene();
+let engine: ReturnType<typeof createEngineScene> | null = null;
 
 /* Scene 3 owns the bridge line above it as well as its own pin — the two are
    one narrative move, and the bridge exists only to hand over to the scene.
    Built after scene 2 so its ScrollTriggers are registered in document order;
    scene 2's fonts-ready ScrollTrigger.refresh() is global and re-measures
    these too, which is why this file does not ask for a second one. */
-const turn = createTurnScene();
+let turn: ReturnType<typeof createTurnScene> | null = null;
 
 /* Scene 4 owns the second bridge as well as its own pin, exactly as scene 3
    owns the first — the two are one narrative move and the bridge exists only
    to hand over. Built after scene 3 so its ScrollTriggers are registered in
    document order; the fonts-ready ScrollTrigger.refresh() scene 2 asks for is
    global and re-measures these too. */
-const agents = createAgentsScene();
+let agents: ReturnType<typeof createAgentsScene> | null = null;
 
 /* Scene 5 is the only unpinned scene on the page, and the only one that owns
    pointer physics as well as a scrub. Built last so its ScrollTriggers are
@@ -162,7 +162,37 @@ const agents = createAgentsScene();
    fonts-ready ScrollTrigger.refresh() is global and re-measures this one too,
    which matters more here than anywhere else — the table's own height is what
    the scrub's window is derived from. */
-const proof = createProofScene();
+let proof: ReturnType<typeof createProofScene> | null = null;
+
+/* ── deferred scene build ──────────────────────────────────────────────────
+   WHY THE PAGE USED TO TAKE SECONDS TO SHOW (profiled, dev and prod alike):
+   building the four lower scenes synchronously at module evaluation cost
+   ~4-9s of main-thread layout work — every ScrollTrigger created after the
+   document leaves "loading" refreshes on creation, each refresh of a pinned
+   scrub reverts and re-renders its timeline, and every aligned motionPath
+   tween init forces a full layout of a five-SVG page (getGlobalMatrix).
+   None of that is above the fold: the hero (bell, headline, install line)
+   is independent of all four. So the module finishes with the hero only —
+   first paint arrives with the stylesheet — and the heavy scenes build one
+   per animation frame right after, in document order, well inside the
+   seconds the reader spends with the bell. The build chain starts on the
+   first frame AFTER first paint; a reader cannot physically scroll past the
+   hero before scene 2 exists. */
+function buildLowerScenes(): void {
+  requestAnimationFrame(() => {
+    engine = createEngineScene();
+    requestAnimationFrame(() => {
+      turn = createTurnScene();
+      requestAnimationFrame(() => {
+        agents = createAgentsScene();
+        requestAnimationFrame(() => {
+          proof = createProofScene();
+        });
+      });
+    });
+  });
+}
+buildLowerScenes();
 
 /* The entrance runs once. Waiting for the first font frame avoids the
    headline re-flowing underneath a mid-flight SplitText. */
@@ -195,9 +225,9 @@ if (import.meta.hot) {
     install.destroy();
     installFinale?.destroy();
     finaleIo?.disconnect();
-    engine.destroy();
-    turn.destroy();
-    agents.destroy();
-    proof.destroy();
+    engine?.destroy();
+    turn?.destroy();
+    agents?.destroy();
+    proof?.destroy();
   });
 }

@@ -129,6 +129,19 @@ scene, not with `if (reduced)` scattered inside tweens.
 
 ## 6. Performance budget
 
+- **Nothing below the fold builds before first paint.** The four lower scenes
+  cost seconds of main-thread layout to construct (every ScrollTrigger created
+  after parsing self-refreshes; refreshing a pinned scrub reverts and
+  re-renders its timeline; every aligned motionPath init forces layout of a
+  five-SVG page). The hero owes none of that: main.ts builds it alone, paints,
+  then builds scenes 2-5 one per animation frame. First paint went 10.3s to
+  0.4s the day this rule was written.
+- **`invalidateOnRefresh` stays off on the big scrubs.** Explicit-constant
+  fromTo pairs make invalidation a no-op re-parse with a very real re-init
+  bill. If a tween ever genuinely needs re-measuring on refresh, give THAT
+  tween function-based values and flip the flag on its own trigger, not the
+  scene's.
+
 | Metric | Budget |
 | --- | --- |
 | JS, gzipped | **< 150 KB** |
