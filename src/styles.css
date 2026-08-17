@@ -546,8 +546,9 @@ html {
    left-aligned line moves nothing. Stated in `ch` of this element's own mono
    font, so nothing has to be measured in JS and the reservation survives a
    font-size step on mobile.
-   No box at rest: at rest this is one line of terminal text in the copy
-   block, and only the pointer turns it into a control. */
+   Boxed at rest (user call: it should read as a control before the pointer
+   finds it): the hairline and the copy affordance are always on, and hover
+   merely brightens the edge. */
 .install-line {
   position: relative;
   display: inline-flex;
@@ -555,7 +556,7 @@ html {
   width: calc(34ch + 30px); /* 28px padding + 2px border */
   height: 28px;
   padding: 0 14px;
-  border: 1px solid transparent;
+  border: 1px solid var(--hairline);
   border-radius: var(--r-chip);
   background: transparent;
   font-family: var(--mono);
@@ -636,7 +637,7 @@ html {
   color: var(--text-faint);
   white-space: nowrap;
   pointer-events: none;
-  opacity: 0;
+  opacity: 1;
   transition: opacity 180ms ease;
 }
 
@@ -659,11 +660,7 @@ html {
 
 @media (hover: hover) and (pointer: fine) {
   .install-line:hover {
-    border-color: var(--hairline);
-  }
-  .install-line:hover .install-fb,
-  .install-line:focus-visible .install-fb {
-    opacity: 1;
+    border-color: var(--hairline-strong);
   }
 }
 
