@@ -60,6 +60,13 @@ body {
   padding: 0;
 }
 
+/* The other half of the critical inline frame in index.html's head: that
+   frame hides <main> so a stylesheet-less first paint shows a black canvas
+   instead of raw HTML; the arrival of THIS file is what reveals the page. */
+main {
+  visibility: visible;
+}
+
 html {
   background: var(--canvas);
   -webkit-text-size-adjust: 100%;

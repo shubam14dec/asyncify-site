@@ -11,6 +11,26 @@
       content="One API call, delivered to email, sms, push, in-app, telegram and slack — with per-channel receipts, and agents that answer back."
     />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- Critical inline frame. All real styling arrives through main.ts
+         (styles.css + fonts are module imports), so on a cold dev-server
+         load the browser paints raw HTML for a beat before Vite has
+         compiled anything — white page, serif soup (user report). These
+         few rules make that beat a quiet black nothing instead: the canvas
+         is dark from byte one and <main> stays invisible until the real
+         stylesheet lands (styles.css flips it back on). In production the
+         extracted CSS <link> is render-blocking and this never engages. -->
+    <style>
+      html {
+        background: #0a0a0a;
+      }
+      body {
+        margin: 0;
+        background: #0a0a0a;
+      }
+      main {
+        visibility: hidden;
+      }
+    </style>
   </head>
 
   <body>
