@@ -127,7 +127,10 @@ const PATH_STAGGER = 0.06;
 const PKT_DUR = [0.62, 0.55, 0.71, 0.58, 0.75, 0.66];
 /** Draw/arrive order: centre pair first, then outward. Reads as a spray. */
 const PKT_ORDER = [2, 3, 1, 4, 0, 5];
-const AUTO_RING_DELAY_MS = 2200;
+/* 2200 originally; pushed past the deferred scene builds (they own roughly
+   entrance-end + 4 x (build + 400ms gap)) so the unprompted demo ring plays
+   on an empty main thread instead of stuttering through a build block. */
+const AUTO_RING_DELAY_MS = 5600;
 
 /** When the ring's pressure wave leaves the bell, in seconds from t=0. This is
  *  the same instant the green ripple leaves the mouth (see the RIPPLE tween

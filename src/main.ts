@@ -184,18 +184,54 @@ let proof: ReturnType<typeof createProofScene> | null = null;
    seconds the reader spends with the bell. The build chain starts on the
    first frame AFTER first paint; a reader cannot physically scroll past the
    hero before scene 2 exists. */
+/* ── the scroll reservation ────────────────────────────────────────────────
+   Each pinned scene's ScrollTrigger adds a pin spacer (its PIN_HEIGHTS x
+   100vh) only when the scene BUILDS — so with deferred builds the page
+   loaded ~9 screens short and grew as scenes arrived, and the scrollbar
+   thumb visibly shrank a beat after load (user report). A placeholder at
+   the end of <main> reserves that height from the first frame and pays it
+   back share by share as each scene's real spacer lands: the thumb is the
+   same size at 0ms as at rest. Desktop-with-motion only — that is the same
+   media gate the pins themselves live behind. */
+const PIN_SHARES_VH = [250, 180, 300, 150]; // engine, turn, agents, proof — each scene's PIN_HEIGHTS x 100
+const reservePins = window.matchMedia(
+  "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
+).matches;
+let pinReserve: HTMLElement | null = null;
+let reservedVh = PIN_SHARES_VH.reduce((a, b) => a + b, 0);
+if (reservePins) {
+  pinReserve = document.createElement("div");
+  pinReserve.setAttribute("aria-hidden", "true");
+  pinReserve.style.height = `${reservedVh}vh`;
+  document.querySelector("main")?.appendChild(pinReserve);
+}
+function payBackReserve(shareVh: number): void {
+  if (!pinReserve) return;
+  reservedVh = Math.max(0, reservedVh - shareVh);
+  if (reservedVh === 0) {
+    pinReserve.remove();
+    pinReserve = null;
+  } else {
+    pinReserve.style.height = `${reservedVh}vh`;
+  }
+}
+
 const sceneBuilders: Array<() => void> = [
   () => {
     engine = createEngineScene();
+    payBackReserve(PIN_SHARES_VH[0]!);
   },
   () => {
     turn = createTurnScene();
+    payBackReserve(PIN_SHARES_VH[1]!);
   },
   () => {
     agents = createAgentsScene();
+    payBackReserve(PIN_SHARES_VH[2]!);
   },
   () => {
     proof = createProofScene();
+    payBackReserve(PIN_SHARES_VH[3]!);
   },
 ];
 
@@ -210,15 +246,16 @@ const sceneBuilders: Array<() => void> = [
 function buildNextSceneWhenIdle(): void {
   const next = sceneBuilders.shift();
   if (!next) return;
-  const go = (): void => {
+  /* NOT requestIdleCallback (tried): an animating page has idle time inside
+     every 60fps frame, so rIC fired mid-entrance and the multi-second build
+     froze the choreography — the exact lag it was meant to prevent (user
+     report). The chain is now clocked instead: each build waits 400ms after
+     the previous one finished, which is ~24 painted frames for the bell's
+     sway, the typing and the ring to breathe between blocks. */
+  window.setTimeout(() => {
     next();
     buildNextSceneWhenIdle();
-  };
-  if (typeof window.requestIdleCallback === "function") {
-    window.requestIdleCallback(go, { timeout: 1500 });
-  } else {
-    window.setTimeout(go, 250);
-  }
+  }, 400);
 }
 
 /* The one hole in "after the entrance": a reader who scrolls during it
