@@ -430,8 +430,8 @@ html {
      line joined the copy block (user call): the unit's ~79px comes out of
      the type and the rhythm below, not out of the stage — the bell and its
      fan keep the band they had before the line existed.
-     5.8vh ⇒ ~39px at 674px tall; 4.5vw ⇒ ~56px at 1254px wide. */
-  font-size: clamp(2rem, min(4.5vw, 5.8vh), 4.75rem);
+     6.5vh ⇒ ~44px at 674px tall; 4.8vw ⇒ ~60px at 1254px wide. */
+  font-size: clamp(2rem, min(4.8vw, 6.5vh), 4.75rem);
   line-height: 1.06;
   letter-spacing: -0.02em;
   color: var(--text);
