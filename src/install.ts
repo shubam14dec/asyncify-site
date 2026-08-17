@@ -112,22 +112,29 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
     if (lr.width < 2) return;
     doodle.setAttribute("viewBox", `0 0 ${hr.width.toFixed(0)} ${hr.height.toFixed(0)}`);
     const cy = lr.top + lr.height / 2 - hr.top;
-    const tx = lr.left - hr.left - 12;
-    /* The loop sits in the field's last third, clear of both the edge and
-       the line. Radius 19 — a curl, not a diagram circle. */
-    const xL = Math.max(140, tx - 170);
-    const r = 19;
+    const tx = lr.left - hr.left - 14;
+    /* The reference is a handwritten pigtail (user's sketch): the stroke
+       ITSELF rises into one self-crossing loop and falls out of it toward
+       the target -- not a circle attached to a line (the first draft's
+       mistake, caught by the user along with its screen-edge start).
+       Authored as cubics in a 250-wide local frame whose origin sits 250px
+       left of the box at the line's own height -- "start from somewhere
+       between", mid-field -- then a glide that arrives horizontal. */
+    const ox = tx - 250;
+    const oy = cy - 58;
+    const P = (x: number, y: number) => `${(ox + x).toFixed(1)} ${(oy + y).toFixed(1)}`;
     doodleWire.setAttribute(
       "d",
       [
-        `M -14 ${(cy - 46).toFixed(1)}`,
-        /* In from off-screen, sagging like a thrown line settling. */
-        `C ${(xL * 0.38).toFixed(1)} ${(cy - 64).toFixed(1)} ${(xL * 0.78).toFixed(1)} ${(cy - 52).toFixed(1)} ${xL.toFixed(1)} ${(cy - 26).toFixed(1)}`,
-        /* One full cursive loop, clockwise: the arc command returns to its
-           own start (0.01 of drift keeps the arc legal), tangent preserved. */
-        `a ${r} ${r} 0 1 1 0.01 0.3`,
-        /* The glide: levels out and arrives horizontal at the box's height. */
-        `C ${(xL + 74).toFixed(1)} ${(cy - 4).toFixed(1)} ${(tx - 64).toFixed(1)} ${cy.toFixed(1)} ${tx.toFixed(1)} ${cy.toFixed(1)}`,
+        `M ${P(0, 58)}`,
+        /* rise from the start up over the loop's crown */
+        `C ${P(36, 30)} ${P(86, 6)} ${P(98, 34)}`,
+        /* down the loop's right side, around the bottom, back left */
+        `C ${P(106, 58)} ${P(64, 78)} ${P(50, 54)}`,
+        /* up the left side and OUT through its own stroke -- the crossing */
+        `C ${P(38, 34)} ${P(58, 16)} ${P(84, 30)}`,
+        /* the glide: falls out of the loop and levels off at the box */
+        `C ${P(130, 52)} ${P(208, 58)} ${P(250, 58)}`,
       ].join(" "),
     );
     /* Barbs ±26° about the measured end tangent, 7.5px long. */
@@ -143,8 +150,9 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
       "d",
       `M ${barb(1)} L ${p2.x.toFixed(1)} ${p2.y.toFixed(1)} L ${barb(-1)}`,
     );
-    doodleNote.setAttribute("x", xL.toFixed(1));
-    doodleNote.setAttribute("y", (cy - 66).toFixed(1));
+    /* The caption stands over the loop's crown. */
+    doodleNote.setAttribute("x", (ox + 70).toFixed(1));
+    doodleNote.setAttribute("y", (oy - 10).toFixed(1));
   }
 
   function drawDoodle(): void {
