@@ -120,7 +120,9 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
        Authored as cubics in a 250-wide local frame whose origin sits 250px
        left of the box at the line's own height -- "start from somewhere
        between", mid-field -- then a glide that arrives horizontal. */
-    const ox = tx - 250;
+    /* Half the flight (user call: 250px of arrow was too much): the whole
+       doodle lives in a 125px local frame now. */
+    const ox = tx - 125;
     const oy = cy - 58;
     const P = (x: number, y: number) => `${(ox + x).toFixed(1)} ${(oy + y).toFixed(1)}`;
     /* The loop is a PROLATE TROCHOID, not guessed cubics (two hand-authored
@@ -131,10 +133,13 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
        smooth everywhere, no seams to mis-tune. Sampled at 60 points (a
        polyline is invisible at hairline weight); a tangent-matched lead-in
        ahead of it, a tangent-matched glide after it. */
-    const A = 11;
-    const B = 30;
-    const LX = 95;
-    const LY = 30;
+    /* Scaled down and TILTED (user calls, twice: smaller, then HALF): a
+       32px loop riding high in a 125px flight, the glide falling into the
+       box so the arrow reads as thrown down-and-right, not laid flat. */
+    const A = 6;
+    const B = 16;
+    const LX = 62;
+    const LY = 24; /* crown at LY-B: low enough that the caption above it clears the tagline's band */
     const T0 = 0.75;
     const T1 = 5.55;
     const loopPt = (t: number) => ({
@@ -144,9 +149,9 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
     const e0 = loopPt(T0);
     const e1 = loopPt(T1);
     const seg: string[] = [
-      `M ${P(0, 64)}`,
+      `M ${P(0, 50)}`,
       /* lead-in: arrives at the loop along the loop's own entry tangent */
-      `C ${P(28, 66)} ${P(e0.x - 29.6, e0.y + 18.4)} ${P(e0.x, e0.y)}`,
+      `C ${P(14, 52)} ${P(e0.x - 15.9, e0.y + 9.8)} ${P(e0.x, e0.y)}`,
     ];
     const N = 60;
     for (let i = 1; i <= N; i++) {
@@ -154,7 +159,7 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
       seg.push(`L ${P(p.x, p.y)}`);
     }
     /* glide: leaves along the exit tangent, levels off at the box */
-    seg.push(`C ${P(e1.x + 29.8, e1.y + 18.2)} ${P(206, 62)} ${P(250, 58)}`);
+    seg.push(`C ${P(e1.x + 15.9, e1.y + 9.8)} ${P(102, 50)} ${P(125, 58)}`);
     doodleWire.setAttribute("d", seg.join(" "));
     /* Barbs ±26° about the measured end tangent, 7.5px long. */
     const L = doodleWire.getTotalLength();
@@ -171,7 +176,7 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
     );
     /* The caption stands over the loop's crown (crown = LX, LY - B). */
     doodleNote.setAttribute("x", (ox + LX).toFixed(1));
-    doodleNote.setAttribute("y", (oy + LY - B - 14).toFixed(1));
+    doodleNote.setAttribute("y", (oy + LY - B - 12).toFixed(1));
   }
 
   function drawDoodle(): void {
