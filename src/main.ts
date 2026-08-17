@@ -78,6 +78,9 @@ const scene = createBellScene({
     // The line types itself only once the bell has landed: two things
     // arriving at once is neither of them arriving.
     install.start();
+    // And only now do the lower scenes start building, in idle gaps —
+    // the entrance ran on an empty main thread.
+    buildNextSceneWhenIdle();
   },
   onRing: (x, y) => headline.resonate(x, y),
 });
@@ -134,7 +137,10 @@ if (installFinale && finaleInstallRoot) {
 
 /* Reduced motion never reaches onEntranceComplete — bell.ts returns after its
    cross-fade — so the line takes its instant text here instead. */
-if (reducedMotion) install.start();
+if (reducedMotion) {
+  install.start();
+  buildNextSceneWhenIdle();
+}
 
 /* Scene 2 is independent of the hero — it neither reads from it nor writes to
    it. It also owns its own media gating (gsap.matchMedia), because the choice
@@ -178,21 +184,60 @@ let proof: ReturnType<typeof createProofScene> | null = null;
    seconds the reader spends with the bell. The build chain starts on the
    first frame AFTER first paint; a reader cannot physically scroll past the
    hero before scene 2 exists. */
-function buildLowerScenes(): void {
-  requestAnimationFrame(() => {
+const sceneBuilders: Array<() => void> = [
+  () => {
     engine = createEngineScene();
-    requestAnimationFrame(() => {
-      turn = createTurnScene();
-      requestAnimationFrame(() => {
-        agents = createAgentsScene();
-        requestAnimationFrame(() => {
-          proof = createProofScene();
-        });
-      });
-    });
-  });
+  },
+  () => {
+    turn = createTurnScene();
+  },
+  () => {
+    agents = createAgentsScene();
+  },
+  () => {
+    proof = createProofScene();
+  },
+];
+
+/* Build the next scene when the browser is IDLE, not merely on the next
+   frame: a scene build is a long task (0.5-2.5s of ScrollTrigger and
+   motionPath layout work), and chained through rAF the four of them froze
+   the main thread straight through the entrance — the bell traced in
+   stutters and the page read as still loading (user report, twice). The
+   chain now starts from onEntranceComplete, so the entrance owns the main
+   thread outright, and each build waits for an idle gap (capped so the
+   page is never more than ~1.5s from having its next scene). */
+function buildNextSceneWhenIdle(): void {
+  const next = sceneBuilders.shift();
+  if (!next) return;
+  const go = (): void => {
+    next();
+    buildNextSceneWhenIdle();
+  };
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(go, { timeout: 1500 });
+  } else {
+    window.setTimeout(go, 250);
+  }
 }
-buildLowerScenes();
+
+/* The one hole in "after the entrance": a reader who scrolls during it
+   would meet an unbuilt scene 2. Any scroll intent flushes every remaining
+   build synchronously — one visible hitch, but the page below exists
+   before the viewport gets there. */
+function flushSceneBuilds(): void {
+  let b = sceneBuilders.shift();
+  while (b) {
+    b();
+    b = sceneBuilders.shift();
+  }
+  window.removeEventListener("wheel", flushSceneBuilds);
+  window.removeEventListener("touchmove", flushSceneBuilds);
+  window.removeEventListener("scroll", flushSceneBuilds);
+}
+window.addEventListener("wheel", flushSceneBuilds, { passive: true, once: true });
+window.addEventListener("touchmove", flushSceneBuilds, { passive: true, once: true });
+window.addEventListener("scroll", flushSceneBuilds, { passive: true, once: true });
 
 /* The entrance runs once. Waiting for the first font frame avoids the
    headline re-flowing underneath a mid-flight SplitText. */
@@ -211,7 +256,7 @@ if (document.fonts?.status === "loaded") {
     boot();
   };
   void document.fonts.ready.then(once);
-  window.setTimeout(once, 600);
+  window.setTimeout(once, 300);
 } else {
   boot();
 }
