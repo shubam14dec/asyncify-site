@@ -143,7 +143,7 @@ const RESONANCE_LEAD = 0.09;
 /** Bell height as a fraction of the band, then clamped. The bell is the hero;
  *  the fan below it is protected by FAN_MAX_ASPECT rather than by starving the
  *  bell of size. */
-const BELL_BAND_SHARE = 0.52;
+const BELL_BAND_SHARE = 0.57; /* 0.52 originally; raised a step (user call, after the install line landed) — the fan absorbs it, per the note above */
 const BELL_MIN_PX = 132;
 const BELL_MAX_PX = 325;
 /** How far below the top edge the thread ends (= the bell's pivot). */
