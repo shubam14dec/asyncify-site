@@ -142,6 +142,13 @@ scene, not with `if (reduced)` scattered inside tweens.
   five-SVG page). The hero owes none of that: main.ts builds it alone, paints,
   then builds scenes 2-5 one per animation frame. First paint went 10.3s to
   0.4s the day this rule was written.
+- **motionPath never uses `align` here.** Every packet is a circle authored at cx/cy 0
+  in its path's own coordinate space, so the path's absolute coordinates centre it on
+  the stroke by construction. `align` computes the same thing through getGlobalMatrix —
+  one forced full-document reflow per tween init — and with ~40 aligned tweens it WAS
+  the page's entire multi-second build cost (profiled; removing it cut scene builds
+  3-4x). If a future packet genuinely lives in a different transform space, fix the
+  authoring, not the plugin flag.
 - **`invalidateOnRefresh` stays off on the big scrubs.** Explicit-constant
   fromTo pairs make invalidation a no-op re-parse with a very real re-init
   bill. If a tween ever genuinely needs re-measuring on refresh, give THAT

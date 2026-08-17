@@ -1916,9 +1916,10 @@ export function createEngineScene(): EngineScene {
       tl.to(
         dot,
         {
-          motionPath: o.raw
-            ? { path, ...span }
-            : { path, align: path, alignOrigin: [0.5, 0.5], ...span },
+          /* Both branches are align-free now (see the run() docs in turn.ts
+             for the measured reason): packets are origin-authored circles in
+             the path's own space, so raw path coordinates ARE the alignment. */
+          motionPath: { path, ...span },
           duration: dur,
           ease: o.ease ?? "none",
           immediateRender: false,

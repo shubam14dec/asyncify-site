@@ -797,7 +797,10 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
       tl.to(
         pkt,
         {
-          motionPath: { path: sig, align: sig, alignOrigin: [0.5, 0.5] },
+          /* align-free: pkt is a circle at cx/cy 0 in the same #signals group
+             as its path — raw path coords ARE the alignment (see turn.ts
+             run() docs for the profiled reason). */
+          motionPath: { path: sig },
           duration: dur,
           ease: "power1.inOut",
           immediateRender: false,

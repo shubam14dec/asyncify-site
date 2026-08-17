@@ -2342,15 +2342,23 @@ export function createAgentsScene(): AgentsScene {
       ft(t, { fillOpacity: 0 }, { fillOpacity: 1, duration: dur * 0.8 }, at + dur * 0.45);
     };
 
-    /** A packet running a route. `align` puts the centre of a circle authored
-     *  at the origin exactly on the path point, which is why every packet in
-     *  this file is authored at cx/cy 0 — an element carrying its own offset
-     *  would have that offset silently cancelled (DESIGN §3). */
+    /** A packet running a route. Every packet in this file is authored at
+     *  cx/cy 0 in its path's own coordinate space, so the path's absolute
+     *  coordinates centre it on the stroke directly — `align` (which would
+     *  compute the same thing via a forced-reflow getGlobalMatrix per init;
+     *  profiled as the page's whole build cost) is deliberately absent. */
     function run(dot: Element, path: SVGPathElement, at: number, dur: number, ease = "none"): void {
       tl.to(
         dot,
         {
-          motionPath: { path, align: path, alignOrigin: [0.5, 0.5] },
+/* No `align` — measured out (profiled root cause of multi-second scene
+             builds): align calls getGlobalMatrix per tween INIT, forcing a
+             full-document reflow each time, to compute a matrix that is the
+             IDENTITY here — every packet is a circle authored at cx/cy 0 in
+             the same coordinate space as its path (the invariant this file
+             already documents), so the path's own absolute coordinates land
+             the centre on the stroke with zero matrix work. */
+          motionPath: { path },
           duration: dur,
           ease,
           immediateRender: false,
