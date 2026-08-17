@@ -31,6 +31,7 @@ import { createAgentsScene } from "./agents";
 import { createBellScene } from "./bell";
 import { createEngineScene } from "./engine";
 import { createHangingHeadline } from "./headline";
+import { createInstallLine } from "./install";
 import { createProofScene } from "./proof";
 import { createTurnScene } from "./turn";
 
@@ -72,9 +73,25 @@ const headline = createHangingHeadline({ reducedMotion });
 const scene = createBellScene({
   reducedMotion,
   headlineWords: headline.words,
-  onEntranceComplete: () => headline.activate(),
+  onEntranceComplete: () => {
+    headline.activate();
+    // The line types itself only once the bell has landed: two things
+    // arriving at once is neither of them arriving.
+    install.start();
+  },
   onRing: (x, y) => headline.resonate(x, y),
 });
+
+/* The third hero collaborator, and the only one that talks back to the bell:
+   the clipboard is the first channel asyncify delivers to, so a copy is a
+   delivery and rings it. Built after the scene because it holds the ring;
+   the scene's entrance callback holds `start()` and does not fire until
+   t = 1.30s, long after this line has run. */
+const install = createInstallLine({ reducedMotion, ring: () => scene.ring() });
+
+/* Reduced motion never reaches onEntranceComplete — bell.ts returns after its
+   cross-fade — so the line takes its instant text here instead. */
+if (reducedMotion) install.start();
 
 /* Scene 2 is independent of the hero — it neither reads from it nor writes to
    it. It also owns its own media gating (gsap.matchMedia), because the choice
@@ -132,6 +149,7 @@ if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     scene.destroy();
     headline.destroy();
+    install.destroy();
     engine.destroy();
     turn.destroy();
     agents.destroy();

@@ -528,6 +528,224 @@ html {
   }
 }
 
+/* ── install line ───────────────────────────────────────────────────────── */
+
+.install {
+  margin-top: clamp(18px, 3vh, 28px);
+}
+
+/* The reserved width IS the anti-wobble mechanism. A centred line that types
+   re-centres on every character, so the box is sized once to the longest
+   command — `$ npm i @asyncify-hq/react-native`, 33 characters — plus the
+   0.55ch cursor, and the text is left-aligned inside it. 34ch rather than the
+   33.55ch that measures — the tail is slack, and slack on the right of a
+   left-aligned line moves nothing. Stated in `ch` of this element's own mono
+   font, so nothing has to be measured in JS and the reservation survives a
+   font-size step on mobile.
+   No box at rest: at rest this is one line of terminal text in the copy
+   block, and only the pointer turns it into a control. */
+.install-line {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: calc(34ch + 30px); /* 28px padding + 2px border */
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--r-chip);
+  background: transparent;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1;
+  text-align: left;
+  white-space: pre; /* the prompt's trailing space is part of the prompt */
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color 180ms ease,
+    transform 140ms var(--ease-out);
+}
+
+.install-line:active {
+  transform: scale(0.97);
+}
+
+/* Flex items, so none of the three may shrink when the longest command
+   fills the reservation exactly. */
+.install-prompt,
+.install-cmd,
+.install-cursor {
+  flex: none;
+}
+
+.install-prompt {
+  color: var(--text-faint);
+}
+
+.install-cmd {
+  color: var(--text);
+}
+
+/* A block cursor, not a glyph: ▌ and ▎ are outside the latin subset this site
+   ships, so the only honest block is a box of currentColor. */
+.install-cursor {
+  width: 0.55ch;
+  height: 1.1em;
+  background: currentColor;
+  color: var(--text);
+}
+
+/* Blinking is a state, not a decoration: install.ts adds this class only once
+   typing has finished, so the line never blinks mid-word. */
+@media (prefers-reduced-motion: no-preference) {
+  .install-cursor.is-blinking {
+    animation: install-blink 1060ms steps(1, end) infinite;
+  }
+}
+
+@keyframes install-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.install-fb {
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 10px;
+  transform: translateY(-50%);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--text-faint);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+/* The receipt of a delivery, so it stays lit even after the pointer leaves. */
+.install-fb.is-copied {
+  opacity: 1;
+}
+
+/* The delivered-dot, doing its one job (BRAND.md §2). Invisible until the
+   command actually lands somewhere — the clipboard is a channel. */
+.install-fb-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  /* Explicit origin: the dot pops from its own centre, nowhere else. */
+  transform-origin: 50% 50%;
+  opacity: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .install-line:hover {
+    border-color: var(--hairline);
+  }
+  .install-line:hover .install-fb,
+  .install-line:focus-visible .install-fb {
+    opacity: 1;
+  }
+}
+
+/* No pointer to hover with: the affordance has to be said out loud, faintly
+   and permanently, or the line reads as decoration. It also moves under the
+   line, because a permanent label beside a 34ch reservation is wider than the
+   narrowest phone — and because a caption is what a permanent one is. The
+   tabs row opens the band it sits in, so nothing here is ever laid out twice. */
+@media (hover: none) {
+  .install-fb {
+    top: 100%;
+    left: 50%;
+    margin-left: 0;
+    transform: translateX(-50%);
+    opacity: 1;
+  }
+}
+
+.install-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.install-tab {
+  position: relative;
+  padding: 4px 7px;
+  border: 0;
+  background: transparent;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    transform 140ms var(--ease-out);
+}
+
+/* DESIGN §5's 40px touch floor, paid without the height: a visible 40px row
+   would cost the hero band exactly the slack a 674px laptop does not have, so
+   the hit area is grown invisibly instead — an inset pseudo-element extends
+   each tab's target to ~41px tall while the row keeps reading as a footnote.
+   Neighbouring tabs' targets meet in the separator gutter; they do not
+   overlap each other's glyphs. */
+.install-tab::before {
+  content: "";
+  position: absolute;
+  inset: -11px -3px;
+}
+
+.install-tab:active {
+  transform: scale(0.97);
+}
+
+.install-tab[aria-pressed="true"] {
+  color: var(--text);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .install-tab:hover {
+    color: var(--text-dim);
+  }
+  .install-tab[aria-pressed="true"]:hover {
+    color: var(--text);
+  }
+}
+
+.install-sep {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1;
+  color: var(--text-faint);
+}
+
+/* Room for the caption the touch layout parks under the line. Stated after
+   the rule it overrides, because it is the same specificity. */
+@media (hover: none) {
+  .install-tabs {
+    margin-top: 18px;
+  }
+}
+
 /* ── scroll hint ────────────────────────────────────────────────────────── */
 
 .hint-wrap {
@@ -607,8 +825,16 @@ html {
 
   .btn-text .arrow,
   .btn-ghost,
-  .btn-text {
+  .btn-text,
+  .install-line,
+  .install-tab {
     transition-property: border-color, color;
+  }
+
+  /* The line arrives already typed (install.ts), so there is no caret to
+     stand at the end of it. */
+  .install-cursor {
+    display: none;
   }
 }
 
@@ -636,6 +862,40 @@ html {
 
   .actions {
     gap: 14px;
+  }
+
+  /* The unit is 106px of a phone's hero, and a 320×780 window has 12px to
+     spare once the bell's band is at its floor. The head of the unit pays it
+     back: the line and the tabs keep their own sizes. */
+  .install {
+    margin-top: clamp(14px, 2vh, 20px);
+  }
+
+  /* 34ch of 13px mono plus its padding is 295px, which does not fit a 320px
+     viewport once the 24px gutters are paid. One size step down puts the same
+     reservation at 259px and keeps the whole command on one line. */
+  .install-line {
+    width: calc(34ch + 14px);
+    padding: 0 6px;
+    font-size: 12px;
+  }
+
+  /* Fingers, not pointers: the row may wrap, and each tab carries its own
+     touch slop rather than a taller row. */
+  .install-tabs {
+    flex-wrap: wrap;
+  }
+
+  .install-tab {
+    padding: 7px 7px;
+  }
+
+  /* Same caption band as any touch screen, two pixels tighter — that is the
+     whole margin a 320×780 window has. */
+  @media (hover: none) {
+    .install-tabs {
+      margin-top: 16px;
+    }
   }
 }
 

@@ -185,6 +185,63 @@
               GitHub <span class="arrow" aria-hidden="true">↗</span>
             </a>
           </div>
+
+          <!-- The first delivery is to your clipboard. One line of terminal
+               text, not a fake terminal window (DESIGN.md §7): the command IS
+               the button, and copying it rings the bell — the same delivered
+               dot the chips use lands next to it.
+               The command is typed by install.ts; the box reserves the width
+               of the longest package name so a centred line cannot re-centre
+               itself on every keystroke. -->
+          <div class="install">
+            <button
+              type="button"
+              class="install-line"
+              id="install-line"
+              aria-label="Copy install command"
+            >
+              <span class="install-prompt" aria-hidden="true">$ </span>
+              <span class="install-cmd" id="install-cmd"></span>
+              <span class="install-cursor" id="install-cursor" aria-hidden="true"></span>
+              <!-- Hangs off the right edge so the command itself stays
+                   optically centred under the headline. -->
+              <span class="install-fb" id="install-fb" aria-hidden="true">
+                <span id="install-fb-text">copy</span>
+                <span class="install-fb-dot" id="install-fb-dot"></span>
+              </span>
+            </button>
+
+            <!-- data-pkg is the whole contract with install.ts: the command
+                 for a tab is `npm i @asyncify-hq/` + its value. -->
+            <div class="install-tabs">
+              <button type="button" class="install-tab" data-pkg="node" aria-pressed="true">
+                node
+              </button>
+              <span class="install-sep" aria-hidden="true">·</span>
+              <button type="button" class="install-tab" data-pkg="react" aria-pressed="false">
+                react
+              </button>
+              <span class="install-sep" aria-hidden="true">·</span>
+              <button
+                type="button"
+                class="install-tab"
+                data-pkg="react-native"
+                aria-pressed="false"
+              >
+                react-native
+              </button>
+              <span class="install-sep" aria-hidden="true">·</span>
+              <button type="button" class="install-tab" data-pkg="cli" aria-pressed="false">
+                cli
+              </button>
+              <span class="install-sep" aria-hidden="true">·</span>
+              <button type="button" class="install-tab" data-pkg="agent" aria-pressed="false">
+                agent
+              </button>
+            </div>
+
+            <span class="sr-only" id="install-live" aria-live="polite"></span>
+          </div>
         </div>
 
         <div class="hint-wrap" aria-hidden="true">

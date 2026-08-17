@@ -258,6 +258,10 @@ export interface BellSceneOptions {
 
 export interface BellScene {
   playEntrance(): void;
+  /** Ring it from somewhere else in the hero — a delivery the user caused
+   *  without touching the bell. Counts as the visitor having found the story,
+   *  so the unprompted auto-ring stands down exactly as it does on a click. */
+  ring(): void;
   destroy(): void;
 }
 
@@ -968,6 +972,11 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
       suppressClick = false;
       return;
     }
+    ringFromUser();
+  }
+
+  /** The click path, minus the click: whatever caused this, a person did. */
+  function ringFromUser(): void {
     userHasRung = true;
     ring();
   }
@@ -1027,5 +1036,5 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     entranceTl?.kill();
   }
 
-  return { playEntrance, destroy };
+  return { playEntrance, ring: ringFromUser, destroy };
 }
