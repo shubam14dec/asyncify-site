@@ -86,6 +86,94 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
 
   const commandFor = (pkg: string) => PREFIX + pkg;
 
+  /* ── the doodle ────────────────────────────────────────────────────────────
+     A hand-drawn wire from the screen's left edge to the line (user ask,
+     scene 4's "click here" grammar): in from the edge, ONE cursive loop
+     mid-flight, then a level glide whose arrowhead lands 12px short of the
+     box. All geometry is measured from the line's own rect in hero-pixel
+     coordinates — the copy column re-centres at every width, so nothing here
+     can be authored as constants. The head's barbs are set ±26° about the
+     measured end tangent (the scene-4 lesson: an eyeballed head reads
+     broken). Drawn once, after the command finishes typing; a resize after
+     that re-measures and re-sets the finished state. */
+  const doodle = doc.querySelector<SVGSVGElement>("#install-doodle");
+  const doodleWire = doodle?.querySelector<SVGPathElement>("#install-doodle-wire") ?? null;
+  const doodleHead = doodle?.querySelector<SVGPathElement>("#install-doodle-head") ?? null;
+  const doodleNote = doodle?.querySelector<SVGTextElement>("#install-doodle-note") ?? null;
+  let doodleDrawn = false;
+  let doodleRaf = 0;
+
+  function doodleGeometry(): void {
+    if (!doodle || !doodleWire || !doodleHead || !doodleNote) return;
+    const hero = doc.querySelector<HTMLElement>("#hero");
+    if (!hero) return;
+    const hr = hero.getBoundingClientRect();
+    const lr = line.getBoundingClientRect();
+    if (lr.width < 2) return;
+    doodle.setAttribute("viewBox", `0 0 ${hr.width.toFixed(0)} ${hr.height.toFixed(0)}`);
+    const cy = lr.top + lr.height / 2 - hr.top;
+    const tx = lr.left - hr.left - 12;
+    /* The loop sits in the field's last third, clear of both the edge and
+       the line. Radius 19 — a curl, not a diagram circle. */
+    const xL = Math.max(140, tx - 170);
+    const r = 19;
+    doodleWire.setAttribute(
+      "d",
+      [
+        `M -14 ${(cy - 46).toFixed(1)}`,
+        /* In from off-screen, sagging like a thrown line settling. */
+        `C ${(xL * 0.38).toFixed(1)} ${(cy - 64).toFixed(1)} ${(xL * 0.78).toFixed(1)} ${(cy - 52).toFixed(1)} ${xL.toFixed(1)} ${(cy - 26).toFixed(1)}`,
+        /* One full cursive loop, clockwise: the arc command returns to its
+           own start (0.01 of drift keeps the arc legal), tangent preserved. */
+        `a ${r} ${r} 0 1 1 0.01 0.3`,
+        /* The glide: levels out and arrives horizontal at the box's height. */
+        `C ${(xL + 74).toFixed(1)} ${(cy - 4).toFixed(1)} ${(tx - 64).toFixed(1)} ${cy.toFixed(1)} ${tx.toFixed(1)} ${cy.toFixed(1)}`,
+      ].join(" "),
+    );
+    /* Barbs ±26° about the measured end tangent, 7.5px long. */
+    const L = doodleWire.getTotalLength();
+    const p1 = doodleWire.getPointAtLength(Math.max(0, L - 6));
+    const p2 = doodleWire.getPointAtLength(L);
+    const theta = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+    const barb = (sign: number) => {
+      const a = theta + Math.PI + sign * (26 * Math.PI) / 180;
+      return `${(p2.x + 7.5 * Math.cos(a)).toFixed(1)} ${(p2.y + 7.5 * Math.sin(a)).toFixed(1)}`;
+    };
+    doodleHead.setAttribute(
+      "d",
+      `M ${barb(1)} L ${p2.x.toFixed(1)} ${p2.y.toFixed(1)} L ${barb(-1)}`,
+    );
+    doodleNote.setAttribute("x", xL.toFixed(1));
+    doodleNote.setAttribute("y", (cy - 66).toFixed(1));
+  }
+
+  function drawDoodle(): void {
+    if (doodleDrawn || !doodleWire || !doodleHead || !doodleNote) return;
+    doodleDrawn = true;
+    doodleGeometry();
+    if (reducedMotion) {
+      gsap.set([doodleWire, doodleHead], { drawSVG: "0% 100%" });
+      gsap.set(doodleNote, { opacity: 1 });
+      return;
+    }
+    gsap.set([doodleWire, doodleHead], { drawSVG: "0% 0%" });
+    const tl = gsap.timeline();
+    tl.to(doodleWire, { drawSVG: "0% 100%", duration: 1.15, ease: "power2.inOut" }, 0);
+    tl.to(doodleHead, { drawSVG: "0% 100%", duration: 0.28, ease: "power2.out" }, 1.1);
+    tl.to(doodleNote, { opacity: 1, duration: 0.6, ease: "power1.out" }, 0.55);
+  }
+
+  function onDoodleResize(): void {
+    cancelAnimationFrame(doodleRaf);
+    doodleRaf = requestAnimationFrame(() => {
+      if (!doodleDrawn) return;
+      /* Past the entrance: geometry refreshes in its finished state. */
+      doodleGeometry();
+      if (doodleWire && doodleHead) gsap.set([doodleWire, doodleHead], { drawSVG: "0% 100%" });
+    });
+  }
+  window.addEventListener("resize", onDoodleResize);
+
   let active = tabs.find((t) => t.getAttribute("aria-pressed") === "true") ?? tabs[0];
   let started = false;
 
@@ -157,9 +245,13 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
     if (reducedMotion) {
       text = target;
       cmdEl.textContent = text;
+      drawDoodle();
       return;
     }
-    run(target, TYPE_MS, settle);
+    run(target, TYPE_MS, () => {
+      settle();
+      drawDoodle();
+    });
   }
 
   /* ── the copy ──────────────────────────────────────────────────────────── */
@@ -267,6 +359,8 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
 
   function destroy(): void {
     stopRun();
+    window.removeEventListener("resize", onDoodleResize);
+    cancelAnimationFrame(doodleRaf);
     if (revertTimer) clearTimeout(revertTimer);
     cancelAnimationFrame(liveRaf);
     dotTl?.kill();

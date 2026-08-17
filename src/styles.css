@@ -679,6 +679,44 @@ html {
   }
 }
 
+/* ── the install doodle ─────────────────────────────────────────────────────
+   Scene 4's annotation grammar, flown into the hero: hairline ink, Instrument
+   italic, and nothing interactive — it only points. Full-bleed over the hero
+   so install.ts can speak in hero-pixel coordinates; hidden below 900px,
+   where the line owns the whole width and there is no field to cross. */
+.install-doodle {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  pointer-events: none;
+  z-index: 3;
+}
+
+@media (min-width: 900px) {
+  .install-doodle {
+    display: block;
+  }
+}
+
+.install-doodle-wire,
+.install-doodle-head {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+}
+
+.install-doodle-note {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-style: italic;
+  font-size: 17px;
+  fill: var(--text-faint);
+  opacity: 0;
+}
+
 .install-tabs {
   display: flex;
   align-items: center;

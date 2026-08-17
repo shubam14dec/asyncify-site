@@ -244,6 +244,20 @@
           </div>
         </div>
 
+        <!-- The doodle that sells the install line (user ask, scene 4's
+             "click here" grammar): a hand-drawn wire entering from the LEFT
+             EDGE of the screen, looping once mid-flight, and pointing at the
+             line — captioned "install now" in the same Instrument italic.
+             Geometry is runtime-measured by install.ts (the line's box moves
+             with every viewport), drawn once after the command finishes
+             typing. Wide screens only: below 900px there is no empty field
+             to fly through. -->
+        <svg class="install-doodle" id="install-doodle" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+          <path class="install-doodle-wire" id="install-doodle-wire" d="" />
+          <path class="install-doodle-head" id="install-doodle-head" d="" />
+          <text class="install-doodle-note" id="install-doodle-note" text-anchor="middle">install now</text>
+        </svg>
+
         <div class="hint-wrap" aria-hidden="true">
           <div class="scroll-hint"></div>
         </div>
