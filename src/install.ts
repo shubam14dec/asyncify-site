@@ -109,6 +109,9 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
   const doodleWire = doodle?.querySelector<SVGPathElement>(".install-doodle-wire") ?? null;
   const doodleHead = doodle?.querySelector<SVGPathElement>(".install-doodle-head") ?? null;
   const doodleNote = doodle?.querySelector<SVGTextElement>(".install-doodle-note") ?? null;
+  const sdkWire = doodle?.querySelector<SVGPathElement>(".install-doodle-sdkwire") ?? null;
+  const sdkHead = doodle?.querySelector<SVGPathElement>(".install-doodle-sdkhead") ?? null;
+  const sdkNote = doodle?.querySelector<SVGTextElement>(".install-doodle-sdknote") ?? null;
   let doodleDrawn = false;
   let doodleRaf = 0;
 
@@ -136,23 +139,49 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
       "d",
       `M ${P(84, 36)} C ${P(92, 58)} ${P(104, 70)} ${P(121, 58.5)}`,
     );
-    /* Barbs ±26° about the measured end tangent, 7.5px long. */
-    const L = doodleWire.getTotalLength();
-    const p1 = doodleWire.getPointAtLength(Math.max(0, L - 6));
-    const p2 = doodleWire.getPointAtLength(L);
-    const theta = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-    const barb = (sign: number) => {
-      const a = theta + Math.PI + sign * (26 * Math.PI) / 180;
-      return `${(p2.x + 7.5 * Math.cos(a)).toFixed(1)} ${(p2.y + 7.5 * Math.sin(a)).toFixed(1)}`;
+    /* Barbs ±26° about a wire's measured end tangent, 7.5px long. */
+    const setHead = (wire: SVGPathElement, head: SVGPathElement): void => {
+      const L = wire.getTotalLength();
+      const p1 = wire.getPointAtLength(Math.max(0, L - 6));
+      const p2 = wire.getPointAtLength(L);
+      const theta = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+      const barb = (sign: number) => {
+        const a = theta + Math.PI + (sign * (26 * Math.PI)) / 180;
+        return `${(p2.x + 7.5 * Math.cos(a)).toFixed(1)} ${(p2.y + 7.5 * Math.sin(a)).toFixed(1)}`;
+      };
+      head.setAttribute("d", `M ${barb(1)} L ${p2.x.toFixed(1)} ${p2.y.toFixed(1)} L ${barb(-1)}`);
     };
-    doodleHead.setAttribute(
-      "d",
-      `M ${barb(1)} L ${p2.x.toFixed(1)} ${p2.y.toFixed(1)} L ${barb(-1)}`,
-    );
+    setHead(doodleWire, doodleHead);
     /* The caption stands above the whole gesture; the stroke leaves its
        right shoulder. */
     doodleNote.setAttribute("x", (ox + 40).toFixed(1));
     doodleNote.setAttribute("y", (oy + 40).toFixed(1));
+
+    /* THE SECOND VOICE (user call): the tabs are SDKs, and the page says so
+       -- a mirrored flick on the right, leaving the "SDKs" label and
+       pointing left into the tabs row's edge. Same grammar, same measured
+       anchoring: everything hangs off the tabs' own rect. */
+    if (sdkWire && sdkHead && sdkNote) {
+      /* Anchor on the LAST TAB's own box, never .install-tabs: the row is a
+         block that stretches to its column in the hero (the label landed at
+         the copy column's far edge -- user catch) but shrink-wraps in the
+         finale's centred flex. The button's rect is the visible truth in
+         both homes. */
+      const lastTab = tabs[tabs.length - 1];
+      if (lastTab) {
+        const tb = lastTab.getBoundingClientRect();
+        const tx2 = tb.right - hr.left + 10;
+        const ty2 = tb.top + tb.height / 2 - hr.top;
+        const S = (x: number, y: number) => `${(tx2 + x).toFixed(1)} ${(ty2 + y).toFixed(1)}`;
+        sdkWire.setAttribute(
+          "d",
+          `M ${S(64, 26)} C ${S(42, 34)} ${S(16, 22)} ${S(0, 0)}`,
+        );
+        setHead(sdkWire, sdkHead);
+        sdkNote.setAttribute("x", (tx2 + 86).toFixed(1));
+        sdkNote.setAttribute("y", (ty2 + 32).toFixed(1));
+      }
+    }
   }
 
   function drawDoodle(): void {
@@ -162,6 +191,10 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
     if (reducedMotion) {
       gsap.set([doodleWire, doodleHead], { drawSVG: "0% 100%" });
       gsap.set(doodleNote, { opacity: 1 });
+      if (sdkWire && sdkHead && sdkNote) {
+        gsap.set([sdkWire, sdkHead], { drawSVG: "0% 100%" });
+        gsap.set(sdkNote, { opacity: 1 });
+      }
       return;
     }
     gsap.set([doodleWire, doodleHead], { drawSVG: "0% 0%" });
@@ -169,6 +202,12 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
     tl.to(doodleWire, { drawSVG: "0% 100%", duration: 1.15, ease: "power2.inOut" }, 0);
     tl.to(doodleHead, { drawSVG: "0% 100%", duration: 0.28, ease: "power2.out" }, 1.1);
     tl.to(doodleNote, { opacity: 1, duration: 0.6, ease: "power1.out" }, 0.55);
+    if (sdkWire && sdkHead && sdkNote) {
+      gsap.set([sdkWire, sdkHead], { drawSVG: "0% 0%" });
+      tl.to(sdkWire, { drawSVG: "0% 100%", duration: 0.7, ease: "power2.inOut" }, 1.35);
+      tl.to(sdkHead, { drawSVG: "0% 100%", duration: 0.24, ease: "power2.out" }, 1.98);
+      tl.to(sdkNote, { opacity: 1, duration: 0.5, ease: "power1.out" }, 1.55);
+    }
   }
 
   function onDoodleResize(): void {
@@ -178,6 +217,7 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
       /* Past the entrance: geometry refreshes in its finished state. */
       doodleGeometry();
       if (doodleWire && doodleHead) gsap.set([doodleWire, doodleHead], { drawSVG: "0% 100%" });
+      if (sdkWire && sdkHead) gsap.set([sdkWire, sdkHead], { drawSVG: "0% 100%" });
     });
   }
   window.addEventListener("resize", onDoodleResize);
