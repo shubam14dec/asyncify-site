@@ -435,9 +435,10 @@ html {
   line-height: 1.06;
   letter-spacing: -0.02em;
   color: var(--text);
-  text-wrap: balance;
+  /* The authored <br> owns the break; balance would fight it. Width free:
+     the vw term in the font clamp keeps the long setup line inside any
+     viewport. */
   margin: 0 auto;
-  max-width: 15ch;
 }
 
 /* Each word of the headline hangs from its own invisible thread. The thread
@@ -902,10 +903,6 @@ html {
 
   .stage-spacer {
     min-height: 300px; /* chips take two rows down here — more band needed */
-  }
-
-  .headline {
-    max-width: 13ch;
   }
 
   .subline {
