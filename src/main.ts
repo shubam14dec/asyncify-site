@@ -78,9 +78,15 @@ const scene = createBellScene({
     // The line types itself only once the bell has landed: two things
     // arriving at once is neither of them arriving.
     install.start();
-    // And only now do the lower scenes start building, in idle gaps —
-    // the entrance ran on an empty main thread.
-    buildNextSceneWhenIdle();
+    /* The lower scenes build only after the hero's WHOLE opening has
+       played. 400ms after the entrance was still mid-typing, and the first
+       build froze the command at "npm i @asyncif" with the bell dead beside
+       it (user report, to the character). The full choreography after the
+       entrance lands: typing ~0.75s, the Install-now doodle to ~2.4s, the
+       SDKs flick to ~3.1s, and the unprompted demo ring (2.2s in, ~2.3s
+       long) closing at ~4.5s. 4.6s covers the lot; the scroll-flush below
+       still serves an impatient reader instantly. */
+    window.setTimeout(buildNextSceneWhenIdle, 4600);
   },
   onRing: (x, y) => headline.resonate(x, y),
 });
