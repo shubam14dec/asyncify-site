@@ -254,6 +254,15 @@ html {
   z-index: 1;
   pointer-events: none;
   overflow: visible;
+  /* Rest-hidden IN CSS, like the nav and the copy — not by boot. The svg's
+     authored markup is the finished drawing (full bell, green clapper ball,
+     six wires), and until bell.ts ran, the first paint showed exactly that
+     raw state (user report, with screenshots: "stale bell with a green
+     ball"). The stylesheet is the only thing guaranteed to arrive with the
+     first paint, so the stylesheet owns "nothing drawn yet"; playEntrance
+     reveals the container only after it has hidden every part it is about
+     to draw. */
+  opacity: 0;
 }
 
 .thread {

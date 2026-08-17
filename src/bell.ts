@@ -876,6 +876,9 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
       // Designed still state: no trace, no rise — one calm cross-fade.
       gsap.set(bellRoot, { opacity: 0 });
       gsap.set(thread, { opacity: 0 });
+      /* The svg container rests CSS-hidden (raw-markup flash guard); its
+         parts are hidden above, so revealing it shows nothing yet. */
+      gsap.set(scene, { opacity: 1 });
       gsap.to([nav, thread, bellRoot, copy, chipsLayer, hintWrap], {
         opacity: 1,
         duration: 0.4,
@@ -895,6 +898,12 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
     // The dot's outline is traced by the stagger below; its fill arrives after,
     // so the bell is a line drawing first and gains its one solid last.
     gsap.set(clapBall, { fillOpacity: 0 });
+    /* Every part above is now hidden — only now may the container itself
+       appear. The stylesheet keeps the whole svg at opacity 0 from the
+       first byte (the authored markup IS the finished drawing — full bell,
+       green ball, wires — and painted exactly that before boot ran: the
+       user's "stale bell" screenshots). This is the single reveal. */
+    gsap.set(scene, { opacity: 1 });
 
     /* The headline arrived pre-split (see headline.ts): the entrance borrows
        the same word boxes the physics will own from 1.30s on, so nothing is

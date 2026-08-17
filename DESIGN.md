@@ -84,6 +84,12 @@ storytelling, feedback, or state change. "It looked cool" is not an answer — d
 - **Physics is simulated, not faked.** Where an object should feel like an object (the bell on
   its thread), run a real damped-oscillator integration on `gsap.ticker` with named, commented
   constants — not a keyframed swing.
+- **The stylesheet owns the first paint.** An element whose hidden rest state is applied
+  by JavaScript paints its RAW MARKUP for every frame before that JS runs — the hero svg's
+  authored markup is the finished drawing, and it flashed whole (green clapper ball and
+  all) on every reload until the svg's rest-hide moved into the stylesheet. Rule: if a
+  thing must not be seen before its entrance, the stylesheet hides it and the entrance
+  reveals it; boot-time `gsap.set` hiding is always too late.
 - **Scroll endpoints that mean "when that scene arrives" are stated by reference, not
   arithmetic.** `end: "top -85%"` is a guess about the layout between two sections; the layout
   changed by ~140px and the guess silently missed, so scene 4's pin engaged while the bridge
