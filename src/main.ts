@@ -264,23 +264,33 @@ function buildNextSceneWhenIdle(): void {
   }, 400);
 }
 
-/* The one hole in "after the entrance": a reader who scrolls during it
-   would meet an unbuilt scene 2. Any scroll intent flushes every remaining
-   build synchronously — one visible hitch, but the page below exists
-   before the viewport gets there. */
-function flushSceneBuilds(): void {
-  let b = sceneBuilders.shift();
-  while (b) {
+/* The one hole in "after the entrance": a reader who scrolls during the
+   quiet window meets unbuilt scenes. The first draft flushed ALL FOUR in one
+   synchronous block — a multi-second freeze landing exactly as scene 2
+   entered the viewport, seen as a long black screen (user report). Now the
+   flush is scroll-aware: the NEXT scene builds synchronously (that is the
+   one the wheel is heading into), and the rest drain with an 80ms breath
+   between blocks so the scroll keeps painting between them. The clocked
+   chain's own timers stay armed — the queue is shared and shift() makes
+   every builder run exactly once, so a timer firing into a drained queue is
+   a no-op. */
+function expediteSceneBuilds(): void {
+  window.removeEventListener("wheel", expediteSceneBuilds);
+  window.removeEventListener("touchmove", expediteSceneBuilds);
+  window.removeEventListener("scroll", expediteSceneBuilds);
+  const first = sceneBuilders.shift();
+  if (first) first();
+  const drain = (): void => {
+    const b = sceneBuilders.shift();
+    if (!b) return;
     b();
-    b = sceneBuilders.shift();
-  }
-  window.removeEventListener("wheel", flushSceneBuilds);
-  window.removeEventListener("touchmove", flushSceneBuilds);
-  window.removeEventListener("scroll", flushSceneBuilds);
+    window.setTimeout(drain, 80);
+  };
+  window.setTimeout(drain, 80);
 }
-window.addEventListener("wheel", flushSceneBuilds, { passive: true, once: true });
-window.addEventListener("touchmove", flushSceneBuilds, { passive: true, once: true });
-window.addEventListener("scroll", flushSceneBuilds, { passive: true, once: true });
+window.addEventListener("wheel", expediteSceneBuilds, { passive: true, once: true });
+window.addEventListener("touchmove", expediteSceneBuilds, { passive: true, once: true });
+window.addEventListener("scroll", expediteSceneBuilds, { passive: true, once: true });
 
 /* The entrance runs once. Waiting for the first font frame avoids the
    headline re-flowing underneath a mid-flight SplitText. */
