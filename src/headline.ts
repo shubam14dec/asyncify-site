@@ -215,6 +215,18 @@ export function createHangingHeadline(opts: HangingHeadlineOptions): HangingHead
      bell.ts playEntrance(). This is the branch-at-the-top that DESIGN.md §3
      asks for, not an `if (reduced)` sprinkled through the tick loop. */
   if (opts.reducedMotion) {
+    /* No split here, so the accent's .hl-word:last-child hook never exists --
+       wrap the last word by hand so the serif emphasis survives. */
+    const parts = (headline.textContent ?? "").trim().split(" ");
+    const last = parts.pop();
+    if (last) {
+      headline.textContent = "";
+      headline.append(parts.join(" ") + " ");
+      const em = document.createElement("span");
+      em.className = "hl-accent";
+      em.textContent = last;
+      headline.append(em);
+    }
     return {
       words: [],
       activate: () => {},

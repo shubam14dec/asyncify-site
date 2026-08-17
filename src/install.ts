@@ -122,12 +122,12 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
     const ox = tx - 125;
     const oy = cy - 58;
     const P = (x: number, y: number) => `${(ox + x).toFixed(1)} ${(oy + y).toFixed(1)}`;
-    /* From the TOP into the middle (user call): the stroke drops from above
-       the box's band and hooks rightward into its centre height — scene 4's
-       falling quarter-arc, not a level run. */
+    /* The full gesture, as the user drew it in words: the label stands
+       ABOVE, the stroke leaves it, swings DOWN through a low belly, and
+       comes back up to point at the box waiting in the middle. */
     doodleWire.setAttribute(
       "d",
-      `M ${P(68, 20)} C ${P(74, 40)} ${P(94, 53)} ${P(121, 58.5)}`,
+      `M ${P(84, 36)} C ${P(92, 58)} ${P(104, 70)} ${P(121, 58.5)}`,
     );
     /* Barbs ±26° about the measured end tangent, 7.5px long. */
     const L = doodleWire.getTotalLength();
@@ -142,9 +142,10 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
       "d",
       `M ${barb(1)} L ${p2.x.toFixed(1)} ${p2.y.toFixed(1)} L ${barb(-1)}`,
     );
-    /* The caption stands beside the arrow's tail, up top. */
-    doodleNote.setAttribute("x", (ox + 24).toFixed(1));
-    doodleNote.setAttribute("y", (oy + 24).toFixed(1));
+    /* The caption stands above the whole gesture; the stroke leaves its
+       right shoulder. */
+    doodleNote.setAttribute("x", (ox + 40).toFixed(1));
+    doodleNote.setAttribute("y", (oy + 40).toFixed(1));
   }
 
   function drawDoodle(): void {
