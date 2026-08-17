@@ -466,14 +466,8 @@ html {
   }
 }
 
-.actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  margin-top: clamp(14px, 2.2vh, 24px);
-}
-
+/* .btn-ghost / .btn-text survive the hero's retired actions row: scene 5's
+   finale still sets its "read the docs" in .btn-text. */
 .btn-ghost {
   display: inline-flex;
   align-items: center;
@@ -535,7 +529,11 @@ html {
 /* ── install line ───────────────────────────────────────────────────────── */
 
 .install {
-  margin-top: clamp(8px, 1.5vh, 16px);
+  /* Follows the subline directly now that the actions row is gone. The gap
+     is generous on purpose: the "Install now" doodle flies through it, and
+     at less than ~40px its caption grazed the tagline (user catch). The
+     height the buttons freed pays for it. */
+  margin-top: clamp(34px, 5.4vh, 48px);
 }
 
 /* The reserved width IS the anti-wobble mechanism. A centred line that types
@@ -554,13 +552,13 @@ html {
   display: inline-flex;
   align-items: center;
   width: calc(34ch + 30px); /* 28px padding + 2px border */
-  height: 28px;
+  height: 33px;
   padding: 0 14px;
   border: 1px solid var(--hairline);
   border-radius: var(--r-chip);
   background: transparent;
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 400;
   line-height: 1;
   text-align: left;
@@ -630,7 +628,7 @@ html {
   margin-left: 10px;
   transform: translateY(-50%);
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 400;
   letter-spacing: 0.04em;
   line-height: 1;
@@ -732,7 +730,7 @@ html {
   border: 0;
   background: transparent;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
   letter-spacing: 0.04em;
   line-height: 1;
@@ -774,7 +772,7 @@ html {
 
 .install-sep {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1;
   color: var(--text-faint);
 }
@@ -794,7 +792,7 @@ html {
   z-index: 3;
   display: flex;
   justify-content: center;
-  padding-top: clamp(6px, 1.2vh, 18px);
+  padding-top: clamp(2px, 0.6vh, 10px);
 }
 
 /* A 1px line that drains downward. Not a chevron, not a mouse, not a bounce. */
@@ -899,10 +897,6 @@ html {
   .subline {
     font-size: 16px;
     max-width: 40ch;
-  }
-
-  .actions {
-    gap: 14px;
   }
 
   /* The unit is 106px of a phone's hero, and a 320×780 window has 12px to

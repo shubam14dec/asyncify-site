@@ -275,7 +275,9 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
   const copy = q<HTMLElement>(doc, "#copy");
   const headline = q<HTMLElement>(doc, "#headline");
   const subline = q<HTMLElement>(doc, ".subline");
-  const actions = q<HTMLElement>(doc, ".actions");
+  /* The actions row retired (user call) — the install unit inherited its
+     slot in the copy block AND its beat in the entrance. */
+  const installBlock = q<HTMLElement>(doc, ".install");
   const hintWrap = q<HTMLElement>(doc, ".hint-wrap");
   const chipsLayer = q<HTMLElement>(doc, "#chips");
   const bellBtn = q<HTMLButtonElement>(doc, "#bell-btn");
@@ -422,7 +424,10 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
        off it) down to just above the copy block. Measured, not guessed, so
        the bell can never collide with the headline at any viewport. */
     const copyRect = copy.getBoundingClientRect();
-    const bandBottom = Math.max(220, copyRect.top - heroRect.top - 24);
+    /* 46, not the original 24: the air between the chip fan's bottom and the
+       headline (user call — the fan was breathing on the heading). Paid for
+       below: the copy block and the hint both gave a step back. */
+    const bandBottom = Math.max(220, copyRect.top - heroRect.top - 46);
     /* When the install line arrived it first paid for itself out of this
        band, and the whole stage — bell, fan, wires — shrank with it (user
        catch, twice: crediting the height back to the bell alone left the
@@ -937,7 +942,7 @@ export function createBellScene(opts: BellSceneOptions): BellScene {
       0.78,
     );
     tl.fromTo(
-      actions,
+      installBlock,
       { y: 8, opacity: 0 },
       { y: 0, opacity: 1, duration: 0.5, ease: "power2.out" },
       0.86,
