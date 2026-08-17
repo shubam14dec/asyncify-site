@@ -75,17 +75,24 @@ const scene = createBellScene({
   headlineWords: headline.words,
   onEntranceComplete: () => {
     headline.activate();
+    /* SCENE 2 BUILDS RIGHT HERE — after the bell lands, before the typing
+       begins. This is the one moment a main-thread block is invisible: the
+       entrance has finished (nothing mid-flight to freeze), the typing has
+       not started (nothing to stall), and the reader sees a beat of
+       stillness under a landed bell. In exchange, the first scene below
+       the fold exists seconds before any human can scroll to it — the
+       permanent fix for "I scrolled and scene 2 was black" (user report,
+       three rounds of scheduling tuning). */
+    const firstScene = sceneBuilders.shift();
+    if (firstScene) firstScene();
     // The line types itself only once the bell has landed: two things
     // arriving at once is neither of them arriving.
     install.start();
-    /* The lower scenes build only after the hero's WHOLE opening has
-       played. 400ms after the entrance was still mid-typing, and the first
-       build froze the command at "npm i @asyncif" with the bell dead beside
-       it (user report, to the character). The full choreography after the
-       entrance lands: typing ~0.75s, the Install-now doodle to ~2.4s, the
-       SDKs flick to ~3.1s, and the unprompted demo ring (2.2s in, ~2.3s
-       long) closing at ~4.5s. 4.6s covers the lot; the scroll-flush below
-       still serves an impatient reader instantly. */
+    /* The REMAINING scenes (3-5) wait out the hero's whole opening:
+       typing ~0.75s, the Install-now doodle to ~2.4s, the SDKs flick to
+       ~3.1s, the unprompted demo ring closing at ~4.5s. They are only
+       reachable through scene 2's 2.5-screen pin, so the clocked chain —
+       plus the scroll flush below — always beats the viewport there. */
     window.setTimeout(buildNextSceneWhenIdle, 4600);
   },
   onRing: (x, y) => headline.resonate(x, y),
