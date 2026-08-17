@@ -139,7 +139,12 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
     const A = 6;
     const B = 16;
     const LX = 62;
-    const LY = 24; /* crown at LY-B: low enough that the caption above it clears the tagline's band */
+    /* ONE LEVEL (user call: the loop rode above the flight): the loop's
+       entry/exit height IS the flight line -- start, loop and glide all sit
+       at the box's own centre height, the curl bulging up off it the way a
+       written loop bulges off its baseline. entry_y = LY + B*cos(T0), so
+       LY = 58 - 0.732*B puts that entry exactly on the line. */
+    const LY = 58 - 0.732 * B;
     const T0 = 0.75;
     const T1 = 5.55;
     const loopPt = (t: number) => ({
@@ -149,9 +154,9 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
     const e0 = loopPt(T0);
     const e1 = loopPt(T1);
     const seg: string[] = [
-      `M ${P(0, 50)}`,
-      /* lead-in: arrives at the loop along the loop's own entry tangent */
-      `C ${P(14, 52)} ${P(e0.x - 15.9, e0.y + 9.8)} ${P(e0.x, e0.y)}`,
+      `M ${P(0, 58)}`,
+      /* lead-in: level, with the pen's small dip as it swings into the loop */
+      `C ${P(14, 58)} ${P(e0.x - 15.9, e0.y + 9.8)} ${P(e0.x, e0.y)}`,
     ];
     const N = 60;
     for (let i = 1; i <= N; i++) {
@@ -159,7 +164,7 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
       seg.push(`L ${P(p.x, p.y)}`);
     }
     /* glide: leaves along the exit tangent, levels off at the box */
-    seg.push(`C ${P(e1.x + 15.9, e1.y + 9.8)} ${P(102, 50)} ${P(125, 58)}`);
+    seg.push(`C ${P(e1.x + 15.9, e1.y + 9.8)} ${P(104, 58)} ${P(125, 58)}`);
     doodleWire.setAttribute("d", seg.join(" "));
     /* Barbs ±26° about the measured end tangent, 7.5px long. */
     const L = doodleWire.getTotalLength();
@@ -174,9 +179,9 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
       "d",
       `M ${barb(1)} L ${p2.x.toFixed(1)} ${p2.y.toFixed(1)} L ${barb(-1)}`,
     );
-    /* The caption stands over the loop's crown (crown = LX, LY - B). */
+    /* The caption hangs UNDER the arrow (user call), beneath the loop. */
     doodleNote.setAttribute("x", (ox + LX).toFixed(1));
-    doodleNote.setAttribute("y", (oy + LY - B - 12).toFixed(1));
+    doodleNote.setAttribute("y", (oy + LY + B + 20).toFixed(1));
   }
 
   function drawDoodle(): void {
