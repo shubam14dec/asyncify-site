@@ -87,7 +87,50 @@ const scene = createBellScene({
    delivery and rings it. Built after the scene because it holds the ring;
    the scene's entrance callback holds `start()` and does not fire until
    t = 1.30s, long after this line has run. */
-const install = createInstallLine({ reducedMotion, ring: () => scene.ring() });
+const heroInstallRoot = document.querySelector<HTMLElement>("#hero .install");
+if (!heroInstallRoot) throw new Error("[main] hero install block missing");
+const heroField = document.querySelector<HTMLElement>("#hero");
+const install = createInstallLine({
+  root: heroInstallRoot,
+  reducedMotion,
+  ring: () => scene.ring(),
+  doodleField: heroField ?? undefined,
+});
+
+/* The finale's reprise of the line (scene 5). No bell within reach, so the
+   ring is a no-op; the "Install now" doodle reprises too (user call). It types
+   when the finale block first comes on stage (the same moment proof.ts plays
+   its staggered rise), watched with an IntersectionObserver rather than a
+   ScrollTrigger because nothing here needs scroll-linked TIME — only "it is
+   on stage now", once. */
+const finaleInstallRoot = document.querySelector<HTMLElement>(".prf-finale .install");
+const finaleField = document.querySelector<HTMLElement>(".prf-finale");
+const installFinale = finaleInstallRoot
+  ? createInstallLine({
+      root: finaleInstallRoot,
+      reducedMotion,
+      ring: () => {},
+      doodleField: finaleField ?? undefined,
+    })
+  : null;
+let finaleIo: IntersectionObserver | null = null;
+if (installFinale && finaleInstallRoot) {
+  if (reducedMotion) {
+    installFinale.start();
+  } else {
+    finaleIo = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          installFinale.start();
+          finaleIo?.disconnect();
+          finaleIo = null;
+        }
+      },
+      { threshold: 0.6 },
+    );
+    finaleIo.observe(finaleInstallRoot);
+  }
+}
 
 /* Reduced motion never reaches onEntranceComplete — bell.ts returns after its
    cross-fade — so the line takes its instant text here instead. */
@@ -150,6 +193,8 @@ if (import.meta.hot) {
     scene.destroy();
     headline.destroy();
     install.destroy();
+    installFinale?.destroy();
+    finaleIo?.disconnect();
     engine.destroy();
     turn.destroy();
     agents.destroy();

@@ -692,6 +692,13 @@ html {
   }
 }
 
+/* The finale's reprise: tucked between the CTA row and the footer line,
+   tighter than the hero's stage spacing — down here it is a sign-off, not
+   the headliner. */
+.prf-finale .install {
+  margin-top: clamp(22px, 3.4vh, 34px);
+}
+
 /* ── the install doodle ─────────────────────────────────────────────────────
    Scene 4's annotation grammar, flown into the hero: hairline ink, Instrument
    italic, and nothing interactive — it only points. Full-bleed over the hero
@@ -3561,6 +3568,9 @@ html {
    reader has just been handed four documents, and the button is not allowed to
    arrive in the same breath. */
 .prf-finale {
+  /* Positioned: the reprised .install-doodle spans this box (inset 0) and
+     install.ts speaks in its pixel coordinates. */
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;

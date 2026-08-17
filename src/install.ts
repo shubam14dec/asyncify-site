@@ -52,11 +52,19 @@ const REVERT_MS = 2400;
    ══════════════════════════════════════════════════════════════════════════ */
 
 export interface InstallLineOptions {
+  /** The .install block this instance owns. Two live on the page — the
+   *  hero's and the finale's — so every part is found by CLASS inside this
+   *  root, never by document-wide id. */
+  root: HTMLElement;
   /** When true: the command is already typed, nothing blinks. See DESIGN §3. */
   reducedMotion: boolean;
-  /** A copy landed. The hero owns what that looks like; this file only says
-   *  that it happened. */
+  /** A copy landed. The host owns what that looks like (the hero rings the
+   *  bell; the finale has no bell to ring); this file only says it happened. */
   ring: () => void;
+  /** The element the "Install now" annotation flies over. The field must
+   *  contain an .install-doodle svg (absolute, inset 0) and be positioned;
+   *  geometry is measured against its box. Omit for no annotation. */
+  doodleField?: HTMLElement | undefined;
 }
 
 export interface InstallLine {
@@ -72,17 +80,17 @@ function q<T extends Element>(root: ParentNode, sel: string): T {
 }
 
 export function createInstallLine(opts: InstallLineOptions): InstallLine {
-  const { reducedMotion } = opts;
+  const { root, reducedMotion } = opts;
   const doc = document;
 
-  const line = q<HTMLButtonElement>(doc, "#install-line");
-  const cmdEl = q<HTMLElement>(doc, "#install-cmd");
-  const cursor = q<HTMLElement>(doc, "#install-cursor");
-  const fb = q<HTMLElement>(doc, "#install-fb");
-  const fbText = q<HTMLElement>(doc, "#install-fb-text");
-  const fbDot = q<HTMLElement>(doc, "#install-fb-dot");
-  const live = q<HTMLElement>(doc, "#install-live");
-  const tabs = Array.from(doc.querySelectorAll<HTMLButtonElement>(".install-tab"));
+  const line = q<HTMLButtonElement>(root, ".install-line");
+  const cmdEl = q<HTMLElement>(root, ".install-cmd");
+  const cursor = q<HTMLElement>(root, ".install-cursor");
+  const fb = q<HTMLElement>(root, ".install-fb");
+  const fbText = q<HTMLElement>(root, ".install-fb-text");
+  const fbDot = q<HTMLElement>(root, ".install-fb-dot");
+  const live = q<HTMLElement>(root, ".install-live");
+  const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>(".install-tab"));
 
   const commandFor = (pkg: string) => PREFIX + pkg;
 
@@ -96,18 +104,17 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
      measured end tangent (the scene-4 lesson: an eyeballed head reads
      broken). Drawn once, after the command finishes typing; a resize after
      that re-measures and re-sets the finished state. */
-  const doodle = doc.querySelector<SVGSVGElement>("#install-doodle");
-  const doodleWire = doodle?.querySelector<SVGPathElement>("#install-doodle-wire") ?? null;
-  const doodleHead = doodle?.querySelector<SVGPathElement>("#install-doodle-head") ?? null;
-  const doodleNote = doodle?.querySelector<SVGTextElement>("#install-doodle-note") ?? null;
+  const field = opts.doodleField ?? null;
+  const doodle = field?.querySelector<SVGSVGElement>(".install-doodle") ?? null;
+  const doodleWire = doodle?.querySelector<SVGPathElement>(".install-doodle-wire") ?? null;
+  const doodleHead = doodle?.querySelector<SVGPathElement>(".install-doodle-head") ?? null;
+  const doodleNote = doodle?.querySelector<SVGTextElement>(".install-doodle-note") ?? null;
   let doodleDrawn = false;
   let doodleRaf = 0;
 
   function doodleGeometry(): void {
-    if (!doodle || !doodleWire || !doodleHead || !doodleNote) return;
-    const hero = doc.querySelector<HTMLElement>("#hero");
-    if (!hero) return;
-    const hr = hero.getBoundingClientRect();
+    if (!field || !doodle || !doodleWire || !doodleHead || !doodleNote) return;
+    const hr = field.getBoundingClientRect();
     const lr = line.getBoundingClientRect();
     if (lr.width < 2) return;
     doodle.setAttribute("viewBox", `0 0 ${hr.width.toFixed(0)} ${hr.height.toFixed(0)}`);

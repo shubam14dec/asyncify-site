@@ -206,7 +206,7 @@
               <!-- Hangs off the right edge so the command itself stays
                    optically centred under the headline. -->
               <span class="install-fb" id="install-fb" aria-hidden="true">
-                <span id="install-fb-text">copy</span>
+                <span class="install-fb-text" id="install-fb-text">copy</span>
                 <span class="install-fb-dot" id="install-fb-dot"></span>
               </span>
             </button>
@@ -240,7 +240,7 @@
               </button>
             </div>
 
-            <span class="sr-only" id="install-live" aria-live="polite"></span>
+            <span class="sr-only install-live" aria-live="polite"></span>
           </div>
         </div>
 
@@ -2587,6 +2587,14 @@
              names this button as one of exactly three places the accent is
              allowed, and it is the third. -->
         <div class="prf-finale">
+          <!-- The hero's "Install now" annotation, reprised with the line
+               (user call). Class-driven twin of the hero's svg; install.ts
+               measures its geometry against this container. -->
+          <svg class="install-doodle" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+            <path class="install-doodle-wire" d="" />
+            <path class="install-doodle-head" d="" />
+            <text class="install-doodle-note" text-anchor="middle">Install now</text>
+          </svg>
           <!-- The dot is wrapped rather than animated directly: .brand-dot
                carries a CSS opacity keyframe (its pulse), and an inline
                opacity from a reveal tween would be fighting a running
@@ -2598,6 +2606,34 @@
           <div class="prf-cta prf-fin">
             <a class="btn-green" href="/docs">Start building <span class="arrow" aria-hidden="true">→</span></a>
             <a class="btn-text" href="/docs">read the docs</a>
+          </div>
+          <!-- The hero's install line, reprised (user call): the page opens
+               and closes on the same door. Same classes, own instance
+               (install.ts is root-scoped); no doodle down here — the finale
+               argues for itself. It joins the staggered rise as one part and
+               types once the finale is on stage. -->
+          <div class="install prf-fin">
+            <button type="button" class="install-line" aria-label="Copy install command">
+              <span class="install-prompt" aria-hidden="true">$ </span>
+              <span class="install-cmd"></span>
+              <span class="install-cursor" aria-hidden="true"></span>
+              <span class="install-fb" aria-hidden="true">
+                <span class="install-fb-text">copy</span>
+                <span class="install-fb-dot"></span>
+              </span>
+            </button>
+            <div class="install-tabs">
+              <button type="button" class="install-tab" data-pkg="node" aria-pressed="true">node</button>
+              <span class="install-sep" aria-hidden="true">·</span>
+              <button type="button" class="install-tab" data-pkg="react" aria-pressed="false">react</button>
+              <span class="install-sep" aria-hidden="true">·</span>
+              <button type="button" class="install-tab" data-pkg="react-native" aria-pressed="false">react-native</button>
+              <span class="install-sep" aria-hidden="true">·</span>
+              <button type="button" class="install-tab" data-pkg="cli" aria-pressed="false">cli</button>
+              <span class="install-sep" aria-hidden="true">·</span>
+              <button type="button" class="install-tab" data-pkg="agent" aria-pressed="false">agent</button>
+            </div>
+            <span class="sr-only install-live" aria-live="polite"></span>
           </div>
           <p class="prf-footer prf-fin">
             <a class="prf-wordmark" href="/" aria-label="asyncify, home">asyncify</a>
