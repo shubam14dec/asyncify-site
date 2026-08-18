@@ -2072,8 +2072,8 @@ export function createAgentsScene(): AgentsScene {
       /* Tucked in against the period (user call: the bend floated too far
          right of "queue."): the reach ends 4px past the glyphs and the
          quadrant tightened to 62 -- the corner now hugs the word. */
-      const bendX = maxSentRight + 4;
-      const CURL_W = 62;
+      const bendX = maxSentRight + 2;
+      const CURL_W = 46;
       const sideX = bendX + CURL_W;
       const segs = [
         `M ${entryX.toFixed(1)} ${entryY.toFixed(1)} C ${entryX.toFixed(1)} ${(entryY + dive).toFixed(1)} ${(ux0 - 170).toFixed(1)} ${uy.toFixed(1)} ${ux0.toFixed(1)} ${uy.toFixed(1)}`,
