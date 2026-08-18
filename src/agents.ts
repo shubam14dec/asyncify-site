@@ -2022,7 +2022,6 @@ export function createAgentsScene(): AgentsScene {
       const ux0 = ph.left - r.left - 18;
       const ux1 = ph.right - r.left + 4;
       const l2y = l2.top + l2.height / 2 - r.top;
-      const l3y = l3.top + l3.height / 2 - r.top;
       const maxSentRight = Math.max(l2.right, l3.right) - r.left;
       /* One path, five segments, each continuing from the last point. The
          fractions of the cumulative arc length at each seam are what the
@@ -2052,7 +2051,6 @@ export function createAgentsScene(): AgentsScene {
          the TRUE half-travel mirror; staying off the text is the clearance
          sampler's job alone, pushing the rail out only as far as the flask
          sweep actually needs. */
-      const drop = l3y - uy;
       /* THE BEND LIVES ABOVE "ue." (user call, sketch-precise): the rail is
          PINNED a step past the sentence's right edge -- no clearance loop
          pushing it into the far field. What keeps the sweep off the glyphs
@@ -2078,14 +2076,20 @@ export function createAgentsScene(): AgentsScene {
         `M ${entryX.toFixed(1)} ${entryY.toFixed(1)} C ${entryX.toFixed(1)} ${(entryY + dive).toFixed(1)} ${(ux0 - 170).toFixed(1)} ${uy.toFixed(1)} ${ux0.toFixed(1)} ${uy.toFixed(1)}`,
         `L ${ux1.toFixed(1)} ${uy.toFixed(1)}`,
         `L ${bendX.toFixed(1)} ${uy.toFixed(1)}`,
-        `C ${(bendX + CURL_W * 0.55).toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${(l3y - drop * 0.5).toFixed(1)} ${sideX.toFixed(1)} ${l3y.toFixed(1)}`,
+        /* The corner is a QUADRANT, not a stretched shoulder (user catch,
+           against their screenshot: the entry turns inside a compact ~84px
+           square; the old exit curl reached its endpoint all the way down
+           at the second sentence's latitude, smearing the turn across the
+           whole drop). Same 84 on both axes, 0.55 control ratio -- the
+           entry corner's own proportions, mirrored. */
+        `C ${(bendX + CURL_W * 0.55).toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${(uy + CURL_W * 0.45).toFixed(1)} ${sideX.toFixed(1)} ${(uy + CURL_W).toFixed(1)}`,
         /* Short control reaches (60/90, was 120/160): the shoulder already
            spent its turn, so the run to the drop is a near-straight glide --
            one curve at the top, one straight fall, done (user call: the
            circular curvature belongs at the beginning; the end had too much
            curve). The 90 keeps just enough blend to arrive vertical at the
            tip. */
-        `C ${sideX.toFixed(1)} ${(l3y + 60).toFixed(1)} ${exitX.toFixed(1)} ${(exitY - 90).toFixed(1)} ${exitX.toFixed(1)} ${exitY.toFixed(1)}`,
+        `C ${sideX.toFixed(1)} ${(uy + CURL_W + 70).toFixed(1)} ${exitX.toFixed(1)} ${(exitY - 90).toFixed(1)} ${exitX.toFixed(1)} ${exitY.toFixed(1)}`,
       ];
       bwire.setAttribute("d", segs.join(" "));
       if (eraHl && eraHlWord && eraWordEl) {
