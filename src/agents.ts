@@ -791,6 +791,9 @@ const STILL_VIEW = [
     /* Wide enough for the receipt and the event line out at x 619, deep
        enough for the channel row at 552. */
     box: "564 280 500 300",
+    /* The crop overlaps the approval act's region; the class hides it (the
+       guardrail card owns that story). */
+    cls: "agt-fig-answer",
   },
 ] as const;
 
@@ -1795,9 +1798,9 @@ export function createAgentsScene(): AgentsScene {
   function buildStill(reduced: boolean): () => void {
     const frag = doc.createDocumentFragment();
 
-    function figure(box: string): HTMLElement {
+    function figure(box: string, cls?: string): HTMLElement {
       const wrap = doc.createElement("div");
-      wrap.className = "trn-card-figure";
+      wrap.className = cls ? `trn-card-figure ${cls}` : "trn-card-figure";
       const clone = pristine.cloneNode(true) as SVGSVGElement;
       clone.setAttribute("viewBox", box);
       // As tall as its own window is deep, so nothing letterboxes.
@@ -1927,7 +1930,7 @@ export function createAgentsScene(): AgentsScene {
     frag.appendChild(stillChecklist());
     for (const v of STILL_VIEW) {
       const el = block(v.kicker, v.text, v.glass, v.event);
-      el.appendChild(figure(v.box));
+      el.appendChild(figure(v.box, (v as { cls?: string }).cls));
       /* The beat that makes the multi-channel claim carries the row that
          proves it — in the scrub that row is on the glass, and the glass is
          stripped out of every still figure. */
@@ -1982,7 +1985,15 @@ export function createAgentsScene(): AgentsScene {
     const eraHl = doc.querySelector<HTMLElement>("#agt-era-hl");
     const eraHlWord = doc.querySelector<HTMLElement>("#agt-era-hl-word");
     const eraWordEl = doc.querySelector<HTMLElement>("#agt-era-word");
-    if (svgB && bwire && bdot && eraPhrase && sectionB && bridgeLines.length >= 3) {
+    /* THE WIRE NEEDS WIDTH. Below ~900px the sentence spans nearly the full
+       viewport: there is no corner for the flask bend, and the journey
+       degenerates into one long kinked line wandering a black runway (user
+       report at 768). Narrow screens take the no-wire branch below — the
+       era still types itself; the through-line is a wide-screen luxury.
+       Measured once at fonts.ready with the path itself; crossing the
+       boundary needs a reload, like every other boot-measured geometry. */
+    const wireFits = sectionB ? sectionB.getBoundingClientRect().width >= 900 : false;
+    if (wireFits && svgB && bwire && bdot && eraPhrase && sectionB && bridgeLines.length >= 3) {
       const r = sectionB.getBoundingClientRect();
       const ph = eraPhrase.getBoundingClientRect();
       const l2 = bridgeLines[1]!.getBoundingClientRect();
