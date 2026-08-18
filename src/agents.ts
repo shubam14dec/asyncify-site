@@ -2053,28 +2053,23 @@ export function createAgentsScene(): AgentsScene {
          sampler's job alone, pushing the rail out only as far as the flask
          sweep actually needs. */
       const drop = l3y - uy;
-      const corridor = l2.top - r.top - uy - 4;
-      const sideCap = Math.min(maxSentRight + 176, r.width - 6);
-      let sideX = maxSentRight + 48;
-      for (let g = 0; g < 6; g++) {
-        let clear = true;
-        for (let s = 1; s < 40; s++) {
-          const t = s / 40;
-          const mt = 1 - t;
-          const cx = mt * mt * mt * ux1 + 3 * mt * mt * t * (ux1 + 170) + 3 * mt * t * t * sideX + t * t * t * sideX;
-          const cy = 3 * mt * t * t * (drop * 0.5) + t * t * t * drop;
-          if (cx < maxSentRight + 8 && cy > corridor) {
-            clear = false;
-            break;
-          }
-        }
-        if (clear || sideX >= sideCap) break;
-        sideX = Math.min(sideX + 24, sideCap);
-      }
+      /* THE BEND LIVES ABOVE "ue." (user call, sketch-precise): the rail is
+         PINNED a step past the sentence's right edge -- no clearance loop
+         pushing it into the far field. What keeps the sweep off the glyphs
+         is the shape itself: the control reaches scale to the actual span
+         between the era's right edge and the rail (the entry's 170 was
+         authored for a 360px span; this side's span is half that, and the
+         un-scaled reach overshot the rail and bulged). Front-loading the
+         horizontal (0.55 of the span) holds the curve in the corridor over
+         the sentence's tail, and the half-drop second control gives the
+         same flask flare the entry has, breaking downward exactly at the
+         corner. */
+      const sideX = maxSentRight + 12;
+      const span = Math.max(60, sideX - ux1);
       const segs = [
         `M ${entryX.toFixed(1)} ${entryY.toFixed(1)} C ${entryX.toFixed(1)} ${(entryY + dive).toFixed(1)} ${(ux0 - 170).toFixed(1)} ${uy.toFixed(1)} ${ux0.toFixed(1)} ${uy.toFixed(1)}`,
         `L ${ux1.toFixed(1)} ${uy.toFixed(1)}`,
-        `C ${(ux1 + 170).toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${(l3y - drop * 0.5).toFixed(1)} ${sideX.toFixed(1)} ${l3y.toFixed(1)}`,
+        `C ${(ux1 + span * 0.55).toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${(l3y - drop * 0.5).toFixed(1)} ${sideX.toFixed(1)} ${l3y.toFixed(1)}`,
         /* Short control reaches (60/90, was 120/160): the shoulder already
            spent its turn, so the run to the drop is a near-straight glide --
            one curve at the top, one straight fall, done (user call: the
