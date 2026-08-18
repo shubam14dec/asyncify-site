@@ -2064,12 +2064,16 @@ export function createAgentsScene(): AgentsScene {
          the sentence's tail, and the half-drop second control gives the
          same flask flare the entry has, breaking downward exactly at the
          corner. */
-      const sideX = maxSentRight + 12;
+      const sideX = maxSentRight + 26;
       const span = Math.max(60, sideX - ux1);
       const segs = [
         `M ${entryX.toFixed(1)} ${entryY.toFixed(1)} C ${entryX.toFixed(1)} ${(entryY + dive).toFixed(1)} ${(ux0 - 170).toFixed(1)} ${uy.toFixed(1)} ${ux0.toFixed(1)} ${uy.toFixed(1)}`,
         `L ${ux1.toFixed(1)} ${uy.toFixed(1)}`,
-        `C ${(ux1 + span * 0.55).toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${(l3y - drop * 0.5).toFixed(1)} ${sideX.toFixed(1)} ${l3y.toFixed(1)}`,
+        /* 0.72, not 0.55: the harder front-load keeps the sweep level while
+           it is still over the sentence's tail -- 0.55 let it graze the
+           "queue." glyphs on wider viewports (user catch) -- and the whole
+           dip then happens past the corner. */
+        `C ${(ux1 + span * 0.72).toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${(l3y - drop * 0.5).toFixed(1)} ${sideX.toFixed(1)} ${l3y.toFixed(1)}`,
         /* Short control reaches (60/90, was 120/160): the shoulder already
            spent its turn, so the run to the drop is a near-straight glide --
            one curve at the top, one straight fall, done (user call: the
