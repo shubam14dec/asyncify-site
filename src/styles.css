@@ -1091,7 +1091,15 @@ html {
 
 .eng-svg {
   width: 100%;
-  height: min(100%, 78vh);
+  /* The audit's oldest open flag, closed: `min(100%, 78vh)` silently drops
+     its 100% arm here (the grid item's height is content-derived, so 100%
+     is indeterminate) and the svg fell back to aspect height — on a short
+     window the bottom of the viewBox rendered under the fold. Scene 4's
+     cure, applied: auto height keeps the aspect, and a max-height in
+     always-definite units (the pin is 100dvh with no vertical padding)
+     scales the WHOLE drawing down instead of cropping it. */
+  height: auto;
+  max-height: 100dvh;
   /* The camera scales past the viewBox on the zoomed-in phases. Clip there,
      not at the section edge, or the schematic slides under the caption rail. */
   overflow: hidden;
@@ -1620,7 +1628,10 @@ html {
    the section edge, or the phone slides out over the page gutter. */
 .trn-svg {
   width: 100%;
-  height: min(100%, 78vh);
+  /* Same cure as .eng-svg / .agt-svg (the min(100%, 78vh) trap): definite
+     cap from the pin's own box — 100dvh minus its vertical padding. */
+  height: auto;
+  max-height: calc(100dvh - 2 * clamp(24px, 5vh, 56px));
   overflow: hidden;
 }
 
