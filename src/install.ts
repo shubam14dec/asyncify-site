@@ -173,9 +173,12 @@ export function createInstallLine(opts: InstallLineOptions): InstallLine {
         const tx2 = tb.right - hr.left + 10;
         const ty2 = tb.top + tb.height / 2 - hr.top;
         const S = (x: number, y: number) => `${(tx2 + x).toFixed(1)} ${(ty2 + y).toFixed(1)}`;
+        /* Flattened approach (user call: the old end tangent rose ~54° and
+           the head read as aiming at the command line above) -- the flick
+           now arrives nearly level, squarely into the tabs row's edge. */
         sdkWire.setAttribute(
           "d",
-          `M ${S(64, 26)} C ${S(42, 34)} ${S(16, 22)} ${S(0, 0)}`,
+          `M ${S(64, 26)} C ${S(44, 28)} ${S(20, 7)} ${S(0, 0)}`,
         );
         setHead(sdkWire, sdkHead);
         sdkNote.setAttribute("x", (tx2 + 86).toFixed(1));
