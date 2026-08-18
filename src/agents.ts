@@ -2044,17 +2044,17 @@ export function createAgentsScene(): AgentsScene {
          numbers, same angles, opposite corner.
 
          The mirror cannot copy the terrain (the entry curves over empty
-         air; the exit curves over the sentence), and the descent must land
-         JUST past "queue." -- not out in the far field (user call, twice).
-         So: the second control sits HIGH on the rail (0.8 of the drop above
-         the landing), which holds the curve shallow across the sentence's
-         tail and concentrates the whole fall immediately after the text.
-         The rail starts a step past the sentence's measured edge and the
-         clearance check nudges it out only in small increments, capped
-         close -- nearness wins over a few pixels of graze. */
+         air; the exit curves over the sentence). An earlier round bought
+         "land just past queue." by lifting the second control to 0.8 of
+         the drop -- which snapped the curve to vertical at the corner and
+         killed the flask-neck character the entry has (user catch: "the
+         curvature is perfect in the beginning"). The control is back at
+         the TRUE half-travel mirror; staying off the text is the clearance
+         sampler's job alone, pushing the rail out only as far as the flask
+         sweep actually needs. */
       const drop = l3y - uy;
       const corridor = l2.top - r.top - uy - 4;
-      const sideCap = Math.min(maxSentRight + 132, r.width - 6);
+      const sideCap = Math.min(maxSentRight + 176, r.width - 6);
       let sideX = maxSentRight + 48;
       for (let g = 0; g < 6; g++) {
         let clear = true;
@@ -2062,7 +2062,7 @@ export function createAgentsScene(): AgentsScene {
           const t = s / 40;
           const mt = 1 - t;
           const cx = mt * mt * mt * ux1 + 3 * mt * mt * t * (ux1 + 170) + 3 * mt * t * t * sideX + t * t * t * sideX;
-          const cy = 3 * mt * t * t * (drop * 0.2) + t * t * t * drop;
+          const cy = 3 * mt * t * t * (drop * 0.5) + t * t * t * drop;
           if (cx < maxSentRight + 8 && cy > corridor) {
             clear = false;
             break;
@@ -2074,7 +2074,7 @@ export function createAgentsScene(): AgentsScene {
       const segs = [
         `M ${entryX.toFixed(1)} ${entryY.toFixed(1)} C ${entryX.toFixed(1)} ${(entryY + dive).toFixed(1)} ${(ux0 - 170).toFixed(1)} ${uy.toFixed(1)} ${ux0.toFixed(1)} ${uy.toFixed(1)}`,
         `L ${ux1.toFixed(1)} ${uy.toFixed(1)}`,
-        `C ${(ux1 + 170).toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${(l3y - drop * 0.8).toFixed(1)} ${sideX.toFixed(1)} ${l3y.toFixed(1)}`,
+        `C ${(ux1 + 170).toFixed(1)} ${uy.toFixed(1)} ${sideX.toFixed(1)} ${(l3y - drop * 0.5).toFixed(1)} ${sideX.toFixed(1)} ${l3y.toFixed(1)}`,
         /* Short control reaches (60/90, was 120/160): the shoulder already
            spent its turn, so the run to the drop is a near-straight glide --
            one curve at the top, one straight fall, done (user call: the
