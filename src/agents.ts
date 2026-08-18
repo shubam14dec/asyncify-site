@@ -2069,8 +2069,11 @@ export function createAgentsScene(): AgentsScene {
          height until 8px past the sentence's measured right edge, and only
          then curls -- a compact flask flare, 84px wide, quarter-turning to
          vertical. Clearance by construction, at every width. */
-      const bendX = maxSentRight + 8;
-      const CURL_W = 84;
+      /* Tucked in against the period (user call: the bend floated too far
+         right of "queue."): the reach ends 4px past the glyphs and the
+         quadrant tightened to 62 -- the corner now hugs the word. */
+      const bendX = maxSentRight + 4;
+      const CURL_W = 62;
       const sideX = bendX + CURL_W;
       const segs = [
         `M ${entryX.toFixed(1)} ${entryY.toFixed(1)} C ${entryX.toFixed(1)} ${(entryY + dive).toFixed(1)} ${(ux0 - 170).toFixed(1)} ${uy.toFixed(1)} ${ux0.toFixed(1)} ${uy.toFixed(1)}`,
