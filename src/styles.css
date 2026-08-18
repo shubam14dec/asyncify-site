@@ -665,7 +665,10 @@ html {
   line-height: 1;
   color: var(--text-faint);
   white-space: nowrap;
-  pointer-events: none;
+  /* Clickable (user call): the word is a child of the line's <button>, so a
+     click here bubbles into the same copy handler as the command itself. */
+  pointer-events: auto;
+  cursor: pointer;
   opacity: 1;
   transition: opacity 180ms ease;
 }
