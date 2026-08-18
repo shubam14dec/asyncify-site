@@ -530,25 +530,38 @@ const TITLE_HEAD = "Delivered was just the beginning.";
    version says all of this with receipts inside the drawing, so a hidden block
    in index.html would be markup that is never rendered as itself. */
 const STILL_WHOLE = "0 20 1200 560";
+/* Two rules govern every window below, and between them they decide all of it.
+   LEGIBILITY: the drawing's mono labels are 15–19u tall, so a window wider than
+   ~470u puts them under 9px on a 343px card. WHOLENESS: no box, label or word is
+   ever half in — a wire may cross the window edge, but a rect may not. The phone
+   is a 260×494 rect and its screen is another, so any window that shows the
+   phone at all shows all 494u of it; that is why the two phone figures are tall
+   and why the receipt band, which cannot reach the phone without slicing it, is
+   its own window stacked above. */
 const STILL_VIEW = [
   {
     /* The inbox is ERASED from the finished frame — the reader tapped into the
        thread — so this card is the only place a still reader ever sees the
        arrival. Same situation as scene 2's phase-A close-up, and the same fix.
-       Left edge at 640 because the receipt stamp starts at 644. */
+
+       Two windows, because the beat has two halves and no honest single crop:
+       the wire's receipt sits at x 564–800 and the phone's left wall is at 820,
+       so one window holding both is 540u wide and illegible. Stacked, the
+       reader gets the event leaving with its receipt, then where it landed. */
     phase: "delivery",
     kicker: "the delivery",
     text: "One event out, into a real inbox, on the channel it was addressed to — with a receipt.",
     glass: "Delivered is not a log line. It is a buzz in a pocket.",
-    /* Left edge at 616 rather than 640 so the arrival cue is whole; the extra
-       24u costs 5% of scale and buys the sentence that names the beat. The top
-       edge is free — a figure is width:100% with its box's aspect ratio, so
-       extending it upward for the phone's label changes nothing but height. */
-    box: "616 26 484 224",
+    boxes: [
+      "552 176 264 122", // the wire out, stamped: delivered · email
+      "806 22 290 542", // the inbox it landed in, phone whole
+    ],
   },
   {
-    /* Both phone walls (820 and 1080) inside the window, so the crop reads as
-       a screen and not as a wall of text. Tall, because a phone is. */
+    /* The phone WHOLE — walls at 820/1080, cap at 53, foot at 547. The old
+       window cut both ends off the handset to save height and the crop read as
+       a wall of text rather than as a screen. The empty band between the thread
+       body and the compose box is the thread's own whitespace, not slack. */
     phase: "reply",
     kicker: "the reply",
     /* The card text describes the picture; the glass line (the user's own
@@ -556,17 +569,23 @@ const STILL_VIEW = [
        not say the same thing twice. */
     text: "The reply is typed into the thread itself, right where the message landed.",
     glass: "Your user answers the notification itself. No dashboard, no support ticket.",
-    box: "812 150 276 350",
+    /* Deliberately the SAME window as the delivery card's phone. It is the same
+       handset at a later moment, so it is framed at the same scale and the same
+       latitude; the only thing that changes between the two cards is what is on
+       the screen, which is the whole point of the beat. */
+    boxes: ["806 22 290 542"],
   },
   {
-    /* Wide enough for the return cue at x 290–458, deep enough for the
-       stamp's descender at 273. It is also the only still figure that shows
-       the machine inside the chip at a size anyone can read it. */
+    /* Wide enough for the return cue, which ends at 518 — the old 496 right
+       edge sliced it to "back down the same w". 460u is the widest this scene
+       goes and it still clears the legibility floor (0.75 scale). It is also
+       the only still figure that shows the machine inside the chip at a size
+       anyone can read it. */
     phase: "turn",
     kicker: "the turn",
     text: "The answer runs back down the same wire, into the engine. The conversation is open.",
     glass: "Most replies dead-end in a support inbox. Yours comes back as an event.",
-    box: "56 130 440 172",
+    boxes: ["74 128 470 190"],
   },
 ] as const;
 
@@ -1235,7 +1254,7 @@ export function createTurnScene(): TurnScene {
       frag.append(lede, figure(STILL_WHOLE, "all"));
       for (const [i, v] of STILL_VIEW.entries()) {
         const el = block(v.kicker, v.text, v.glass, STATIONS[i]!.event);
-        if (v.phase !== "turn") el.appendChild(figure(v.box, v.phase));
+        if (v.phase !== "turn") for (const b of v.boxes) el.appendChild(figure(b, v.phase));
         frag.appendChild(el);
       }
     } else {
@@ -1244,7 +1263,9 @@ export function createTurnScene(): TurnScene {
          phone is three illegible mono labels. */
       for (const [i, v] of STILL_VIEW.entries()) {
         const el = block(v.kicker, v.text, v.glass, STATIONS[i]!.event);
-        el.appendChild(figure(v.box, v.phase));
+        /* One or two windows: a beat whose mechanism does not fit one legible
+           crop is drawn as two stacked, each one whole. */
+        for (const b of v.boxes) el.appendChild(figure(b, v.phase));
         frag.appendChild(el);
       }
     }

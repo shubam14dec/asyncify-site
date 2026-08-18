@@ -798,18 +798,71 @@ const FLOOD_R = 3.4;
    caption belongs to each. `phase` is the CSS key that decides which layers
    the card shows; two cards may share one.
 
-   These are cut for LEGIBILITY, not for coverage. A card is ~420px wide on a
-   phone, so a 14u label only clears 10px once the window is under ~590u —
-   showing the whole 1200u schematic four times would be four illegible
-   thumbnails. Each card is therefore a close-up of the one mechanism its
-   caption is about, and the captions carry the thread between them. */
+   These are cut for LEGIBILITY, not for coverage. A card is ~343px wide on a
+   375px phone, and the schematic's labels are 18u tall (13px mono) with 15u
+   asides under them. A window wider than ~470u therefore renders the labels
+   below ~9px and the asides below 8px — showing the whole 1200u schematic
+   four times would be four illegible thumbnails.
+   470u is the hard ceiling, and it is the reason most captions get TWO
+   windows rather than one wide one: a mechanism that spans 800u is shown as
+   two close-ups stacked, not as one sliver. The stack reads as one figure
+   continued, which is how a schematic detail sheet reads anyway.
+
+   The second rule these obey: no box, label or word is ever half in. Wires
+   cross the window edge — that is what wires do — but they always join
+   something drawn inside it. Where a container could not be honoured that
+   way (the 590×270 chassis fits in no legible window) the container is hidden
+   for that phase in the stylesheet instead of being sliced. */
 const CARD_VIEW = [
-  { phase: "a", cap: 0, box: "690 70 510 470" }, // the providers, refusing
-  { phase: "b", cap: 1, box: "240 160 620 310" }, // the engine: api, queue, meter
-  { phase: "c", cap: 2, box: "360 498 600 134" }, // the backoff rail and the siding
-  { phase: "d", cap: 3, box: "700 20 500 592" }, // the six channels, delivered
-  { phase: "e", cap: 4, box: "280 22 560 118" }, // the timeline the receipts land on
-  { phase: "f", cap: 5, box: "4 66 268 210" }, // the workflow ladder, gate shut
+  {
+    phase: "a",
+    cap: 0,
+    boxes: [
+      "16 236 468 152", // your app, firing three wires it will never hear about
+      "700 78 470 432", // where they land: 429, the dropped wire, three providers
+    ],
+  },
+  {
+    phase: "b",
+    cap: 1,
+    boxes: [
+      /* The right wall is 426 and not a unit further: the dedupe stamp starts
+         at 428, and half of "evt-1042 · already delivered · skipped" is worse
+         than none of it. The window buys its width back on the left, off the
+         app wire, which costs nothing. */
+      "20 178 406 172", // one call in — websocket / api, accepted in 8ms
+      "418 214 412 216", // the queue absorbing, the meter pacing, the dedupe
+    ],
+  },
+  {
+    phase: "c",
+    cap: 2,
+    boxes: [
+      "534 220 380 372", // the retry rail's return, with 16s · 4s · 1s on it
+      "352 518 300 126", // out of attempts: the siding into dead letter
+    ],
+  },
+  {
+    phase: "d",
+    cap: 3,
+    boxes: [
+      "420 214 410 204", // p0 · otp over p1 over p2 · marketing, three queues
+      "862 58 278 524", // and every one of them comes out delivered
+    ],
+  },
+  {
+    phase: "e",
+    cap: 4,
+    boxes: [
+      "292 6 280 88", // the timeline, head
+      "568 6 280 88", // …continued, to delivered · opened
+    ],
+  },
+  {
+    phase: "f",
+    cap: 5,
+    boxes: ["2 62 280 220"], // the workflow ladder, gate shut
+  },
 ] as const;
 
 const COLOR = {
@@ -1791,7 +1844,9 @@ export function createEngineScene(): EngineScene {
            engine was built to answer (DESIGN §3 — same information, delivered
            by layout instead of by time). No other caption needs one; every
            other mechanism is still in the finished picture. */
-        if (i === 0) card.appendChild(figure(CARD_VIEW[0].phase, CARD_VIEW[0].box));
+        if (i === 0) {
+          for (const box of CARD_VIEW[0].boxes) card.appendChild(figure(CARD_VIEW[0].phase, box));
+        }
         frag.appendChild(card);
       }
       frag.appendChild(copyStat());
@@ -1802,7 +1857,10 @@ export function createEngineScene(): EngineScene {
         card.className = "eng-card";
         const cap = caps[view.cap];
         if (cap) card.append(...Array.from(cap.children).map((n) => n.cloneNode(true)));
-        card.appendChild(figure(view.phase, view.box));
+        /* One or two windows. Two is not a fallback — it is how a mechanism
+           wider than the legibility ceiling is drawn: two close-ups stacked,
+           each complete, read top to bottom as one figure. */
+        for (const box of view.boxes) card.appendChild(figure(view.phase, box));
         frag.appendChild(card);
       }
       frag.appendChild(copyStat());

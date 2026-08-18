@@ -1423,6 +1423,13 @@ html {
   margin-top: 20px;
 }
 
+/* A caption whose mechanism is wider than the legibility ceiling gets two
+   windows instead of one sliver. They are one figure in two parts, so they
+   sit closer to each other than either sits to the caption. */
+.eng-card-figure + .eng-card-figure {
+  margin-top: 10px;
+}
+
 .eng-card-figure .eng-svg {
   height: auto;
   aspect-ratio: 16 / 9;
@@ -1527,6 +1534,19 @@ html {
    qualifier. */
 .eng-card-figure .eng-break-seg,
 .eng-card-figure .eng-break-edge {
+  display: none;
+}
+
+/* The chassis is 590×270. No window that keeps a 13px label legible (≤470u)
+   can hold it, so on the three phases whose close-ups look INSIDE the engine
+   it would always be a box sliced by the window edge — the one thing these
+   crops are not allowed to do. It is fully out instead, and the
+   "asyncify · engine" aside still names the room on the card that shows the
+   api. The whole-anatomy figure (`all`) keeps it: that one is wide enough to
+   contain it. */
+.eng-card-figure[data-phase="b"] .eng-chassis,
+.eng-card-figure[data-phase="c"] .eng-chassis,
+.eng-card-figure[data-phase="d"] .eng-chassis {
   display: none;
 }
 
@@ -2010,6 +2030,24 @@ html {
 .trn-card-figure[data-phase="delivery"] .trn-screen-thread,
 .trn-card-figure[data-phase="delivery"] .trn-receipt-r {
   opacity: 0;
+}
+
+/* #trn-evt-d and #trn-evt-r are two sentences on ONE baseline (x 800, y 254):
+   the scrub crossfades between them, so only ever one is on screen. A still
+   frame has no crossfade, and every still figure was therefore printing
+   "websocket event: message.changed" and "websocket event: conversation.changed"
+   on top of each other — a 270u smear of overstruck mono that reads as damage.
+   Same law as .trn-receipt-d/-r above: a moment belongs to the figure that
+   shows its moment. The finished-frame figure takes the later of the two, to
+   agree with the `replied` receipt it already carries. */
+.trn-card-figure .trn-evt-d,
+.trn-card-figure .trn-evt-r {
+  opacity: 0;
+}
+
+.trn-card-figure[data-phase="delivery"] .trn-evt-d,
+.trn-card-figure[data-phase="all"] .trn-evt-r {
+  opacity: 1;
 }
 
 /* The two figures a still reader needs the typed reply IN: its own close-up,

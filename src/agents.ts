@@ -758,7 +758,7 @@ const STILL_VIEW = [
     event: "job · conversation-inbound",
     /* The wire from the top edge, the box, both label lines and the job stamp.
        Square, because this beat is one object and its name. */
-    box: "180 96 300 300",
+    boxes: ["180 96 300 300"],
   },
   {
     chans: false,
@@ -766,9 +766,12 @@ const STILL_VIEW = [
     text: "Two calls, in the order a brain makes them: what do I already know about this person — short-term transcript, episodic past conversations, long-term profile — and what does the order actually say.",
     glass: "It doesn't guess. It remembers, and it looks things up.",
     event: "tool · search_history",
-    /* Both traces leaving the box's wall and both cards, so the crop still
-       shows a request going somewhere rather than two floating boxes. */
-    box: "418 84 372 200",
+    /* Both traces and both cards, so the crop still shows a request going
+       somewhere rather than two floating boxes. The left wall is 440 and not
+       418: the agent box's own right wall is at 430, and 418 put a 12u vertical
+       slice of a 240u box against the window edge — a fragment of a rect reads
+       as damage, where a trace crossing the same edge reads as a wire. */
+    boxes: ["440 84 356 206"],
   },
   {
     chans: false,
@@ -780,7 +783,7 @@ const STILL_VIEW = [
        the approval card's floor at 566 — and it followed the cluster 34u down
        when the cluster moved. A window left at the old latitude would have
        framed the empty gap the move created. */
-    box: "500 424 300 190",
+    boxes: ["500 424 300 190"],
   },
   {
     chans: true,
@@ -788,9 +791,18 @@ const STILL_VIEW = [
     text: "The answer lands in the thread the reply was written in, with the source it came from and a receipt for the send.",
     glass: "One agent. Every channel your user lives on.",
     event: "ws · message.changed",
-    /* Wide enough for the receipt and the event line out at x 619, deep
-       enough for the channel row at 552. */
-    box: "564 280 500 300",
+    /* Two windows. The old single 500u window was trying to hold the receipt
+       band (x 570–806) and the phone (x 816–1044) at once: it cut the handset
+       clean in half down its right wall, missed the whole top of the thread,
+       and rendered the scene's 15u mono at 10px. Split at the phone's wall, the
+       receipt band gets 1.3× scale and the phone is whole.
+       The channel row is NOT one of these windows — this card rebuilds it as an
+       HTML strip below (stillChannels), which is a better strip than a 16u-tall
+       sliver of the drawing would be. */
+    boxes: [
+      "556 288 258 96", // the answer leaves, stamped: delivered · email
+      "806 88 250 426", // and lands in the thread it was written in
+    ],
     /* The crop overlaps the approval act's region; the class hides it (the
        guardrail card owns that story). */
     cls: "agt-fig-answer",
@@ -1930,7 +1942,9 @@ export function createAgentsScene(): AgentsScene {
     frag.appendChild(stillChecklist());
     for (const v of STILL_VIEW) {
       const el = block(v.kicker, v.text, v.glass, v.event);
-      el.appendChild(figure(v.box, (v as { cls?: string }).cls));
+      /* One or two windows: a beat whose mechanism cannot be held by a single
+         window without slicing something is drawn as two stacked, each whole. */
+      for (const b of v.boxes) el.appendChild(figure(b, (v as { cls?: string }).cls));
       /* The beat that makes the multi-channel claim carries the row that
          proves it — in the scrub that row is on the glass, and the glass is
          stripped out of every still figure. */

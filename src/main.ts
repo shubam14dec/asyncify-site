@@ -148,12 +148,7 @@ if (installFinale && finaleInstallRoot) {
   }
 }
 
-/* Reduced motion never reaches onEntranceComplete — bell.ts returns after its
-   cross-fade — so the line takes its instant text here instead. */
-if (reducedMotion) {
-  install.start();
-  buildNextSceneWhenIdle();
-}
+
 
 /* Scene 2 is independent of the hero — it neither reads from it nor writes to
    it. It also owns its own media gating (gsap.matchMedia), because the choice
@@ -298,6 +293,18 @@ function expediteSceneBuilds(): void {
 window.addEventListener("wheel", expediteSceneBuilds, { passive: true, once: true });
 window.addEventListener("touchmove", expediteSceneBuilds, { passive: true, once: true });
 window.addEventListener("scroll", expediteSceneBuilds, { passive: true, once: true });
+
+/* Reduced motion never reaches onEntranceComplete — bell.ts returns after its
+   cross-fade — so the install line takes its instant text here and the scene
+   chain starts directly. AFTER the builder definitions above, deliberately:
+   this branch runs synchronously at module evaluation, and calling into the
+   chain from up beside the bell wiring hit the builders' const TDZ — a
+   ReferenceError that killed the whole module, a dead page for every
+   reduced-motion visitor (found by the still-crops review agent). */
+if (reducedMotion) {
+  install.start();
+  buildNextSceneWhenIdle();
+}
 
 /* The entrance runs once. Waiting for the first font frame avoids the
    headline re-flowing underneath a mid-flight SplitText. */
