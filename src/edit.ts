@@ -1264,7 +1264,7 @@ const TEAR_HERE_SIZE = 17;
  *  with the curve's own END TANGENT. Both are written down because the head's
  *  two points are authored in the markup and the assert below re-derives them
  *  — an arrowhead is only an arrowhead if it agrees with its line. */
-const TEAR_HEAD_LEN = 11;
+const TEAR_HEAD_LEN = 13;
 const TEAR_HEAD_DEG = 28;
 
 /** THE TEAR, at scene 4's ticket's own bar (user call: the ticket's tear is
