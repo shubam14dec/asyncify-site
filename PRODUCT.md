@@ -18,7 +18,7 @@ them.
 
 ## Surface
 
-`asyncify.org` — the marketing site. Single page, five scenes, Persuade mode.
+`asyncify.org` — the marketing site. Single page, six scenes, Persuade mode.
 Not the dashboard, not the docs. This repo is only the landing page.
 
 ## Audience
@@ -36,14 +36,26 @@ They are technical buyers. That means:
 - They have seen a thousand SaaS landing pages this year. Anything templated reads as a
   product that is also templated.
 
-## The story (five scenes, in order)
+## The story (six scenes, in order)
 
-1. **The bell rings.** Your product has something to say. One event, one API call.
-   *(Shipped — the hero.)*
-2. **The engine delivers everywhere.** The fan-out: channels, retries, receipts, preferences.
-3. **Notifications become two-way.** The user replies. The message comes back in.
-4. **Agents answer, with receipts.** An agent reads the reply, calls tools, and shows its work.
-5. **The single green CTA.** The only green button on the site.
+1. **The bell rings.** Your product has something to say. One event, one API call. The hero,
+   and the only scene above the fold.
+2. **The scale.** The fan-out, drawn as a machine: priority lanes so an OTP never waits behind
+   a marketing blast, retries with backoff, provider failover, a dead-letter queue. The burst
+   is absorbed and nothing is dropped.
+3. **The turn.** *Delivered was just the beginning.* The notification lands in the user's
+   inbox, they reply to it, and the reply travels back in on the same wire.
+4. **Agents.** *It answers. You stay in control.* An agent of yours reads the reply, remembers,
+   looks things up, waits for a human on the one action that matters, and answers back in the
+   thread the reply was written in — with a receipt for the send.
+5. **The edit.** *Prompt edits are deploys.* One line of an agent's prompt changes, and the
+   reader watches that one line travel eight stations before it can reach anybody: judged
+   evals, a CI gate that catches a regression, the customer's own pre-save check, a canary
+   judged against the version it replaces, model routing, two gates around the brain, and
+   per-customer limits. The quality ladder is a journey here rather than a feature list, and
+   the scene lands with the version rail printing itself as a receipt the reader can tear off.
+6. **Proof, and the CTA.** *Don't take my word. See the proof.* The claims above, checked
+   against real numbers — then the single green button, the only one on the site.
 
 Each scene is one idea. If a scene needs two ideas, it is two scenes.
 

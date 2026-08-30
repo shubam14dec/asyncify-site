@@ -35,6 +35,7 @@ framework, no stock illustration. Design rules live in
 
 ```bash
 npm install
-npm run dev        # http://localhost:5173
+npm run dev        # http://localhost:5180
+npm run preview    # http://localhost:5181 (serves dist/)
 npm run build      # production build in dist/
 ```

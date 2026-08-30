@@ -1221,7 +1221,7 @@ const L_HINT_AT = 10.2;
 const L_HINT_RUN = 1.55;
 
 /* ══════════════════════════════════════════════════════════════════════════
-   THE STILL'S WINDOWS  —  authored now, cloned by slice D
+   THE STILL'S WINDOWS  —  authored by slice A, cut by slice D
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* "x y w h" in WORLD units, one or two per caption: the close-ups a phone and
@@ -1233,22 +1233,94 @@ const L_HINT_RUN = 1.55;
    470u IS THE LEGIBILITY CEILING and it is scene 2's, measured rather than
    guessed: a card is ~343px wide on a 375px phone, so a window wider than
    that renders 10.5u lettering under 8px. A mechanism wider than the ceiling
-   gets TWO windows stacked, never one sliver — which is why five of the eight
+   gets TWO windows stacked, never one sliver — which is why seven of the eight
    stations have two. All of it is asserted at boot: every window inside its
-   own station's bay, inside the content band, and inside the ceiling. */
+   own station's bay, inside the content band, and inside the ceiling.
+
+   FOUR OF THEM MOVED WHEN SLICE D ACTUALLY LOOKED THROUGH THEM, and every
+   move is a thing the finished frame turned out to contain that the authored
+   window missed. All four were found by measuring the landmarks each card
+   claims against the window that is meant to frame them, not by eye:
+     · judged evals — the bench's own header and its live tally sit ON 251-262,
+       eleven units above the first scenario card, and a window that started at
+       264 cut the run's name and its count off the top of the picture.
+     · the ci gate — a still shows the END of the beat, and the end of that
+       beat is the bar GONE and the commit past it. The chip is 344u wide and
+       stops at 2900, so a window at 2380 framed an empty road; 2660 frames
+       the two jambs, the lane, and the commit standing through them.
+     · the two gates — the shipped reply comes to rest at 7280 and is 130u
+       wide, so its right edge is at 7345 and a 460u window at 6880 sliced it.
+     · the customer lanes — the bracket and its label are the beat's whole
+       claim ("4 of 4 answered") and they live at 8357-8530, past the old
+       window's right wall.
+   Two of the four also gained a few units at the top, because a text's own
+   cap rises above the baseline its y is: a window cut to a label's baseline
+   frames the label's descenders and not its letters. */
 const STILL_VIEW: readonly { cap: number; boxes: readonly string[] }[] = [
   { cap: 0, boxes: ["196 250 460 252"] },
-  { cap: 1, boxes: ["1240 264 380 226", "1640 292 364 208"] },
-  { cap: 2, boxes: ["2380 178 460 140", "2390 258 440 60"] },
+  { cap: 1, boxes: ["1240 244 380 246", "1640 292 364 208"] },
+  { cap: 2, boxes: ["2660 162 460 100", "2390 258 440 60"] },
   { cap: 3, boxes: ["3310 256 460 248", "3790 280 460 224"] },
   { cap: 4, boxes: ["4560 300 420 190", "4980 300 380 190"] },
   { cap: 5, boxes: ["5460 260 460 250", "5960 264 460 250"] },
-  { cap: 6, boxes: ["6520 340 440 170", "6880 272 460 240"] },
-  { cap: 7, boxes: ["7600 268 460 250", "8000 268 460 250"] },
+  { cap: 6, boxes: ["6520 340 440 170", "6875 268 470 244"] },
+  { cap: 7, boxes: ["7600 268 460 250", "8080 254 470 264"] },
 ];
+/** The highest latitude a still window may look at, and it is derived from
+ *  the highest thing the world actually draws: the turnstile's upper jamb, at
+ *  CHIP_LANE_Y − GATE_HALF, plus a hairline's clearance. It was the chip's own
+ *  band until slice D tried to frame an OPEN gate — two jambs and no bar — and
+ *  found the upper one two units above the ceiling, which would have drawn a
+ *  gate with one post. */
+const WORLD_TOP = CHIP_LANE_Y - GATE_HALF - 6;
 /** The widest a still window may be before its lettering stops being legible
  *  on a phone. Scene 2's number, and its reasoning. */
 const STILL_VIEW_MAX_W = 470;
+
+/* ── the two FRAME-space windows ───────────────────────────────────────────
+   The eight above look at the WORLD, through a camera that is at rest at the
+   identity in a still. Two of this scene's objects are not in the world at
+   all — they are frame furniture, painted over it — and each belongs to
+   exactly one card:
+
+     · THE TORN TICKET is what the ci gate caught. It rides the ci card, so
+       the reader who is shown a bar that cleared is shown, on the same card,
+       the paper that says what the first run stopped.
+     · THE LANDING RECEIPT is the rail's paper copy, and it is the last card.
+
+   They are in frame coordinates, so their windows are cut from a clone with
+   the camera group taken out — otherwise bay 0's prompt panel, which sits at
+   the same numbers, would be painted underneath them. */
+const STILL_TKT_VIEW = "14 500 210 92";
+const STILL_RCPT_VIEW = "536 288 248 248";
+/** The scene's LAST FRAME, whole, and it is genuinely the last frame: at the
+ *  landing the camera is parked on bay 8, which is empty by design, so the
+ *  frame layer standing alone is exactly what the reader is left looking at.
+ *  Reduced motion only — 1080u is over the phone ceiling by design, and that
+ *  branch is a desktop at full width (agents.ts's STILL_WHOLE, same rule). */
+const STILL_WHOLE = `0 0 ${FRAME_W} ${FRAME_H}`;
+
+/** Where the commit stands in the ci close-up. It is the chip's own
+ *  through-the-gate constant, not a second number: the still shows the beat's
+ *  end, and that is where the beat ends. */
+const STILL_CHIP_AT = CHIP_GATE_THROUGH;
+
+/* ── the still's own lettering ─────────────────────────────────────────────
+   Four strings the pinned scene has no room for and the still needs: what the
+   scene is (the reduced branch's lede, in the site's voice), what the rail's
+   list is a list OF, and the landing card's name and sentence. They are
+   checked at boot against the banned-glyph list like every other string this
+   file prints. */
+const STILL_LEDE =
+  "One line of an agent's prompt, and every gate it clears before a customer sees it.";
+const STILL_RAIL_LEAD = "the version rail · every stamp this edit earned";
+const STILL_LANDING_KICKER = "the landing";
+const STILL_LANDING_TEXT =
+  "The rail hands over its paper copy, torn off at the bar: the whole journey on one strip.";
+/** The glyphs the self-hosted latin faces do not carry (DESIGN §3). A drawn
+ *  tick, `->` and `·` are how this page says the three it would otherwise
+ *  reach for; the rest are simply not printable here. */
+const BANNED_GLYPHS = "✓★▪≥№→";
 
 /* ══════════════════════════════════════════════════════════════════════════
    THE MARKS
@@ -3035,8 +3107,126 @@ export function createEditScene(): EditScene {
       if (!inBay(i, x, x + w)) {
         throw new Error(`[edit] still window "${box}" looks outside station ${i + 1}'s own bay`);
       }
-      if (y < CHIP_LANE_Y - CHIP_H || y + h > CONTENT_Y1 + 8) {
+      if (y < WORLD_TOP || y + h > CONTENT_Y1 + 8) {
         throw new Error(`[edit] still window "${box}" looks outside the world`);
+      }
+    }
+  }
+  /* THE CI WINDOW HAS TO HOLD THE COMMIT IT IS ABOUT. The chip is 344u wide
+     and the ceiling is 470, so "the bar cleared and the commit went through"
+     is a picture with almost no slack in it — which is exactly the kind of
+     thing an eye reads as fine and a number does not. */
+  {
+    const n = STILL_VIEW[2]!.boxes[0]!.split(" ").map(Number) as [number, number, number, number];
+    if (STILL_CHIP_AT - CHIP_W / 2 < n[0] || STILL_CHIP_AT + CHIP_W / 2 > n[0] + n[2]) {
+      throw new Error("[edit] the ci close-up cannot hold the commit standing through the gate");
+    }
+    if (GATE_X < n[0] || GATE_X > n[0] + n[2]) {
+      throw new Error("[edit] the ci close-up does not show the gate the commit came through");
+    }
+  }
+
+  /* ── the two frame-space windows ────────────────────────────────────────
+     Same discipline, one rung simpler: a frame window is measured against the
+     frame rather than against a bay, and each one has to actually CONTAIN the
+     object it is named for. A window that framed the ticket's neighbourhood
+     would be a card showing an empty margin. */
+  {
+    const frameWindows: readonly { box: string; name: string; x0: number; y0: number; x1: number; y1: number }[] = [
+      { box: STILL_TKT_VIEW, name: "the torn ticket", x0: TKT_X0, y0: TKT_Y0, x1: TKT_X1, y1: TKT_TEAR + 4 },
+      {
+        box: STILL_RCPT_VIEW,
+        name: "the landing receipt",
+        x0: RCPT_X,
+        y0: MOUTH_Y - TEETH_H,
+        x1: RCPT_X + RCPT_W,
+        y1: RCPT_PERF_Y,
+      },
+      /* The whole last frame. It holds every frame-space object there is, and
+         it is the one window the ceiling does not apply to. */
+      { box: STILL_WHOLE, name: "the scene's last frame", x0: TKT_X0, y0: RAIL_NOTCH_TOP, x1: RCPT_X + RCPT_W, y1: RCPT_PERF_Y },
+    ];
+    for (const fw of frameWindows) {
+      const n = fw.box.split(" ").map(Number);
+      if (n.length !== 4 || n.some((k) => !Number.isFinite(k))) {
+        throw new Error(`[edit] the still window for ${fw.name} is not four numbers`);
+      }
+      const [x, y, w, h] = n as [number, number, number, number];
+      if (w <= 0 || h <= 0 || x < 0 || y < 0 || x + w > FRAME_W || y + h > FRAME_H) {
+        throw new Error(`[edit] the still window for ${fw.name} looks outside the frame`);
+      }
+      if (w > STILL_VIEW_MAX_W && fw.box !== STILL_WHOLE) {
+        throw new Error(`[edit] the still window for ${fw.name} is wider than a phone can read`);
+      }
+      if (x > fw.x0 || y > fw.y0 || x + w < fw.x1 || y + h < fw.y1) {
+        throw new Error(`[edit] the still window for ${fw.name} does not hold it`);
+      }
+    }
+  }
+
+  /* ── what the still has to UNDO, and what it has to PLACE ───────────────
+     A still figure is a clone of the finished markup, and the markup plus the
+     stylesheet is the finished frame — with two classes of exception, and
+     both of them are listed rather than discovered:
+
+       · THE MOMENTS. Anything the scrub passes THROUGH. Most already rest at
+         opacity 0 in the stylesheet, but a still figure renames every id it
+         carries (four mechanisms in this scene are columns behind clipPath
+         apertures, and a clip whose url() stops resolving is a column with
+         every cell showing at once), so an id-scoped rest does not survive
+         the clone and has to be written into it.
+       · THE TRAVELLERS. Six groups whose finished position is a transform the
+         SCRUB owns; in the markup they sit at their own origin, which in a
+         still is the world's corner.
+
+     Both lists are checked here against the live markup, so a rename trips at
+     boot rather than showing a station with a transient standing in it. */
+  const STILL_GONE: readonly string[] = [
+    "#edt-line-old", //   the prompt line before the edit
+    "#edt-caret", //      an insertion mark is a moment, never furniture
+    "#edt-status-run",
+    "#edt-status-fail", //  the row ends on `3 passing`
+    "#edt-gate", //       the bar retracted: an open gate is two jambs and no bar
+    "#edt-chip-line", //  the chip became a commit at station 3
+    "#edt-lane-a-lbl",
+    "#edt-lane-b-lbl", // both lanes are relabelled when the canary is promoted
+    "#edt-switch-50", //  the still's own second canary figure turns this back on
+    "#edt-switch-hint", // an affordance for a pointer a still does not have
+    "#edt-rmsg-t1", //    turn 1's words; the body carries turn 2's at the end
+    "#edt-ask", //        the question was answered, so the question left
+    "#edt-reply-b0",
+    "#edt-reply-b1",
+    "#edt-reply-b2", //   the three runs the reply rules took out
+    "#edt-limit", //      the knob's reading becomes the verdict
+    "#edt-ghost", //      the other design is drawn, allowed to hurt, and removed
+    "#edt-ghost-lbl",
+  ];
+  const STILL_PLACED: readonly { sel: string; x: number; y: number }[] = [
+    { sel: "#edt-chip", x: STILL_CHIP_AT, y: CHIP_LANE_Y },
+    { sel: "#edt-rmsg", x: RMSG_BIG[0], y: RMSG_BIG[1] },
+    { sel: "#edt-knock", x: KNOCK_AT, y: GB_MID_Y },
+    { sel: "#edt-note", x: NOTE_TO, y: NOTE_Y },
+    { sel: "#edt-reply", x: REPLY_OUT_X, y: GB_MID_Y },
+    { sel: "#edt-notice", x: NOTICE_TO, y: laneY(FLOOD_LANE) },
+  ];
+  for (const sel of STILL_GONE) {
+    if (!svg.querySelector(sel)) {
+      throw new Error(`[edit] the still is told to hide ${sel}, which is not on the stage`);
+    }
+  }
+  for (const p of STILL_PLACED) {
+    if (!svg.querySelector(p.sel)) {
+      throw new Error(`[edit] the still is told to place ${p.sel}, which is not on the stage`);
+    }
+  }
+  /* The still's own four sentences, against the same subset law every string
+     on this stage obeys: a glyph outside the self-hosted latin faces is
+     painted by a fallback face, and one fallback glyph in a mono line is a
+     line that no longer lines up with the ones around it (DESIGN §3). */
+  for (const s of [STILL_LEDE, STILL_RAIL_LEAD, STILL_LANDING_KICKER, STILL_LANDING_TEXT]) {
+    for (const ch of s) {
+      if (BANNED_GLYPHS.includes(ch)) {
+        throw new Error(`[edit] the still string "${s}" carries ${ch}, which the latin subset does not have`);
       }
     }
   }
@@ -4120,11 +4310,210 @@ export function createEditScene(): EditScene {
 
   /* ════════════════════════════════════════════════════════════════════════
      THE STILL STATE  (< 768px, and prefers-reduced-motion)
-     SLICE A STUB. It shows the masthead and nothing else — which is a real
-     still state for the three sentences the scene has so far, and, more to the
-     point, means the page is never broken on a phone mid-phase. Slice D builds
-     the per-station cards.
+     ──────────────────────────────────────────────────────────────────────
+     Same information, delivered by LAYOUT instead of by time (DESIGN §3).
+     Nine cards: one per station, plus the landing. Each carries its station's
+     own kicker and sentence — read off the pinned rail, so the two renderings
+     cannot say different things — the clock reading that station happens at,
+     and one or two windows cut into the scene's FINISHED frame.
+
+     THREE THINGS THIS SCENE'S STILL OWES THAT SCENE 4'S DID NOT:
+
+       1. THE FINISHED FRAME IS NOT QUITE THE MARKUP. Scene 4 could clone its
+          stage untouched because nothing in that composition is erased by a
+          later beat. Eighteen things here are: the prompt line before the
+          edit, the caret, two check statuses, the bar that retracts, the
+          chip's first lettering, the two pre-promote lane labels, turn 1's
+          words, the answered question, three digit runs, the valve's first
+          reading, and the ghost of the other design. STILL_GONE is that list
+          and it is asserted against the markup at boot.
+       2. THE CAMERA AND THE FRAME LAYER SHARE COORDINATES. At the identity
+          transform a still has, bay 0's prompt panel and the landing receipt
+          are drawn at the same numbers. So there are two source clones — the
+          world without the frame, the frame without the world — and every
+          window is cut from the one it belongs to.
+       3. THE SWITCH BECOMES A SECOND PICTURE. A still cannot hand the reader
+          a control, and the control's whole content is "10 becomes 50" — so
+          the canary card carries the same window twice, once at each share.
+          That is the toggle's information, delivered by layout.
+
+     THE VERSION RAIL CHANGES FORM RATHER THAN BEING CROPPED, exactly as
+     scene 4's checklist does: eight stamps are a list, and a phone is good at
+     lists. So is the clock — order carries meaning here, so every card says
+     when it happens.
      ════════════════════════════════════════════════════════════════════════ */
+
+  /** A clone of the stage in its FINISHED state: the markup (which the
+   *  stylesheet already paints as the end of the scene), minus every moment
+   *  the scrub passes through, plus the six travellers stood where they come
+   *  to rest. Taken from the live svg, which in this branch no `restState()`
+   *  has ever touched — the scrub and the still are two media queries and only
+   *  one of them ever runs. */
+  function finishedClone(): SVGSVGElement {
+    const c = svg.cloneNode(true) as SVGSVGElement;
+    const hide = (el: Element | null): void => {
+      if (el) (el as SVGElement).style.opacity = "0";
+    };
+    for (const sel of STILL_GONE) hide(c.querySelector(sel));
+    /* The three families edit.ts GENERATES that are moments, and so have no
+       rest rule in the stylesheet to inherit: the failure mark (drawn, then
+       un-drawn when the second run corrects it), the muted receipts (the
+       ghost's beat, which ends), and the two ledger readings the third one
+       replaces. */
+    for (const el of Array.from(c.querySelectorAll(".edt-cross"))) hide(el);
+    for (const el of Array.from(c.querySelectorAll(".edt-muted"))) hide(el);
+    {
+      const reads = Array.from(c.querySelectorAll(".edt-ledger-read"));
+      for (let i = 0; i < reads.length - 1; i++) hide(reads[i]!);
+    }
+    /* v6 RETIRES rather than disappearing: when the canary is promoted the
+       rail dims its origin to 0.4, and a still that painted it at full ink
+       would say the old version was still in service. */
+    for (const sel of ["#edt-rail-origin", "#edt-rail-v0", "#edt-notch-v6"]) {
+      const el = c.querySelector<SVGElement>(sel);
+      if (el) el.style.opacity = "0.4";
+    }
+    for (const p of STILL_PLACED) {
+      c.querySelector(p.sel)?.setAttribute("transform", `translate(${p.x} ${p.y})`);
+    }
+    /* THE RECEIPT COMES OFF ITS BAR, and in a still the separation is DRAWN
+       rather than played: the machine's fringe (which the scrubbed scene hides
+       until a reader tears) and the strip's own complementary edge, the same
+       teeth with the sign flipped, interlocking on one latitude. Both halves,
+       because one of them alone is a decoration and the two together are a
+       tear. */
+    const fringe = c.querySelector<SVGElement>("#edt-rcpt-fringe");
+    if (fringe) fringe.style.opacity = "1";
+    c.querySelector("#edt-rcpt-paper")?.appendChild(
+      svgEl("path", { class: "edt-rcpt-stub-edge", d: teethPath(MOUTH_Y + 1, -1) }),
+    );
+    return c;
+  }
+
+  /** The same finished frame with the reader's hand on the switch: everything
+   *  the POINTER owns at station 5, set to the even split. The bands are
+   *  re-cut rather than scaled — a still has no transform to hand back — and
+   *  they stay centred on the latitudes their dots ride, so the only thing
+   *  that changes between the two pictures is the share itself. */
+  function flippedClone(src: SVGSVGElement): SVGSVGElement {
+    const c = src.cloneNode(true) as SVGSVGElement;
+    const sw10El = c.querySelector<SVGElement>("#edt-switch-10");
+    const sw50El = c.querySelector<SVGElement>("#edt-switch-50");
+    if (sw10El) sw10El.style.opacity = "0";
+    if (sw50El) sw50El.style.opacity = "1";
+    for (const [sel, cy] of [
+      ["#edt-band-a", LANE_A_Y],
+      ["#edt-band-b", LANE_B_Y],
+    ] as const) {
+      const r = c.querySelector(sel);
+      if (!r) continue;
+      r.setAttribute("y", String(cy - BAND_EVEN_H / 2));
+      r.setAttribute("height", String(BAND_EVEN_H));
+    }
+    /* The twelve the switch owns change lane. The three the scrub owns are
+       already down there, which is why no dot is in both lists. */
+    const dots = c.querySelector("#edt-canary-dots");
+    if (dots) {
+      for (const k of CN_SWITCH_B) {
+        dots.children[k]?.children[0]?.setAttribute("transform", `translate(0 ${CN_PEEL_DY})`);
+      }
+    }
+    /* And the counter reads what the picture shows. */
+    c.querySelector("#edt-cnt-flip")?.setAttribute("transform", `translate(0 ${-CNT_PITCH})`);
+    return c;
+  }
+
+  /** One window onto one of the two source frames.
+   *
+   *  IDS ARE RENAMED, NOT STRIPPED, and that is the difference between this
+   *  scene's still and scene 4's. Four of the mechanisms here are columns
+   *  behind a clipPath aperture — the judge's score, the bench's tally, the
+   *  canary's counter, the rate counter — and a `clip-path: url(#…)` whose
+   *  target no longer exists does not clip at all: every cell of every column
+   *  would render at once, which reads as a rendering fault rather than as a
+   *  still. So each figure gets its own id namespace and its own clip refs
+   *  rewritten to match. */
+  let stillSeq = 0;
+  function figure(src: SVGSVGElement, box: string): HTMLElement {
+    const wrap = doc.createElement("div");
+    wrap.className = "trn-card-figure";
+    const clone = src.cloneNode(true) as SVGSVGElement;
+    const seq = ++stillSeq;
+    const renamed = new Map<string, string>();
+    for (const el of Array.from(clone.querySelectorAll("[id]"))) {
+      const from = el.getAttribute("id");
+      if (from === null) continue;
+      const to = `${from}-still${seq}`;
+      renamed.set(from, to);
+      el.setAttribute("id", to);
+    }
+    clone.removeAttribute("id");
+    for (const el of Array.from(clone.querySelectorAll("[clip-path]"))) {
+      const ref = /^url\(#(.+)\)$/.exec(el.getAttribute("clip-path") ?? "");
+      const to = ref ? renamed.get(ref[1]!) : undefined;
+      if (to) el.setAttribute("clip-path", `url(#${to})`);
+    }
+    clone.setAttribute("viewBox", box);
+    // As tall as its own window is deep, so nothing letterboxes.
+    const n = box.split(" ");
+    clone.style.aspectRatio = `${n[2]} / ${n[3]}`;
+    wrap.appendChild(clone);
+    return wrap;
+  }
+
+  /** Which clock reading a station happens at. `ord` runs forwards and so
+   *  does `at`, so the reading a station starts on is the last one no later
+   *  than it — station 7 has none of its own and correctly inherits day 6,
+   *  which is the fact the CLOCK table states by leaving it out. */
+  function stillWhen(i: number): string {
+    let label = CLOCK[0]!.label;
+    for (const c of CLOCK) if (c.at <= STATION_AT[i]!) label = c.label;
+    return label;
+  }
+
+  /** Kicker, then when, then what happened — the pinned rail's own two
+   *  strings, read off the markup so the two renderings cannot drift. */
+  function stillCard(kicker: string, when: string, text: string): HTMLElement {
+    const el = doc.createElement("div");
+    el.className = "eng-card";
+    const k = doc.createElement("span");
+    k.className = "eng-kicker";
+    k.textContent = kicker;
+    const w = doc.createElement("p");
+    w.className = "edt-still-when";
+    w.textContent = when;
+    const p = doc.createElement("p");
+    p.className = "eng-caption";
+    p.textContent = text;
+    el.append(k, w, p);
+    return el;
+  }
+
+  /** THE VERSION RAIL, AS A LIST. It is the one part of this scene that
+   *  survives the fallback by CHANGING FORM rather than by being cropped, and
+   *  it survives better than it started: eight events in the order they
+   *  happened, in the register a machine writes in, on a device that is good
+   *  at lists. The three that carry a drawn tick keep it — a stamp that says
+   *  a check passed is a different kind of stamp from one that records a
+   *  number, and that difference is the rail's whole legend. */
+  function stillRail(): HTMLElement {
+    const ul = doc.createElement("ul");
+    ul.className = "edt-still-rail";
+    for (const s of STAMPS) {
+      const li = doc.createElement("li");
+      li.className = "edt-still-stamp";
+      const mark = doc.createElementNS(SVG_NS, "svg");
+      mark.setAttribute("class", "edt-still-mark");
+      mark.setAttribute("viewBox", `0 0 ${MARK + 1} ${MARK + 1}`);
+      mark.setAttribute("aria-hidden", "true");
+      if (s.mark) mark.appendChild(svgEl("path", { class: "edt-tick", d: tickPath(0.5, 0.5) }));
+      const w = doc.createElement("span");
+      w.textContent = s.label;
+      li.append(mark, w);
+      ul.appendChild(li);
+    }
+    return ul;
+  }
 
   function buildStill(reduced: boolean): () => void {
     const frag = doc.createDocumentFragment();
@@ -4146,6 +4535,65 @@ export function createEditScene(): EditScene {
     wrap.append(k, h, s);
     frag.appendChild(wrap);
 
+    /* The two source frames. The world loses the frame layer and the frame
+       loses the world, because at the identity transform a still has, the two
+       are drawn at the same numbers (see the note above). */
+    const finished = finishedClone();
+    const world = finished.cloneNode(true) as SVGSVGElement;
+    world.querySelector("#edt-frame")?.remove();
+    const frame = finished.cloneNode(true) as SVGSVGElement;
+    frame.querySelector("#edt-cam")?.remove();
+
+    if (reduced) {
+      /* A lede and the whole last frame, because this branch is a desktop at
+         full width: the reader can be shown the finished picture entire
+         before being walked through it, which a 375px phone cannot. And the
+         frame layer standing alone IS the last frame — at the landing the
+         camera is parked on bay 8, which is empty by design. */
+      const lede = doc.createElement("p");
+      lede.className = "eng-still-lede";
+      lede.textContent = STILL_LEDE;
+      frag.append(lede, figure(frame, STILL_WHOLE));
+    }
+
+    const lead = doc.createElement("p");
+    lead.className = "edt-still-rail-lead";
+    lead.textContent = STILL_RAIL_LEAD;
+    frag.append(lead, stillRail());
+
+    const flipped = flippedClone(world);
+
+    for (const [i, v] of STILL_VIEW.entries()) {
+      const cap = caps[i]!;
+      const card = stillCard(
+        cap.querySelector(".eng-kicker")?.textContent?.trim() ?? "",
+        stillWhen(i),
+        cap.querySelector(".eng-caption")?.textContent?.trim().replace(/\s+/g, " ") ?? "",
+      );
+      if (i === 4) {
+        /* THE TOGGLE, AS TWO STILLS. Same window, two shares — and then the
+           beat's evidence, which is the same either way: both arms judged. */
+        card.append(figure(world, v.boxes[0]!), figure(flipped, v.boxes[0]!), figure(world, v.boxes[1]!));
+      } else {
+        for (const b of v.boxes) card.appendChild(figure(world, b));
+        /* What the first ci run CAUGHT is frame furniture — it has to be, it
+           stays for the rest of the scene — so it is a third window, cut from
+           the frame, on the card whose beat produced it. */
+        if (i === 2) card.appendChild(figure(frame, STILL_TKT_VIEW));
+      }
+      frag.appendChild(card);
+    }
+
+    /* ── the landing ──────────────────────────────────────────────────────
+       The receipt, printed and torn, the closing statement under its rule,
+       and the door. */
+    const landing = stillCard(
+      STILL_LANDING_KICKER,
+      stillWhen(STATION_AT.length - 1),
+      STILL_LANDING_TEXT,
+    );
+    landing.appendChild(figure(frame, STILL_RCPT_VIEW));
+
     /* THE CLOSING STATEMENT SURVIVES INTO THE STILL. It is the only sentence
        in the scene that is about all eight stations rather than about one, so
        it is the last thing that may be dropped when the pictures are — and it
@@ -4153,14 +4601,13 @@ export function createEditScene(): EditScene {
        element the still has no rail for. */
     const close = doc.createElement("p");
     close.className = "edt-still-closing";
-    close.textContent = closingText.textContent?.trim() ?? "";
-    frag.appendChild(close);
+    close.textContent = closingText.textContent?.trim().replace(/\s+/g, " ") ?? "";
+    landing.appendChild(close);
 
-    /* THE DOOR, MINIMALLY (slice D draws the torn receipt properly). No fall
-       here by design: a reduced-motion reader is owed the INFORMATION the
-       motion carried, not the motion — and what the tear carries is "the
-       proof is next, and this is how you get there". So it is a real control
-       that goes there, and nothing falls. */
+    /* THE DOOR. No fall here by design: a reduced-motion reader is owed the
+       INFORMATION the motion carried, not the motion — and what the tear
+       carries is "the proof is next, and this is how you get there". So it is
+       a real control that goes there, and nothing falls. */
     const door = doc.createElement("button");
     door.type = "button";
     door.className = "edt-still-door";
@@ -4170,14 +4617,55 @@ export function createEditScene(): EditScene {
       if (!proofPin) return;
       proofPin.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
     });
-    frag.appendChild(door);
+    landing.appendChild(door);
+    frag.appendChild(landing);
 
     still.replaceChildren(frag);
+
+    /* ── the still's own asserts ──────────────────────────────────────────
+       Three things a reviewer cannot catch by eye on a phone, so they are
+       checked here instead: that every station got a card, that every window
+       got cut, and that the finished-state pass actually reached the clones —
+       a moment that survived into a figure looks exactly like a scene that
+       has not started yet. */
+    if (still.querySelectorAll(".eng-card").length !== STATION_AT.length + 1) {
+      throw new Error("[edit] the still is not one card per station plus the landing");
+    }
+    {
+      /* Every authored window, plus the ticket, plus the canary's second
+         share, plus the receipt — and the whole frame when the reduced branch
+         asked for it. */
+      const want =
+        STILL_VIEW.reduce((n, v) => n + v.boxes.length, 0) + 3 + (reduced ? 1 : 0);
+      if (still.querySelectorAll(".trn-card-figure").length !== want) {
+        throw new Error("[edit] the still did not cut every window it was authored");
+      }
+    }
+    for (const sel of [".edt-cross", ".edt-muted"]) {
+      for (const el of Array.from(still.querySelectorAll<SVGElement>(sel))) {
+        if (el.style.opacity !== "0") {
+          throw new Error(`[edit] a still figure is showing ${sel}, which the finished frame does not`);
+        }
+      }
+    }
+    /* And every clip still points at a clip that exists in its own figure: a
+       renamed aperture whose reference was missed is a column showing all of
+       its cells at once. */
+    for (const fig of Array.from(still.querySelectorAll(".trn-card-figure"))) {
+      for (const el of Array.from(fig.querySelectorAll("[clip-path]"))) {
+        const ref = /^url\(#(.+)\)$/.exec(el.getAttribute("clip-path") ?? "");
+        if (!ref || !fig.querySelector(`#${ref[1]!}`)) {
+          throw new Error("[edit] a still figure's aperture points at a clip that is not in it");
+        }
+      }
+    }
+
     still.hidden = false;
     pin.hidden = true;
     /* No scrub means no station 5 dwell and no held ending, so there is no
        moment at which either live control is armed — and a button in the tab
-       order over a hidden stage is a focus stop that goes nowhere. */
+       order over a hidden stage is a focus stop that goes nowhere. The still's
+       own door is a real button in the flow, and it is the only one. */
     toggle.hidden = true;
     tearBtn.hidden = true;
 

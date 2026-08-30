@@ -187,7 +187,7 @@ let proof: ReturnType<typeof createProofScene> | null = null;
 
 /* ── deferred scene build ──────────────────────────────────────────────────
    WHY THE PAGE USED TO TAKE SECONDS TO SHOW (profiled, dev and prod alike):
-   building the four lower scenes synchronously at module evaluation cost
+   building the five lower scenes synchronously at module evaluation cost
    ~4-9s of main-thread layout work — every ScrollTrigger created after the
    document leaves "loading" refreshes on creation, each refresh of a pinned
    scrub reverts and re-renders its timeline, and every aligned motionPath

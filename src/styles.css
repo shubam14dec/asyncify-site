@@ -3412,9 +3412,10 @@ html {
    the second run read as the same mark being corrected rather than as a
    second mark arriving — so an opacity:0 here would be a switch nothing ever
    flips back. Its rest state is a zero-length dash (edit.ts's strokeParts),
-   and the finished frame is the timeline's un-draw. The consequence lands on
-   slice D: a still clone has no timeline, so the ci figure will need a
-   per-figure override, exactly as scenes 2 and 3 keep for their own moments. */
+   and the finished frame is the timeline's un-draw. The consequence landed on
+   slice D exactly as expected: a still clone has no timeline to un-draw with,
+   so the still hides this class outright (edit.ts's finishedClone) and asserts
+   afterwards that no figure is showing one. */
 .edt-cross {
   fill: none;
   stroke: var(--text-dim);
@@ -4067,11 +4068,13 @@ html {
   color: var(--text);
 }
 
-/* The still's own door out, until slice D draws the torn receipt properly. It
-   is a real control, so it takes the site's control ink and its focus ring. */
+/* The still's own door out. It is a real control, so it takes the site's
+   control ink and its focus ring — and it is the ONLY control in the still,
+   because the canary's switch became a second picture instead (see the still
+   block below). */
 .edt-still-door {
   display: inline-block;
-  margin-top: 32px;
+  margin-top: 28px;
   padding: 10px 16px;
   font-family: var(--mono);
   font-size: 12px;
@@ -4100,10 +4103,22 @@ html {
 }
 
 /* ── the still state (< 768px, and prefers-reduced-motion) ───────────────
-   SLICE A STUB: the masthead alone. It is a real still state for the three
-   sentences this scene says so far, and it means the page is never broken on
-   a phone mid-phase. Slice D builds the per-station cards on the same
-   .eng-card / .trn-card-figure primitives scenes 2–4 use. */
+   Nine cards on the page's own still-card primitives (.eng-card, .eng-kicker,
+   .eng-caption, .eng-still-lede, .trn-card-figure, .trn-still-title,
+   .trn-still-head), plus three things only this scene needs:
+
+     · A CLOCK LINE PER CARD. Scroll is time in the pinned version, and the
+       still has no scroll — so the reading each station happens at is printed
+       on its card. Order carries meaning here; without it the eight cards
+       would read as eight features again, which is the exact thing this scene
+       exists not to be.
+     · THE VERSION RAIL AS A LIST. Eight stamps are a list, and a phone is
+       good at lists — scene 4's checklist, one scene on. Cropping a 960u
+       hairline with eight mono labels on it would render every one of them
+       under 5px.
+     · NOTHING FOR THE SWITCH. The canary's toggle does not become a control
+       here; it becomes a second figure at the other share. A still hands the
+       reader information, not affordances. */
 .edt-still {
   max-width: var(--page-max);
   margin: 0 auto;
@@ -4120,6 +4135,66 @@ html {
   font-size: 16px;
   line-height: 1.5;
   color: var(--text-dim);
+}
+
+/* Scene 4's definite-cap on .edt-svg is a PIN rule — it exists so the rail and
+   the ticket survive a short window — and a still figure is not in a pin. It
+   is a window with its own aspect ratio, so the cap has to come off or every
+   crop would be squeezed to a fraction of a viewport height. */
+.trn-card-figure .edt-svg {
+  height: auto;
+  max-height: none;
+}
+
+/* What the rail's list is a list of. Mono, faintest rung: it is a caption for
+   an instrument, not a sentence. */
+.edt-still-rail-lead {
+  margin: 0 0 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  color: var(--text-faint);
+}
+
+/* The rail itself. .agt-still-list's grammar exactly — a top rule, a rule
+   under every row, and a fixed first column so the three stamps that carry a
+   tick line up with the five that do not. */
+.edt-still-rail {
+  margin: 0 0 clamp(24px, 4vh, 40px);
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--hairline);
+}
+
+.edt-still-stamp {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--hairline);
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.edt-still-mark {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+/* When this station happens. The pinned scene's clock, one reading per card —
+   the rail's own register and the rail's own ink. */
+.edt-still-when {
+  margin: 0 0 10px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
 }
 
 /* The scene's closing statement, rebuilt for the still. It sits under a

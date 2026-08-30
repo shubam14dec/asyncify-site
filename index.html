@@ -2218,9 +2218,8 @@
            the timing and every number below.
 
            SLICES A-C built all eight stations, the landing receipt and the
-           tear-away door. Only the mobile / reduced-motion stills are still
-           owed (slice D); their eight close-up windows are already authored
-           and asserted in edit.ts.
+           tear-away door; slice D cut the mobile / reduced-motion stills from
+           the same markup. The scene is complete.
 
            THREE THINGS ABOUT THE ANATOMY BELOW:
 
@@ -2246,8 +2245,11 @@
            statuses are moments rather than furniture, so the stylesheet rests
            them at opacity 0 and the scrub is what reveals them. The failing
            check's mark is the one moment that is DRAWN and then UN-DRAWN
-           instead — see .edt-cross for why, and for the one thing slice D's
-           still clone will owe because of it.
+           instead — see .edt-cross for why. Every exception of either kind is
+           written out in edit.ts's STILL_GONE, which is the list the still's
+           clone hides; it is asserted against this markup at boot, so a
+           renamed id trips there rather than leaving a transient standing in
+           a phone's close-up.
            ───────────────────────────────────────────────────────────────── -->
       <section id="scene-edit" aria-labelledby="edt-heading">
         <h2 class="sr-only" id="edt-heading">
@@ -2991,10 +2993,13 @@
         </div>
 
         <!-- Reduced motion and < 768px land here instead: no pin, no scrub.
-             SLICE A STUB — edit.ts fills this with the masthead alone, which
-             is a real still state for what the scene says so far and, more to
-             the point, means the page is never broken on a phone mid-phase.
-             Slice D builds the per-station cards. -->
+             edit.ts fills it with the masthead, the version rail rebuilt as a
+             list, one card per station — kicker, clock reading, sentence and
+             one or two windows cut into the finished frame above — and the
+             landing, whose card carries the printed receipt and the door out.
+             The canary's switch becomes a SECOND figure at the other share
+             rather than a control: a still hands the reader information, not
+             affordances. -->
         <div class="edt-still" id="edt-still" hidden></div>
       </section>
 

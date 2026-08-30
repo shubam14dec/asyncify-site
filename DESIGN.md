@@ -126,9 +126,27 @@ instead of position and time.
 | Cursor pendulum physics | Not started. `gsap.ticker` callback is never registered. |
 | Ring: clapper strike, ripple, paths draw, dots travel | Paths, green dots, and receipts fade in at once (200ms), hold, fade out |
 | Scroll hint drains on a loop | Static 1px line at rest opacity |
+| A pinned scrub panning a camera over a wide world | The finished frame, cut into per-beat windows and stacked as cards, each with the sentence that was said over it |
+| A control the reader may operate mid-scene | Both of its states, as two pictures. A still hands the reader information, never affordances |
+| A sequence whose ORDER carries meaning | The order, said out loud: a list, or a timestamp on every card |
 
 Detect once with `matchMedia('(prefers-reduced-motion: reduce)')` and branch at the top of the
 scene, not with `if (reduced)` scattered inside tweens.
+
+- **A still figure is a CLONE of the finished markup, so the markup has to BE the finished
+  frame — and every exception has to be written down.** The stylesheet paints the end of the
+  scene and the scrub winds it back, which makes a clone correct for free… except for the
+  moments the scene passes *through* (a label that is crossfaded away, a mark that is drawn
+  and then un-drawn) and the objects whose finished position is a transform the scrub owns.
+  Those are invisible in a clone review, because a transient standing in a still card looks
+  exactly like a scene that has not started yet. List them in the scene file, hide or place
+  them on the clone, and assert the list against the live markup at boot so a rename trips
+  there instead. (Scene 5 has eighteen of the first kind and six of the second; scene 4 had
+  none, which is why it could clone its stage untouched.)
+- **Strip ids from a still clone and you strip its `clipPath` references with them.** A
+  `clip-path: url(#…)` whose target no longer exists does not clip — it renders everything.
+  Any mechanism built as a column behind an aperture then shows every one of its cells at
+  once. Rename each figure's ids into its own namespace and rewrite the refs; do not delete.
 
 ## 4. Typography behavior
 
@@ -150,13 +168,16 @@ scene, not with `if (reduced)` scattered inside tweens.
 
 ## 6. Performance budget
 
-- **Nothing below the fold builds before first paint.** The four lower scenes
+- **Nothing below the fold builds before first paint.** The five lower scenes
   cost seconds of main-thread layout to construct (every ScrollTrigger created
   after parsing self-refreshes; refreshing a pinned scrub reverts and
   re-renders its timeline; every aligned motionPath init forces layout of a
-  five-SVG page). The hero owes none of that: main.ts builds it alone, paints,
-  then builds scenes 2-5 one per animation frame. First paint went 10.3s to
-  0.4s the day this rule was written.
+  six-SVG page). The hero owes none of that: main.ts builds it alone, paints,
+  then builds scenes 2-6 one per animation frame. First paint went 10.3s to
+  0.4s the day this rule was written. The stills obey the same rule: a scene's
+  mobile / reduced-motion fallback is built inside its own `gsap.matchMedia`
+  callback, never at module evaluation, and the stylesheet — not JavaScript —
+  is what hides the half of the section that is not in use.
 - **motionPath never uses `align` here.** Every packet is a circle authored at cx/cy 0
   in its path's own coordinate space, so the path's absolute coordinates centre it on
   the stroke by construction. `align` computes the same thing through getGlobalMatrix —
