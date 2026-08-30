@@ -286,7 +286,7 @@ const RAIL_LBL_Y = 88;
  *  at the size a footnote is set in. MUST match `.edt-rail-lbl`'s font-size:
  *  every clearance below is monoWidth() arithmetic off this number, and the
  *  stylesheet is what actually paints it. */
-const RAIL_LBL_SIZE = 13.5;
+const RAIL_LBL_SIZE = 12.5;
 /** The starting version, written under the rail's own origin. */
 const RAIL_ORIGIN_LABEL = "v6";
 /** Minimum daylight between two neighbouring stamp labels. Below ~12u two
