@@ -2278,6 +2278,41 @@
                   merge.
                 </p>
               </div>
+              <div class="eng-cap">
+                <span class="eng-kicker">pre-save check</span>
+                <p class="eng-caption">
+                  Your customers edit prompts too. Theirs are graded before Save commits — the
+                  check warns, it never blocks.
+                </p>
+              </div>
+              <div class="eng-cap">
+                <span class="eng-kicker">versioning + canary</span>
+                <p class="eng-caption">
+                  Every save is a version. A new one runs on a slice of real conversations, judged
+                  beside the old — an unjudged control arm is not a control.
+                </p>
+              </div>
+              <div class="eng-cap">
+                <span class="eng-kicker">model routing</span>
+                <p class="eng-caption">
+                  The easy turns run on a cheaper model — trusted to talk, never to act. Escalation
+                  is law, not judgment.
+                </p>
+              </div>
+              <div class="eng-cap">
+                <span class="eng-kicker">topic gate + reply rules</span>
+                <p class="eng-caption">
+                  Two gates around the brain: what the agent will discuss, and what a reply may
+                  never say. A prompt can be argued with. A gate cannot.
+                </p>
+              </div>
+              <div class="eng-cap">
+                <span class="eng-kicker">per-customer limits</span>
+                <p class="eng-caption">
+                  One flooding customer is throttled politely and free. Everyone else never
+                  notices, and the record stays truthful.
+                </p>
+              </div>
             </div>
 
             <div class="eng-progress" aria-hidden="true">
@@ -2344,6 +2379,20 @@
                      misunderstanding this beat exists to prevent. -->
                 <g id="edt-s2">
                   <text class="edt-bench" id="edt-bench" x="1250" y="262">eval run · 3 scenarios</text>
+                  <!-- THE LIVE TALLY (user call after slice A). The bench
+                       header counts the results IN as they land — 0 of 3, 1 of
+                       3, 2 of 3, 3 of 3 — because a header that stated the
+                       total and never moved was a label, and this is a run.
+
+                       Same mechanism as the judge's score: a column of digits
+                       behind a static aperture, moved by a transform. NOT a
+                       text rewritten on a frame — that would be a .call()
+                       inside a scrubbed range, and this scene has no memory by
+                       construction. The judge's `4 / 5` stays a ROLLED VERDICT
+                       and gets no tally: it is a grade, not a count. -->
+                  <clipPath id="edt-tally-clip"><rect x="1440" y="251" width="8" height="14" /></clipPath>
+                  <g clip-path="url(#edt-tally-clip)"><g id="edt-tally-col"></g></g>
+                  <text class="edt-bench" id="edt-tally-den" x="1451" y="262">of 3</text>
                   <g id="edt-scenarios"></g>
 
                   <rect class="edt-panel" id="edt-judge" x="1650" y="300" width="340" height="190" rx="16" />
@@ -2411,6 +2460,286 @@
                   <text class="edt-card-line" id="edt-status-pass" x="2680" y="300">3 passing</text>
                 </g>
 
+                <!-- ── STATION 4 · THE PRE-SAVE CHECK  (bay 3, centre 3780) ─
+                     A miniature of the customer's OWN dashboard, at true
+                     proportions: a settings panel with a system-prompt field
+                     and a control row, and beside it the check that unfolds
+                     when Save is pressed.
+
+                     THE DETAIL THAT MATTERS IS A LIGHTING CHOICE. While the
+                     three evals run, every control in the mini dashboard dims
+                     — and `save anyway` does not. That is the product's whole
+                     posture in one frame: the check WARNS, it never blocks
+                     (guide §10, A4). Saying it in a caption would be a claim;
+                     dimming four controls around one that stays lit is the
+                     thing itself. -->
+                <g id="edt-s4">
+                  <rect class="edt-panel" id="edt-dash" x="3320" y="264" width="440" height="232" rx="16" />
+                  <text class="edt-file" id="edt-dash-lbl" x="3344" y="290">acme · agent settings</text>
+                  <path class="edt-panel-rule" id="edt-dash-rule" d="M 3344 302 L 3736 302" />
+                  <text class="edt-judge-rubric" id="edt-field-lbl" x="3344" y="324">system prompt</text>
+                  <rect class="edt-field" id="edt-field" x="3344" y="332" width="392" height="56" rx="6" />
+
+                  <!-- Three controls. Generated? No: they are three DIFFERENT
+                       objects with three different jobs, and a loop over them
+                       would be a loop over one thing that happens to be drawn
+                       three times. The dim set in edit.ts is exactly these
+                       three plus the field. -->
+                  <rect class="edt-btn" id="edt-btn-hist" x="3344" y="424" width="78" height="30" rx="6" />
+                  <text class="edt-btn-lbl" id="edt-btn-hist-lbl" x="3383" y="443" text-anchor="middle">history</text>
+                  <rect class="edt-btn" id="edt-btn-disc" x="3430" y="424" width="78" height="30" rx="6" />
+                  <text class="edt-btn-lbl" id="edt-btn-disc-lbl" x="3469" y="443" text-anchor="middle">discard</text>
+                  <rect class="edt-btn" id="edt-btn-save" x="3652" y="424" width="84" height="30" rx="6" />
+                  <text class="edt-btn-lbl" id="edt-btn-save-lbl" x="3694" y="443" text-anchor="middle">save</text>
+
+                  <!-- The press travels: a hairline from the Save button to
+                       the panel it opens, so the check is visibly a
+                       CONSEQUENCE of the click and not a second card that
+                       happened to arrive. -->
+                  <path class="edt-panel-rule" id="edt-save-wire" d="M 3760 439 L 3800 439" />
+
+                  <rect class="edt-panel" id="edt-chk" x="3800" y="288" width="440" height="208" rx="16" />
+                  <text class="edt-file" id="edt-chk-title" x="3824" y="314">pre-save check</text>
+                  <text class="edt-run-line" id="edt-chk-run" x="3824" y="336">running 3 evals against the edited prompt…</text>
+                  <text class="edt-run-line" id="edt-chk-r0" x="3824" y="362">order-status · pass</text>
+                  <text class="edt-run-line" id="edt-chk-r1" x="3824" y="384">refund-window · pass</text>
+                  <text class="edt-run-line" id="edt-chk-r2" x="3824" y="406">angry-customer · 4.7</text>
+                  <text class="edt-card-title" id="edt-chk-verdict" x="3824" y="434">nothing regressed</text>
+                  <!-- The one control that never dims. -->
+                  <rect class="edt-btn edt-btn-live" id="edt-btn-anyway" x="4100" y="452" width="116" height="28" rx="6" />
+                  <text class="edt-btn-lbl edt-btn-lbl-live" id="edt-btn-anyway-lbl" x="4158" y="471" text-anchor="middle">save anyway</text>
+                </g>
+
+                <!-- ── STATION 5 · VERSIONING + CANARY  (bay 4, centre 4860) ─
+                     The version rail's own subject, drawn in the world: one
+                     stream of conversations arriving at a switch, and two
+                     lanes leaving it.
+
+                     THE LANES ARE BANDS AND THEIR THICKNESS IS THE SHARE.
+                     Eighteen units against two is nine to one — the 10% split
+                     — and the pointer's toggle is what makes them ten and ten.
+                     Both bands are centred on the latitude their dots ride, so
+                     a change of share never moves a dot: thickness is the only
+                     thing that carries the number, which is why the number can
+                     belong to the hand while every dot belongs to the scrub.
+
+                     THE COUNTER IS TWO NESTED COLUMNS. The outer group rolls
+                     blank → 3 under the scrub; the inner group flips 3 → 15
+                     under the pointer. Two transforms on two elements, one
+                     owner each — the same disjoint-ownership rule the ticket
+                     obeys in scene 4 (agents.ts, wireTicket). -->
+                <g id="edt-s5">
+                  <path class="edt-lane" id="edt-cn-in" d="M 4400 366 L 4620 366" />
+                  <path class="edt-lane" id="edt-cn-up" d="M 4620 366 C 4630 366 4630 336 4640 336" />
+                  <path class="edt-lane" id="edt-cn-dn" d="M 4620 366 C 4630 366 4630 396 4640 396" />
+
+                  <rect class="edt-band" id="edt-band-a" x="4640" y="327" width="520" height="18" />
+                  <rect class="edt-band edt-band-b" id="edt-band-b" x="4640" y="395" width="520" height="2" />
+                  <text class="edt-judge-rubric" id="edt-lane-a-lbl" x="4664" y="316">v6 · live</text>
+                  <text class="edt-judge-rubric" id="edt-lane-a-lbl2" x="4664" y="316">v6 · retired</text>
+                  <text class="edt-judge-rubric" id="edt-lane-b-lbl" x="4664" y="424">v7 · canary</text>
+                  <text class="edt-judge-rubric" id="edt-lane-b-lbl2" x="4664" y="424">v7 · live</text>
+
+                  <!-- Thirty conversations, generated by edit.ts from one
+                       pitch: the slots are a time series, so which lane a slot
+                       ends in is the only thing the picture is about. -->
+                  <g id="edt-canary-dots"></g>
+
+                  <!-- Where the traffic is split, and the one object on this
+                       page the reader may operate. The percentage is the
+                       SWITCH'S OWN lettering rather than part of the lane
+                       label, because the hand owns it and the scrub owns the
+                       label — two owners must never share an element. -->
+                  <rect class="edt-switch" id="edt-switch" x="4592" y="348" width="40" height="34" rx="6" />
+                  <!-- TWO OWNERS, TWO NESTED OPACITIES. The GROUP is faded up
+                       by the scrub when the switch arrives; the two readings
+                       INSIDE it are crossfaded by the pointer and by nothing
+                       else. One element carrying both would be one number with
+                       two owners, which is the bug this whole station is built
+                       around not having. -->
+                  <g id="edt-switch-read">
+                    <text class="edt-switch-lbl" id="edt-switch-10" x="4612" y="369" text-anchor="middle">10%</text>
+                    <text class="edt-switch-lbl" id="edt-switch-50" x="4612" y="369" text-anchor="middle">50%</text>
+                  </g>
+                  <text class="edt-whisper" id="edt-switch-hint" x="4632" y="336" text-anchor="end">click to switch</text>
+
+                  <clipPath id="edt-cnt-clip"><rect x="4620" y="440" width="18" height="20" /></clipPath>
+                  <g clip-path="url(#edt-cnt-clip)"><g id="edt-cnt-roll"><g id="edt-cnt-flip"></g></g></g>
+                  <text class="edt-cnt-den" id="edt-cnt-den" x="4642" y="456">/ 30</text>
+                  <text class="edt-judge-rubric" id="edt-cnt-cap" x="4620" y="476">routed to the canary</text>
+
+                  <!-- Both arms judged, side by side. An unjudged control arm
+                       is not a control (A5's own line), so there are two marks
+                       here and not one. -->
+                  <rect class="edt-mark" id="edt-jm-a" x="5200.5" y="330.5" width="12" height="12" rx="1" />
+                  <path class="edt-tick" id="edt-jm-a-tick" d="M 0 0" />
+                  <rect class="edt-mark" id="edt-jm-b" x="5200.5" y="390.5" width="12" height="12" rx="1" />
+                  <path class="edt-tick" id="edt-jm-b-tick" d="M 0 0" />
+                  <path class="edt-score-bar" id="edt-bar-a" d="M 5220 336 L 5325.6 336" />
+                  <path class="edt-score-bar" id="edt-bar-b" d="M 5220 396 L 5332.8 396" />
+                  <text class="edt-card-line" id="edt-bar-a-lbl" x="5220" y="328">v6 4.4</text>
+                  <text class="edt-card-line" id="edt-bar-b-lbl" x="5220" y="388">v7 4.7</text>
+                  <text class="edt-judge-rubric" id="edt-judged-each" x="5220" y="424">20 judged each</text>
+
+                  <!-- Promote. The old arm's traffic joins the new one — one
+                       drawn curve, and NOTHING the hand owns moves. -->
+                  <path class="edt-lane" id="edt-merge" d="M 5160 336 C 5176 336 5180 396 5196 396" />
+                </g>
+
+                <!-- ── STATION 6 · MODEL ROUTING  (bay 5, centre 5940) ───────
+                     A fork, two model chips at two different SIZES, and one
+                     barrier. The cheap model is physically smaller because
+                     that is the only honest way to draw "cheaper" without a
+                     price tag on it; the barrier is drawn across its lane to
+                     the refund tool because the rule is structural — the small
+                     model is trusted to talk and never to act (A6).
+
+                     ONE MESSAGE BODY, TWO TEXTS, exactly like the chip: turn 1
+                     and turn 2 are the same customer on the same thread, and a
+                     second card arriving would say they were not. -->
+                <g id="edt-s6">
+                  <path class="edt-lane" id="edt-rt-in" d="M 5480 366 L 5620 366" />
+                  <path class="edt-lane" id="edt-rt-up" d="M 5620 366 C 5660 366 5660 300 5700 300" />
+                  <path class="edt-lane" id="edt-rt-dn" d="M 5620 366 C 5660 366 5660 430 5700 430" />
+
+                  <rect class="edt-card" id="edt-big" x="5700" y="270" width="180" height="60" rx="6" />
+                  <text class="edt-card-line" id="edt-big-lbl" x="5790" y="305" text-anchor="middle">main model</text>
+                  <rect class="edt-card" id="edt-small" x="5700" y="410" width="120" height="40" rx="6" />
+                  <text class="edt-judge-rubric" id="edt-small-lbl" x="5760" y="434" text-anchor="middle">cheap model</text>
+
+                  <!-- The reach, cut at the barrier rather than drawn through
+                       it: a non-scaling stroke cannot hold a partial drawSVG
+                       range (DESIGN §3), so the path simply ENDS where the
+                       rule stops it. -->
+                  <path class="edt-lane" id="edt-reach-sm" d="M 5820 430 C 5890 430 5930 400 5990 400" />
+                  <path class="edt-gate" id="edt-barrier" d="M 5990 378 L 5990 422" />
+                  <path class="edt-jamb" id="edt-barrier-a" d="M 5984 378 L 5996 378" />
+                  <path class="edt-jamb" id="edt-barrier-b" d="M 5984 422 L 5996 422" />
+                  <text class="edt-judge-rubric" id="edt-barrier-lbl" x="5990" y="444" text-anchor="middle">not allowed to act</text>
+
+                  <path class="edt-lane" id="edt-reach-bg" d="M 5880 300 C 6000 300 6020 373 6120 373" />
+                  <rect class="edt-card" id="edt-tool" x="6120" y="350" width="170" height="46" rx="6" />
+                  <text class="edt-card-line" id="edt-tool-lbl" x="6136" y="378">refund_customer</text>
+                  <text class="edt-judge-rubric" id="edt-tool-done" x="6120" y="416">refund · done</text>
+
+                  <!-- Object lettering: the ticker is a strip on a machine, so
+                       it is mono, lowercase and printed a reading at a time.
+                       The fourth reading is a dash, and the dash IS the beat —
+                       the turn that escalated cost the cheap model nothing
+                       because the cheap model never ran it. -->
+                  <text class="edt-judge-rubric" id="edt-tick-lbl" x="5480" y="480">cost · cheap model</text>
+                  <text class="edt-card-line" id="edt-tick-0" x="5480" y="502">$0.0009</text>
+                  <text class="edt-card-line" id="edt-tick-1" x="5546" y="502">· $0.0011</text>
+                  <text class="edt-card-line" id="edt-tick-2" x="5612" y="502">· $0.0008</text>
+                  <text class="edt-card-line" id="edt-tick-3" x="5678" y="502">· —</text>
+
+                  <g id="edt-rmsg">
+                    <rect class="edt-msg-body" id="edt-rmsg-body" x="-105" y="-13" width="210" height="26" rx="6" />
+                    <text class="edt-msg-text" id="edt-rmsg-t1" x="0" y="4" text-anchor="middle">hi, what can you help with?</text>
+                    <text class="edt-msg-text" id="edt-rmsg-t2" x="0" y="4" text-anchor="middle">refund my order</text>
+                  </g>
+                </g>
+
+                <!-- ── STATION 7 · TWO GATES  (bay 6, centre 7020) ───────────
+                     Scene 4's agent box, re-drawn, with two doors cut into its
+                     hairline — one each side, because there are exactly two
+                     gates and they face opposite ways: what may come IN and be
+                     discussed, and what may go OUT in a reply.
+
+                     THE WALLS ARE A PATH AND THE SURFACE IS A RECT. A rect
+                     cannot have a hole cut in its outline, and a filled path
+                     with gaps closes each subpath where the gap is. Two
+                     objects, one job each: the rect carries the --surface fill
+                     and the path carries the four wall runs with the door gaps
+                     between them.
+
+                     THE CLASSIFIER AND THE POLICY ARE TWO BOXES WITH A LINE
+                     BETWEEN THEM, and the line is labelled. The classifier
+                     names the topic from a closed set and is NEVER told what
+                     the policy says (A7's own doctrine) — a classifier that
+                     knew the answer could be argued into it. -->
+                <g id="edt-s7">
+                  <rect class="edt-surface" id="edt-gb-fill" x="6900" y="292" width="240" height="140" rx="6" />
+                  <path class="edt-wall" id="edt-gb-wall" d="M 6900 346 L 6900 292 L 7140 292 L 7140 346 M 7140 378 L 7140 432 L 6900 432 L 6900 378" />
+                  <path class="edt-jamb" id="edt-door-la" d="M 6890 346 L 6910 346" />
+                  <path class="edt-jamb" id="edt-door-lb" d="M 6890 378 L 6910 378" />
+                  <path class="edt-jamb" id="edt-door-ra" d="M 7130 346 L 7150 346" />
+                  <path class="edt-jamb" id="edt-door-rb" d="M 7130 378 L 7150 378" />
+                  <text class="edt-file" id="edt-gb-lbl" x="6900" y="282">your agent</text>
+                  <text class="edt-judge-rubric" id="edt-gb-r0" x="6916" y="320">conversations · history</text>
+                  <text class="edt-judge-rubric" id="edt-gb-r1" x="6916" y="412">workflows · audit trail</text>
+
+                  <path class="edt-lane" id="edt-gt-in" d="M 6560 362 L 6900 362" />
+                  <path class="edt-lane" id="edt-gt-out" d="M 7140 362 L 7480 362" />
+
+                  <rect class="edt-card" id="edt-cls" x="6540" y="452" width="180" height="48" rx="6" />
+                  <text class="edt-card-title" id="edt-cls-title" x="6556" y="472">classifier</text>
+                  <text class="edt-judge-rubric" id="edt-cls-stamp" x="6556" y="490">topic: homework</text>
+                  <rect class="edt-card" id="edt-pol" x="6760" y="452" width="180" height="48" rx="6" />
+                  <text class="edt-card-title" id="edt-pol-title" x="6776" y="472">policy</text>
+                  <text class="edt-judge-rubric" id="edt-pol-stamp" x="6776" y="490">deny</text>
+                  <path class="edt-thresh" id="edt-nx" d="M 6740 448 L 6740 504" />
+                  <text class="edt-whisper edt-nx-lbl" id="edt-nx-lbl" x="6740" y="440" text-anchor="middle">never crosses</text>
+
+                  <g id="edt-ask">
+                    <rect class="edt-msg-body" id="edt-ask-body" x="-95" y="-13" width="190" height="26" rx="6" />
+                    <text class="edt-msg-text" id="edt-ask-t" x="0" y="4" text-anchor="middle">where is my order?</text>
+                  </g>
+                  <g id="edt-knock">
+                    <rect class="edt-msg-body" id="edt-knock-body" x="-95" y="-13" width="190" height="26" rx="6" />
+                    <text class="edt-msg-text" id="edt-knock-t" x="0" y="4" text-anchor="middle">solve my math homework</text>
+                  </g>
+                  <g id="edt-note">
+                    <rect class="edt-msg-body" id="edt-note-body" x="-85" y="-11" width="170" height="22" rx="6" />
+                    <text class="edt-whisper edt-note-t" id="edt-note-t" x="0" y="4" text-anchor="middle">orders only — redirected</text>
+                  </g>
+
+                  <!-- The drafted reply. Its number is FOUR text runs, not
+                       one, because the redaction lands block by block and a
+                       block is a run: three drawn rects come down over three
+                       runs, and the runs go out under them. No ▪ glyph — it is
+                       not in the self-hosted latin subset, the same trap the
+                       checkmark and U+2265 hit elsewhere in this scene. -->
+                  <g id="edt-reply">
+                    <rect class="edt-msg-body" id="edt-reply-body" x="-65" y="-13" width="130" height="26" rx="6" />
+                    <text class="edt-msg-text" id="edt-reply-p" x="-54" y="4">+1 </text>
+                    <text class="edt-msg-text" id="edt-reply-b0" x="-32" y="4">415</text>
+                    <text class="edt-msg-text" id="edt-reply-b1" x="-8" y="4">555</text>
+                    <text class="edt-msg-text" id="edt-reply-b2" x="16" y="4">0132</text>
+                    <rect class="edt-redact" id="edt-redact-0" x="-32" y="-7" width="21" height="14" />
+                    <rect class="edt-redact" id="edt-redact-1" x="-8" y="-7" width="21" height="14" />
+                    <rect class="edt-redact" id="edt-redact-2" x="16" y="-7" width="27" height="14" />
+                  </g>
+                  <text class="edt-judge-rubric" id="edt-gt-receipt" x="7160" y="396">fallback sent · number removed</text>
+                </g>
+
+                <!-- ── STATION 8 · PER-CUSTOMER LIMITS  (bay 7, centre 8100) ─
+                     Five lanes, one valve. The valve is the scene's ONLY
+                     amber and the four receipts are the scene's ONLY green,
+                     and both rations are the brand's (BRAND §2): amber is
+                     backoff, green is a message that arrived. Everything else
+                     in eight stations is the gray ladder.
+
+                     THE GHOST IS THE ARGUMENT. A strike across all five lanes
+                     labelled `daily budget · muted` is what the other design
+                     does — and it fades, because this is not what happens
+                     here. Drawing the alternative and taking it away says more
+                     than a caption claiming the difference. -->
+                <g id="edt-s8">
+                  <g id="edt-lanes8"></g>
+                  <g id="edt-flood"></g>
+                  <path class="edt-gate" id="edt-valve" d="M 8180 362 L 8180 386" />
+                  <path class="edt-valve-amber" id="edt-valve-amber" d="M 8180 362 L 8180 386" />
+                  <path class="edt-jamb" id="edt-valve-a" d="M 8174 362 L 8186 362" />
+                  <path class="edt-jamb" id="edt-valve-b" d="M 8174 386 L 8186 386" />
+                  <g id="edt-notice">
+                    <rect class="edt-msg-body" id="edt-notice-body" x="-75" y="-11" width="150" height="22" rx="6" />
+                    <text class="edt-whisper edt-note-t" id="edt-notice-t" x="0" y="4" text-anchor="middle">notice sent once</text>
+                  </g>
+                  <path class="edt-thresh" id="edt-ghost" d="M 8240 268 L 8290 480" />
+                  <text class="edt-judge-rubric" id="edt-ghost-lbl" x="8265" y="500" text-anchor="middle">daily budget · muted</text>
+                </g>
+
                 <!-- ── THE CHIP ────────────────────────────────────────────
                      The changed line, lifted off the page, authored at its own
                      origin and moved in world coordinates — the same rule
@@ -2451,6 +2780,14 @@
                 <path class="edt-rail-line" id="edt-rail-line" d="M 60 58 L 1020 58" />
                 <path class="edt-rail-tick" id="edt-rail-origin" d="M 60 52 L 60 64" />
                 <text class="edt-rail-lbl" id="edt-rail-v0" x="60" y="82" text-anchor="middle">v6</text>
+                <!-- VERSION NOTCHES point UP, event ticks point across. The
+                     rail records eight events but only two VERSIONS, and a
+                     reader who can see which two ticks are boundaries can read
+                     the whole recorder without a legend. Both are written from
+                     RAIL_* in edit.ts; they are authored here so a still clone
+                     of the markup carries them. -->
+                <path class="edt-rail-tick" id="edt-notch-v6" d="M 60 58 L 60 44" />
+                <path class="edt-rail-tick" id="edt-notch-v7" d="M 360 58 L 360 44" />
                 <g id="edt-stamps"></g>
 
                 <g id="edt-ticket">
@@ -2460,6 +2797,22 @@
                 </g>
               </g>
             </svg>
+
+            <!-- THE ONE THING ON THIS PAGE THE READER MAY OPERATE, and it is
+                 a real <button> rather than a focusable node inside the svg:
+                 the stage's svg is aria-hidden (it is a drawing, not content),
+                 and a tabbable element inside an aria-hidden subtree is a
+                 focus stop with no accessible name. So the control lives in
+                 the document, is positioned over the drawn switch by edit.ts
+                 from the svg's own measured box, and carries its own name and
+                 state. Hidden and inert until the canary beat has settled;
+                 hidden again the moment the camera leaves that bay.
+
+                 Its hit box is deliberately larger than the 40u switch it
+                 operates (DESIGN §5's ≥40px rule, the bell's precedent). -->
+            <button class="edt-toggle" id="edt-toggle" type="button" aria-pressed="false" hidden>
+              <span class="sr-only" id="edt-toggle-name">Canary share: 10 percent of conversations. Activate to switch to 50 percent.</span>
+            </button>
           </div>
         </div>
 

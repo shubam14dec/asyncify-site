@@ -3324,10 +3324,15 @@ html {
   fill: var(--text-dim);
 }
 
+/* The bench's header, and the live tally that rides in it. tabular-nums is
+   load-bearing here for the same reason it is on the clock: the tally is a
+   single digit rolling behind an 8u aperture, and a proportional 1 would sit
+   off-centre in a hole cut for a 3. */
 .edt-bench {
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
   fill: var(--text-faint);
 }
 
@@ -3477,6 +3482,281 @@ html {
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
   fill: var(--text);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   STATIONS 4–8 — the ink slice B adds
+   ──────────────────────────────────────────────────────────────────────────
+   Nothing here is a new dialect. A field is a chip-radius box at --canvas (an
+   input is a hole in a surface, not another surface — DESIGN §1's no-nested-
+   cards rule read literally); a control is the same 6u box the chips are; a
+   lane band is a FILL with no stroke, because it is a quantity rather than an
+   object and a hairline around it would make it a box.
+
+   THE TWO RATIONED COLOURS BOTH LIVE IN THIS BLOCK AND NOWHERE ELSE IN THE
+   SCENE: --amber on the throttle valve (backoff, BRAND §2) and --green on the
+   four delivered receipts (a message that arrived). Eight stations of gray
+   ladder is what makes those two frames mean anything.
+
+   THE MOMENTS. Same law as the block above — the stylesheet paints the
+   FINISHED frame, so anything the scene passes THROUGH rests at opacity 0
+   here: the pre-promote lane labels, the switch's 50% reading, its whisper,
+   turn 1's message text, the question the agent already answered, the three
+   digit runs the reply rules took out, and the ghost's label. */
+
+/* A form field. --canvas inside --surface: the panel is the raised thing and
+   the field is cut INTO it. */
+.edt-field {
+  fill: var(--canvas);
+  stroke: var(--hairline);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* A control. The chip step exactly (BRAND §4), because a button and a chip
+   are the same kind of small labelled object. */
+.edt-btn {
+  fill: var(--surface);
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The one control that stays live while the check runs. One rung brighter at
+   rest, so the dim later has somewhere to be brighter THAN. */
+.edt-btn-live {
+  stroke: var(--text-faint);
+}
+
+.edt-btn-lbl {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  fill: var(--text-dim);
+}
+
+.edt-btn-lbl-live {
+  fill: var(--text);
+}
+
+/* What the check prints. Receipt ink: this is a machine reporting, not a
+   sentence anybody wrote. */
+.edt-run-line {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-faint);
+}
+
+/* A lane band. Fill only — a band is a QUANTITY (its thickness is the share),
+   and a hairline round it would turn a measurement into a box. The retired
+   arm's finished state is a dimmed fill, which is why the value lives here
+   rather than in a tween's end state. */
+.edt-band {
+  fill: var(--hairline);
+  fill-opacity: 0.35;
+}
+
+.edt-band-b {
+  fill: var(--hairline-strong);
+  fill-opacity: 1;
+}
+
+/* A conversation. The engine's packet radius and the engine's own reading:
+   these are messages, and they are not delivered yet, so they are NOT green. */
+.edt-dot {
+  fill: var(--text-faint);
+}
+
+/* The switch. It is drawn as a control because it IS one — the only object in
+   eight stations a reader may operate. */
+.edt-switch {
+  fill: var(--surface);
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+.edt-switch-lbl {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text);
+}
+
+/* A whisper: the quietest type in the scene, used for the two things that are
+   said to the reader rather than printed by the machine. */
+.edt-whisper {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+/* The switch's affordance, and it belongs to the POINTER, not to the scrub:
+   it is faded up when the beat has settled and the control is armed, and it
+   is gone again the moment the camera leaves that bay. */
+#edt-switch-hint {
+  opacity: 0;
+}
+
+/* `never crosses` is furniture, not a whisper to the reader — it names a wall
+   that is always there — so it keeps the whisper's size and takes the dim ink
+   the rest of the station's labels have. */
+.edt-nx-lbl {
+  fill: var(--text-dim);
+}
+
+/* The counter. One rung over a card line and under the judge's score: it is a
+   measurement of the run, not the verdict of one. */
+.edt-cnt {
+  font-family: var(--mono);
+  font-size: 14px;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text);
+}
+
+.edt-cnt-den {
+  font-family: var(--mono);
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-faint);
+}
+
+/* Two scores, drawn as lengths. A number a reader has to compare to another
+   number is a number they have to hold in their head; two bars side by side
+   is the comparison already made. */
+.edt-score-bar {
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-width: 1.5;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* A message in flight. The chip's body one rung quieter: the chip is the
+   subject of the scene and these are traffic. */
+.edt-msg-body {
+  fill: var(--surface);
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+.edt-msg-text {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-dim);
+}
+
+.edt-note-t {
+  fill: var(--text-dim);
+}
+
+/* The agent box, in two halves. A rect cannot have a door cut in its outline
+   and a filled path with gaps closes itself across them, so the surface and
+   the walls are two objects with one job each. Scene 4's chip dialect either
+   way: --surface, hairline-strong, 6u corner. */
+.edt-surface {
+  fill: var(--surface);
+  stroke: none;
+}
+
+.edt-wall {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* A redaction. A drawn rect and never a glyph — U+25AA is not in the
+   self-hosted latin subset, the same trap the checkmark and U+2265 hit. It is
+   --hairline-strong and not black: the reply rules removed a value, they did
+   not burn a hole in the paper. */
+.edt-redact {
+  fill: var(--hairline-strong);
+  stroke: none;
+}
+
+/* THE SCENE'S ONLY AMBER. Backoff, and nothing else, ever (BRAND §2). It is
+   drawn OVER the closed gray valve rather than tweened from it, so no hex
+   leaves the stylesheet and the reading is right either way round: the valve
+   shuts, then it goes amber. */
+.edt-valve-amber {
+  fill: none;
+  stroke: var(--amber);
+  stroke-width: 1.5;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* THE SCENE'S ONLY GREEN, on the four receipts of the four customers who
+   never noticed. Green is the colour of a message that arrived, and these are
+   the only messages in eight stations that arrive at a person. */
+.edt-delivered {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--green);
+}
+
+/* ── the moments (see the note at the top of this block) ─────────────────── */
+#edt-lane-a-lbl,
+#edt-lane-b-lbl,
+#edt-switch-50,
+#edt-rmsg-t1,
+#edt-ask,
+#edt-reply-b0,
+#edt-reply-b1,
+#edt-reply-b2,
+#edt-ghost-lbl {
+  opacity: 0;
+}
+
+/* ── the toggle ──────────────────────────────────────────────────────────
+   A real button in the document, laid over the drawn switch. It carries no
+   paint of its own — the svg underneath is the control's appearance — so all
+   this rule does is place it, size its hit area and give keyboard users the
+   ring every other interactive element on this site has. */
+.edt-toggle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 140ms ease-out;
+}
+
+.edt-toggle[hidden] {
+  display: none;
+}
+
+.edt-toggle:active {
+  transform: scale(0.97);
+}
+
+.edt-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(61, 214, 140, 0.35);
 }
 
 /* ── the frame layer ─────────────────────────────────────────────────────
