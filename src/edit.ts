@@ -4572,7 +4572,13 @@ export function createEditScene(): EditScene {
         scrollTo: { y: target, autoKill: false },
         duration: GLIDE_DUR,
         ease: "power2.inOut",
-        delay: TEAR_RUN,
+        /* The glide waits for the FIRST STALL, not the release (user catch:
+           with both moving at once, the strip STREAKED relative to the page
+           for the glide's 1.3s and then seemed to brake). The paper opens its
+           float on a still page; the page slides away under an already-
+           drifting strip. By reference to the fall's own first stall, so a
+           re-timed fall moves the departure with it. */
+        delay: TEAR_RUN + FALL_DUR * 0.28,
         onComplete: () => {
           gliding = null;
         },
