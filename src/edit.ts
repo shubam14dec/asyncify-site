@@ -1247,9 +1247,9 @@ const RCPT_TOTAL = `total · ${STATION_AT.length - 1} stations · 1 edit`;
    faintest ink on the ladder only made it hard to find, and a door nobody
    finds is a door nobody takes. Same behaviour, two rungs brighter and three
    sizes up, with a curve and a head scaled to match. */
-const TEAR_HERE = "tear here";
-const TEAR_HERE_X = 892;
-const TEAR_HERE_Y = 585;
+const TEAR_HERE = "Tear here";
+const TEAR_HERE_X = 884;
+const TEAR_HERE_Y = 564;
 /** QUIET IN BEHAVIOUR IS NOT QUIET IN VOLUME. This is the only instruction on
  *  the whole stage and it is what stands between the reader and the door, so
  *  it arrives once, never loops, and is set at a size a reader does not have
@@ -4992,7 +4992,7 @@ export function createEditScene(): EditScene {
     const door = doc.createElement("button");
     door.type = "button";
     door.className = "edt-still-door";
-    door.textContent = "tear here — the proof";
+    door.textContent = "Tear here — the proof";
     door.addEventListener("click", () => {
       const proofPin = doc.querySelector<HTMLElement>("#prf-pin");
       if (!proofPin) return;
