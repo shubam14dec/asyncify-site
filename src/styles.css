@@ -3614,7 +3614,9 @@ html {
   font-family: "Instrument Serif", Georgia, serif;
   font-style: italic;
   font-size: 17px;
-  fill: var(--text-faint);
+  /* Full ink (user-tuned up in two steps): this whisper is the door's only
+     instruction, and anything dimmer read as furniture. */
+  fill: var(--text);
 }
 
 /* The switch's affordance, and it belongs to the POINTER, not to the scrub:
