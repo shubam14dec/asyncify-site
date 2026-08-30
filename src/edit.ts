@@ -3261,40 +3261,30 @@ export function createEditScene(): EditScene {
     if (TEAR_HERE_X + monoWidth(TEAR_HERE, TEAR_HERE_SIZE) > FRAME_W - 4 || TEAR_HERE_Y > FRAME_H - 40) {
       throw new Error("[edit] `tear here` runs off the frame");
     }
-    /* THE HEAD AGREES WITH ITS OWN CURVE. Both the curve and the head are
-       authored in the markup (a still clone has to carry them), so both are
-       read back and the head is re-derived here rather than trusted: its two
-       barbs must stand on the curve's tip, be the same length, and sit at
-       ±TEAR_HEAD_DEG about the tangent the curve actually ends on. A chevron
-       parked near a line is scene 4's exact mistake, one scene on. */
+    /* THE HEAD IS DERIVED FROM ITS CURVE, not authored (three hand-authored
+       heads disagreed with their line in a row — user catches, every one).
+       The markup carries a placeholder; boot computes the two barbs at
+       ±TEAR_HEAD_DEG about the tangent the curve ACTUALLY ends on,
+       TEAR_HEAD_LEN long, standing on the tip. A chevron cannot be parked
+       near its line if the line is what draws it — the assert became the
+       generator. */
     {
       const nums = (el: SVGPathElement): number[] =>
         ((el.getAttribute("d") ?? "").match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number);
       const c = nums(tearArrow);
-      const h = nums(tearHead);
-      if (c.length !== 8 || h.length !== 6) {
-        throw new Error("[edit] the whisper's arrow is not one cubic and one three-point head");
+      if (c.length !== 8) {
+        throw new Error("[edit] the whisper's arrow is not one cubic");
       }
-      const deg = (dx: number, dy: number): number => (Math.atan2(dy, dx) * 180) / Math.PI;
-      /* Back along the end tangent: the curve's last control, from its tip. */
-      const back = deg(c[4]! - c[6]!, c[5]! - c[7]!);
-      if (Math.abs(h[2]! - c[6]!) > 0.01 || Math.abs(h[3]! - c[7]!) > 0.01) {
-        throw new Error("[edit] the whisper's head does not stand on the curve's own tip");
-      }
-      const barbs: readonly (readonly [number, number])[] = [
-        [h[0]! - h[2]!, h[1]! - h[3]!],
-        [h[4]! - h[2]!, h[5]! - h[3]!],
-      ];
-      const lens = barbs.map(([dx, dy]) => Math.hypot(dx, dy));
-      if (Math.abs(lens[0]! - lens[1]!) > 0.2 || Math.abs(lens[0]! - TEAR_HEAD_LEN) > 0.2) {
-        throw new Error("[edit] the whisper's barbs are not the length this file names, or each other's");
-      }
-      for (const [dx, dy] of barbs) {
-        const off = ((deg(dx, dy) - back + 540) % 360) - 180;
-        if (Math.abs(Math.abs(off) - TEAR_HEAD_DEG) > 0.5) {
-          throw new Error("[edit] the whisper's head does not agree with its curve's end tangent");
-        }
-      }
+      const tipX = c[6]!;
+      const tipY = c[7]!;
+      const back = Math.atan2(c[5]! - tipY, c[4]! - tipX);
+      const rad = (TEAR_HEAD_DEG * Math.PI) / 180;
+      const barb = (a: number): string =>
+        `${(tipX + TEAR_HEAD_LEN * Math.cos(a)).toFixed(2)} ${(tipY + TEAR_HEAD_LEN * Math.sin(a)).toFixed(2)}`;
+      tearHead.setAttribute(
+        "d",
+        `M ${barb(back - rad)} L ${tipX} ${tipY} L ${barb(back + rad)}`,
+      );
     }
     /* THE PRINT SETTLES BEFORE THE WHISPER, and nothing is still being built
        when the held ending begins. The second one is what makes the ending an
