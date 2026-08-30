@@ -1160,7 +1160,7 @@ const RCPT_SIZE = 11.5;
 /* ── the receipt's anatomy, top to bottom (user call: a receipt, not a
    strip — the shop name, the double rule, dot leaders, a barcode, the
    sign-off; every piece a real thermal receipt has, in this page's ink) ── */
-const RCPT_WORDMARK = "asyncify";
+const RCPT_WORDMARK = "Asyncify";
 const RCPT_WORDMARK_SIZE = 13;
 const RCPT_WORDMARK_Y = 324;
 /** Receipts love double rules: two hairlines, 3u apart, under the name. */
