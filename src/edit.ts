@@ -1248,8 +1248,8 @@ const RCPT_TOTAL = `total · ${STATION_AT.length - 1} stations · 1 edit`;
    finds is a door nobody takes. Same behaviour, two rungs brighter and three
    sizes up, with a curve and a head scaled to match. */
 const TEAR_HERE = "Tear here";
-const TEAR_HERE_X = 884;
-const TEAR_HERE_Y = 564;
+const TEAR_HERE_X = 905;
+const TEAR_HERE_Y = 583;
 /** QUIET IN BEHAVIOUR IS NOT QUIET IN VOLUME. This is the only instruction on
  *  the whole stage and it is what stands between the reader and the door, so
  *  it arrives once, never loops, and is set at a size a reader does not have
