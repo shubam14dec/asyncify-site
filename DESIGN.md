@@ -76,6 +76,21 @@ storytelling, feedback, or state change. "It looked cool" is not an answer — d
     path into pieces at that point and cross-fade or dissolve a piece. (Cost us the first
     version of scene 2's network drop: the wire's severed end never pulled back, and the
     dashed fray sat underneath a solid line, invisible.)
+- **A glyph outside the self-hosted subset is a MEASUREMENT bug, not a typographic
+  one.** The latin faces cover `U+0000-00FF` plus a short list (check the package's own
+  `unicode.json`, never guess): `·` U+00B7 and `º` U+00BA are in; `✓` U+2713, `≥` U+2265,
+  `№` U+2116 and **`→` U+2192** are not. An out-of-subset character is painted by a
+  *fallback* face, so it has an advance the scene's `monoWidth()` arithmetic cannot know —
+  every width assert over that string is then a coin toss. Ticks are drawn paths; arrows
+  on a mono printout are `->`. (Found in A16 slice C: two receipt lines had `→`.)
+- **A boot assert whose condition folds to `true` deletes the rest of the scene, silently.**
+  Rollup evaluates constant comparisons at build time. `if (0.44 > 0.35) throw` becomes an
+  unconditional throw, and everything after it in that function is dead code — so the
+  bundle *shrinks* and the scene never runs. The tell is cheap: build once with
+  `vite build --minify false` and grep the output for element handles that lost their
+  binding (`q(svg, "#x");` with no `const x =`). Zero of those means no assert fires and
+  nothing was pruned. Run it whenever a slice adds asserts; a bundle that got smaller
+  after you added code is the alarm.
 - **Transform origins are explicit.** A bell rotates from its thread pivot, not its center. A
   clapper rotates from its yoke. A ripple grows from the mouth. Every `svgOrigin` /
   `transform-origin` in this codebase is written out and commented.

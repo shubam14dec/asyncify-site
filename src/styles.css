@@ -3713,6 +3713,72 @@ html {
   fill: var(--green);
 }
 
+/* What a normal answer took, printed beside the receipt that says it landed.
+   Faint, because the argument is that these four numbers are BORING while one
+   lane is queued — a latency stamp at full ink would be a claim, and this is
+   evidence. */
+.edt-lat {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-faint);
+}
+
+/* What the OTHER design does to those four receipts. Gray, at the receipt's
+   own size and position, crossfaded over the green for exactly as long as the
+   ghost stands. It is not amber and not red: nothing failed, somebody else's
+   budget simply ran out. */
+.edt-muted {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+/* The valve's two readings: the knob a customer sets, and what it did. Dim
+   rather than faint — this is the one label at this station a reader is meant
+   to read rather than glance at. */
+.edt-limit-lbl {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-dim);
+}
+
+/* The rate counter's readings, behind their aperture. tabular-nums is
+   load-bearing: `4 msgs` and `12 msgs` roll through the same window and a
+   proportional 1 would shift the word beside it. */
+.edt-rate {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-dim);
+}
+
+/* The ledger. One rung quieter than the counter: the counter is what is
+   happening, the ledger is the record of it. */
+.edt-ledger-read {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-faint);
+}
+
+/* The bracket over the four unaffected lanes. Structural hairline — it is a
+   measurement of the picture, not an object in it. */
+.edt-brk {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
 /* ── the moments (see the note at the top of this block) ─────────────────── */
 #edt-lane-a-lbl,
 #edt-lane-b-lbl,
@@ -3722,6 +3788,7 @@ html {
 #edt-reply-b0,
 #edt-reply-b1,
 #edt-reply-b2,
+#edt-limit,
 #edt-ghost-lbl {
   opacity: 0;
 }
@@ -3818,6 +3885,220 @@ html {
   fill: var(--text-faint);
 }
 
+/* ── the landing receipt ─────────────────────────────────────────────────
+   The rail's paper copy, fed out of a printer mouth. Read this block as the
+   FINISHED state, like the rest of the file: the strip is fully out, the
+   whisper is lit, and the only thing hidden is the fringe a tear would leave.
+
+   THE MOUTH is a serrated bar — a row of small teeth, drawn, at the structural
+   hairline weight. It is the machine, so it takes the machine's ink and never
+   the paper's. */
+.edt-teeth {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* What a tear leaves in the machine: the other half of one separation. Hidden
+   until the reader tears the strip off, and gone again when the reset feeds a
+   fresh receipt — so it belongs to the POINTER outright and never appears in
+   any of the scrub's lists. */
+.edt-rcpt-fringe {
+  fill: none;
+  stroke: var(--text-faint);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0;
+}
+
+/* And its complement, on the torn strip's own top edge. Built into the clone
+   at tear time (the original's top edge is the clean one the mouth cut). */
+.edt-rcpt-stub-edge {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The paper. --surface on --canvas with a hairline, like every raised object
+   on this site. SQUARE corners, and that is the whole difference between this
+   and the torn ticket beside it: a ticket is die-cut, a receipt is cut off a
+   roll by a straight bar. */
+.edt-rcpt-body {
+  fill: var(--surface);
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Object lettering, three rungs. The header names what was edited, the seven
+   lines are the rail's stamps in the order they were earned, and the total is
+   the only line on the paper set at full ink — it is the receipt's answer. */
+.edt-rcpt-head {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-dim);
+}
+
+.edt-rcpt-line {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-faint);
+}
+
+.edt-rcpt-total {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text);
+}
+
+.edt-rcpt-rule {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The perforation the strip was cut from. A STATIC dash pattern, never a
+   drawSVG target — drawSVG owns stroke-dasharray, so a perforation that also
+   drew itself would be a perforation with no holes in it. It needs no tween
+   anyway: the aperture is what reveals it. */
+.edt-rcpt-perf {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  stroke-dasharray: 2 3;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The whisper's curve. Scene 4's `click here` annotation, one scene on: a
+   short dip to the thing it is about, and nothing else. */
+.edt-hint-arrow {
+  fill: none;
+  stroke: var(--text-faint);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The door. Placed over the printed strip by edit.ts from the svg's own
+   matrix, exactly as the canary's toggle is, and carrying no paint of its own
+   — the drawing underneath is the control's appearance. */
+.edt-tear {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.edt-tear[hidden] {
+  display: none;
+}
+
+.edt-tear:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(61, 214, 140, 0.35);
+}
+
+/* ── the closing statement ───────────────────────────────────────────────
+   Scene 4's #agt-closing, in the rail instead of on the glass. It shares the
+   caption box (one column, one position, no reflow) and NOT the caption
+   class, because edit.ts counts .eng-cap against the stations — and because
+   this one has no exit tween. A rule that draws out of its own middle, and
+   the sentence rising under it. */
+.edt-closing {
+  position: absolute;
+  inset: 0 0 auto 0;
+}
+
+.edt-closing-rule {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: var(--hairline-strong);
+  transform: scaleX(0);
+  transform-origin: 50% 50%;
+}
+
+.edt-closing-text {
+  margin: 18px 0 0;
+  font-size: clamp(15px, 1.15vw, 19px);
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-wrap: pretty;
+  opacity: 0;
+}
+
+/* ── the third bridge ────────────────────────────────────────────────────
+   Layout and type are the first bridge's, borrowed outright (.bridge,
+   .bridge-copy). Only the animated hook is scene-local — see the comment in
+   index.html for why it cannot be called .bridge-line. */
+.edt-bridge-line {
+  display: block;
+  color: var(--text-dim);
+}
+
+.edt-bridge-lead {
+  color: var(--text);
+}
+
+/* The still's own door out, until slice D draws the torn receipt properly. It
+   is a real control, so it takes the site's control ink and its focus ring. */
+.edt-still-door {
+  display: inline-block;
+  margin-top: 32px;
+  padding: 10px 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--hairline-strong);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 160ms ease, transform 140ms ease-out;
+}
+
+.edt-still-door:active {
+  transform: scale(0.97);
+}
+
+.edt-still-door:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(61, 214, 140, 0.35);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .edt-still-door:hover {
+    border-color: var(--text-faint);
+  }
+}
+
 /* ── the still state (< 768px, and prefers-reduced-motion) ───────────────
    SLICE A STUB: the masthead alone. It is a real still state for the three
    sentences this scene says so far, and it means the page is never broken on
@@ -3839,6 +4120,23 @@ html {
   font-size: 16px;
   line-height: 1.5;
   color: var(--text-dim);
+}
+
+/* The scene's closing statement, rebuilt for the still. It sits under a
+   hairline for the same reason the pinned one does: it is the sentence the
+   whole scene lands on, and a rule is what says a sentence is a conclusion
+   rather than another caption. */
+.edt-still-closing {
+  max-width: 52ch;
+  margin: 40px 0 0;
+  padding-top: 20px;
+  border-top: 1px solid var(--hairline-strong);
+  font-family: var(--sans);
+  font-size: clamp(17px, 4.4vw, 20px);
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+  color: var(--text);
+  text-wrap: pretty;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════

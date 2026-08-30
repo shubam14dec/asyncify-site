@@ -118,13 +118,10 @@ import { gsap } from "gsap";
    4's looser 0.0375 — this scene has nine acts to get through and scene 2 is
    the closest thing on the page to it in shape.
 
-   SLICE_END is scaffolding and the ONLY number in this block that moves as
-   later slices land. The pin reserves PIN_HEIGHTS × SLICE_END / TL_END, so a
-   unit of timeline costs exactly the scroll it will cost in the finished
-   scene — every beat below is already in its final position — while the
-   reader is not asked to scroll two and a half empty screens past the last
-   station this slice actually builds. When station 8 lands, SLICE_END becomes
-   TL_END and this paragraph goes with it. */
+   SLICE_END was the scaffolding, and it has arrived: it IS TL_END now, so the
+   pin reserves the whole 3.5 screens and PIN_HEIGHTS × SLICE_END / TL_END is
+   simply PIN_HEIGHTS. Every beat below has sat on its final unit since slice
+   A; the only thing that ever moved was where the reader was asked to stop. */
 const PIN_HEIGHTS = 3.5;
 const TL_END = 166;
 
@@ -155,16 +152,17 @@ const LANDING_AT = 148;
 /** The finished scene's held ending: nothing arrives or leaves after this. */
 const HOLD_FROM = 160;
 
-/** This slice's own held ending, and the end of the scroll it reserves.
- *
- *  SLICE B MOVED IT FROM STATION_AT[3] TO LANDING_AT, and that is the only
- *  number in this block that moved: every beat slice A authored sits on the
- *  same unit it always did, and the eight stations now play in full. Slice C
- *  moves it once more, to TL_END, when the landing receipt and the door land.
- *  The invariant asserted below moves with it — a slice always hands over on
- *  the exact unit the next one begins on, so nothing is ever re-timed. */
-const SLICE_HOLD_FROM = 142;
-const SLICE_END = LANDING_AT;
+/** The scaffolding, at its terminus. Slice A handed over on STATION_AT[3],
+ *  slice B on LANDING_AT, and slice C — this one — hands over on TL_END,
+ *  which is where the scaffolding stops being scaffolding: the scene's held
+ *  ending and the scene's own end are now the same two numbers the file
+ *  declares at the top. Every beat A and B authored sits on the unit it
+ *  always did; nothing was ever re-timed, which is the whole thing this pair
+ *  of constants existed to guarantee. They are kept (rather than deleted)
+ *  because the invariant below is what a future edit trips over if anyone
+ *  ever tries to end the scene somewhere other than its own timeline. */
+const SLICE_HOLD_FROM = HOLD_FROM;
+const SLICE_END = TL_END;
 
 /** What the pin actually reserves today, in viewport heights, and the number
  *  main.ts's PIN_SHARES_VH has to agree with. Exported rather than copied:
@@ -247,6 +245,14 @@ const CAM: { at: number; dur: number; z: number; fx: number; fy: number }[] = [
   { at: 98.0, dur: 3.0, z: 1.0, fx: bayCx(5), fy: CAM_FY }, // station 6
   { at: 114.0, dur: 3.0, z: 1.0, fx: bayCx(6), fy: CAM_FY }, // station 7
   { at: 132.0, dur: 3.0, z: 1.0, fx: bayCx(7), fy: CAM_FY }, // station 8
+  /* THE LANDING'S OWN BAY, and it is empty on purpose. Eight stations have
+     been read; what is left to say is not another mechanism, it is the
+     RECORD — so the camera pans off the last picture onto bare world, the
+     chip parks there, and the only thing on the frame is the receipt the rail
+     prints of itself. A landing that stayed parked on the throttle lanes
+     would print the whole journey's paperwork over one station's picture and
+     say that this station was what the journey was about. */
+  { at: 148.0, dur: 3.0, z: 1.0, fx: bayCx(8), fy: CAM_FY }, // the landing
 ];
 const CAM_START = { z: 1, fx: bayCx(0), fy: CAM_FY };
 
@@ -897,7 +903,28 @@ const GT_RECEIPT = "fallback sent · number removed";
    STATION 8 — PER-CUSTOMER LIMITS   (bay 7)
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* Five lanes, one valve.
+/* Five lanes, one valve, and the whole station is derived from TWELVE
+   MESSAGES ARRIVING.
+
+   THE FLOOD IS AN ARRIVAL AND NOT A STATE (the user's note on slice B, and it
+   was the right one: a burst that was simply THERE was a diagram of a flood,
+   not a flood). Customer 3's messages come in one after another at
+   FLOOD_PITCH — 0.22 units apart against the other four lanes' ONE message
+   each, so the difference in rate is something the reader counts rather than
+   something a caption claims. Five clear the valve, the bar shuts as the
+   sixth arrives, and seven stack up behind it.
+
+   EVERY NUMBER PRINTED HERE IS DERIVED FROM THOSE TWELVE, and every one of
+   them is asserted against the dots that have actually landed by the moment
+   it is printed: the rate counter's three readings, and the ledger's three.
+   That is the difference between a scene that reports and a scene that
+   decorates — and it is the one kind of error a reviewer cannot catch by
+   eye, because a counter reading 12 over eleven dots looks exactly right.
+
+   THE VALVE CARRIES THE PRODUCT'S OWN KNOB. `per-customer limit · 5 / min` is
+   the setting a customer sets, and `over limit · held` is what it did. Both
+   labels are gray: the amber belongs to the valve, and a second amber object
+   would spend a ration eight stations have been saving.
 
    THE VALVE IS THE SCENE'S ONLY AMBER AND THE FOUR RECEIPTS ARE ITS ONLY
    GREEN. Amber is backoff and green is a message that arrived (BRAND §2), and
@@ -905,13 +932,25 @@ const GT_RECEIPT = "fallback sent · number removed";
    something. The valve goes amber by having an amber copy of itself drawn
    OVER the closed gray one, so no hex ever leaves the stylesheet.
 
-   THE GHOST IS THE ARGUMENT. A strike across all five lanes labelled `daily
-   budget · muted` is what the other design does — and it fades, because it is
-   not what happens here. Drawing the alternative and taking it away says more
-   than any caption claiming a difference could. */
+   THE OTHER FOUR ARE PROVEN, NOT ASSERTED. They send DURING the flood, after
+   the bar has shut, and each answer lands with a receipt AND an ordinary
+   latency stamp while lane 3 is still queued. The timing is the argument: a
+   `delivered` that arrived before the throttle would prove nothing at all,
+   which is why the order is checked at boot rather than left to the eye.
+
+   THE GHOST IS THE ARGUMENT, AND IT NOW COSTS THE OTHER FOUR SOMETHING. A
+   strike across all five lanes labelled `daily budget · muted` is what the
+   other design does — and while it stands, the four green receipts go gray,
+   because that is precisely what a shared budget breaker does to four
+   customers who did nothing. Then the strike un-draws and the green comes
+   back. Drawing the alternative, letting it hurt, and taking it away says
+   more than any caption claiming a difference could. */
 const LANE_N = 5;
 const LANE_Y0 = 286;
 const LANE_PITCH = 44;
+/** Lane i's latitude. At module scope because the asserts reason about it as
+ *  much as the drawing does. */
+const laneY8 = (i: number): number => LANE_Y0 + i * LANE_PITCH;
 const LANE8_X0 = 7720;
 const LANE8_X1 = 8380;
 const LANE8_LBL_X = 7620;
@@ -924,21 +963,262 @@ const REPLY_DOT_X = 8360;
 const DELIVERED_X = 8396;
 const DELIVERED = "delivered";
 const DELIVERED_SIZE = 11;
+/** What an ordinary answer took, one per unaffected lane. Four different
+ *  readings, all boring, all around two seconds — the point of the number is
+ *  that there is nothing to see in it. */
+const LATENCIES: readonly string[] = ["2.1s", "1.8s", "2.3s", "1.9s"];
+const LAT_X = 8470;
+const LAT_SIZE = 11;
+/** What the OTHER design turns those four receipts into, for a beat. */
+const MUTED = "muted";
 const VALVE_X = 8180;
 const VALVE_HALF = 12;
-const FLOOD_N = 9;
+
+/* ── the twelve ────────────────────────────────────────────────────────── */
+const FLOOD_N = 12;
+/** The limit, in messages: what gets answered before the bar shuts. It is the
+ *  `5` in the valve's own label and the `answered 5` in the ledger, written
+ *  once so the three can never disagree. */
+const FLOOD_PASS = 5;
+const FLOOD_HELD = FLOOD_N - FLOOD_PASS;
 const FLOOD_R = 3.4;
-/** Where the burst stands before the valve shuts, and where it queues after.
- *  A queue is a spacing, so the two pitches are the whole picture. */
-const FLOOD_SPREAD_X0 = 7760;
-const FLOOD_SPREAD_PITCH = 47.5;
-const FLOOD_QUEUE_X0 = 8036;
+/** The flood's own pitch and travel, in timeline units. */
+const FLOOD_PITCH = 0.22;
+const FLOOD_DUR = 0.9;
+/** Where a message comes in from: the customer's side of the lane. */
+const FLOOD_FROM_X = 7700;
+/** Where the five that got through come to rest, past the valve. */
+const PASS_X0 = 8200;
+const PASS_PITCH = 38;
+/** And where the seven that did not stack up behind it. A QUEUE IS A SPACING:
+ *  the held messages stand closer together than the ones that got through,
+ *  and the back of the queue is the valve itself. */
 const FLOOD_QUEUE_PITCH = 17;
+const FLOOD_QUEUE_X1 = VALVE_X - 12;
+const FLOOD_QUEUE_X0 = FLOOD_QUEUE_X1 - (FLOOD_HELD - 1) * FLOOD_QUEUE_PITCH;
+
+/* ── what the platform says it is doing ────────────────────────────────── */
+const VALVE_LIMIT = `per-customer limit · ${FLOOD_PASS} / min`;
+const VALVE_HELD = "over limit · held";
+const VALVE_LBL_X = VALVE_X;
+const VALVE_LBL_Y = 404;
+const VALVE_LBL_SIZE = 10;
+
+/* ── the rate counter ──────────────────────────────────────────────────────
+   A column of READINGS behind a static aperture, moved by a transform: the
+   judge's score column generalised from one glyph to one line, because two
+   numbers change on every step and a per-digit column cannot express that.
+   Cell 0 is blank (nothing has arrived yet) and the LAST cell is the
+   untransformed one — the same inversion the whole file runs on. */
+const RATE_AP_X = 7740;
+const RATE_AP_Y = 390;
+const RATE_AP_W = 92;
+const RATE_AP_H = 16;
+const RATE_PITCH = RATE_AP_H;
+const RATE_BASE_Y = 402;
+const RATE_SIZE = 10.5;
+/** The three readings, and the unit each one is printed on. `count` is the
+ *  load-bearing half: it is checked against the dots that have finished
+ *  arriving by `at`, so a re-timed flood cannot leave the counter lying. */
+const RATE_READS: readonly { count: number; label: string; at: number }[] = [
+  { count: 4, label: "4 msgs · 20s", at: 3.9 },
+  { count: 8, label: "8 msgs · 25s", at: 4.7 },
+  { count: 12, label: "12 msgs · 30s", at: 5.6 },
+];
+
+/* ── the ledger ────────────────────────────────────────────────────────────
+   Three readings, CROSSFADED rather than rolled, and the difference is the
+   point: the counter climbs (one number going up) and the ledger is rewritten
+   (three numbers restated). Every reading reconciles — received = answered +
+   held — and every one of them is checked against the flood itself. */
+const LEDGER_X = 7930;
+const LEDGER_Y = 352;
+const LEDGER_SIZE = 10;
+const LEDGER: readonly { received: number; answered: number; held: number; at: number }[] = [
+  { received: 4, answered: 4, held: 0, at: 3.95 },
+  { received: 8, answered: 5, held: 3, at: 4.8 },
+  { received: 12, answered: 5, held: 7, at: 5.8 },
+];
+const ledgerText = (l: { received: number; answered: number; held: number }): string =>
+  `received ${l.received} · answered ${l.answered} · held ${l.held}`;
+
+/* ── the bracket over the four who never noticed ───────────────────────────
+   Two subpaths in ONE path, because lane 3 is not in it: a bracket spanning
+   all five would be the exact opposite of the claim. Its spine stands past
+   the receipts, so what it brackets is the evidence rather than the lanes. */
+const BRK_X0 = 8520;
+const BRK_X1 = 8530;
+const BRK_LABEL = `unaffected · ${LANE_N - 1} of ${LANE_N - 1} answered`;
+const BRK_LBL_Y = 268;
+const BRK_SIZE = 10.5;
+/** Which lanes each of the bracket's two runs covers, written out rather than
+ *  derived from "everything but the flood": a run is a CONTIGUOUS span and
+ *  the flood lane is what splits it, so the pair of spans is the shape and
+ *  the assert reads it back. */
+const BRK_LANES: readonly (readonly number[])[] = [
+  [0, 1],
+  [3, 4],
+];
+
 const NOTICE_TEXT = "notice sent once";
 const NOTICE_W = 150;
 const NOTICE_FROM = 7940;
 const NOTICE_TO = 7810;
 const GHOST_LABEL = "daily budget · muted";
+const GHOST_X0 = 8250;
+const GHOST_Y0 = 268;
+const GHOST_X1 = 8310;
+const GHOST_Y1 = 480;
+const GHOST_LBL_X = (GHOST_X0 + GHOST_X1) / 2;
+const GHOST_LBL_Y = 500;
+
+/* ── station 8's own clock, in units from S8 ───────────────────────────────
+   The beats the asserts need to reason about live here rather than inline, so
+   that "the four replies land after the valve closes" is a comparison between
+   two named numbers instead of a claim about two literals sixty lines
+   apart. */
+const S8_FLOOD_AT = 2.2;
+const S8_VALVE_AT = 3.9;
+const S8_VALVE_DUR = 0.5;
+const S8_AMBER_AT = 4.5;
+const S8_AMBER_DUR = 0.5;
+const S8_REPLY_AT = 5.2;
+/** The four other customers send ONE message each, this far apart. It is a
+ *  stagger between four different people, not a rate — which is exactly why
+ *  the flood beside it reads as a rate. */
+const REPLY_STAGGER = 0.35;
+/** When flood message i has finished arriving, in units from S8. */
+const floodLanded = (i: number): number => S8_FLOOD_AT + i * FLOOD_PITCH + FLOOD_DUR;
+/** How many of them have landed by unit `t` (from S8). */
+const floodArrivedBy = (t: number): number =>
+  Array.from({ length: FLOOD_N }, (_v, i) => i).filter((i) => floodLanded(i) <= t).length;
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE LANDING  —  the version rail prints itself as a receipt   (148 → 160)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Every number below is in FRAME space, not world space: the receipt is frame
+   furniture like the rail it prints and the ticket beside it, because what it
+   says is true of the whole scene rather than of the bay the camera is parked
+   on.
+
+   THE APERTURE LAW. The clip is a hole in a machine and NEVER animates; the
+   paper is what moves (scene 6's printing receipts, and this scene's own two
+   digit columns). One translate on one group reveals eleven lines in order at
+   exactly the reader's scroll speed, and scrolling up feeds them back in —
+   which is also why nothing printed on the paper needs a tween of its own.
+
+   TWO NESTED GROUPS, TWO OWNERS, ZERO SHARED NUMBERS. The outer group's y is
+   the SCRUB's (the print). The inner group's y and opacity are the POINTER's
+   (the taut lift on hover, and the vanish at the tear). Station 5's law, and
+   scene 4's ticket's before it. */
+const MOUTH_Y = 300;
+const RCPT_X = 548;
+const RCPT_W = 224;
+const RCPT_PAD = 20;
+/** Where the paper stops being paper. Everything between the mouth and here
+ *  is one strip, and the tear takes all of it. */
+const RCPT_PERF_Y = 522;
+const RCPT_H = RCPT_PERF_Y - MOUTH_Y;
+/** The clip's own height: the strip plus a hair, so a 1px perforation never
+ *  lands exactly on the aperture's own edge. */
+const RCPT_CLIP_H = RCPT_H + 6;
+const RCPT_SIZE = 10.5;
+const RCPT_HEAD_Y0 = 322;
+const RCPT_HEAD_PITCH = 18;
+const RCPT_LINE_Y0 = 366;
+const RCPT_LINE_PITCH = 18;
+const RCPT_RULE_Y = 490;
+const RCPT_TOTAL_Y = 508;
+/** The serrated bar. One tooth per TEETH_W, so the machine's fringe and the
+ *  strip's own torn edge are the same shape with the sign flipped — two
+ *  halves of one separation. */
+const TEETH_N = 28;
+const TEETH_W = RCPT_W / TEETH_N;
+const TEETH_H = 3.5;
+
+/** What the receipt is OF. Two header lines, then the rail's eight stamps as
+ *  seven lines — the canary's two stamps are one line, because opening a
+ *  canary and promoting it is one event with two ends — then a rule and the
+ *  total. Every one of them is checked against the rail below. */
+/** THE ARROW IS `->` AND NOT `→`, and that is a measurement decision rather
+ *  than a typographic one. The self-hosted latin faces cover U+0000–00FF plus
+ *  a short list that does NOT include U+2192 (verified against
+ *  @fontsource/geist-mono's own unicode.json) — the same subset trap the
+ *  checkmark, the star, the block and U+2116 hit elsewhere on this page. A
+ *  glyph outside the subset is painted by a fallback face, and a fallback
+ *  face has a different ADVANCE: every monoWidth() assert about a string
+ *  containing one is measuring a number it cannot know. `->` is two glyphs
+ *  the font has, in a machine's own register, on a machine's own printout. */
+const RCPT_HEAD: readonly string[] = ["acme · support prompt", "v6 -> v7"];
+const RCPT_LINES: readonly string[] = [
+  "judged 4.6",
+  "ci · green",
+  "saved · v7",
+  "canary 10% -> promoted",
+  "routed",
+  "gated",
+  "throttled 1",
+];
+/** The bottom line. Seven stations, because station 1 is the EDIT itself —
+ *  the thing that then travelled through seven more. */
+const RCPT_TOTAL = `total · ${STATION_AT.length - 1} stations · 1 edit`;
+
+/* ── the door ──────────────────────────────────────────────────────────────
+   The whisper, in scene 4's `click here` grammar: small, quiet, one short
+   curve dipping to the perforation. It arrives strictly after the print has
+   settled — an instruction printed over a page still coming out of the
+   machine would be an instruction about something that is not there yet. */
+const TEAR_HERE = "tear here";
+const TEAR_HERE_X = 800;
+const TEAR_HERE_Y = 548;
+
+/** THE SNAP. A receipt is not peeled, it is pulled once against a bar, and
+ *  the separation runs the width of the strip in one stroke. 0.35s: scene 4's
+ *  ticket takes 1.45 to tear because a perforation gives dash by dash, and
+ *  the whole point of the two doors being different is that this one does
+ *  not. */
+const SNAP_RUN = 0.35;
+/** The fall. Once, damped, no bounce and no loop. */
+const FALL_DUR = 2.15;
+/** How far down the viewport the strip travels, as a fraction of its height,
+ *  and the swings it takes on the way. SHRINKING, and alternating — free
+ *  paper does not oscillate at a constant amplitude, it spills its energy. */
+const FALL_DROP = 0.78;
+const FALL_SWINGS: readonly number[] = [64, -40, 24, -10];
+/** The lean INTO each swing, in degrees, decaying with it, and flat at each
+ *  stall. Keyframed rather than autoRotated: a page's tilt is not its
+ *  tangent — it leads the swing and lags the turn. */
+const FALL_TILT: readonly number[] = [14, -10, 6, -3];
+/** The BOW, and it is a bow rather than a ripple: free paper bends once along
+ *  its length and the bend reverses with the swing, where pinned cloth would
+ *  ripple. A hint, never a fold — skewX in degrees, about the strip's own
+ *  centre. */
+const FALL_BOW: readonly number[] = [-5, 4, -2.5, 1.2];
+/** The glide, at the release. Scene 4's ticket's numbers exactly: the reader
+ *  who tears one door and the reader who tears the other must not feel two
+ *  different pages moving. */
+const GLIDE_DUR = 1.3;
+/** How far the strip stiffens toward the teeth under a pointer. 1.5u is under
+ *  two pixels at the stage's render scale — the paper going taut, not the
+ *  paper moving. */
+const TEAR_LIFT = 1.5;
+
+/* ── the landing's own clock, in units from LANDING_AT ─────────────────────
+   Named rather than inline for the same reason station 8's are: the two facts
+   that matter here — the whisper arrives after the print has settled, and
+   nothing is still being built when the held ending starts — are comparisons
+   between numbers, and a comparison the file can make is a comparison a
+   future edit cannot get wrong. */
+const L_CLOSE_AT = 1.4;
+const L_TEETH_AT = 0.6;
+const L_PRINT_AT = 2.6;
+/** The print's length. Seven units of scroll for eleven lines is a printer
+ *  the reader can read AS it prints rather than one they watch finish. */
+const L_PRINT_DUR = 7.2;
+const L_HINT_AT = 10.2;
+/** How long the whisper takes to arrive, all three of its parts. */
+const L_HINT_RUN = 1.55;
 
 /* ══════════════════════════════════════════════════════════════════════════
    THE STILL'S WINDOWS  —  authored now, cloned by slice D
@@ -1100,6 +1380,29 @@ function ticketPath(): string {
   return parts.join(" ");
 }
 
+/** The serrated bar's saw tooth, and both halves of the separation it makes.
+ *  `sign` +1 is the bar itself and the fringe it leaves in the machine; −1 is
+ *  the complementary edge on the strip that comes away. One function, so the
+ *  two halves of one tear cannot stop interlocking. */
+function teethPath(y: number, sign: number): string {
+  const parts = [`M ${RCPT_X} ${y}`];
+  for (let i = 0; i < TEETH_N; i++) {
+    parts.push(`l ${TEETH_W / 2} ${sign * TEETH_H}`, `l ${TEETH_W / 2} ${-sign * TEETH_H}`);
+  }
+  return parts.join(" ");
+}
+
+/** The bracket over the four lanes the flood never touched. Two subpaths in
+ *  one path, one per contiguous run, because the flooding lane is what splits
+ *  it — a single span would be the opposite of what it says. */
+function bracketPath(): string {
+  return BRK_LANES.map((run) => {
+    const y0 = laneY8(run[0]!);
+    const y1 = laneY8(run[run.length - 1]!);
+    return `M ${BRK_X0} ${y0} L ${BRK_X1} ${y0} L ${BRK_X1} ${y1} L ${BRK_X0} ${y1}`;
+  }).join(" ");
+}
+
 export interface EditScene {
   destroy(): void;
 }
@@ -1140,13 +1443,14 @@ export function createEditScene(): EditScene {
   ) {
     throw new Error("[edit] the landing and the held ending are out of order");
   }
-  /* The slice's own contract. SLICE_END has to land ON the unit the NEXT
-     slice begins on, or that slice has to re-time the beats this one authored
-     — the single thing this scaffolding exists to prevent. Slice A handed over
-     on STATION_AT[3]; slice B hands over on LANDING_AT, where the rail starts
-     printing itself; slice C will hand over on TL_END. */
-  if (SLICE_END !== LANDING_AT) {
-    throw new Error("[edit] SLICE_END is not the unit the landing begins on");
+  /* The scaffolding's FINAL invariant, and the last one it will ever have.
+     Slice A handed over on STATION_AT[3], slice B on LANDING_AT; slice C ends
+     the scene, so the only correct value left is the timeline's own end. A
+     future edit that shortens the scrub has to move TL_END and take the
+     density paragraph at the top of the file with it, rather than quietly
+     stopping the pin somewhere else. */
+  if (SLICE_END !== TL_END || SLICE_HOLD_FROM !== HOLD_FROM) {
+    throw new Error("[edit] the scene does not end on its own timeline");
   }
   /* And the held ending has to be long enough to be an ending. Scene 4's
      floor: six units is 0.13 of a viewport height with nothing happening. */
@@ -1624,11 +1928,13 @@ export function createEditScene(): EditScene {
 
   /* ── station 8's five customers ───────────────────────────────────────── */
   const lanes8G = q<SVGGElement>(svg, "#edt-lanes8");
-  const laneY = (i: number): number => LANE_Y0 + i * LANE_PITCH;
+  const laneY = laneY8;
   const laneRules: SVGPathElement[] = [];
   const laneLabels: SVGTextElement[] = [];
   const replyDots: SVGCircleElement[] = [];
   const delivereds: SVGTextElement[] = [];
+  const muteds: SVGTextElement[] = [];
+  const latencies: SVGTextElement[] = [];
   for (let i = 0; i < LANE_N; i++) {
     const y = laneY(i);
     const rule = svgEl("path", { class: "edt-lane", d: `M ${LANE8_X0} ${y} L ${LANE8_X1} ${y}` });
@@ -1637,38 +1943,111 @@ export function createEditScene(): EditScene {
     lanes8G.append(rule, lbl);
     laneRules.push(rule);
     laneLabels.push(lbl);
-    /* The four who never notice get a reply and a receipt. The flooding lane
-       gets neither: what comes back to it is a notice, and a notice is not a
-       delivery. */
+    /* The four who never notice get a reply, a receipt and a LATENCY — and
+       the latency is what makes the receipt evidence rather than a claim: it
+       says the answer took as long as an answer takes, while one lane over a
+       queue is being held. The flooding lane gets none of the three: what
+       comes back to it is a notice, and a notice is not a delivery. */
     if (i === FLOOD_LANE) continue;
+    const k = latencies.length;
     const dot = svgEl("circle", { class: "edt-dot", cx: REPLY_DOT_X, cy: y, r: CN_R });
     const rcpt = svgEl("text", { class: "edt-delivered", x: DELIVERED_X, y: y + 4 });
     rcpt.textContent = DELIVERED;
-    lanes8G.append(dot, rcpt);
+    /* What the ghost turns that receipt into, for a beat. Same anchor, same
+       size, one rung of gray — a receipt that VANISHED would say the message
+       was never sent, and the whole point is that it was and nobody got it. */
+    const mute = svgEl("text", { class: "edt-muted", x: DELIVERED_X, y: y + 4 });
+    mute.textContent = MUTED;
+    const lat = svgEl("text", { class: "edt-lat", x: LAT_X, y: y + 4 });
+    lat.textContent = LATENCIES[k]!;
+    lanes8G.append(dot, rcpt, mute, lat);
     replyDots.push(dot);
     delivereds.push(rcpt);
+    muteds.push(mute);
+    latencies.push(lat);
   }
 
   /* ── the flood ─────────────────────────────────────────────────────────
-     Nine messages from one customer, authored where they QUEUE (the finished
-     frame) and pushed back out to where they arrived by restState. */
+     Twelve messages from one customer, authored where each one COMES TO REST
+     (the finished frame) and pushed back out to the customer's side of the
+     lane by restState: the first five past the valve, the other seven stacked
+     up behind it. */
   const floodG = q<SVGGElement>(svg, "#edt-flood");
+  /** Where message i ends up. One function, read by the authoring, by the
+   *  rest state and by the arrival tween, so the three can never disagree
+   *  about which message is which. */
+  const floodX = (i: number): number =>
+    i < FLOOD_PASS
+      ? PASS_X0 + i * PASS_PITCH
+      : FLOOD_QUEUE_X0 + (i - FLOOD_PASS) * FLOOD_QUEUE_PITCH;
   const floodDots: SVGCircleElement[] = [];
   for (let i = 0; i < FLOOD_N; i++) {
     const c = svgEl("circle", {
       class: "edt-dot",
-      cx: FLOOD_QUEUE_X0 + i * FLOOD_QUEUE_PITCH,
+      cx: floodX(i),
       cy: laneY(FLOOD_LANE),
       r: FLOOD_R,
     });
     floodG.appendChild(c);
     floodDots.push(c);
   }
-  /** Where dot i came in from, relative to where it now stands. Written once,
-   *  read by the entry tween and by the queue tween, so the two can never
-   *  disagree about which dot is which. */
-  const floodSpreadDx = (i: number): number =>
-    FLOOD_SPREAD_X0 + i * FLOOD_SPREAD_PITCH - (FLOOD_QUEUE_X0 + i * FLOOD_QUEUE_PITCH);
+  /** How far back down the lane message i started. */
+  const floodEntryDx = (i: number): number => FLOOD_FROM_X - floodX(i);
+
+  /* ── the rate counter's column ─────────────────────────────────────────
+     One cell per reading plus a blank one for "nothing has arrived yet", and
+     the LAST cell is authored with no transform, because the finished frame is
+     the untransformed one. The judge's score column, generalised. */
+  const rateCol = q<SVGGElement>(svg, "#edt-rate-col");
+  const rateCells = ["", ...RATE_READS.map((r) => r.label)];
+  rateCells.forEach((text, k) => {
+    const t = svgEl("text", {
+      class: "edt-rate",
+      x: RATE_AP_X,
+      y: RATE_BASE_Y + (k - (rateCells.length - 1)) * RATE_PITCH,
+    });
+    t.textContent = text;
+    rateCol.appendChild(t);
+  });
+  /** Where the column stands when cell c is in the window. */
+  const rateY = (c: number): number => (rateCells.length - 1 - c) * RATE_PITCH;
+
+  /* ── the ledger's three readings ───────────────────────────────────────── */
+  const ledgerG = q<SVGGElement>(svg, "#edt-ledger");
+  const ledgerReads: SVGTextElement[] = LEDGER.map((l) => {
+    const t = svgEl("text", { class: "edt-ledger-read", x: LEDGER_X, y: LEDGER_Y });
+    t.textContent = ledgerText(l);
+    ledgerG.appendChild(t);
+    return t;
+  });
+
+  /* ── the landing receipt's lettering ───────────────────────────────────
+     Generated, like every other family on this stage, so a pitch cannot be
+     typed in twice and disagree with itself. None of it is in the scrub's
+     fade lists: the APERTURE is the reveal, and a line that also faded in
+     would be a second switch for one state. */
+  {
+    const headG = q<SVGGElement>(svg, "#edt-rcpt-head");
+    RCPT_HEAD.forEach((text, i) => {
+      const t = svgEl("text", {
+        class: "edt-rcpt-head",
+        x: RCPT_X + RCPT_PAD,
+        y: RCPT_HEAD_Y0 + i * RCPT_HEAD_PITCH,
+      });
+      t.textContent = text;
+      headG.appendChild(t);
+    });
+    const linesG8 = q<SVGGElement>(svg, "#edt-rcpt-lines");
+    RCPT_LINES.forEach((text, i) => {
+      const t = svgEl("text", {
+        class: "edt-rcpt-line",
+        x: RCPT_X + RCPT_PAD,
+        y: RCPT_LINE_Y0 + i * RCPT_LINE_PITCH,
+      });
+      t.textContent = text;
+      linesG8.appendChild(t);
+    });
+  }
 
   /* ── the torn ticket's outline ─────────────────────────────────────────── */
   const tktBody = q<SVGPathElement>(svg, "#edt-tkt-body");
@@ -1825,10 +2204,27 @@ export function createEditScene(): EditScene {
   const noticeT = q<SVGTextElement>(svg, "#edt-notice-t");
   const ghost = q<SVGPathElement>(svg, "#edt-ghost");
   const ghostLbl = q<SVGTextElement>(svg, "#edt-ghost-lbl");
+  const limitLbl = q<SVGTextElement>(svg, "#edt-limit");
+  const heldLbl = q<SVGTextElement>(svg, "#edt-held");
+  const brk = q<SVGPathElement>(svg, "#edt-brk");
+  const brkLbl = q<SVGTextElement>(svg, "#edt-brk-lbl");
+
+  /* ── the landing receipt ───────────────────────────────────────────────── */
+  const teeth = q<SVGPathElement>(svg, "#edt-teeth");
+  const rcptFringe = q<SVGPathElement>(svg, "#edt-rcpt-fringe");
+  const rcptFeed = q<SVGGElement>(svg, "#edt-rcpt-feed");
+  const rcptPaper = q<SVGGElement>(svg, "#edt-rcpt-paper");
+  const tearHere = q<SVGTextElement>(svg, "#edt-tear-here");
+  const tearArrow = q<SVGPathElement>(svg, "#edt-tear-arrow");
+  const tearHead = q<SVGPathElement>(svg, "#edt-tear-head");
 
   const stage = q<HTMLElement>(doc, ".edt-stage");
   const toggle = q<HTMLButtonElement>(doc, "#edt-toggle");
   const toggleName = q<HTMLElement>(doc, "#edt-toggle-name");
+  const tearBtn = q<HTMLButtonElement>(doc, "#edt-tear");
+  const closingRule = q<HTMLElement>(doc, "#edt-closing-rule");
+  const closingText = q<HTMLElement>(doc, "#edt-closing-text");
+  const bridgeLines = Array.from(doc.querySelectorAll<HTMLElement>(".edt-bridge-line"));
 
   /* ── the markup and the constants have to agree ─────────────────────────
      Two kinds of agreement, and the difference between them is deliberate.
@@ -2254,10 +2650,7 @@ export function createEditScene(): EditScene {
   /* ── station 8 ─────────────────────────────────────────────────────────── */
   {
     const lastLaneY = LANE_Y0 + (LANE_N - 1) * LANE_PITCH;
-    if (
-      !inBay(7, LANE8_LBL_X, DELIVERED_X + monoWidth(DELIVERED, DELIVERED_SIZE)) ||
-      !inBand(LANE_Y0 - 12, lastLaneY + 12)
-    ) {
+    if (!inBay(7, LANE8_LBL_X, BRK_X1) || !inBand(LANE_Y0 - 12, lastLaneY + 12)) {
       throw new Error("[edit] the five customer lanes leave their own bay");
     }
     if (FLOOD_LANE <= 0 || FLOOD_LANE >= LANE_N - 1) {
@@ -2277,16 +2670,170 @@ export function createEditScene(): EditScene {
     if (REPLY_DOT_X >= LANE8_X1 || REPLY_DOT_X <= VALVE_X) {
       throw new Error("[edit] the four untouched replies do not land past the valve");
     }
-    /* A QUEUE IS A SPACING. If the two pitches were the same the valve would
-       have closed and nothing would have happened. */
-    if (FLOOD_QUEUE_PITCH >= FLOOD_SPREAD_PITCH) {
-      throw new Error("[edit] the throttled burst does not actually queue up");
+
+    /* ── the flood, and everything printed off it ───────────────────────── */
+
+    /* The five that clear the valve stand PAST it and inside the lane; the
+       seven that do not stand BEHIND it, and the back of the queue is the
+       valve itself. */
+    if (PASS_X0 - FLOOD_R <= VALVE_X) {
+      throw new Error("[edit] a message that got through is standing behind the valve");
     }
-    if (FLOOD_QUEUE_X0 + (FLOOD_N - 1) * FLOOD_QUEUE_PITCH + FLOOD_R >= VALVE_X) {
+    if (PASS_X0 + (FLOOD_PASS - 1) * PASS_PITCH + FLOOD_R > LANE8_X1) {
+      throw new Error("[edit] a message that got through stands off the end of its own lane");
+    }
+    if (FLOOD_QUEUE_X1 + FLOOD_R >= VALVE_X) {
       throw new Error("[edit] the queue runs through the valve that is holding it");
     }
-    if (FLOOD_SPREAD_X0 - FLOOD_R < LANE8_X0) {
-      throw new Error("[edit] the burst starts off the end of its own lane");
+    if (FLOOD_QUEUE_X0 - FLOOD_R < LANE8_X0) {
+      throw new Error("[edit] the queue runs off the back end of its own lane");
+    }
+    /* A QUEUE IS A SPACING: held messages stand closer together than the ones
+       that got through. If the two pitches matched, the valve would have shut
+       and the picture would say nothing happened. */
+    if (FLOOD_QUEUE_PITCH >= PASS_PITCH) {
+      throw new Error("[edit] the throttled messages do not actually queue up");
+    }
+    if (FLOOD_FROM_X >= LANE8_X0 || FLOOD_FROM_X < bayCx(7) - CONTENT_HALF) {
+      throw new Error("[edit] the flood does not come in from the customer's side of the lane");
+    }
+    /* THE FLOOD IS VISIBLY FASTER THAN ANY OTHER LANE, and the honest test of
+       that is not a pitch against a pitch — every other customer sends ONE
+       message in the station's whole dwell — but whether the messages OVERLAP
+       IN FLIGHT. A burst whose pitch is longer than a message's own travel is
+       a queue of separate arrivals; one whose pitch is a fraction of it is a
+       flood, and the reader sees a lane with several messages on it at once.
+       The second clause keeps the whole burst well inside its station. */
+    if (FLOOD_PITCH >= FLOOD_DUR / 3) {
+      throw new Error("[edit] the flood's messages never overlap in flight, so it is not a flood");
+    }
+    if (FLOOD_N * FLOOD_PITCH >= LANDING_AT - STATION_AT[7]! - 10) {
+      throw new Error("[edit] the flood does not finish arriving inside its own station");
+    }
+    if (REPLY_STAGGER <= FLOOD_PITCH) {
+      throw new Error("[edit] the four single messages arrive as fast as the flood does");
+    }
+    /* THE COUNTER CANNOT LIE. Every reading is checked against the dots that
+       have actually finished arriving by the unit it is printed on — the one
+       error in this station a reviewer cannot catch by eye, because a counter
+       reading 12 over eleven dots looks exactly right. */
+    for (const [i, r] of RATE_READS.entries()) {
+      if (floodArrivedBy(r.at) !== r.count) {
+        throw new Error(
+          `[edit] the rate counter reads ${r.count} where ${floodArrivedBy(r.at)} messages have arrived`,
+        );
+      }
+      if (!r.label.startsWith(`${r.count} msgs`)) {
+        throw new Error(`[edit] rate reading "${r.label}" does not print its own count`);
+      }
+      if (i > 0 && (r.at <= RATE_READS[i - 1]!.at || r.count <= RATE_READS[i - 1]!.count)) {
+        throw new Error("[edit] the rate counter does not climb");
+      }
+      if (monoWidth(r.label, RATE_SIZE) > RATE_AP_W) {
+        throw new Error(`[edit] rate reading "${r.label}" is wider than its own aperture`);
+      }
+    }
+    if (RATE_READS[RATE_READS.length - 1]!.count !== FLOOD_N) {
+      throw new Error("[edit] the rate counter never counts the whole flood");
+    }
+    if (RATE_AP_H !== RATE_PITCH || RATE_BASE_Y <= RATE_AP_Y || RATE_BASE_Y > RATE_AP_Y + RATE_AP_H) {
+      throw new Error("[edit] the rate counter's aperture is not one cell of its own column");
+    }
+    if (!inBay(7, RATE_AP_X, RATE_AP_X + RATE_AP_W) || !inBand(RATE_AP_Y, RATE_AP_Y + RATE_AP_H)) {
+      throw new Error("[edit] the rate counter leaves the lanes' own bay");
+    }
+    /* THE LEDGER RECONCILES, and it reconciles against the flood rather than
+       against itself: received is what has landed, answered is what the limit
+       let through, held is the rest. Three sums that always add up, and none
+       of them typed twice. */
+    for (const [i, l] of LEDGER.entries()) {
+      if (l.received !== l.answered + l.held) {
+        throw new Error(`[edit] ledger reading ${i} does not add up`);
+      }
+      if (l.received !== floodArrivedBy(l.at)) {
+        throw new Error(
+          `[edit] the ledger says ${l.received} received where ${floodArrivedBy(l.at)} have arrived`,
+        );
+      }
+      if (l.answered !== Math.min(l.received, FLOOD_PASS)) {
+        throw new Error(`[edit] ledger reading ${i} answers a different number than the limit allows`);
+      }
+      if (i > 0 && l.at <= LEDGER[i - 1]!.at) {
+        throw new Error("[edit] the ledger runs backwards");
+      }
+      if (monoWidth(ledgerText(l), LEDGER_SIZE) + LEDGER_X > VALVE_X - VALVE_HALF) {
+        throw new Error(`[edit] the ledger is printed over the valve it reports on`);
+      }
+    }
+    if (LEDGER[LEDGER.length - 1]!.held !== FLOOD_HELD) {
+      throw new Error("[edit] the ledger's final tally is not the queue standing behind the valve");
+    }
+    if (!inBand(LEDGER_Y - LEDGER_SIZE, LEDGER_Y + 4) || LEDGER_Y + 4 >= laneY8(FLOOD_LANE) - VALVE_HALF) {
+      throw new Error("[edit] the ledger collides with the lane it reports on");
+    }
+    /* The valve says what it IS before it says what it did, and both readings
+       fit between the lane it sits on and the one below it. */
+    if (!VALVE_LIMIT.includes(String(FLOOD_PASS))) {
+      throw new Error("[edit] the valve's label does not carry the limit it enforces");
+    }
+    for (const s of [VALVE_LIMIT, VALVE_HELD]) {
+      const half = monoWidth(s, VALVE_LBL_SIZE) / 2;
+      if (!inBay(7, VALVE_LBL_X - half, VALVE_LBL_X + half)) {
+        throw new Error(`[edit] the valve label "${s}" leaves its own bay`);
+      }
+      if (VALVE_LBL_X + half >= GHOST_X0 + ((VALVE_LBL_Y - GHOST_Y0) * (GHOST_X1 - GHOST_X0)) / (GHOST_Y1 - GHOST_Y0)) {
+        throw new Error(`[edit] the valve label "${s}" runs into the ghost's strike`);
+      }
+    }
+    if (VALVE_LBL_Y <= laneY8(FLOOD_LANE) + VALVE_HALF || VALVE_LBL_Y >= laneY8(FLOOD_LANE + 1) - 8) {
+      throw new Error("[edit] the valve's label does not sit between its lane and the next");
+    }
+    /* THE FOUR REPLIES LAND AFTER THE VALVE HAS SHUT. The timing IS the
+       argument — a `delivered` that arrived before the throttle would prove
+       nothing at all — so it is a comparison between two named units rather
+       than something the eye has to catch. */
+    if (S8_REPLY_AT <= S8_AMBER_AT + S8_AMBER_DUR) {
+      throw new Error("[edit] the four unaffected replies land before the valve has closed");
+    }
+    if (S8_VALVE_AT <= floodLanded(FLOOD_PASS - 1) - S8_VALVE_DUR) {
+      throw new Error("[edit] the valve shuts before the messages it was supposed to let through");
+    }
+    if (S8_VALVE_AT + S8_VALVE_DUR > floodLanded(FLOOD_PASS) + 0.5) {
+      throw new Error("[edit] the valve is still open when the message over the limit lands");
+    }
+    /* The latency stamps sit past the receipts they qualify, and there is one
+       per unaffected lane. */
+    if (LATENCIES.length !== LANE_N - 1) {
+      throw new Error("[edit] there is not one latency stamp per unaffected lane");
+    }
+    if (LAT_X < DELIVERED_X + monoWidth(DELIVERED, DELIVERED_SIZE) + 8) {
+      throw new Error("[edit] a latency stamp is printed over the receipt it belongs to");
+    }
+    if (monoWidth(MUTED, DELIVERED_SIZE) > monoWidth(DELIVERED, DELIVERED_SIZE)) {
+      throw new Error("[edit] the muted reading is wider than the receipt it replaces");
+    }
+    /* THE BRACKET SPANS EXACTLY THE FOUR NON-FLOOD LANES. A bracket that
+       reached across lane 3 would be the opposite of what it says. */
+    {
+      const spanned = BRK_LANES.flat();
+      if (spanned.length !== LANE_N - 1 || spanned.includes(FLOOD_LANE)) {
+        throw new Error("[edit] the bracket does not span exactly the four unaffected lanes");
+      }
+      if (new Set(spanned).size !== spanned.length) {
+        throw new Error("[edit] the bracket spans a lane twice");
+      }
+      if (!BRK_LABEL.includes(`${LANE_N - 1} of ${LANE_N - 1}`)) {
+        throw new Error("[edit] the bracket's label counts a different number of lanes than it spans");
+      }
+      if (BRK_X0 < LAT_X + monoWidth(LATENCIES[0]!, LAT_SIZE) + 8) {
+        throw new Error("[edit] the bracket is drawn over the evidence it brackets");
+      }
+      if (BRK_LBL_Y > LANE_Y0 - 12 || BRK_LBL_Y - BRK_SIZE < CONTENT_Y0) {
+        throw new Error("[edit] the bracket's label sits on the top lane, or above the content band");
+      }
+      if (BRK_X1 - monoWidth(BRK_LABEL, BRK_SIZE) < bayCx(7) - CONTENT_HALF) {
+        throw new Error("[edit] the bracket's label runs out of its own bay");
+      }
     }
     /* The notice goes back to the customer without driving through the queue
        it caused. */
@@ -2296,8 +2843,164 @@ export function createEditScene(): EditScene {
     if (monoWidth(NOTICE_TEXT, 10) > NOTICE_W - 20) {
       throw new Error("[edit] the notice is narrower than what is printed on it");
     }
-    if (monoWidth(GHOST_LABEL, RUBRIC_SIZE) / 2 + 8265 > bayCx(7) + CONTENT_HALF) {
+    /* The ghost strikes every lane, and its label clears the bay. */
+    if (GHOST_Y0 > LANE_Y0 || GHOST_Y1 < lastLaneY) {
+      throw new Error("[edit] the ghost's strike does not cross all five lanes");
+    }
+    if (monoWidth(GHOST_LABEL, RUBRIC_SIZE) / 2 + GHOST_LBL_X > bayCx(7) + CONTENT_HALF) {
       throw new Error("[edit] the ghost's label runs out of its own bay");
+    }
+    if (GHOST_LBL_X + monoWidth(GHOST_LABEL, RUBRIC_SIZE) / 2 >= BRK_X1 - monoWidth(BRK_LABEL, BRK_SIZE)) {
+      /* Both labels are right-hand furniture at this station; they are on
+         different latitudes, and this is what keeps them there. */
+      if (Math.abs(GHOST_LBL_Y - BRK_LBL_Y) < 20) {
+        throw new Error("[edit] the ghost's label and the bracket's label are printed over each other");
+      }
+    }
+  }
+
+  /* ════════════════════════════════════════════════════════════════════════
+     BOOT ASSERTS — the landing receipt and the door
+     Frame space, not world space. Two things are being checked: that the
+     paper holds what is printed on it, and that the receipt is a true copy of
+     the rail — a flight recorder whose paper copy said something else would
+     be the one object on this page that could be caught lying.
+     ════════════════════════════════════════════════════════════════════════ */
+
+  {
+    const inner = RCPT_X + RCPT_W - RCPT_PAD;
+    const textX = RCPT_X + RCPT_PAD;
+    for (const line of [...RCPT_HEAD, ...RCPT_LINES, RCPT_TOTAL]) {
+      if (textX + monoWidth(line, RCPT_SIZE) > inner) {
+        throw new Error(`[edit] the receipt is narrower than "${line}"`);
+      }
+    }
+    /* The strip stands clear of the two other frame-space objects it shares
+       the stage with: the version rail it is a copy of, and the torn ticket. */
+    if (MOUTH_Y < RAIL_LBL_Y + 10 || RCPT_PERF_Y > FRAME_H - 40) {
+      throw new Error("[edit] the receipt runs into the version rail, or off the bottom of the frame");
+    }
+    if (RCPT_X < TKT_X1 + 20 || RCPT_X + RCPT_W > FRAME_W - 20) {
+      throw new Error("[edit] the receipt collides with the torn ticket, or leaves the frame");
+    }
+    /* The lines are in printing order and none of them lands on another. */
+    if (RCPT_HEAD_Y0 <= MOUTH_Y + RCPT_SIZE) {
+      throw new Error("[edit] the receipt's first line is printed inside the mouth");
+    }
+    {
+      const lastHead = RCPT_HEAD_Y0 + (RCPT_HEAD.length - 1) * RCPT_HEAD_PITCH;
+      const lastLine = RCPT_LINE_Y0 + (RCPT_LINES.length - 1) * RCPT_LINE_PITCH;
+      if (RCPT_LINE_Y0 <= lastHead + RCPT_SIZE) {
+        throw new Error("[edit] the receipt's stamps are printed over its own header");
+      }
+      if (RCPT_RULE_Y <= lastLine + 6 || RCPT_TOTAL_Y <= RCPT_RULE_Y + RCPT_SIZE) {
+        throw new Error("[edit] the receipt's total is printed over the rule above it");
+      }
+      if (RCPT_TOTAL_Y + 6 > RCPT_PERF_Y) {
+        throw new Error("[edit] the receipt's total runs past the perforation");
+      }
+    }
+    /* THE PAPER COPY IS A TRUE COPY OF THE RAIL. Eight stamps, seven lines —
+       the canary's two are one event with two ends — and every stamp's own
+       words appear on exactly one line of the receipt. */
+    if (RCPT_LINES.length !== STAMPS.length - 1) {
+      throw new Error("[edit] the receipt prints a different number of events than the rail recorded");
+    }
+    for (const s of STAMPS) {
+      const on = RCPT_LINES.filter((l) => l.includes(s.label));
+      if (on.length !== 1) {
+        throw new Error(`[edit] the rail stamp "${s.label}" is printed ${on.length} times on the receipt`);
+      }
+    }
+    if (RCPT_TOTAL !== `total · ${STATION_AT.length - 1} stations · 1 edit`) {
+      throw new Error("[edit] the receipt's total counts a different journey than the one it printed");
+    }
+    /* The teeth tile the strip exactly — a bar whose last tooth ran past the
+       paper would be a bar the paper was not cut on. */
+    if (TEETH_N * TEETH_W !== RCPT_W || TEETH_H <= 0 || TEETH_H > 6) {
+      throw new Error("[edit] the serrated bar does not tile the strip it cuts");
+    }
+    /* The whisper sits BESIDE the strip, not on it, and inside the frame. */
+    if (TEAR_HERE_X < RCPT_X + RCPT_W + 12) {
+      throw new Error("[edit] `tear here` is printed on the paper it is about");
+    }
+    if (TEAR_HERE_X + monoWidth(TEAR_HERE, 10) > FRAME_W - 4 || TEAR_HERE_Y > FRAME_H - 40) {
+      throw new Error("[edit] `tear here` runs off the frame");
+    }
+    /* THE PRINT SETTLES BEFORE THE WHISPER, and nothing is still being built
+       when the held ending begins. The second one is what makes the ending an
+       ending; the first is what stops the scene telling the reader to tear
+       something that is still coming out of the machine. */
+    if (L_PRINT_AT + L_PRINT_DUR > L_HINT_AT) {
+      throw new Error("[edit] `tear here` arrives while the receipt is still printing");
+    }
+    if (LANDING_AT + L_HINT_AT + L_HINT_RUN > HOLD_FROM) {
+      throw new Error("[edit] the landing is still building itself inside the held ending");
+    }
+    if (LANDING_AT + L_CLOSE_AT <= LANDING_AT || L_CLOSE_AT >= L_PRINT_AT) {
+      throw new Error("[edit] the closing statement does not arrive before the print it closes");
+    }
+    /* ── the fall ─────────────────────────────────────────────────────────
+       Damped, alternating, and a bow rather than a ripple. All three are
+       properties of the arrays rather than of the code that reads them, so
+       an edit that made the paper oscillate for ever trips here. */
+    for (let i = 1; i < FALL_SWINGS.length; i++) {
+      if (Math.abs(FALL_SWINGS[i]!) >= Math.abs(FALL_SWINGS[i - 1]!)) {
+        throw new Error("[edit] the fall's swings do not shrink");
+      }
+      if (Math.sign(FALL_SWINGS[i]!) === Math.sign(FALL_SWINGS[i - 1]!)) {
+        throw new Error("[edit] the fall's swings do not alternate");
+      }
+    }
+    if (FALL_TILT.length !== FALL_SWINGS.length || FALL_BOW.length !== FALL_SWINGS.length) {
+      throw new Error("[edit] the fall's lean and its bow do not follow its swings");
+    }
+    for (const [i, t] of FALL_TILT.entries()) {
+      if (Math.sign(t) !== Math.sign(FALL_SWINGS[i]!)) {
+        throw new Error("[edit] the paper leans away from the swing it is taking");
+      }
+      /* And the BOW reverses with each swing — that is the whole difference
+         between paper bending and cloth rippling. */
+      if (Math.sign(FALL_BOW[i]!) === Math.sign(FALL_SWINGS[i]!)) {
+        throw new Error("[edit] the paper's bend does not reverse against its swing");
+      }
+      if (Math.abs(FALL_BOW[i]!) > 8) {
+        throw new Error("[edit] the paper's bend is a fold rather than a hint");
+      }
+    }
+    if (SNAP_RUN >= 0.5) {
+      throw new Error("[edit] the snap is slow enough to read as a peel, which is the other door");
+    }
+    /* THE SUBSET LAW, AS AN ASSERT rather than as one more comment nobody
+       reads. The self-hosted latin faces carry U+0000–00FF plus a short list;
+       everything this slice prints is measured with monoWidth(), and a glyph
+       outside the subset is painted by a FALLBACK face whose advance this
+       file does not know. So a width assert over such a string is a coin
+       toss, and the string is the bug. `·` (U+00B7) and `º` (U+00BA) are in
+       the subset, which is exactly why the whole page uses those two and
+       never U+2192, U+2713, U+2265 or U+2116. */
+    const printed = [
+      ...RCPT_HEAD,
+      ...RCPT_LINES,
+      RCPT_TOTAL,
+      TEAR_HERE,
+      VALVE_LIMIT,
+      VALVE_HELD,
+      BRK_LABEL,
+      MUTED,
+      ...LATENCIES,
+      ...RATE_READS.map((r) => r.label),
+      ...LEDGER.map(ledgerText),
+    ];
+    for (const s of printed) {
+      for (const ch of s) {
+        const cp = ch.codePointAt(0)!;
+        if (cp > 0xff) {
+          throw new Error(
+            `[edit] "${s}" carries U+${cp.toString(16).toUpperCase()}, which the self-hosted latin subset does not have`,
+          );
+        }
+      }
     }
   }
 
@@ -2451,6 +3154,24 @@ export function createEditScene(): EditScene {
       j.setAttribute("d", `M ${VALVE_X - 6} ${jy} L ${VALVE_X + 6} ${jy}`);
     });
   }
+  ghost.setAttribute("d", `M ${GHOST_X0} ${GHOST_Y0} L ${GHOST_X1} ${GHOST_Y1}`);
+  ghostLbl.setAttribute("x", String(GHOST_LBL_X));
+  ghostLbl.setAttribute("y", String(GHOST_LBL_Y));
+  brk.setAttribute("d", bracketPath());
+  brkLbl.setAttribute("x", String(BRK_X1));
+  brkLbl.setAttribute("y", String(BRK_LBL_Y));
+  for (const el of [limitLbl, heldLbl]) {
+    el.setAttribute("x", String(VALVE_LBL_X));
+    el.setAttribute("y", String(VALVE_LBL_Y));
+  }
+  tearHere.setAttribute("x", String(TEAR_HERE_X));
+  tearHere.setAttribute("y", String(TEAR_HERE_Y));
+
+  /* The serrated bar and the two halves of the tear it makes. All three are
+     one shape at three offsets, so a bar that moved could not leave a fringe
+     that no longer fitted it. */
+  teeth.setAttribute("d", teethPath(MOUTH_Y, 1));
+  rcptFringe.setAttribute("d", teethPath(MOUTH_Y + 1, 1));
 
   /* The boxes and the sentences stay in the markup and are only checked here
      — that is what makes a clone of the markup the finished frame. */
@@ -2559,6 +3280,11 @@ export function createEditScene(): EditScene {
       [gtReceipt, GT_RECEIPT],
       [noticeT, NOTICE_TEXT],
       [ghostLbl, GHOST_LABEL],
+      [limitLbl, VALVE_LIMIT],
+      [heldLbl, VALVE_HELD],
+      [brkLbl, BRK_LABEL],
+      [q<SVGTextElement>(svg, "#edt-rcpt-total"), RCPT_TOTAL],
+      [tearHere, TEAR_HERE],
     ];
     for (const [el, want] of strings) {
       if (el.textContent !== want) {
@@ -2587,6 +3313,45 @@ export function createEditScene(): EditScene {
     }
     if (tallyDen.textContent !== TALLY_DEN) {
       throw new Error(`[edit] the markup says "${tallyDen.textContent}" where this file says "${TALLY_DEN}"`);
+    }
+    /* The rate counter's aperture, and the receipt's. Both are holes in
+       machines and neither may ever animate (the printer law); both are
+       checked against the constants the beats are written against, because
+       an aperture that drifted would stop a roll half a reading short and
+       read as a rendering fault rather than as an edit. */
+    const rateAp = q<SVGRectElement>(svg, "#edt-rate-clip rect");
+    if (
+      Number(rateAp.getAttribute("x")) !== RATE_AP_X ||
+      Number(rateAp.getAttribute("y")) !== RATE_AP_Y ||
+      Number(rateAp.getAttribute("width")) !== RATE_AP_W ||
+      Number(rateAp.getAttribute("height")) !== RATE_AP_H
+    ) {
+      throw new Error("[edit] the rate counter's aperture is not one cell of its own column");
+    }
+    const rcptAp = q<SVGRectElement>(svg, "#edt-rcpt-clip rect");
+    if (
+      Number(rcptAp.getAttribute("x")) !== RCPT_X ||
+      Number(rcptAp.getAttribute("y")) !== MOUTH_Y ||
+      Number(rcptAp.getAttribute("width")) !== RCPT_W ||
+      Number(rcptAp.getAttribute("height")) !== RCPT_CLIP_H
+    ) {
+      throw new Error("[edit] the printer's mouth is not the aperture the paper is fed through");
+    }
+    /* And the paper is exactly the strip between the mouth and the
+       perforation — the thing the tear takes. */
+    const rcptBody = q<SVGRectElement>(svg, "#edt-rcpt-body");
+    if (
+      Number(rcptBody.getAttribute("x")) !== RCPT_X ||
+      Number(rcptBody.getAttribute("y")) !== MOUTH_Y ||
+      Number(rcptBody.getAttribute("width")) !== RCPT_W ||
+      Number(rcptBody.getAttribute("height")) !== RCPT_H
+    ) {
+      throw new Error("[edit] #edt-rcpt-body is not the strip the mouth cut");
+    }
+    /* The rail's paper copy must be INSIDE the paper, or the tear takes a
+       receipt with nothing printed on it. */
+    if (!rcptPaper.contains(rcptBody) || !rcptFeed.contains(rcptPaper) || rcptFeed === rcptPaper) {
+      throw new Error("[edit] the receipt's two owners are not two nested groups");
     }
   }
 
@@ -2657,6 +3422,11 @@ export function createEditScene(): EditScene {
     ...valveJambs,
     noticeBody,
     ghost,
+    brk,
+    /* the landing */
+    teeth,
+    tearArrow,
+    tearHead,
   ];
 
   /** Everything that only ever fades. */
@@ -2735,9 +3505,21 @@ export function createEditScene(): EditScene {
     ...laneLabels,
     ...replyDots,
     ...delivereds,
+    ...muteds,
+    ...latencies,
     ...floodDots,
+    rateCol,
+    ...ledgerReads,
+    limitLbl,
+    heldLbl,
+    brkLbl,
     noticeT,
     ghostLbl,
+    /* the landing. The receipt's own lettering is NOT here: the aperture is
+       what reveals it, and a line that also faded in would be a second switch
+       for one state — the one that got forgotten would be the one that
+       mattered. Only the whisper beside the paper fades. */
+    tearHere,
   ];
 
   /** The boxes whose fill comes up behind their own outline, so a rectangle is
@@ -2786,6 +3568,14 @@ export function createEditScene(): EditScene {
    *  the pointer alone. */
   const pointerParts = { swHint, sw10, sw50, cntFlip, cnPeelPointer, bandA, bandB };
 
+  /** And everything the POINTER owns at the landing. Same law, same shape:
+   *  the receipt's OUTER group is the scrub's (the print) and its INNER group
+   *  is the hand's (the taut lift, and the vanish at the tear), so the two
+   *  regimes move two different transforms on two different nodes. The fringe
+   *  the tear leaves in the machine is the hand's outright — it does not
+   *  exist until a reader tears something. */
+  const doorParts = { rcptPaper, rcptFringe };
+
   /* AND THE CONTRACT IS CHECKED, not just described. Every element the hand
      owns OUTRIGHT is absent from all four of the scrub's lists — so a future
      beat that reaches for the hint, either reading, the inner counter column
@@ -2802,6 +3592,9 @@ export function createEditScene(): EditScene {
       pointerParts.sw50,
       pointerParts.cntFlip,
       ...pointerParts.cnPeelPointer,
+      /* the landing's door, on the same contract */
+      doorParts.rcptPaper,
+      doorParts.rcptFringe,
     ];
     for (const el of exclusive) {
       if (scrubbed.has(el)) {
@@ -2810,6 +3603,14 @@ export function createEditScene(): EditScene {
     }
     if (pointerParts.cnPeelPointer.length !== CN_SWITCH_B.length) {
       throw new Error("[edit] the pointer does not own every dot the switch is supposed to move");
+    }
+    /* The receipt's two owners are two DIFFERENT nodes, and the scrub's is
+       the outer one. If the feed group ever ended up in a scrub list as well
+       as being written by restState it would still be correct; if the PAPER
+       group did, a reader mid-tear would have the scrub put the torn strip
+       back while it was falling. */
+    if (scrubbed.has(rcptFeed)) {
+      throw new Error("[edit] the receipt's feed is driven twice");
     }
   }
 
@@ -2965,10 +3766,274 @@ export function createEditScene(): EditScene {
     }
   }
 
+  /* ════════════════════════════════════════════════════════════════════════
+     THE POINTER'S REGIME  —  the landing's door
+     ──────────────────────────────────────────────────────────────────────
+     The scene's second live control, on exactly the switch's contract: the
+     SCRUB prints the receipt, and once the print has settled the PAPER
+     belongs to the hand until the reader scrolls back out of the held ending.
+
+     THE SNAP IS NOT THE PEEL, and that is the whole reason there are two
+     doors on this page. Scene 4's ticket comes off a PERFORATION: it gives
+     dash by dash over 1.45s, the freed part hangs from what still holds, and
+     the last fibre lets go into a tumble. A receipt comes off a BAR: one pull
+     up against the teeth, the separation running the width of the strip in a
+     third of a second, and then it is simply falling. Two doors that felt the
+     same would be one door built twice.
+
+     AND THE FALL IS PAPER, NOT A LEAF. Shrinking swings (energy spent, never
+     restored), a lean INTO each swing and flat at each stall, and a single
+     BOW along the strip's length that reverses with the swing — free paper
+     bends once; pinned cloth ripples. Damped, once, no bounce anywhere.
+     ════════════════════════════════════════════════════════════════════════ */
+
+  let doorArmed = false;
+  let tearing = false;
+  let fallEl: SVGSVGElement | null = null;
+  let gliding: gsap.core.Tween | null = null;
+
+  /** The glide is killed by the reader's own scroll and by nothing else — in
+   *  particular NOT by the disarm, because the glide's whole job is to move
+   *  the page out of the window the disarm is derived from. */
+  const killGlide = (): void => {
+    if (gliding) {
+      gliding.kill();
+      gliding = null;
+    }
+  };
+
+  /** The dispenser feeding the next receipt: an untorn strip, no fringe in the
+   *  mouth, and a door the reader can use again. It refuses to run while a
+   *  tear is in flight — the reset is what a reader who SCROLLED AWAY gets,
+   *  and the strip they tore has to be allowed to finish falling first. */
+  function resetDoor(): void {
+    if (tearing) return;
+    if (fallEl) {
+      fallEl.remove();
+      fallEl = null;
+    }
+    gsap.set(rcptFringe, { opacity: 0, drawSVG: "0% 0%" });
+    gsap.set(rcptPaper, { opacity: 1, y: 0 });
+    tearBtn.hidden = !doorArmed;
+  }
+
+  /** Lay the button exactly over the printed strip, through the svg's OWN
+   *  screen matrix — the receipt is frame furniture, so its own coordinates
+   *  are frame coordinates and no camera arithmetic is involved. */
+  function placeTear(): void {
+    const m = svg.getScreenCTM();
+    if (!m) return;
+    const p0 = new DOMPoint(RCPT_X, MOUTH_Y).matrixTransform(m);
+    const p1 = new DOMPoint(RCPT_X + RCPT_W, RCPT_PERF_Y).matrixTransform(m);
+    if (!(p1.x > p0.x)) return;
+    const stageBox = stage.getBoundingClientRect();
+    tearBtn.style.left = `${p0.x - stageBox.left}px`;
+    tearBtn.style.top = `${p0.y - stageBox.top}px`;
+    tearBtn.style.width = `${p1.x - p0.x}px`;
+    tearBtn.style.height = `${p1.y - p0.y}px`;
+  }
+
+  function armDoor(on: boolean): void {
+    if (on === doorArmed) return;
+    doorArmed = on;
+    if (on) {
+      resetDoor();
+      placeTear();
+    } else {
+      /* Off-stage and out of the tab order in the same frame, exactly as the
+         switch is: a keyboard reader must not find a focus stop in a frame
+         that has scrolled away. */
+      if (doc.activeElement === tearBtn) tearBtn.blur();
+      tearBtn.hidden = true;
+      resetDoor();
+    }
+  }
+
+  /** THE SNAP, THE FALL, AND THE GLIDE. */
+  function tearOff(): void {
+    if (tearing || !doorArmed) return;
+    const m = svg.getScreenCTM();
+    if (!m) return;
+    tearing = true;
+    tearBtn.hidden = true;
+    if (doc.activeElement === tearBtn) tearBtn.blur();
+
+    /* The hover lift is the hand's too, so it is put back before the strip is
+       measured — a clone taken while the paper was 1.5u taut would sit that
+       far off the paper it replaces. */
+    gsap.killTweensOf(rcptPaper);
+    gsap.set(rcptPaper, { y: 0 });
+
+    /* THE ESCAPE (scene 4's ticket, exactly). The strip lives inside the
+       printer's clip aperture, and an aperture that makes the feed-out work
+       also swallows anything that leaves through it — so the paper is cloned
+       into a position:fixed svg laid over its own screen box, with a viewBox
+       that carries the SAME authored coordinates, and the original vanishes
+       in the same frame. */
+    const p0 = new DOMPoint(RCPT_X, MOUTH_Y).matrixTransform(m);
+    const p1 = new DOMPoint(RCPT_X + RCPT_W, RCPT_PERF_Y).matrixTransform(m);
+    const fall = doc.createElementNS(SVG_NS, "svg");
+    fall.setAttribute("viewBox", `${RCPT_X} ${MOUTH_Y} ${RCPT_W} ${RCPT_H}`);
+    fall.setAttribute("aria-hidden", "true");
+    fall.style.cssText =
+      `position:fixed;left:${p0.x}px;top:${p0.y}px;width:${p1.x - p0.x}px;` +
+      `height:${p1.y - p0.y}px;overflow:visible;pointer-events:none;z-index:60;`;
+    const cloneRoot = rcptPaper.cloneNode(true) as SVGGElement;
+    /* A clone carries the original's ids, and two nodes with one id is a
+       document where q() can silently return the wrong one. */
+    cloneRoot.removeAttribute("id");
+    for (const el of Array.from(cloneRoot.querySelectorAll("[id]"))) el.removeAttribute("id");
+
+    /* THE STRIP'S OWN TORN EDGE. Its top was a straight cut by the bar; after
+       the tear it is the bar's complement. The clean-topped body is hidden and
+       replaced by one with NO top — sides and floor, the fill closing
+       invisibly under the ragged stroke — so there is no slab of colour
+       between the two torn edges (the ticket's own hard-won lesson). */
+    const oldBody = cloneRoot.querySelector<SVGElement>(".edt-rcpt-body");
+    if (oldBody) oldBody.style.opacity = "0";
+    const tornBody = svgEl("path", {
+      class: "edt-rcpt-body",
+      d:
+        `M ${RCPT_X} ${MOUTH_Y} L ${RCPT_X} ${RCPT_PERF_Y}` +
+        ` L ${RCPT_X + RCPT_W} ${RCPT_PERF_Y} L ${RCPT_X + RCPT_W} ${MOUTH_Y}`,
+    });
+    const stubEdge = svgEl("path", {
+      class: "edt-rcpt-stub-edge",
+      d: teethPath(MOUTH_Y + 1, -1),
+    });
+    cloneRoot.insertBefore(tornBody, cloneRoot.firstChild);
+    cloneRoot.appendChild(stubEdge);
+    fall.appendChild(cloneRoot);
+    doc.body.appendChild(fall);
+    fallEl = fall;
+    gsap.set(rcptPaper, { opacity: 0 });
+
+    /* The machine's half of the separation, revealed left to right BEHIND the
+       tear front — a propagation, not a fade. */
+    gsap.set(rcptFringe, { opacity: 1, drawSVG: "0% 0%" });
+    gsap.to(rcptFringe, { drawSVG: "0% 100%", duration: SNAP_RUN, ease: "power2.out" });
+
+    /* One origin for the whole flight: the strip's own centre, set once
+       rather than re-declared per tween, because every svgOrigin hand-off is
+       a chance for gsap to compensate a translate the fall already owns. */
+    gsap.set(cloneRoot, { svgOrigin: `${RCPT_X + RCPT_W / 2} ${MOUTH_Y + RCPT_H / 2}` });
+
+    const tt = gsap.timeline({
+      onComplete: () => {
+        tearing = false;
+        if (fallEl) {
+          fallEl.remove();
+          fallEl = null;
+        }
+        /* If the reader stayed, the fringe stays in the mouth: they tore this
+           receipt off and it is gone. If they scrolled away, the disarm asked
+           for a fresh one and could not have it until now. */
+        if (!doorArmed) resetDoor();
+      },
+    });
+
+    /* THE SNAP: the separation runs the width of the bar in one stroke, and
+       the strip lifts against the teeth as it is pulled. */
+    tt.fromTo(
+      stubEdge,
+      { drawSVG: "0% 0%" },
+      { drawSVG: "0% 100%", duration: SNAP_RUN, ease: "power2.out" },
+      0,
+    );
+    tt.to(cloneRoot, { y: -6, duration: SNAP_RUN, ease: "power2.out" }, 0);
+
+    /* THE FALL. An authored S down the viewport with shrinking, alternating
+       swings, travelled with motionPath (registered in main.ts alongside
+       DrawSVG and ScrollTo). The path is built at tear time because its only
+       unknown is how tall this reader's window is. */
+    const fallH = Math.round(window.innerHeight * FALL_DROP);
+    const yAt = (f: number): number => Math.round(f * fallH);
+    const [a1, a2, a3, a4] = FALL_SWINGS as unknown as [number, number, number, number];
+    const path =
+      `M 0 0` +
+      ` C ${a1 * 0.4} ${yAt(0.1)} ${a1} ${yAt(0.18)} ${a1} ${yAt(0.28)}` +
+      ` C ${a1} ${yAt(0.38)} ${a2} ${yAt(0.42)} ${a2} ${yAt(0.52)}` +
+      ` C ${a2} ${yAt(0.6)} ${a3} ${yAt(0.64)} ${a3} ${yAt(0.72)}` +
+      ` C ${a3} ${yAt(0.78)} ${a4} ${yAt(0.82)} ${a4} ${yAt(0.88)}` +
+      ` C ${a4} ${yAt(0.93)} 0 ${yAt(0.97)} 0 ${fallH}`;
+    tt.to(
+      fall,
+      { motionPath: { path, autoRotate: false }, duration: FALL_DUR, ease: "power1.inOut" },
+      SNAP_RUN,
+    );
+
+    /* The lean and the bow, keyframed WITH the swings rather than derived
+       from the tangent: a page's tilt leads its swing and goes flat at the
+       stall, which a tangent never does. Each pair is one tween, so the bend
+       cannot drift out of phase with the lean it belongs to. */
+    {
+      const stalls = [0.28, 0.52, 0.72, 0.88];
+      let prevR = 0;
+      let prevB = 0;
+      let prevT = 0;
+      FALL_TILT.forEach((deg, i) => {
+        const at = stalls[i]! * FALL_DUR;
+        tt.fromTo(
+          cloneRoot,
+          { rotation: prevR, skewX: prevB },
+          {
+            rotation: deg,
+            skewX: FALL_BOW[i]!,
+            duration: at - prevT,
+            ease: "power1.inOut",
+          },
+          SNAP_RUN + prevT,
+        );
+        prevR = deg;
+        prevB = FALL_BOW[i]!;
+        prevT = at;
+      });
+      tt.fromTo(
+        cloneRoot,
+        { rotation: prevR, skewX: prevB },
+        { rotation: 0, skewX: 0, duration: FALL_DUR - prevT, ease: "power1.inOut" },
+        SNAP_RUN + prevT,
+      );
+    }
+
+    /* And it is gone before it lands. A strip that reached the bottom of the
+       window would be a strip the reader watched hit something. */
+    tt.to(
+      fall,
+      { opacity: 0, duration: FALL_DUR * 0.4, ease: "power1.in" },
+      SNAP_RUN + FALL_DUR * 0.6,
+    );
+
+    /* THE GLIDE, at the release, so the fall and the travel are one event:
+       the strip drops over a page already moving toward the scene it named.
+       Scene 4's ticket's numbers exactly — two doors on one page must not
+       move it at two different speeds. Computed at click time, because a pin
+       spacer landing moves every geometry on the page. */
+    const proofPin = doc.querySelector<HTMLElement>("#prf-pin");
+    if (proofPin) {
+      const target = window.scrollY + proofPin.getBoundingClientRect().top;
+      gliding = gsap.to(window, {
+        /* autoKill OFF, for the reason the ticket documents: a pinned scrub
+           nudges scrollTop every tick and autoKill reads that as the reader
+           disagreeing. The kill is ours — the wheel/touch listeners below. */
+        scrollTo: { y: target, autoKill: false },
+        duration: GLIDE_DUR,
+        ease: "power2.inOut",
+        delay: SNAP_RUN,
+        onComplete: () => {
+          gliding = null;
+        },
+      });
+    }
+  }
+
   /** Derived from the timeline's own time on every frame, which is what makes
-   *  it a pure function of scroll rather than a memory of having scrolled. */
+   *  both controls pure functions of scroll rather than memories of having
+   *  scrolled. The switch is live inside station 5's settled dwell; the door
+   *  is live inside the held ending and nowhere else. */
   function syncArm(t: number): void {
     armToggle(t >= TOGGLE_FROM && t < TOGGLE_TO);
+    armDoor(t >= HOLD_FROM);
   }
 
   function restState(): void {
@@ -2982,6 +4047,15 @@ export function createEditScene(): EditScene {
     gsap.set(fillOnly, { fillOpacity: 0 });
     gsap.set(fadeParts, { opacity: 0 });
     gsap.set(ticket, { opacity: 0 });
+    gsap.set([closingRule], { scaleX: 0 });
+    gsap.set([closingText], { opacity: 0, y: 10 });
+
+    /* THE RECEIPT IS ROLLED BACK INSIDE THE MACHINE. Nothing printed on it
+       needs hiding: the paper starts a full strip's height above the mouth,
+       and the aperture — which never animates — is what makes that
+       invisible. One number for eleven lines. */
+    gsap.set(rcptFeed, { y: -(RCPT_H + 6) });
+    resetDoor();
 
     /* The pointer's own rest, which is also its disarm state: the hand has
        touched nothing yet, so every number it owns is exactly what the scrub
@@ -2995,9 +4069,12 @@ export function createEditScene(): EditScene {
        everything else. */
     gsap.set(cnEntry, { x: -40 });
     gsap.set(cnPeelScrub, { y: -CN_PEEL_DY });
-    /* The flood is authored where it QUEUES, so its rest is where it arrived:
-       spread out along the lane, one offset per message. */
-    floodDots.forEach((d, i) => gsap.set(d, { x: floodSpreadDx(i) }));
+    /* The flood is authored where each message COMES TO REST, so its rest
+       state is back down the lane on the customer's side — one offset per
+       message, and the same function the arrival tween reads. */
+    floodDots.forEach((d, i) => gsap.set(d, { x: floodEntryDx(i) }));
+    /* The rate counter rests on its blank cell: nothing has arrived. */
+    gsap.set(rateCol, { y: rateY(0) });
     /* The four untouched replies come in from up the lane. */
     gsap.set(replyDots, { x: -160 });
 
@@ -3049,7 +4126,7 @@ export function createEditScene(): EditScene {
      the per-station cards.
      ════════════════════════════════════════════════════════════════════════ */
 
-  function buildStill(_reduced: boolean): () => void {
+  function buildStill(reduced: boolean): () => void {
     const frag = doc.createDocumentFragment();
 
     const wrap = doc.createElement("div");
@@ -3069,13 +4146,40 @@ export function createEditScene(): EditScene {
     wrap.append(k, h, s);
     frag.appendChild(wrap);
 
+    /* THE CLOSING STATEMENT SURVIVES INTO THE STILL. It is the only sentence
+       in the scene that is about all eight stations rather than about one, so
+       it is the last thing that may be dropped when the pictures are — and it
+       is rebuilt here rather than cloned, because the pinned one is a rail
+       element the still has no rail for. */
+    const close = doc.createElement("p");
+    close.className = "edt-still-closing";
+    close.textContent = closingText.textContent?.trim() ?? "";
+    frag.appendChild(close);
+
+    /* THE DOOR, MINIMALLY (slice D draws the torn receipt properly). No fall
+       here by design: a reduced-motion reader is owed the INFORMATION the
+       motion carried, not the motion — and what the tear carries is "the
+       proof is next, and this is how you get there". So it is a real control
+       that goes there, and nothing falls. */
+    const door = doc.createElement("button");
+    door.type = "button";
+    door.className = "edt-still-door";
+    door.textContent = "tear here — the proof";
+    door.addEventListener("click", () => {
+      const proofPin = doc.querySelector<HTMLElement>("#prf-pin");
+      if (!proofPin) return;
+      proofPin.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+    });
+    frag.appendChild(door);
+
     still.replaceChildren(frag);
     still.hidden = false;
     pin.hidden = true;
-    /* No scrub means no station 5 dwell, so there is no moment at which the
-       switch is live — and a button in the tab order over a hidden stage is a
-       focus stop that goes nowhere. */
+    /* No scrub means no station 5 dwell and no held ending, so there is no
+       moment at which either live control is armed — and a button in the tab
+       order over a hidden stage is a focus stop that goes nowhere. */
     toggle.hidden = true;
+    tearBtn.hidden = true;
 
     return () => {
       still.replaceChildren();
@@ -3167,21 +4271,23 @@ export function createEditScene(): EditScene {
 
     caps.forEach((capEl, i) => {
       const at = CAP_AT[i]!;
-      const next = CAP_AT[i + 1];
+      /* EVERY caption now has an exit, the last one included: the landing
+         takes the rail away from the stations and gives it to the closing
+         statement, and a station's sentence still standing under it would be
+         a caption about a picture that has left the stage. */
+      const next = CAP_AT[i + 1] ?? LANDING_AT;
       ft(
         capEl,
         { opacity: 0, y: 10 },
         { opacity: 1, y: 0, duration: CAP_FADE, ease: "power2.out" },
         at,
       );
-      if (next !== undefined) {
-        ft(
-          capEl,
-          { opacity: 1, y: 0 },
-          { opacity: 0, y: -10, duration: CAP_FADE, ease: "power2.in" },
-          next - CAP_FADE,
-        );
-      }
+      ft(
+        capEl,
+        { opacity: 1, y: 0 },
+        { opacity: 0, y: -10, duration: CAP_FADE, ease: "power2.in" },
+        next - CAP_FADE,
+      );
     });
 
     /* The clock. One reading at a time, crossfaded in place — never a text
@@ -3668,7 +4774,7 @@ export function createEditScene(): EditScene {
     fadeIn(gtReceipt, S7 + 16.8, 0.8);
 
     /* ══════════════════════════════════════════════════════════════════════
-       STATION 8 — PER-CUSTOMER LIMITS   (132 → 148, held from 142)
+       STATION 8 — PER-CUSTOMER LIMITS   (132 → 148)
        ══════════════════════════════════════════════════════════════════════ */
 
     const S8 = STATION_AT[7]!;
@@ -3678,50 +4784,157 @@ export function createEditScene(): EditScene {
     draw(laneRules, S8 + 0.4, 0.8, 0.2);
     fadeIn(laneLabels, S8 + 1.0, 0.7, 0.2);
 
-    /* Four customers get a reply and a receipt. THE ONLY GREEN IN EIGHT
-       STATIONS is on those four words. */
-    ft(
-      replyDots,
-      { x: -160, opacity: 0 },
-      { x: 0, opacity: 1, duration: 0.9, stagger: 0.2, ease: "power2.out" },
-      S8 + 2.2,
-    );
-    fadeIn(delivereds, S8 + 3.2, 0.7, 0.2);
+    /* THE FLOOD ARRIVES. Twelve messages from customer 3, one every 0.22
+       units — the other four lanes send ONE each, so the rate is something
+       the reader counts rather than something a caption claims. Each has its
+       own tween because each has its own distance to travel: the first five
+       run all the way past the valve, the other seven stop at the back of a
+       queue that is being built in front of them. */
+    floodDots.forEach((d, i) => {
+      ft(
+        d,
+        { x: floodEntryDx(i), opacity: 0 },
+        { x: 0, opacity: 1, duration: FLOOD_DUR, ease: "power2.out" },
+        S8 + S8_FLOOD_AT + i * FLOOD_PITCH,
+      );
+    });
 
-    /* The fifth floods. */
-    fadeIn(floodDots, S8 + 2.8, 0.7, 0.08);
-    draw(valve, S8 + 4.4, 0.6);
-    draw(valveJambs, S8 + 4.9, 0.4, 0.1);
+    /* The platform says what it is set to BEFORE it acts on it. A limit
+       announced only at the moment it bites reads as an excuse. */
+    fadeIn(limitLbl, S8 + 2.6, 0.8);
+
+    /* THE COUNTER CLIMBS, LIVE. A column of readings behind a static
+       aperture, one cell per landing — never a rewritten string, which would
+       be a .call() inside a scrubbed range, and scrolling back up counts
+       down again for free. The column arrives on its BLANK cell, so what the
+       reader sees light up is an instrument, and what it then says is the
+       first reading. */
+    fadeIn(rateCol, S8 + 3.2, 0.6);
+    RATE_READS.forEach((r, j) => {
+      ft(rateCol, { y: rateY(j) }, { y: rateY(j + 1), duration: 0.5, ease: "power2.out" }, S8 + r.at);
+    });
+
+    /* And the record is rewritten beside it. received = answered + held, on
+       every reading, checked at boot against the dots themselves. */
+    ledgerReads.forEach((el, j) => {
+      fadeIn(el, S8 + LEDGER[j]!.at, 0.5);
+      const next = LEDGER[j + 1];
+      if (next) fadeOut(el, S8 + next.at, 0.4);
+    });
+
+    /* THE VALVE SHUTS as the sixth message lands — five is the limit, and the
+       bar is what the limit looks like. */
+    draw(valve, S8 + S8_VALVE_AT, S8_VALVE_DUR);
+    /* DRAWN, not faded: the jambs are in strokeParts, so their rest state is a
+       zero-length dash and an opacity tween would light nothing. */
+    draw(valveJambs, S8 + S8_VALVE_AT + S8_VALVE_DUR, 0.4, 0.1);
     /* THE ONLY AMBER IN EIGHT STATIONS, drawn over the closed gray valve
        rather than tweened from it: the valve shuts, and then it is in
        backoff. */
-    draw(valveAmber, S8 + 5.1, 0.6);
-    /* And the burst queues. A queue is a SPACING — the same nine messages,
-       bunched — which is why every one of them has its own tween and its own
-       distance to close. */
-    floodDots.forEach((d, i) => {
-      ft(d, { x: floodSpreadDx(i) }, { x: 0, duration: 1.0, ease: "power2.out" }, S8 + 5.4 + i * 0.05);
-    });
+    draw(valveAmber, S8 + S8_AMBER_AT, S8_AMBER_DUR);
+    /* And the knob becomes a verdict. Same anchor, two readings. */
+    fadeOut(limitLbl, S8 + 5.0, 0.7);
+    fadeIn(heldLbl, S8 + 5.2, 0.7);
+
+    /* THE OTHER FOUR SEND WHILE LANE 3 IS QUEUED, and the order is the whole
+       argument — which is why S8_REPLY_AT is checked against the valve's own
+       close at boot rather than left to the eye. Each answer lands with its
+       receipt (the only green in eight stations) AND an ordinary latency: the
+       number that says nothing happened to them. */
+    ft(
+      replyDots,
+      { x: -160, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.9, stagger: REPLY_STAGGER, ease: "power2.out" },
+      S8 + S8_REPLY_AT,
+    );
+    fadeIn(delivereds, S8 + 6.3, 0.7, REPLY_STAGGER);
+    fadeIn(latencies, S8 + 6.6, 0.7, REPLY_STAGGER);
+
+    /* And a bracket says what those four numbers add up to. */
+    draw(brk, S8 + 7.8, 1.2);
+    fadeIn(brkLbl, S8 + 8.2, 0.8);
 
     /* One notice, once, back to the customer who caused it. Not a delivery —
        so not green, and not a receipt. */
-    drawBox(noticeBody, S8 + 6.2, 0.8);
-    fadeIn(noticeT, S8 + 6.6, 0.7);
-    ft(notice, { x: NOTICE_FROM }, { x: NOTICE_TO, duration: 1.4, ease: "power2.out" }, S8 + 6.6);
+    drawBox(noticeBody, S8 + 9.0, 0.8);
+    fadeIn(noticeT, S8 + 9.4, 0.7);
+    ft(notice, { x: NOTICE_FROM }, { x: NOTICE_TO, duration: 1.4, ease: "power2.out" }, S8 + 9.4);
 
-    /* THE GHOST OF THE ALTERNATIVE. A strike across all five lanes, and then
-       it is not there: the budget breaker mutes everyone, and this does not.
-       It is drawn and then UN-drawn, like the CI gate's failure mark, so a
-       reader scrolling back watches it arrive again in the same order. */
-    draw(ghost, S8 + 6.8, 0.8);
-    fadeIn(ghostLbl, S8 + 7.1, 0.6);
-    ft(ghost, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.8 }, S8 + 9.0);
-    fadeOut(ghostLbl, S8 + 9.0, 0.8);
+    /* THE GHOST OF THE ALTERNATIVE, and it now costs the other four
+       something. A strike across all five lanes — and while it stands, the
+       four green receipts go gray, because that is exactly what a shared
+       daily budget does to four customers who did nothing. Then the strike
+       un-draws, the green comes back, and it is gone: the budget breaker
+       mutes everyone, and this does not. Drawn and then UN-drawn, like the CI
+       gate's failure mark, so a reader scrolling back watches it arrive again
+       in the same order. */
+    draw(ghost, S8 + 11.0, 0.9);
+    fadeIn(ghostLbl, S8 + 11.4, 0.6);
+    fadeOut(delivereds, S8 + 11.6, 0.6);
+    fadeIn(muteds, S8 + 11.8, 0.6);
+    fadeOut(muteds, S8 + 13.4, 0.6);
+    fadeIn(delivereds, S8 + 13.6, 0.6);
+    ft(ghost, { drawSVG: "0% 100%" }, { drawSVG: "0% 0%", duration: 0.9 }, S8 + 13.6);
+    fadeOut(ghostLbl, S8 + 13.6, 0.8);
 
-    /* The slice ends with the chip standing over five lanes, one of them
-       throttled, and the rail carrying eight stamps. Nothing arrives or
-       leaves after SLICE_HOLD_FROM — the reader is meant to be able to stop
-       here and read the frame. Slice C prints it. */
+    /* ══════════════════════════════════════════════════════════════════════
+       THE LANDING — THE RAIL PRINTS ITSELF   (148 → 160)
+       ══════════════════════════════════════════════════════════════════════ */
+
+    const L = LANDING_AT;
+
+    /* The chip parks. The camera goes with it, onto bare world — eight
+       stations have been read, and what is left to say is the RECORD. */
+    ft(chip, { x: bayCx(7) }, { x: bayCx(8), duration: 3.0, ease: "power2.inOut" }, L);
+
+    /* THE CLOSING STATEMENT takes the rail from the stations. A rule out of
+       its own middle, and the sentence rising under it — scene 4's
+       #agt-closing, and like it, no exit tween anywhere: this is where the
+       scene lands, and it is still there when the reader stops. */
+    ft(
+      closingRule,
+      { scaleX: 0 },
+      { scaleX: 1, duration: 1.2, ease: "power2.out" },
+      L + L_CLOSE_AT,
+    );
+    ft(
+      closingText,
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 1.1, ease: "power2.out" },
+      L + L_CLOSE_AT + 0.35,
+    );
+
+    /* The mouth: a serrated bar, drawn like every other machine on this
+       stage. */
+    draw(teeth, L + L_TEETH_AT, 1.2);
+
+    /* AND THE PRINT. One translate on one group, under an aperture that never
+       moves, revealing eleven lines in the order the journey earned them at
+       exactly the reader's own scroll speed — and feeding them back in if
+       they scroll up. `ease: none` is not laziness: a printer feeds at the
+       rate it is driven at, and here the reader is the motor. */
+    ft(rcptFeed, { y: -(RCPT_H + 6) }, { y: 0, duration: L_PRINT_DUR }, L + L_PRINT_AT);
+
+    /* THE WHISPER, strictly after the print has settled. Small, quiet, one
+       short curve dipping to the perforation — scene 4's `click here`, one
+       scene on, pointing at the one thing left to do. */
+    fadeIn(tearHere, L + L_HINT_AT, 0.6);
+    draw(tearArrow, L + L_HINT_AT + 0.4, 0.7);
+    draw(tearHead, L + L_HINT_AT + 1.1, 0.25);
+
+    /* ── THE HELD ENDING  (160 → 166) ────────────────────────────────────
+       Nothing arrives and nothing leaves. The chip is parked, the receipt is
+       printed and resting, the closing statement is standing in the rail —
+       and the strip belongs to the reader's hand for as long as they stay
+       here. The timeline is exactly TL_END long because the progress fill
+       runs its whole width from zero, so the six units of stillness are real
+       scroll rather than a rounding error (scene 4's lesson, kept). */
+    if (tl.duration() > TL_END) {
+      throw new Error("[edit] the scene's last build runs past its own timeline");
+    }
+    if (TL_END - HOLD_FROM < 6) {
+      throw new Error("[edit] there is no still frame left at the end of the scene");
+    }
   }
 
   /* ════════════════════════════════════════════════════════════════════════
@@ -3774,6 +4987,79 @@ export function createEditScene(): EditScene {
     };
   }
 
+  /** The door's own wiring, split out for the same reason the switch's is:
+   *  the scrub is one media query and the hand is another, and the two have
+   *  to be able to exist without each other. */
+  function wireDoor(): () => void {
+    const onClick = (): void => tearOff();
+    const onResize = (): void => {
+      if (doorArmed) placeTear();
+    };
+    tearBtn.addEventListener("click", onClick);
+    /* Observe the DRAWING, not the window: a pin spacer landing is a layout
+       change with no resize event (the toggle's own lesson). */
+    const ro = new ResizeObserver(onResize);
+    ro.observe(svg);
+    window.addEventListener("wheel", killGlide, { passive: true });
+    window.addEventListener("touchmove", killGlide, { passive: true });
+    return () => {
+      tearBtn.removeEventListener("click", onClick);
+      ro.disconnect();
+      window.removeEventListener("wheel", killGlide);
+      window.removeEventListener("touchmove", killGlide);
+      killGlide();
+    };
+  }
+
+  /** Hover is its own regime (DESIGN §5). The strip STIFFENS — a 1.5u lift
+   *  toward the teeth, which is paper being pulled taut rather than paper
+   *  moving. The switch leans; this goes tight. Two controls, two gestures. */
+  function wireDoorHover(): () => void {
+    const on = (): void => {
+      if (!doorArmed || tearing) return;
+      gsap.to(rcptPaper, { y: -TEAR_LIFT, duration: HOVER_DUR, ease: "power2.out" });
+    };
+    const off = (): void => {
+      if (tearing) return;
+      gsap.to(rcptPaper, { y: 0, duration: HOVER_DUR, ease: "power2.out" });
+    };
+    tearBtn.addEventListener("pointerenter", on);
+    tearBtn.addEventListener("pointerleave", off);
+    tearBtn.addEventListener("focus", on);
+    tearBtn.addEventListener("blur", off);
+    return () => {
+      tearBtn.removeEventListener("pointerenter", on);
+      tearBtn.removeEventListener("pointerleave", off);
+      tearBtn.removeEventListener("focus", on);
+      tearBtn.removeEventListener("blur", off);
+    };
+  }
+
+  /* ════════════════════════════════════════════════════════════════════════
+     THE BRIDGE  —  the narrative hinge above this scene, free scroll
+     Two lines revealed on a scrub as the section rises, exactly as turn.ts
+     and agents.ts build theirs. This scene owns it because the bridge exists
+     only to hand over to this scene, and a hinge whose two halves live in two
+     files is a hinge nobody owns.
+     ════════════════════════════════════════════════════════════════════════ */
+
+  function buildBridge(): void {
+    if (bridgeLines.length === 0) return;
+    gsap.set(bridgeLines, { opacity: 0, y: 22 });
+    const tl = gsap.timeline({
+      defaults: { ease: "power2.out" },
+      scrollTrigger: { trigger: "#bridge-edit", start: "top 82%", end: "top 34%", scrub: true },
+    });
+    bridgeLines.forEach((line, i) => {
+      tl.fromTo(
+        line,
+        { opacity: 0, y: 22 },
+        { opacity: 1, y: 0, duration: 1, immediateRender: false },
+        i * 0.45,
+      );
+    });
+  }
+
   /* ════════════════════════════════════════════════════════════════════════
      MEDIA GATING
      One matchMedia owns the choice, exactly as scenes 2–4 do.
@@ -3781,17 +5067,35 @@ export function createEditScene(): EditScene {
 
   const mm = gsap.matchMedia();
 
+  /* The bridge is a fade and works at any width, so it is gated on the motion
+     preference alone — the same split scenes 3 and 4 make for theirs. */
+  mm.add("(prefers-reduced-motion: no-preference)", () => {
+    buildBridge();
+  });
+
   mm.add("(min-width: 768px) and (prefers-reduced-motion: no-preference)", () => {
     buildScrub();
-    /* The click half is NOT gated on a fine pointer: a tablet in this band
+    /* The click halves are NOT gated on a fine pointer: a tablet in this band
        gets the scrub, and a tap on a real <button> is a click. Only the hover
-       half below needs the gate. */
-    return wireToggle();
+       halves below need the gate. */
+    const unToggle = wireToggle();
+    const unDoor = wireDoor();
+    return () => {
+      unToggle();
+      unDoor();
+    };
   });
 
   mm.add(
     "(min-width: 768px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)",
-    () => wireToggleHover(),
+    () => {
+      const a = wireToggleHover();
+      const b = wireDoorHover();
+      return () => {
+        a();
+        b();
+      };
+    },
   );
 
   mm.add("(max-width: 767.98px) and (prefers-reduced-motion: no-preference)", () =>

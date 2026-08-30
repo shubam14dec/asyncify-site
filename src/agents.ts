@@ -2772,7 +2772,7 @@ export function createAgentsScene(): AgentsScene {
      The same two-regime split as the bell and the receipts: the scrub owns
      the dispense; after it, the PAPER belongs to the hand. Hover: the stub
      eases out a step, wanting to be taken. Click: the perforation gives --
-     the stub drops off rotating, the page GLIDES to the proof (killed the
+     the stub drops off rotating, the page GLIDES to scene 5 (killed the
      instant the reader's own scroll disagrees), and the dispenser feeds the
      next ticket, because that is what dispensers do. Wall-clock and
      pointer-owned, layered on transforms the scrub never touches
@@ -2961,9 +2961,13 @@ export function createAgentsScene(): AgentsScene {
       /* The glide starts AT the release, so the fall and the travel are one
          event: the stub tumbles over a page already moving toward the place
          it pointed at. Computed at click time (pin spacers move geometry). */
-      const proofPin = doc.querySelector<HTMLElement>("#prf-pin");
-      if (proofPin) {
-        const target = window.scrollY + proofPin.getBoundingClientRect().top;
+      /* RETARGETED BY A16: the ticket used to hand the reader straight to the
+         proof, because proof was the next scene. It is not any more — THE
+         EDIT is 05 and proof is 06 — so the ticket points at what it is
+         printed with, and the number on it (Nº 05) is unchanged. */
+      const nextPin = doc.querySelector<HTMLElement>("#edt-pin");
+      if (nextPin) {
+        const target = window.scrollY + nextPin.getBoundingClientRect().top;
         gliding = gsap.to(window, {
           /* autoKill OFF: the pinned scenes' scrub nudges scrollTop every
              tick, which autoKill reads as "the user scrolled" and kills the

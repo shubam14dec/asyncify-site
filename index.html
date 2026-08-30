@@ -2091,8 +2091,13 @@
                         <path class="agt-tkt-perf" d="M 936 559 L 1044 559" />
                         <circle class="agt-tkt-punch" cx="936" cy="559" r="3.2" />
                         <circle class="agt-tkt-punch" cx="1044" cy="559" r="3.2" />
+                        <!-- Nº 05 IS STILL RIGHT AND THE DESTINATION MOVED.
+                             Scene 5 is now THE EDIT and proof is 06, so the
+                             number the ticket dispenses is unchanged and only
+                             the door's name follows the renumber. agents.ts's
+                             glide target moved with it (#edt-pin). -->
                         <text class="agt-tkt-no" x="990" y="597" text-anchor="middle">Nº 05</text>
-                        <text class="agt-tkt-lbl" x="990" y="613" text-anchor="middle">THE PROOF →</text>
+                        <text class="agt-tkt-lbl" x="990" y="613" text-anchor="middle">THE EDIT →</text>
                       </g>
                     </g>
                   </g>
@@ -2181,21 +2186,41 @@
       </section>
 
       <!-- ─────────────────────────────────────────────────────────────────
+           THE THIRD BRIDGE.  Same grammar as the first two — two lines, a
+           setup one step down the gray ladder and a payoff at full ink, free
+           scroll, no pin — because it is doing the same job one scene later.
+           No through-wire here: bridge 2 carried one because scene 3 ended on
+           a wire leaving the frame and scene 4 began on one entering it.
+           Scene 4 ends on a TICKET the reader may take, and the thing that
+           crosses this bridge is the reader's own hand.
+
+           WHY THE LINE CLASS IS `edt-bridge-line`. turn.ts owns every
+           `.bridge-line` on the page with a document-wide querySelectorAll,
+           so a third bridge that borrowed the class would have its copy
+           revealed six screens early by a timeline that has no idea it
+           exists — the same trap #bridge-agents names. The LAYOUT classes
+           (.bridge, .bridge-copy) are page primitives and are borrowed
+           outright; only the animated hook is scene-local.
+           ───────────────────────────────────────────────────────────────── -->
+      <section class="bridge" id="bridge-edit">
+        <h2 class="bridge-copy">
+          <span class="edt-bridge-line">Then someone edits the prompt.</span>
+          <span class="edt-bridge-line edt-bridge-lead">Here's what happens next.</span>
+        </h2>
+      </section>
+
+      <!-- ─────────────────────────────────────────────────────────────────
            SCENE 5 — THE EDIT.  "Prompt edits are deploys."   [NEW — A16]
-           (KNOWN, AND ON PURPOSE: proof below still shows "05 · proof" too.
-           The renumber to 06 is one edit — its masthead, scene 4's ticket and
-           the sr copy — and it belongs to the slice that retargets the ticket,
-           not to this one. Two 05s are visible until then.)
+           (Proof below is 06 now, and this masthead is the page's only 05.)
            The quality ladder, told as a journey instead of listed as a set of
            features: ONE prompt edit travels eight stations, and the reader
            watches it survive each one. See src/edit.ts for the storyboard,
            the timing and every number below.
 
-           SLICE A (this markup) builds the skeleton and stations 1-3: the
-           diff, the judged eval run, and the CI gate. Stations 4-8, the
-           landing receipt and the tear door are later slices; their timeline
-           positions are already reserved in edit.ts, and the version rail
-           already holds all eight of their stamp slots.
+           SLICES A-C built all eight stations, the landing receipt and the
+           tear-away door. Only the mobile / reduced-motion stills are still
+           owed (slice D); their eight close-up windows are already authored
+           and asserted in edit.ts.
 
            THREE THINGS ABOUT THE ANATOMY BELOW:
 
@@ -2311,6 +2336,24 @@
                 <p class="eng-caption">
                   One flooding customer is throttled politely and free. Everyone else never
                   notices, and the record stays truthful.
+                </p>
+              </div>
+
+              <!-- THE CLOSING STATEMENT. It reads like a caption and borrows a
+                   caption's box, but it is NOT one — which is why it sits
+                   outside the .eng-cap stack (edit.ts counts those against the
+                   stations) and carries no kicker. Two things make it a
+                   different object, both of them scene 4's #agt-closing
+                   argument one scene on: IT HAS NO SUBJECT — it is about all
+                   eight stations, not about the one on stage — and IT STAYS.
+                   Every caption above it has an exit tween; this one arrives
+                   at the landing and is still there when the reader stops.
+                   A rule that draws out of its own middle, and the sentence
+                   rising under it. -->
+              <div class="edt-closing" id="edt-closing">
+                <span class="edt-closing-rule" id="edt-closing-rule"></span>
+                <p class="edt-closing-text" id="edt-closing-text">
+                  One edit. Seven stations. Nothing reached a customer that hadn't earned it.
                 </p>
               </div>
             </div>
@@ -2720,11 +2763,34 @@
                      backoff, green is a message that arrived. Everything else
                      in eight stations is the gray ladder.
 
+                     THE FLOOD IS AN ARRIVAL, NOT A STATE (his slice-B note).
+                     Twelve messages come in from customer 3's side one after
+                     another, at a pitch the reader can count against the other
+                     four lanes' one message each; five clear the valve, the
+                     valve shuts on the sixth, and seven stack up behind it.
+                     Everything printed at this station is derived from those
+                     twelve: the rate counter climbs 4 → 8 → 12 as they land,
+                     and the ledger reconciles (received = answered + held) on
+                     the same three moments. All three counts are asserted
+                     against the dots that actually arrived, so the numbers on
+                     the stage cannot drift from the picture behind them.
+
+                     THE VALVE CARRIES THE PRODUCT'S OWN KNOB. Not "throttled"
+                     — `per-customer limit · 5 / min`, which is the setting a
+                     customer actually sets, and `over limit · held` once it
+                     acts. The label is gray either way: the amber belongs to
+                     the valve, and a second amber object would spend a ration
+                     the whole scene has been saving.
+
                      THE GHOST IS THE ARGUMENT. A strike across all five lanes
                      labelled `daily budget · muted` is what the other design
-                     does — and it fades, because this is not what happens
-                     here. Drawing the alternative and taking it away says more
-                     than a caption claiming the difference. -->
+                     does — and while it stands, the four green receipts go
+                     gray, because that is precisely what a daily budget
+                     breaker does to the four customers who did nothing. Then
+                     the strike un-draws and the green comes back, because this
+                     is not what happens here. Drawing the alternative and
+                     taking it away says more than a caption claiming the
+                     difference. -->
                 <g id="edt-s8">
                   <g id="edt-lanes8"></g>
                   <g id="edt-flood"></g>
@@ -2732,12 +2798,37 @@
                   <path class="edt-valve-amber" id="edt-valve-amber" d="M 8180 362 L 8180 386" />
                   <path class="edt-jamb" id="edt-valve-a" d="M 8174 362 L 8186 362" />
                   <path class="edt-jamb" id="edt-valve-b" d="M 8174 386 L 8186 386" />
+                  <!-- The knob, then what it did. One anchor, two readings,
+                       crossfaded in place — never a text rewritten on a frame
+                       (a .call() inside a scrubbed range). -->
+                  <text class="edt-limit-lbl" id="edt-limit" x="8180" y="404" text-anchor="middle">per-customer limit · 5 / min</text>
+                  <text class="edt-limit-lbl" id="edt-held" x="8180" y="404" text-anchor="middle">over limit · held</text>
+                  <!-- THE RATE COUNTER. A column of readings behind a static
+                       aperture, moved by a transform — the judge's score
+                       mechanism generalised from one glyph to one reading, and
+                       the aperture never animates (the printer law). The whole
+                       reading rolls because two numbers change at once and a
+                       per-digit column cannot express that. -->
+                  <clipPath id="edt-rate-clip"><rect x="7740" y="390" width="92" height="16" /></clipPath>
+                  <g clip-path="url(#edt-rate-clip)"><g id="edt-rate-col"></g></g>
+                  <!-- THE LEDGER. Three readings crossfaded rather than
+                       rolled, and the difference is the point: the counter
+                       CLIMBS (one number going up), the ledger is REWRITTEN
+                       (three numbers restated, and they always add up).
+                       Generated by edit.ts from the counts themselves. -->
+                  <g id="edt-ledger"></g>
+                  <!-- The bracket over the four who never noticed. Two
+                       subpaths in one path, because lane 3 is not in it —
+                       a bracket that spanned all five would be the claim's
+                       opposite. Written from the lane geometry in edit.ts. -->
+                  <path class="edt-brk" id="edt-brk" d="M 0 0" />
+                  <text class="edt-judge-rubric" id="edt-brk-lbl" x="8530" y="268" text-anchor="end">unaffected · 4 of 4 answered</text>
                   <g id="edt-notice">
                     <rect class="edt-msg-body" id="edt-notice-body" x="-75" y="-11" width="150" height="22" rx="6" />
                     <text class="edt-whisper edt-note-t" id="edt-notice-t" x="0" y="4" text-anchor="middle">notice sent once</text>
                   </g>
-                  <path class="edt-thresh" id="edt-ghost" d="M 8240 268 L 8290 480" />
-                  <text class="edt-judge-rubric" id="edt-ghost-lbl" x="8265" y="500" text-anchor="middle">daily budget · muted</text>
+                  <path class="edt-thresh" id="edt-ghost" d="M 8250 268 L 8310 480" />
+                  <text class="edt-judge-rubric" id="edt-ghost-lbl" x="8280" y="500" text-anchor="middle">daily budget · muted</text>
                 </g>
 
                 <!-- ── THE CHIP ────────────────────────────────────────────
@@ -2795,6 +2886,76 @@
                   <text class="edt-tkt-hd" x="38" y="534">caught · refund-path</text>
                   <text class="edt-tkt-sub" x="38" y="554">silently broken 31 days</text>
                 </g>
+
+                <!-- ── THE LANDING · THE RAIL PRINTS ITSELF ────────────────
+                     The flight recorder has been stamped eight times across
+                     the top of the stage, in a register only a machine writes
+                     in. At the landing it hands the reader the paper copy: a
+                     printer mouth with a serrated bar, and the whole journey
+                     fed out through it a line at a time.
+
+                     IT IS FRAME FURNITURE, like the rail it prints, and for
+                     the same reason: what it says is true of the whole scene
+                     and not of the bay the camera happens to be parked on.
+
+                     THE APERTURE LAW (scene 6's printers, and this scene's own
+                     score column): the clip NEVER animates. It is a hole in a
+                     machine. The paper is what moves — #edt-rcpt-feed is
+                     translated up out of the mouth at rest and down to zero
+                     under the scrub, so the strip is revealed line by line at
+                     exactly the reader's scroll speed, and scrolling up feeds
+                     it back in. Nothing inside the paper needs a tween of its
+                     own; the aperture is the whole reveal.
+
+                     TWO NESTED GROUPS, TWO OWNERS. The outer (#edt-rcpt-feed)
+                     is the SCRUB's — the print. The inner (#edt-rcpt-paper) is
+                     the POINTER's — the taut lift on hover, and the thing that
+                     is cloned out of the clip and torn away on a click. Same
+                     per-NUMBER ownership split as the canary's switch and
+                     scene 4's ticket; no transform has two owners.
+
+                     THE REMNANT is what a tear leaves in the machine: a saw
+                     tooth fringe along the bar, revealed left to right behind
+                     the tear front. Hidden until the reader tears, and gone
+                     again when the reset feeds a fresh receipt. -->
+                <g id="edt-receipt">
+                  <path class="edt-teeth" id="edt-teeth" d="M 0 0" />
+                  <path class="edt-rcpt-fringe" id="edt-rcpt-fringe" d="M 0 0" />
+                  <clipPath id="edt-rcpt-clip"><rect x="548" y="300" width="224" height="228" /></clipPath>
+                  <g clip-path="url(#edt-rcpt-clip)">
+                    <g id="edt-rcpt-feed">
+                      <g id="edt-rcpt-paper">
+                        <rect class="edt-rcpt-body" id="edt-rcpt-body" x="548" y="300" width="224" height="222" />
+                        <g id="edt-rcpt-head"></g>
+                        <g id="edt-rcpt-lines"></g>
+                        <path class="edt-rcpt-rule" id="edt-rcpt-rule" d="M 568 490 L 752 490" />
+                        <!-- The two arrows on this strip are `->` and not
+                             `→`: U+2192 is not in the self-hosted latin
+                             subset (the checkmark's trap), and a fallback
+                             glyph has an advance edit.ts's width asserts
+                             cannot know. See RCPT_HEAD in edit.ts. -->
+                        <text class="edt-rcpt-total" id="edt-rcpt-total" x="568" y="508">total · 7 stations · 1 edit</text>
+                        <path class="edt-rcpt-perf" id="edt-rcpt-perf" d="M 548 522 L 772 522" />
+                      </g>
+                    </g>
+                  </g>
+                  <!-- The door's whisper, in scene 4's `click here` grammar:
+                       small, quiet, one short curve dipping to the
+                       perforation, and a head that agrees with the curve's own
+                       end tangent. It arrives strictly AFTER the print has
+                       settled — an instruction printed over a page still
+                       coming out of the machine would be an instruction about
+                       something that is not there yet. -->
+                  <g id="edt-tear-hint">
+                    <text class="edt-whisper" id="edt-tear-here" x="800" y="548">tear here</text>
+                    <path class="edt-hint-arrow" id="edt-tear-arrow" d="M 796 541 C 788 538 780 532 776 526" />
+                    <!-- Barbs derived from the curve's END TANGENT (last
+                         control 780,532 -> tip 776,526), ±28° about it — an
+                         arrowhead is only an arrowhead if it agrees with its
+                         own line (scene 4's rule). -->
+                    <path class="edt-hint-arrow" id="edt-tear-head" d="M 776.8 534 L 776 526 L 783 529.8" />
+                  </g>
+                </g>
               </g>
             </svg>
 
@@ -2813,6 +2974,19 @@
             <button class="edt-toggle" id="edt-toggle" type="button" aria-pressed="false" hidden>
               <span class="sr-only" id="edt-toggle-name">Canary share: 10 percent of conversations. Activate to switch to 50 percent.</span>
             </button>
+
+            <!-- THE SCENE'S DOOR OUT, and the second thing on this page the
+                 reader may operate. Same construction as the switch above and
+                 for the same reasons: the stage's svg is aria-hidden, so a
+                 tabbable node inside it would be a focus stop with no
+                 accessible name; the control therefore lives in the document
+                 and is laid over the printed strip from the svg's own measured
+                 matrix. Hidden and inert until the receipt has finished
+                 printing — the held ending — and hidden again the moment the
+                 reader scrolls back out of it. -->
+            <button class="edt-tear" id="edt-tear" type="button" hidden>
+              <span class="sr-only">Tear off the receipt and go to the proof</span>
+            </button>
           </div>
         </div>
 
@@ -2825,10 +2999,10 @@
       </section>
 
       <!-- ─────────────────────────────────────────────────────────────────
-           SCENE 5 — PROOF + CTA.  "Don't take my word. See the proof."
-           (Still numbered 05 on the page, deliberately: the renumber to 06 —
-           masthead, ticket target and sr copy — is one edit and it belongs to
-           the slice that also retargets scene 4's ticket, not to this one.)
+           SCENE 6 — PROOF + CTA.  "Don't take my word. See the proof."
+           (Renumbered to 06 by slice C, in the same edit that retargeted
+           scene 4's ticket to THE EDIT. The edit scene's masthead is now the
+           page's only 05.)
            The last scene, and the only one that is NOT pinned: four scenes
            have taken the scrollbar away and the page owes it back before it
            asks for anything. Normal scroll, one scrub, about a screen and a
@@ -2894,7 +3068,7 @@
              scene, so it stays while the scene plays). Compact in-pin form,
              left on the page's own margin like the other scenes' rails. -->
         <div class="prf-masthead">
-          <p class="agt-kicker"><span class="agt-kicker-num">05</span> · <span>proof</span></p>
+          <p class="agt-kicker"><span class="agt-kicker-num">06</span> · <span>proof</span></p>
           <p class="agt-head">Don't take my word. See the proof.</p>
         </div>
         <div class="prf-table" id="prf-table">
