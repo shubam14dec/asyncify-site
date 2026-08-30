@@ -1286,7 +1286,7 @@ const TEAR_END_ROT = -10;
 const TEAR_CONE_SKEW = -4;
 /** The fall. Once, damped, no bounce and no loop — and long enough to watch,
  *  which is the point of tearing something off. */
-const FALL_DUR = 3.1;
+const FALL_DUR = 4;
 /** How far down the viewport the strip travels, as a fraction of its height,
  *  and the swings it takes on the way. SHRINKING, and alternating — free
  *  paper does not oscillate at a constant amplitude, it spills its energy. */
@@ -3339,7 +3339,10 @@ export function createEditScene(): EditScene {
     /* And the fall stays a fall. Long enough to watch, short enough that the
        reader is not waiting on a piece of paper — and it must outlast the
        glide it is released with, or the page arrives before the strip does. */
-    if (FALL_DUR < 2.0 || FALL_DUR > 3.2 || TEAR_RUN + FALL_DUR <= TEAR_RUN + GLIDE_DUR) {
+    /* Upper bound user-tuned across 2.7 / 3.1 / 4: the fall is the payoff and
+       the reader chose to linger on it. 4.5 stays the line past which paper
+       reads as a feather. */
+    if (FALL_DUR < 2.0 || FALL_DUR > 4.5 || TEAR_RUN + FALL_DUR <= TEAR_RUN + GLIDE_DUR) {
       throw new Error("[edit] the fall is not a fall, or the page lands before the strip is gone");
     }
     /* THE SUBSET LAW, AS AN ASSERT rather than as one more comment nobody
