@@ -4352,9 +4352,13 @@ export function createEditScene(): EditScene {
     tearBtn.hidden = true;
     if (doc.activeElement === tearBtn) tearBtn.blur();
 
-    /* The hover lift is the hand's too, so it is put back before the strip is
-       measured — a clone taken while the paper was 1.5u taut would sit that
-       far off the paper it replaces. */
+    /* The hover offset is the hand's too — and the tear must START from the
+       hovered position, not snap back first (user catch: the strip hopped up
+       a frame before tearing). The offset is read, zeroed on the original —
+       which is hidden this same frame anyway, so a fresh receipt rests at
+       zero — and handed to the CLONE below, so the paper never moves between
+       the last hover frame and the first tear frame. */
+    const hoverY = Number(gsap.getProperty(rcptPaper, "y")) || 0;
     gsap.killTweensOf(rcptPaper);
     gsap.set(rcptPaper, { y: 0 });
 
@@ -4412,8 +4416,13 @@ export function createEditScene(): EditScene {
 
     /* One origin for the whole flight: the strip's own centre, set once
        rather than re-declared per tween, because every svgOrigin hand-off is
-       a chance for gsap to compensate a translate the fall already owns. */
-    gsap.set(cloneRoot, { svgOrigin: `${RCPT_X + RCPT_W / 2} ${MOUTH_Y + RCPT_H / 2}` });
+       a chance for gsap to compensate a translate the fall already owns.
+       The clone also STARTS at the hover's own offset — the paper the reader
+       was holding down is the paper that tears, in the same place. */
+    gsap.set(cloneRoot, {
+      y: hoverY,
+      svgOrigin: `${RCPT_X + RCPT_W / 2} ${MOUTH_Y + RCPT_H / 2}`,
+    });
 
     const tt = gsap.timeline({
       onComplete: () => {
