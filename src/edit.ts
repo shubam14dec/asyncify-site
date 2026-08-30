@@ -1286,7 +1286,7 @@ const TEAR_END_ROT = -10;
 const TEAR_CONE_SKEW = -4;
 /** The fall. Once, damped, no bounce and no loop — and long enough to watch,
  *  which is the point of tearing something off. */
-const FALL_DUR = 2.7;
+const FALL_DUR = 3.1;
 /** How far down the viewport the strip travels, as a fraction of its height,
  *  and the swings it takes on the way. SHRINKING, and alternating — free
  *  paper does not oscillate at a constant amplitude, it spills its energy. */
