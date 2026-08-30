@@ -1255,7 +1255,11 @@ const TEAR_HERE_Y = 585;
  *  it arrives once, never loops, and is set at a size a reader does not have
  *  to lean in for. MUST match `#edt-tear-here`'s font-size — the width assert
  *  below is monoWidth() arithmetic off this number. */
-const TEAR_HERE_SIZE = 13;
+/** 17 = scene 4's click-here, user-tuned there (the annotation is now in
+ *  that voice — Instrument Serif italic). The width assert still uses
+ *  monoWidth(), which OVERSTATES a serif's width at the same size — a
+ *  conservative bound, so the assert stays honest. */
+const TEAR_HERE_SIZE = 17;
 /** The whisper's arrowhead: how long each barb is, and the angle it makes
  *  with the curve's own END TANGENT. Both are written down because the head's
  *  two points are authored in the markup and the assert below re-derives them

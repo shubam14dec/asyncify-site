@@ -3606,9 +3606,15 @@ html {
    it is set two rungs up the ladder and three sizes up from the rest.
    font-size MUST match TEAR_HERE_SIZE in edit.ts: its frame-clearance assert
    is monoWidth() arithmetic off that number. */
+/* Scene 4's `click here` voice, exactly (user call): the page's handwritten
+   annotation — Instrument Serif italic at the user-tuned 17, faint ink. The
+   .edt-whisper mono base is fully overridden here; the annotation is a hand,
+   not a machine. */
 #edt-tear-here {
-  font-size: 13px;
-  fill: var(--text);
+  font-family: "Instrument Serif", Georgia, serif;
+  font-style: italic;
+  font-size: 17px;
+  fill: var(--text-faint);
 }
 
 /* The switch's affordance, and it belongs to the POINTER, not to the scrub:
@@ -4049,8 +4055,10 @@ html {
    a mark that has to read at a glance, not a scene silhouette. */
 .edt-hint-arrow {
   fill: none;
-  stroke: var(--text-dim);
-  stroke-width: 1.5;
+  stroke: var(--hairline-strong);
+  /* 1, the click-here arrow's own weight: an annotation's line is a nick,
+     not a mark (user call — scene 4's grammar, exactly). */
+  stroke-width: 1;
   stroke-linecap: butt;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
