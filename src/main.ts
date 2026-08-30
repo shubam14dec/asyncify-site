@@ -29,6 +29,7 @@ import { SplitText } from "gsap/SplitText";
 
 import { createAgentsScene } from "./agents";
 import { createBellScene } from "./bell";
+import { EDIT_PIN_VH, createEditScene } from "./edit";
 import { createEngineScene } from "./engine";
 import { createHangingHeadline } from "./headline";
 import { createInstallLine } from "./install";
@@ -88,7 +89,7 @@ const scene = createBellScene({
     // The line types itself only once the bell has landed: two things
     // arriving at once is neither of them arriving.
     install.start();
-    /* The REMAINING scenes (3-5) wait out the hero's whole opening:
+    /* The REMAINING scenes (3-6) wait out the hero's whole opening:
        typing ~0.75s, the Install-now doodle to ~2.4s, the SDKs flick to
        ~3.1s, the unprompted demo ring closing at ~4.5s. They are only
        reachable through scene 2's 2.5-screen pin, so the clocked chain —
@@ -170,7 +171,13 @@ let turn: ReturnType<typeof createTurnScene> | null = null;
    global and re-measures these too. */
 let agents: ReturnType<typeof createAgentsScene> | null = null;
 
-/* Scene 5 is the only unpinned scene on the page, and the only one that owns
+/* Scene 5 owns one pin and no bridge — scene 4 hands over to it directly.
+   Built after scene 4 so its ScrollTriggers are registered in document order;
+   scene 2's fonts-ready ScrollTrigger.refresh() is global and re-measures this
+   one too. */
+let edit: ReturnType<typeof createEditScene> | null = null;
+
+/* Scene 6 is the only unpinned scene on the page, and the only one that owns
    pointer physics as well as a scrub. Built last so its ScrollTriggers are
    registered in document order behind the four pins above it; scene 2's
    fonts-ready ScrollTrigger.refresh() is global and re-measures this one too,
@@ -201,7 +208,13 @@ let proof: ReturnType<typeof createProofScene> | null = null;
    back share by share as each scene's real spacer lands: the thumb is the
    same size at 0ms as at rest. Desktop-with-motion only — that is the same
    media gate the pins themselves live behind. */
-const PIN_SHARES_VH = [250, 180, 300, 150]; // engine, turn, agents, proof — each scene's PIN_HEIGHTS x 100
+/* engine, turn, agents, EDIT, proof — each scene's PIN_HEIGHTS x 100, in
+   document order. The edit's share is IMPORTED rather than written out: that
+   scene is being built a slice at a time, so the scroll it reserves moves with
+   SLICE_END, and a literal here would drift out of date silently — the exact
+   failure this array exists to prevent (a thumb that shrinks a beat after
+   load). It is the only entry that can move; the other four are settled. */
+const PIN_SHARES_VH = [250, 180, 300, EDIT_PIN_VH, 150];
 const reservePins = window.matchMedia(
   "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
 ).matches;
@@ -238,8 +251,12 @@ const sceneBuilders: Array<() => void> = [
     payBackReserve(PIN_SHARES_VH[2]!);
   },
   () => {
-    proof = createProofScene();
+    edit = createEditScene();
     payBackReserve(PIN_SHARES_VH[3]!);
+  },
+  () => {
+    proof = createProofScene();
+    payBackReserve(PIN_SHARES_VH[4]!);
   },
 ];
 
@@ -340,6 +357,7 @@ if (import.meta.hot) {
     engine?.destroy();
     turn?.destroy();
     agents?.destroy();
+    edit?.destroy();
     proof?.destroy();
   });
 }

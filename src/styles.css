@@ -3071,6 +3071,497 @@ html {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
+   SCENE 5 — THE EDIT
+   ──────────────────────────────────────────────────────────────────────────
+   Read this block, like scenes 2–4, as the scene's FINISHED state: the prompt
+   edited, the eval run graded, the commit through the gate, the version rail
+   stamped and the torn ticket lying in the margin. edit.ts pushes all of it
+   back to the start and scrubs it forward.
+
+   THE FIVE EXCEPTIONS, named here because they are the only places the
+   stylesheet paints something that is NOT in the finished frame: the old
+   prompt line, the caret, the failure mark and the first two check statuses
+   are moments rather than furniture, so they rest at opacity 0 and the scrub
+   is what reveals them. (DESIGN §3 — the stylesheet owns the first paint; a
+   boot-time gsap.set is always too late.)
+
+   Most of the ink is borrowed rather than restated: .agt-kicker and
+   .agt-kicker-num for the masthead's number, .eng-caps / .eng-cap /
+   .eng-kicker / .eng-caption for the caption stack, .eng-progress for the
+   rail's fill, .trn-still-title / .trn-still-head for the still. Four scenes
+   drawn in one dialect is the point. What is new here is only what is new in
+   the scene: a file, a bench, a judge, a turnstile and a piece of torn paper.
+
+   THE TYPE LADDER. The stage renders 1080u across about 900px on a 1250px
+   viewport — 0.83 — so 12u lands at ~10 CSS px and 10.5u at ~8.7. Scene 4's
+   floor is 9.5u and this scene keeps it: nothing in the world is set below
+   10.5u, and the one string that is smaller than a card line (the gutter's
+   numbers) is a number, which is the one thing a reader does not have to read
+   a word at a time.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+#scene-edit {
+  position: relative;
+  display: block;
+}
+
+/* Scene 2's pin anatomy: rail column at the page margin, stage beside it.
+   The rail's clamp is scene 2's and not scene 4's, because this column
+   carries PROSE captions — scene 4 could narrow its rail to the checklist's
+   width precisely because it had none. */
+.edt-pin {
+  position: relative;
+  display: grid;
+  grid-template-columns: clamp(240px, 24vw, 380px) 1fr;
+  align-items: center;
+  gap: clamp(16px, 3vw, 48px);
+  height: 100dvh;
+  padding: clamp(24px, 5vh, 56px) var(--page-pad);
+  /* The camera pans a strip eight bays wide inside this box. Nothing may leak
+     past the viewport into the neighbouring scenes. */
+  overflow: clip;
+  /* Faded up by the entry ScrollTrigger, so the scene materialises on the way
+     in rather than being parked under scene 4 fully lit. */
+  opacity: 0;
+}
+
+/* `.edt-pin` sets display, so it out-specifies the UA's `[hidden]` rule; the
+   still fallback swaps the two halves of the section with `hidden`. */
+.edt-pin[hidden] {
+  display: none;
+}
+
+.edt-rail {
+  position: relative;
+  align-self: center;
+}
+
+/* THE MASTHEAD. Scene 4's kicker treatment verbatim (the number one rung
+   brighter than its word), and a head that is NOT .agt-head, for one reason:
+   BRAND §3 requires a `vh` term on the display type of every full-height
+   section, and this scene's rail carries three things under its title where
+   scene 4's carried one. clamp(24px, min(2.1vw, 3.6vh), 29px) is 26.3px at a
+   1250×800 window and falls to 24px on a 675px-tall laptop — which is exactly
+   the window where the clock, four caption lines and the progress line would
+   otherwise be pushed under the fold. */
+.edt-head {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: clamp(24px, min(2.1vw, 3.6vh), 29px);
+  font-weight: 500;
+  line-height: 1.14;
+  letter-spacing: -0.025em;
+  color: var(--text);
+  text-wrap: balance;
+}
+
+/* The second half of the title, and it is a subline rather than a second
+   head: BRAND §3's body rung, --text-dim, `pretty` rather than `balance`
+   because it is one short line and balancing a single line does nothing. */
+.edt-sub {
+  margin: 10px 0 0;
+  font-family: var(--sans);
+  font-size: clamp(15px, 1.15vw, 17px);
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: var(--text-dim);
+  text-wrap: pretty;
+}
+
+/* ── the clock ───────────────────────────────────────────────────────────
+   One reading at a time, all of them in the same box, so a swap is a
+   crossfade in place and never a reflow of the column. tabular-nums is not
+   optional: 14:02 → 14:03 → 14:06 must not shift by a glyph (BRAND §4). */
+.edt-clock {
+  position: relative;
+  height: 18px;
+  margin: clamp(20px, 3vh, 32px) 0 0;
+}
+
+.edt-clock-read {
+  position: absolute;
+  inset: 0 auto auto 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  opacity: 0;
+}
+
+/* The caption box is one rung taller than scene 2's 148px: the judged-evals
+   caption is three declaratives, which is four lines at the narrowest rail,
+   and a box that grew for it would move the progress line under the reader. */
+#edt-caps {
+  min-height: 172px;
+  margin-top: clamp(16px, 2.4vh, 26px);
+}
+
+.edt-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0; /* a grid child must be allowed to be narrower than its SVG */
+}
+
+/* Scene 4's definite-cap cure, and this scene needs it more than any other:
+   the version rail lives at the very top of the viewBox and the torn ticket
+   at the very bottom, so an aspect-derived height on a short window would
+   crop the two objects that are meant to be readable from anywhere in the
+   scene. `height: auto` keeps the aspect and `max-height` in always-definite
+   units scales the WHOLE frame down instead. */
+.edt-svg {
+  width: 100%;
+  height: auto;
+  max-height: calc(100dvh - 2 * clamp(24px, 5vh, 56px));
+  /* The camera pans a strip eight bays wide; clip at the frame, not at the
+     section, or bay 2 renders under the caption rail. */
+  overflow: hidden;
+}
+
+/* ── the world's ink ─────────────────────────────────────────────────────
+   Three weights, exactly BRAND §4: 1.25 for the roads a chip travels on, 1
+   for everything structural, and non-scaling-stroke on all of it so the
+   camera can move without a hairline getting fat.
+
+   EVERY STROKE BELOW IS `stroke-linecap: butt`, and it is the same law scene 2
+   states at length: the whole scene rests at drawSVG "0% 0%", and a
+   zero-length dash with a round cap is painted as a filled circle of
+   stroke-width diameter at the path's start point. This scene would otherwise
+   open with a stray dot on every tick of the version rail, on both jambs, and
+   inside all six mark boxes — which does not read as a bug, it reads as marks
+   that are already there. */
+
+/* The prompt panel and the judge card. 16u corner because both are PANELS —
+   documents and instruments, not chips (BRAND §4's two radii, no third). */
+.edt-panel {
+  fill: var(--surface);
+  stroke: var(--hairline);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+.edt-panel-rule {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+.edt-file {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  fill: var(--text-dim);
+}
+
+/* The gutter. One rung under the lines in both size and ink — it is the
+   file's measurement, not its content. */
+.edt-num {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-faint);
+}
+
+.edt-line {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  fill: var(--text-dim);
+}
+
+/* What line 4 said BEFORE the edit. Not in the finished frame — the file
+   after the edit is the finished frame — so the stylesheet hides it and the
+   scrub is what brings it in. */
+.edt-line-old {
+  opacity: 0;
+}
+
+/* The proofreader's caret. Ink at the dim rung, 1.25 so the wedge reads as a
+   mark rather than as a hairline: it is the one thing on the panel that is
+   not part of the file. Hidden at rest for the same reason the old line is —
+   an insertion mark is a moment, not furniture. */
+.edt-caret {
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  opacity: 0;
+}
+
+/* A scenario card. Scene 4's tool-card step exactly — --surface on --canvas,
+   one hairline wall, 6u corner — because that is what these are: small
+   labelled objects in a log, not panels. */
+.edt-card {
+  fill: var(--surface);
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+.edt-card-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text);
+}
+
+.edt-card-line {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-dim);
+}
+
+.edt-bench {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+/* The rubric the judge is grading against — the quietest string on the card,
+   which is the right order: the reader reads the score, an engineer reads the
+   rubric it was scored under. */
+.edt-judge-rubric {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+/* THE SCORE. The one number in the scene set above a receipt size, because it
+   is the thing the beat is about and it arrives on a wheel. Ink at full
+   --text and NOT green: a passing grade is not a delivery, and green on this
+   site means a message arrived (BRAND §2). */
+.edt-score {
+  font-family: var(--mono);
+  font-size: 30px;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text);
+}
+
+.edt-score-den {
+  font-family: var(--mono);
+  font-size: 18px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-faint);
+}
+
+/* The threshold. A hairline at --text-faint, one rung under the score it
+   judges: the bar is the quieter object, and it has to be, or the picture
+   says the rule was there first. */
+.edt-thresh {
+  fill: none;
+  stroke: var(--text-faint);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* An empty mark box: the same 12u square everywhere in this scene, so a
+   scenario's verdict and a required check's verdict are the same object. */
+.edt-mark {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The tick. Drawn, never a glyph: U+2713 is not in the self-hosted latin
+   subset, the same trap the star, the block and U+2116 hit elsewhere on this
+   page. 1.5 against the box's 1 — a checkmark at the box's own weight reads
+   as more box, and the whole state change happens inside a 12u square. */
+.edt-tick {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1.5;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The failure mark. --text-dim and not --amber and certainly not a red: this
+   is a check that did not pass, which is information, not an incident. Amber
+   on this site is retry/backoff/degraded and nothing else, and a red would be
+   a fourth accent introduced for a single frame (BRAND §2).
+
+   IT IS THE ONE THING THIS BLOCK DOES NOT HIDE, and the exception is worth
+   naming. The old prompt line, the caret and the first two check statuses are
+   moments that FADE, so the stylesheet rests them at opacity 0 and the scrub
+   brings them in. This mark is DRAWN and then UN-DRAWN — that is what makes
+   the second run read as the same mark being corrected rather than as a
+   second mark arriving — so an opacity:0 here would be a switch nothing ever
+   flips back. Its rest state is a zero-length dash (edit.ts's strokeParts),
+   and the finished frame is the timeline's un-draw. The consequence lands on
+   slice D: a still clone has no timeline, so the ci figure will need a
+   per-figure override, exactly as scenes 2 and 3 keep for their own moments. */
+.edt-cross {
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-width: 1.5;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The chip's road, and the one line in the scene at the 1.25 rail weight:
+   everything else here is structure, and this is the only thing anything
+   travels on. */
+.edt-lane {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The turnstile's bar. --text-faint, scene 2's gate ink exactly: a gate is a
+   thing that acts on the flow, so it is a step brighter than the road it
+   crosses. */
+.edt-gate {
+  fill: none;
+  stroke: var(--text-faint);
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The two posts. They stay when the bar clears, which is what makes an OPEN
+   gate a mark rather than nothing — the reader knows a gate was always
+   there. Scene 2's #skip-jambs, one scene on. */
+.edt-jamb {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The two statuses the row passes THROUGH. `3 passing` is the finished frame
+   and keeps its ink; these two are moments. */
+.edt-status {
+  opacity: 0;
+}
+
+/* ── the chip ────────────────────────────────────────────────────────────
+   A 6u chip, one hairline, --surface on --canvas: BRAND §4's chip step, and
+   deliberately the same object scene 4 draws its tool cards with. This is a
+   small labelled thing that moves, which is exactly what a chip is. */
+.edt-chip-body {
+  fill: var(--surface);
+  stroke: var(--text-faint);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Full ink. The chip is the subject of the whole scene, and it is the only
+   object on the stage that is never scenery. */
+.edt-chip-text {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text);
+}
+
+/* ── the frame layer ─────────────────────────────────────────────────────
+   The version rail and the torn ticket. Both are painted over the world and
+   both are outside the camera, because both are promises the camera must not
+   be able to break. */
+
+.edt-rail-line {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+.edt-rail-tick {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+.edt-rail-lbl {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-faint);
+}
+
+/* The paper. --surface on --canvas with a hairline, like every raised object
+   on this site; elevation is colour, never shadow (DESIGN §1). Its bottom
+   edge is generated by edit.ts and is ragged, which is the whole point: a
+   ticket with four clean sides is a card, and this one was torn off. */
+.edt-tkt-body {
+  fill: var(--surface);
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Object lettering: mono, lowercase, on a physical thing. Two rungs, because
+   the two lines are doing different jobs — what was caught, and how long it
+   had been true. */
+.edt-tkt-hd {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  fill: var(--text-dim);
+}
+
+.edt-tkt-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-faint);
+}
+
+/* ── the still state (< 768px, and prefers-reduced-motion) ───────────────
+   SLICE A STUB: the masthead alone. It is a real still state for the three
+   sentences this scene says so far, and it means the page is never broken on
+   a phone mid-phase. Slice D builds the per-station cards on the same
+   .eng-card / .trn-card-figure primitives scenes 2–4 use. */
+.edt-still {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: clamp(56px, 9vh, 112px) var(--page-pad);
+}
+
+.edt-still[hidden] {
+  display: none;
+}
+
+.edt-still-sub {
+  margin: 10px 0 0;
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
    SCENE 5 — PROOF + CTA
    ──────────────────────────────────────────────────────────────────────────
    Read this block as the scene's FINISHED state, exactly like scenes 2–4:

@@ -2181,7 +2181,301 @@
       </section>
 
       <!-- ─────────────────────────────────────────────────────────────────
+           SCENE 5 — THE EDIT.  "Prompt edits are deploys."   [NEW — A16]
+           (KNOWN, AND ON PURPOSE: proof below still shows "05 · proof" too.
+           The renumber to 06 is one edit — its masthead, scene 4's ticket and
+           the sr copy — and it belongs to the slice that retargets the ticket,
+           not to this one. Two 05s are visible until then.)
+           The quality ladder, told as a journey instead of listed as a set of
+           features: ONE prompt edit travels eight stations, and the reader
+           watches it survive each one. See src/edit.ts for the storyboard,
+           the timing and every number below.
+
+           SLICE A (this markup) builds the skeleton and stations 1-3: the
+           diff, the judged eval run, and the CI gate. Stations 4-8, the
+           landing receipt and the tear door are later slices; their timeline
+           positions are already reserved in edit.ts, and the version rail
+           already holds all eight of their stamp slots.
+
+           THREE THINGS ABOUT THE ANATOMY BELOW:
+
+           1. THE STAGE IS A STRIP UNDER A CAMERA. Eight stations laid out
+              left to right, one 1080u bay each, and #edt-cam pans from bay to
+              bay — scene 2's camera construction applied to a strip. A bay is
+              exactly a frame, so the neighbouring station is off-screen by
+              construction rather than by a margin someone has to remember.
+           2. THE VERSION RAIL AND THE TORN TICKET ARE FRAME FURNITURE. They
+              live OUTSIDE #edt-cam, painted over the world, because both of
+              them are promises the camera must not be able to break: the rail
+              records the whole journey, and the ticket "stays for the rest of
+              the scene" — which a world object cannot do once the camera has
+              panned off its bay.
+           3. THE CHIP IS ONE OBJECT. One rect, two crossfaded strings: at
+              station 3 the prompt line becomes a commit, and the honest way to
+              say that is to change the lettering and not the card.
+
+           As in scenes 2-4, the markup is the ANATOMY, authored in its
+           FINISHED state, and CSS paints it that way; edit.ts pushes it back
+           to the start and scrubs it forward. The exceptions are named in the
+           stylesheet: the old prompt line, the caret and the first two check
+           statuses are moments rather than furniture, so the stylesheet rests
+           them at opacity 0 and the scrub is what reveals them. The failing
+           check's mark is the one moment that is DRAWN and then UN-DRAWN
+           instead — see .edt-cross for why, and for the one thing slice D's
+           still clone will owe because of it.
+           ───────────────────────────────────────────────────────────────── -->
+      <section id="scene-edit" aria-labelledby="edt-heading">
+        <h2 class="sr-only" id="edt-heading">
+          The edit: one line of an agent's prompt is changed, graded by evals against the real
+          pipeline, stopped by CI when it breaks the refund path, and merged only once the suite
+          is green.
+        </h2>
+
+        <div class="edt-pin" id="edt-pin">
+          <!-- The rail column — scenes 2, 3 and 4's anatomy, so every pinned
+               scene on this page hangs its name on the same page margin.
+               Masthead, then the clock, then the caption stack, then the
+               progress line.
+
+               THE CLOCK IS THE SCENE'S ONE PIECE OF NEW FURNITURE. Scroll is
+               time here — an edit at 14:02 is judged at 14:03 and is still in
+               CI at 14:06, and by the canary it will be measured in days — so
+               the rail carries a timestamp that has moved on by the time the
+               chip reaches the next station. edit.ts stacks one span per beat
+               in here and crossfades them; it is never one element whose text
+               is rewritten, because a text rewritten on a frame is a .call()
+               inside a scrubbed range, and this scene has no memory. -->
+          <div class="edt-rail">
+            <div class="edt-title" id="edt-title">
+              <p class="agt-kicker"><span class="agt-kicker-num">05</span> · <span>the edit</span></p>
+              <p class="edt-head">Prompt edits are deploys.</p>
+              <p class="edt-sub">Watch one travel.</p>
+            </div>
+
+            <p class="edt-clock" id="edt-clock" aria-hidden="true"></p>
+
+            <!-- Three captions in one box, crossfaded by the scrub, so a swap
+                 is a change of sentence and never a reflow of the rail.
+                 Scene 2's .eng-caps anatomy exactly. -->
+            <div class="eng-caps" id="edt-caps">
+              <div class="eng-cap">
+                <span class="eng-kicker">the edit</span>
+                <p class="eng-caption">
+                  A prompt is code. One line of it changes what the agent does.
+                </p>
+              </div>
+              <div class="eng-cap">
+                <span class="eng-kicker">judged evals</span>
+                <p class="eng-caption">
+                  Scenarios replay on the real pipeline. Tools are asserted, the reply is scored.
+                  The model grades, the code decides.
+                </p>
+              </div>
+              <div class="eng-cap">
+                <span class="eng-kicker">ci gate</span>
+                <p class="eng-caption">
+                  Every push runs the suite against the real agent. A push that breaks it cannot
+                  merge.
+                </p>
+              </div>
+            </div>
+
+            <div class="eng-progress" aria-hidden="true">
+              <span class="eng-progress-fill" id="edt-progress-fill"></span>
+            </div>
+          </div>
+
+          <div class="edt-stage">
+            <svg
+              class="edt-svg"
+              id="edt-svg"
+              viewBox="0 0 1080 634"
+              preserveAspectRatio="xMidYMid meet"
+              aria-hidden="true"
+              focusable="false"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <!-- ── THE WORLD ──────────────────────────────────────────────
+                   One camera group over a strip eight bays wide. Bay i's
+                   centre is 540 + i·1080, and every station's content stays
+                   within ±500 of it — which is what puts the NEXT bay's
+                   content 40u past the frame edge while this one is parked,
+                   so a station is never on screen beside its neighbour except
+                   during the pan between them. -->
+              <g id="edt-cam">
+                <!-- ── STATION 1 · THE DIFF  (bay 0, centre x 540) ─────────
+                     Acme's system prompt as a FILE: one panel, a name, a rule
+                     under it, a numbered gutter and six lines in the log
+                     voice. The gutter is what makes it a file rather than a
+                     paragraph — the reader has to know what kind of object is
+                     being edited before anything moves.
+
+                     Line 4 exists TWICE. #edt-lines carries the finished text
+                     (the file after the edit, which is what the stylesheet
+                     paints) and #edt-line-old carries what it said before —
+                     hidden in the finished frame, faded in with the rest of
+                     the body by the scrub, and crossfaded away at the moment
+                     of the edit. One position, one line, one change. -->
+                <g id="edt-s1">
+                  <rect class="edt-panel" id="edt-panel" x="200" y="254" width="640" height="244" rx="16" />
+                  <text class="edt-file" id="edt-file" x="216" y="284">acme · system prompt</text>
+                  <path class="edt-panel-rule" id="edt-panel-rule" d="M 216 298 L 824 298" />
+                  <!-- Numbers and lines are generated by edit.ts from
+                       PROMPT_LINES: the copy and the pitch live in one place,
+                       so a seventh line cannot disagree with the panel. -->
+                  <g id="edt-nums"></g>
+                  <g id="edt-lines"></g>
+                  <text class="edt-line edt-line-old" id="edt-line-old" x="246" y="416">Refund anything under $50.</text>
+                  <!-- The proofreader's caret: two hairline strokes meeting in
+                       a wedge, authored at its own origin and PLACED by
+                       transform. It is the same mark the bridge above inserts
+                       "agentic" with (.agt-era-caret) — same idiom, same
+                       reading: something goes in exactly here. -->
+                  <path class="edt-caret" id="edt-caret" d="M -5 5 L 0 0 L 5 5" />
+                </g>
+
+                <!-- ── STATION 2 · JUDGED EVALS  (bay 1, centre x 1620) ─────
+                     The bench on the left, the judge on the right, and the
+                     split is the argument: two of these scenarios are settled
+                     by the TRACE (a tool was called; a tick is the whole
+                     verdict) and the third cannot be, because `tone` is in no
+                     trace. Putting the judge in the same column would say all
+                     three were graded the same way, which is exactly the
+                     misunderstanding this beat exists to prevent. -->
+                <g id="edt-s2">
+                  <text class="edt-bench" id="edt-bench" x="1250" y="262">eval run · 3 scenarios</text>
+                  <g id="edt-scenarios"></g>
+
+                  <rect class="edt-panel" id="edt-judge" x="1650" y="300" width="340" height="190" rx="16" />
+                  <text class="edt-card-title" id="edt-judge-title" x="1666" y="330">judge · tone</text>
+                  <text class="edt-judge-rubric" id="edt-judge-rubric" x="1666" y="352">warm, never blames the customer</text>
+                  <!-- THE SCORE ROLLS. A column of digits behind a static
+                       aperture, moved by a transform — scene 5's printer law
+                       (the hole in the machine never animates) applied to a
+                       counter wheel. Not a number whose text is rewritten per
+                       frame: that would be a .call() in a scrubbed range.
+                       The column is generated by edit.ts so that glyph 4 sits
+                       in the window with NO transform at all — the finished
+                       frame is the untransformed one, same inversion the whole
+                       file runs on. -->
+                  <clipPath id="edt-score-clip"><rect x="1670" y="380" width="30" height="34" /></clipPath>
+                  <g clip-path="url(#edt-score-clip)"><g id="edt-score-col"></g></g>
+                  <text class="edt-score-den" id="edt-score-den" x="1706" y="406">/ 5</text>
+                  <!-- The bar, and it is DRAWN AFTER the roll. The model
+                       supplies the number; the runner compares it to `min` and
+                       decides. A rule drawn first would be a picture of a
+                       model being trusted with a pass/fail.
+                       `min 4` and not "≥ 4": `min` is the real key in the eval
+                       format, and U+2265 is not in the self-hosted latin
+                       subset (the checkmark trap). -->
+                  <path class="edt-thresh" id="edt-thresh" d="M 1670 432 L 1830 432" />
+                  <text class="edt-card-line" id="edt-thresh-lbl" x="1840" y="436">min 4</text>
+                  <path class="edt-tick" id="edt-judge-tick" d="M 0 0" />
+                  <text class="edt-card-line" id="edt-judge-verdict" x="1690" y="456">tone · passed</text>
+                </g>
+
+                <!-- ── STATION 3 · THE CI GATE  (bay 2, centre x 2700) ──────
+                     A turnstile on the chip's own road, with the required
+                     check underneath it.
+
+                     THE BAR IS A drawSVG AND NOT A ROTATION. A boom barrier
+                     swinging up is the more obvious picture and it was ruled
+                     out twice over: it would swing into the lane the chip is
+                     standing in, and this site already has a gate vocabulary
+                     (scene 2's meter and its workflow gate both rest collapsed
+                     on their own middle between two jamb ticks). A third
+                     dialect for one idea is a new thing to learn for no new
+                     meaning. So the bar draws SHUT and clears by retracting
+                     into its own centre; the jambs stay, so the reader knows a
+                     gate was always there. -->
+                <g id="edt-s3">
+                  <path class="edt-lane" id="edt-lane" d="M 2260 200 L 3100 200" />
+                  <path class="edt-jamb" id="edt-jamb-a" d="M 2694 168 L 2706 168" />
+                  <path class="edt-jamb" id="edt-jamb-b" d="M 2694 232 L 2706 232" />
+                  <path class="edt-gate" id="edt-gate" d="M 2700 168 L 2700 232" />
+
+                  <path class="edt-panel-rule" id="edt-check-rule" d="M 2400 268 L 3000 268" />
+                  <text class="edt-card-title" id="edt-check-lbl" x="2400" y="300">agent-evals</text>
+                  <!-- Three marks and, on the failing one, a struck cross.
+                       Generated by edit.ts off the same SCENARIOS list the
+                       bench above is built from, so the check row and the
+                       suite can never disagree about how many scenarios there
+                       are. NO RED: a failure here is the gray ladder plus a
+                       drawn mark, because green is rationed to three uses on
+                       this site and CI is not one of them, and a red
+                       introduced for one frame would be a fourth accent. -->
+                  <g id="edt-marks"></g>
+                  <!-- One row, three states, crossfaded in place. -->
+                  <text class="edt-card-line edt-status" id="edt-status-run" x="2680" y="300">running…</text>
+                  <text class="edt-card-line edt-status" id="edt-status-fail" x="2680" y="300">1 failing</text>
+                  <text class="edt-card-line" id="edt-status-pass" x="2680" y="300">3 passing</text>
+                </g>
+
+                <!-- ── THE CHIP ────────────────────────────────────────────
+                     The changed line, lifted off the page, authored at its own
+                     origin and moved in world coordinates — the same rule
+                     every packet on this site obeys, so nothing has to do
+                     offset arithmetic to know where it is. Painted last: it
+                     travels over every station.
+
+                     ONE BODY, TWO TEXTS. At station 3 it stops being a prompt
+                     line and becomes a commit. The body does not resize,
+                     because a card that changed size would read as a second
+                     card arriving — which is the one thing this scene may not
+                     say. -->
+                <g id="edt-chip">
+                  <rect class="edt-chip-body" id="edt-chip-body" x="-172" y="-15" width="344" height="30" rx="6" />
+                  <text class="edt-chip-text" id="edt-chip-line" x="0" y="4" text-anchor="middle">Confirm the order number before any refund.</text>
+                  <text class="edt-chip-text" id="edt-chip-commit" x="0" y="4" text-anchor="middle">a4f2c1 · prompt v7</text>
+                </g>
+              </g>
+
+              <!-- ── THE FRAME LAYER ────────────────────────────────────────
+                   Outside the camera, painted over the world. Two objects, and
+                   both are here for the same reason: they are promises the
+                   camera must not be able to break.
+
+                   THE VERSION RAIL is the flight recorder — a hairline across
+                   the top of the stage with one tick per station event, in the
+                   measurement register. All eight stamp slots are positioned
+                   by edit.ts and every one of the eight labels is width-
+                   asserted at boot, including the six later slices own: eight
+                   mono strings sharing 960u either fit or they do not, and the
+                   failure mode is two of them reading as one.
+
+                   THE TORN TICKET is what the CI gate caught, on paper, and it
+                   never leaves. Its outline is generated (a fixed tooth cycle,
+                   never rolled) so the same piece of paper is there on the way
+                   back up. -->
+              <g id="edt-frame">
+                <path class="edt-rail-line" id="edt-rail-line" d="M 60 58 L 1020 58" />
+                <path class="edt-rail-tick" id="edt-rail-origin" d="M 60 52 L 60 64" />
+                <text class="edt-rail-lbl" id="edt-rail-v0" x="60" y="82" text-anchor="middle">v6</text>
+                <g id="edt-stamps"></g>
+
+                <g id="edt-ticket">
+                  <path class="edt-tkt-body" id="edt-tkt-body" d="M 0 0" />
+                  <text class="edt-tkt-hd" x="38" y="534">caught · refund-path</text>
+                  <text class="edt-tkt-sub" x="38" y="554">silently broken 31 days</text>
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Reduced motion and < 768px land here instead: no pin, no scrub.
+             SLICE A STUB — edit.ts fills this with the masthead alone, which
+             is a real still state for what the scene says so far and, more to
+             the point, means the page is never broken on a phone mid-phase.
+             Slice D builds the per-station cards. -->
+        <div class="edt-still" id="edt-still" hidden></div>
+      </section>
+
+      <!-- ─────────────────────────────────────────────────────────────────
            SCENE 5 — PROOF + CTA.  "Don't take my word. See the proof."
+           (Still numbered 05 on the page, deliberately: the renumber to 06 —
+           masthead, ticket target and sr copy — is one edit and it belongs to
+           the slice that also retargets scene 4's ticket, not to this one.)
            The last scene, and the only one that is NOT pinned: four scenes
            have taken the scrollbar away and the page owes it back before it
            asks for anything. Normal scroll, one scrub, about a screen and a
