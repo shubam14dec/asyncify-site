@@ -298,7 +298,13 @@ const RAIL_LBL_GAP = 16;
  *  lettering beside it. The rail never gets a ✓ glyph — it is not in the
  *  self-hosted latin subset, the same trap the star, the block and U+2116 hit
  *  elsewhere on this page — so a tick here is always a drawn path. */
-const RAIL_MARK = 14;
+/** The rail's mark is THE CHECK ROW'S mark, exactly (user call: the same
+ *  checkbox the ci row ticks — one grammar for "checked off" on this scene).
+ *  Side MARK, rx 1, class edt-mark, tick at (+0.5, +0.5), k = 1.
+ *  12 IS MARK — written as a literal because MARK is declared further down
+ *  with the check row's constants and a forward reference here would TDZ;
+ *  the equality is asserted at boot so the two cannot drift. */
+const RAIL_MARK = 12;
 const RAIL_MARK_GAP = 5;
 
 /* The eight stamps, in the order the chip earns them.
@@ -1623,8 +1629,14 @@ export function createEditScene(): EditScene {
 
   /** How wide a stamp's block is: tick, gap, label. Every stamp has all
    *  three now, so there is no longer a second shape to measure. */
+  /* The rail's checkbox IS the check row's (user call, one "checked" idiom);
+     RAIL_MARK is written as a literal up top only because MARK is declared
+     later — this is the promised no-drift guard. */
+  if (RAIL_MARK !== MARK) {
+    throw new Error("[edit] the rail's checkbox is not the check row's mark");
+  }
   const stampWidth = (i: number): number =>
-    RAIL_MARK + RAIL_MARK_GAP + monoWidth(STAMPS[i]!.label, RAIL_LBL_SIZE);
+    RAIL_MARK + 1 + RAIL_MARK_GAP + monoWidth(STAMPS[i]!.label, RAIL_LBL_SIZE);
   for (let i = 0; i < STAMPS.length; i++) {
     const half = stampWidth(i) / 2;
     if (stampX(i) - half < 0 || stampX(i) + half > FRAME_W) {
@@ -1863,12 +1875,24 @@ export function createEditScene(): EditScene {
       "text-anchor": "start",
     });
     label.textContent = s.label;
+    /* The checkbox (user call): the check row's own mark, byte-identical
+       grammar — box, then the tick lands inside it. A stamp reads as a
+       feature checked off, in the one "checked" idiom this scene has. */
+    const boxY = RAIL_LBL_Y - RAIL_MARK - 1;
+    const box = svgEl("rect", {
+      class: "edt-mark",
+      x: (x - w / 2 + 0.5).toFixed(2),
+      y: (boxY + 0.5).toFixed(2),
+      width: String(MARK),
+      height: String(MARK),
+      rx: 1,
+    });
     const mark = svgEl("path", {
       class: "edt-tick",
-      d: tickPath(x - w / 2, RAIL_LBL_Y - RAIL_MARK + 1, RAIL_MARK / MARK),
+      d: tickPath(x - w / 2 + 0.5, boxY + 0.5),
     });
-    stampsG.append(tick, mark, label);
-    return { at: s.at, tick, label, mark };
+    stampsG.append(box, tick, mark, label);
+    return { at: s.at, tick, label, mark, box };
   });
 
   /* ── the prompt ────────────────────────────────────────────────────────── */
@@ -3698,7 +3722,7 @@ export function createEditScene(): EditScene {
     ...failCross,
     chipBody,
     tktBody,
-    ...stamps.flatMap((s) => (s ? [s.tick, s.mark] : [])),
+    ...stamps.flatMap((s) => (s ? [s.tick, s.mark, s.box] : [])),
     /* stations 4–8 */
     notchV6,
     notchV7,
@@ -4638,6 +4662,17 @@ export function createEditScene(): EditScene {
       mark.setAttribute("class", "edt-still-mark");
       mark.setAttribute("viewBox", `0 0 ${MARK + 1} ${MARK + 1}`);
       mark.setAttribute("aria-hidden", "true");
+      /* The checkbox, matching the pinned rail: the check row's own mark. */
+      mark.appendChild(
+        svgEl("rect", {
+          class: "edt-mark",
+          x: "0.5",
+          y: "0.5",
+          width: String(MARK),
+          height: String(MARK),
+          rx: 1,
+        }),
+      );
       mark.appendChild(svgEl("path", { class: "edt-tick", d: tickPath(0.5, 0.5) }));
       const w = doc.createElement("span");
       w.textContent = s.label;
@@ -4945,8 +4980,11 @@ export function createEditScene(): EditScene {
     for (const s of stamps) {
       if (!s) continue;
       draw(s.tick, s.at, 0.5);
-      draw(s.mark, s.at + 0.2, 0.6);
-      fadeIn(s.label, s.at + 0.3, 0.9);
+      /* Box first, then the tick inside it — a checkbox is ticked, never
+         drawn around an existing tick. */
+      draw(s.box, s.at + 0.15, 0.5);
+      draw(s.mark, s.at + 0.5, 0.6);
+      fadeIn(s.label, s.at + 0.6, 0.9);
     }
 
     /* ══════════════════════════════════════════════════════════════════════
