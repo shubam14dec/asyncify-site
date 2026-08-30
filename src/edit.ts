@@ -1141,26 +1141,53 @@ const floodArrivedBy = (t: number): number =>
    scene 4's ticket's before it. */
 const MOUTH_Y = 300;
 const RCPT_X = 548;
-const RCPT_W = 224;
+/** Widened from 224 (user call: the paper looked starved) — the scene's
+ *  payoff should have a payoff's presence. Every dependent number below and
+ *  in the markup (clip, body, rule, perf, punches, whisper anchor) moves
+ *  with it; the fall's viewBox, the button overlay and the feed distance all
+ *  derive, so the tear and the fall did not change. */
+const RCPT_W = 320;
 const RCPT_PAD = 20;
 /** Where the paper stops being paper. Everything between the mouth and here
- *  is one strip, and the tear takes all of it. */
-const RCPT_PERF_Y = 522;
+ *  is one strip, and the tear takes all of it. 594 is the frame-margin
+ *  assert's own ceiling — the longer anatomy earns the full column. */
+const RCPT_PERF_Y = 594;
 const RCPT_H = RCPT_PERF_Y - MOUTH_Y;
 /** The clip's own height: the strip plus a hair, so a 1px perforation never
  *  lands exactly on the aperture's own edge. */
 const RCPT_CLIP_H = RCPT_H + 6;
-const RCPT_SIZE = 10.5;
-const RCPT_HEAD_Y0 = 322;
-const RCPT_HEAD_PITCH = 18;
-const RCPT_LINE_Y0 = 366;
-const RCPT_LINE_PITCH = 18;
-const RCPT_RULE_Y = 490;
-const RCPT_TOTAL_Y = 508;
+const RCPT_SIZE = 11.5;
+/* ── the receipt's anatomy, top to bottom (user call: a receipt, not a
+   strip — the shop name, the double rule, dot leaders, a barcode, the
+   sign-off; every piece a real thermal receipt has, in this page's ink) ── */
+const RCPT_WORDMARK = "asyncify";
+const RCPT_WORDMARK_SIZE = 13;
+const RCPT_WORDMARK_Y = 324;
+/** Receipts love double rules: two hairlines, 3u apart, under the name. */
+const RCPT_DBLRULE_Y = 334;
+const RCPT_HEAD_Y0 = 356;
+const RCPT_HEAD_PITCH = 19;
+const RCPT_MIDRULE_Y = 387;
+const RCPT_LINE_Y0 = 406;
+const RCPT_LINE_PITCH = 19;
+const RCPT_RULE_Y = 532;
+const RCPT_TOTAL_Y = 549;
+const RCPT_SIGN = "thank you · nothing shipped unverified";
+const RCPT_SIGN_SIZE = 9.5;
+const RCPT_SIGN_Y = 562;
+/** The barcode: pure hairline ink between two quiet zones, widths derived
+ *  from the commit the receipt is OF — texture, never a headline. */
+const RCPT_CODE_SEED = "a4f2c1";
+const RCPT_CODE_N = 32;
+const RCPT_CODE_QUIET = 24;
+const RCPT_CODE_Y0 = 568;
+const RCPT_CODE_H = 14;
+const RCPT_CODE_CAP = "v7 · a4f2c1";
+const RCPT_CODE_CAP_Y = 590;
 /** The serrated bar. One tooth per TEETH_W, so the machine's fringe and the
  *  strip's own torn edge are the same shape with the sign flipped — two
  *  halves of one separation. */
-const TEETH_N = 28;
+const TEETH_N = 32;
 const TEETH_W = RCPT_W / TEETH_N;
 const TEETH_H = 3.5;
 
@@ -1177,16 +1204,34 @@ const TEETH_H = 3.5;
  *  face has a different ADVANCE: every monoWidth() assert about a string
  *  containing one is measuring a number it cannot know. `->` is two glyphs
  *  the font has, in a machine's own register, on a machine's own printout. */
-const RCPT_HEAD: readonly string[] = ["acme · support prompt", "v6 -> v7"];
-const RCPT_LINES: readonly string[] = [
-  "judged 4.6",
-  "ci · green",
-  "saved · v7",
-  "canary 10% -> promoted",
-  "routed",
-  "gated",
-  "throttled 1",
+const RCPT_HEAD: readonly string[] = ["acme · support prompt", "edit a4f2c1 · v6 -> v7"];
+/** The stamp lines as [label, value] pairs. A receipt's signature typography
+ *  is the DOT LEADER — label left, value on the right edge, `·` glyphs (IN
+ *  the subset, U+00B7) filling the span between. `routed` and `gated` have no
+ *  value to print, so a drawn tick stands in the value slot — the same
+ *  checked idiom the rail and the check row use. */
+const RCPT_ROWS: readonly (readonly [string, string])[] = [
+  ["judged", "4.6"],
+  ["ci", "green"],
+  ["saved", "v7"],
+  ["canary", "10% -> promoted"],
+  ["routed", ""],
+  ["gated", ""],
+  ["throttled", "1"],
 ];
+/** Columns a tick occupies at the line's end when it stands in for a value. */
+const RCPT_TICK_SLOT = 3;
+/** One leader line, filled so every value ends on the same right edge — mono
+ *  makes this arithmetic: the column count is the paper's inner width over
+ *  one advance, and the dots (each `· ` = two columns) fill what the label
+ *  and value leave. Built, never typed, so the column cannot drift. */
+function leaderLine(label: string, value: string): string {
+  const cols = Math.floor((RCPT_W - 2 * RCPT_PAD) / (RCPT_SIZE * 0.61));
+  const used = label.length + 1 + (value ? value.length : RCPT_TICK_SLOT);
+  const dots = Math.max(3, Math.floor((cols - used) / 2));
+  return `${label} ${"· ".repeat(dots).trimEnd()}${value ? ` ${value}` : ""}`;
+}
+const RCPT_LINES: readonly string[] = RCPT_ROWS.map(([l, v]) => leaderLine(l, v));
 /** The bottom line. Seven stations, because station 1 is the EDIT itself —
  *  the thing that then travelled through seven more. */
 const RCPT_TOTAL = `total · ${STATION_AT.length - 1} stations · 1 edit`;
@@ -1203,8 +1248,8 @@ const RCPT_TOTAL = `total · ${STATION_AT.length - 1} stations · 1 edit`;
    finds is a door nobody takes. Same behaviour, two rungs brighter and three
    sizes up, with a curve and a head scaled to match. */
 const TEAR_HERE = "tear here";
-const TEAR_HERE_X = 812;
-const TEAR_HERE_Y = 548;
+const TEAR_HERE_X = 892;
+const TEAR_HERE_Y = 585;
 /** QUIET IN BEHAVIOUR IS NOT QUIET IN VOLUME. This is the only instruction on
  *  the whole stage and it is what stands between the reader and the door, so
  *  it arrives once, never loops, and is set at a size a reader does not have
@@ -1262,11 +1307,12 @@ const TEAR_LIFT = 1.5;
    future edit cannot get wrong. */
 const L_CLOSE_AT = 1.4;
 const L_TEETH_AT = 0.6;
-const L_PRINT_AT = 2.6;
-/** The print's length. Seven units of scroll for eleven lines is a printer
- *  the reader can read AS it prints rather than one they watch finish. */
-const L_PRINT_DUR = 7.2;
-const L_HINT_AT = 10.2;
+const L_PRINT_AT = 2.2;
+/** The print's length. Eight units of scroll for the full anatomy — sixteen
+ *  printed things — is a printer the reader can read AS it prints rather
+ *  than one they watch finish. */
+const L_PRINT_DUR = 8.0;
+const L_HINT_AT = 10.3;
 /** How long the whisper takes to arrive, all three of its parts. */
 const L_HINT_RUN = 1.55;
 
@@ -1342,7 +1388,7 @@ const STILL_VIEW_MAX_W = 470;
    the camera group taken out — otherwise bay 0's prompt panel, which sits at
    the same numbers, would be painted underneath them. */
 const STILL_TKT_VIEW = "14 500 210 92";
-const STILL_RCPT_VIEW = "536 288 248 248";
+const STILL_RCPT_VIEW = "536 288 344 318";
 /** The scene's LAST FRAME, whole, and it is genuinely the last frame: at the
  *  landing the camera is parked on bay 8, which is empty by design, so the
  *  frame layer standing alone is exactly what the reader is left looking at.
@@ -2203,6 +2249,69 @@ export function createEditScene(): EditScene {
       t.textContent = text;
       linesG8.appendChild(t);
     });
+    /* The rest of the anatomy (user call: a receipt, not a strip). All of it
+       generated for the same reason the lines are, all of it printed by the
+       one aperture — nothing here tweens. */
+    const extraG = q<SVGGElement>(svg, "#edt-rcpt-extra");
+    const midX0 = RCPT_X + RCPT_PAD;
+    const midX1 = RCPT_X + RCPT_W - RCPT_PAD;
+    const centre = RCPT_X + RCPT_W / 2;
+    const wm = svgEl("text", {
+      class: "edt-rcpt-wordmark",
+      x: centre,
+      y: RCPT_WORDMARK_Y,
+      "text-anchor": "middle",
+    });
+    wm.textContent = RCPT_WORDMARK;
+    extraG.appendChild(wm);
+    for (const y of [RCPT_DBLRULE_Y, RCPT_DBLRULE_Y + 3, RCPT_MIDRULE_Y]) {
+      extraG.appendChild(
+        svgEl("path", { class: "edt-rcpt-rule", d: `M ${midX0} ${y} L ${midX1} ${y}` }),
+      );
+    }
+    /* A drawn tick stands in the value slot of the two rows that have no
+       value to print — the scene's one "checked" idiom, on the paper too. */
+    RCPT_ROWS.forEach(([, v], i) => {
+      if (v !== "") return;
+      extraG.appendChild(
+        svgEl("path", {
+          class: "edt-tick",
+          d: tickPath(midX1 - MARK, RCPT_LINE_Y0 + i * RCPT_LINE_PITCH - 10),
+        }),
+      );
+    });
+    const sg = svgEl("text", {
+      class: "edt-rcpt-sign",
+      x: centre,
+      y: RCPT_SIGN_Y,
+      "text-anchor": "middle",
+    });
+    sg.textContent = RCPT_SIGN;
+    extraG.appendChild(sg);
+    /* The barcode: bar widths from the commit's own character bits — texture
+       DERIVED from the thing the receipt is of, never randomness. */
+    const span = RCPT_W - 2 * RCPT_PAD - 2 * RCPT_CODE_QUIET;
+    const pitch = span / RCPT_CODE_N;
+    for (let i = 0; i < RCPT_CODE_N; i++) {
+      const c = RCPT_CODE_SEED.charCodeAt(i % RCPT_CODE_SEED.length);
+      const wBar = ((c >> i % 7) & 1) === 1 ? 2.4 : 1;
+      const bx = (RCPT_X + RCPT_PAD + RCPT_CODE_QUIET + (i + 0.5) * pitch).toFixed(2);
+      extraG.appendChild(
+        svgEl("path", {
+          class: "edt-rcpt-code",
+          d: `M ${bx} ${RCPT_CODE_Y0} L ${bx} ${RCPT_CODE_Y0 + RCPT_CODE_H}`,
+          "stroke-width": String(wBar),
+        }),
+      );
+    }
+    const cap = svgEl("text", {
+      class: "edt-rcpt-sign",
+      x: centre,
+      y: RCPT_CODE_CAP_Y,
+      "text-anchor": "middle",
+    });
+    cap.textContent = RCPT_CODE_CAP;
+    extraG.appendChild(cap);
   }
 
   /* ── the torn ticket's outline ─────────────────────────────────────────── */
@@ -3053,8 +3162,16 @@ export function createEditScene(): EditScene {
   {
     const inner = RCPT_X + RCPT_W - RCPT_PAD;
     const textX = RCPT_X + RCPT_PAD;
-    for (const line of [...RCPT_HEAD, ...RCPT_LINES, RCPT_TOTAL]) {
-      if (textX + monoWidth(line, RCPT_SIZE) > inner) {
+    const fits: readonly (readonly [string, number])[] = [
+      [RCPT_WORDMARK, RCPT_WORDMARK_SIZE],
+      ...RCPT_HEAD.map((l) => [l, RCPT_SIZE] as const),
+      ...RCPT_LINES.map((l) => [l, RCPT_SIZE] as const),
+      [RCPT_TOTAL, RCPT_SIZE],
+      [RCPT_SIGN, RCPT_SIGN_SIZE],
+      [RCPT_CODE_CAP, RCPT_SIGN_SIZE],
+    ];
+    for (const [line, size] of fits) {
+      if (textX + monoWidth(line, size) > inner) {
         throw new Error(`[edit] the receipt is narrower than "${line}"`);
       }
     }
@@ -3073,14 +3190,27 @@ export function createEditScene(): EditScene {
     {
       const lastHead = RCPT_HEAD_Y0 + (RCPT_HEAD.length - 1) * RCPT_HEAD_PITCH;
       const lastLine = RCPT_LINE_Y0 + (RCPT_LINES.length - 1) * RCPT_LINE_PITCH;
-      if (RCPT_LINE_Y0 <= lastHead + RCPT_SIZE) {
-        throw new Error("[edit] the receipt's stamps are printed over its own header");
+      /* Top of the anatomy: name, double rule, header, mid rule, stamps. */
+      if (
+        RCPT_WORDMARK_Y <= MOUTH_Y + RCPT_WORDMARK_SIZE ||
+        RCPT_DBLRULE_Y <= RCPT_WORDMARK_Y + 2 ||
+        RCPT_HEAD_Y0 <= RCPT_DBLRULE_Y + 3 + RCPT_SIZE ||
+        RCPT_MIDRULE_Y <= lastHead + 4 ||
+        RCPT_LINE_Y0 <= RCPT_MIDRULE_Y + RCPT_SIZE
+      ) {
+        throw new Error("[edit] the receipt's header anatomy is printed out of order");
       }
       if (RCPT_RULE_Y <= lastLine + 6 || RCPT_TOTAL_Y <= RCPT_RULE_Y + RCPT_SIZE) {
         throw new Error("[edit] the receipt's total is printed over the rule above it");
       }
-      if (RCPT_TOTAL_Y + 6 > RCPT_PERF_Y) {
-        throw new Error("[edit] the receipt's total runs past the perforation");
+      /* Bottom of the anatomy: total, sign-off, barcode, caption, perf. */
+      if (
+        RCPT_SIGN_Y <= RCPT_TOTAL_Y + 4 ||
+        RCPT_CODE_Y0 <= RCPT_SIGN_Y + 2 ||
+        RCPT_CODE_CAP_Y <= RCPT_CODE_Y0 + RCPT_CODE_H ||
+        RCPT_CODE_CAP_Y + 3 > RCPT_PERF_Y
+      ) {
+        throw new Error("[edit] the receipt's barcode block is printed out of order");
       }
     }
     /* THE PAPER COPY IS A TRUE COPY OF THE RAIL. Eight stamps, seven lines —
@@ -3090,7 +3220,14 @@ export function createEditScene(): EditScene {
       throw new Error("[edit] the receipt prints a different number of events than the rail recorded");
     }
     for (const s of STAMPS) {
-      const on = RCPT_LINES.filter((l) => l.includes(s.label));
+      /* The leader dots sit between a stamp's words now, so the check is by
+         TOKEN rather than substring: every word of the stamp must appear on
+         exactly one line, with the `·` leaders themselves filtered out. */
+      const words = s.label.split(" ").filter((w) => w !== "·");
+      const on = RCPT_LINES.filter((l) => {
+        const cells = l.split(" ").filter((w) => w !== "·");
+        return words.every((w) => cells.includes(w));
+      });
       if (on.length !== 1) {
         throw new Error(`[edit] the rail stamp "${s.label}" is printed ${on.length} times on the receipt`);
       }

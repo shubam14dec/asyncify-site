@@ -3965,7 +3965,7 @@ html {
    the only line on the paper set at full ink — it is the receipt's answer. */
 .edt-rcpt-head {
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
   fill: var(--text-dim);
@@ -3973,18 +3973,52 @@ html {
 
 .edt-rcpt-line {
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
-  fill: var(--text-faint);
+  fill: var(--text-dim);
 }
 
 .edt-rcpt-total {
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: 11.5px;
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
   fill: var(--text);
+}
+
+/* The receipt's shop name — the one line on the paper set a step up, the way
+   a thermal receipt's masthead is. */
+.edt-rcpt-wordmark {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  fill: var(--text);
+}
+
+/* The sign-off and the barcode's caption: a receipt's small print. */
+.edt-rcpt-sign {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.01em;
+  fill: var(--text-faint);
+}
+
+/* The barcode: texture, never a headline — one rung below the lettering,
+   width per bar carried on the element (derived from the commit's bits). */
+.edt-rcpt-code {
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Die-cut half-punches at the perforation's ends — scene 4's ticket's own
+   canvas-fill idiom. */
+.edt-rcpt-punch {
+  fill: var(--canvas);
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
 }
 
 .edt-rcpt-rule {
