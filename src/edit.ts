@@ -1276,9 +1276,10 @@ const TEAR_RUN = 1.45;
  *  dispenser: the drama is the fall's, not the peel's. */
 const TEAR_END_ROT = -10;
 /** The flex toward the held corner while the tear runs (the ticket's cone),
- *  sprung flat by the fall's own first keyframe. */
+ *  sprung flat by the fall's own first keyframe. Skew ONLY — the ticket also
+ *  compresses (scaleY), but on a 294u strip a 3% compression lifts the
+ *  bottom edge ~9u, which read as the right side rising (user catch). */
 const TEAR_CONE_SKEW = -4;
-const TEAR_CONE_SCALE = 0.97;
 /** The fall. Once, damped, no bounce and no loop — and long enough to watch,
  *  which is the point of tearing something off. */
 const FALL_DUR = 2.7;
@@ -3338,7 +3339,7 @@ export function createEditScene(): EditScene {
     if (TEAR_RUN !== 1.45) {
       throw new Error("[edit] the tear does not run at scene 4's ticket's bar (one tearing feel)");
     }
-    if (TEAR_END_ROT >= 0 || TEAR_END_ROT < -20 || TEAR_CONE_SKEW >= 0 || TEAR_CONE_SCALE >= 1) {
+    if (TEAR_END_ROT >= 0 || TEAR_END_ROT < -20 || TEAR_CONE_SKEW >= 0) {
       throw new Error("[edit] the tear's sag or flex is not a sag or a flex");
     }
     /* And the fall stays a fall. Long enough to watch, short enough that the
@@ -4447,35 +4448,49 @@ export function createEditScene(): EditScene {
       0,
     );
     /* THE HINGE TRAVELS WITH THE FRONT (the ticket's law): only as much paper
-       may hang as has been cut. The front runs left to right, so the strip
-       pivots about its still-attached RIGHT-TOP corner — near-flat while the
-       front crosses the first half, a sag past three-quarters, and the last
-       fibres give only at the end. Then the fall's own first keyframe springs
-       it flat about the strip's centre — the hop at the hand-off IS the
-       release. */
+       may hang as has been cut. The front runs left to right, so the freed
+       LEFT edge sags while the still-attached right-top corner stays PINNED —
+       near-flat over the first half, a lean past three-quarters, the last
+       fibres giving only at the end.
+
+       ONE ORIGIN FOR THE WHOLE FLIGHT (this file's own law, restored — user
+       catch: the right side rose at the release). A per-tween corner origin
+       made the hand-off to the fall's centre-origin keyframes re-express the
+       same rotation about a different point, and the right edge hopped ~27u
+       up in one frame. Instead every rotation lives about the strip's centre,
+       and the pin is arithmetic: rotating θ about centre lifts the right-top
+       corner by (W/2)·sinθ, so each stage carries the equal-and-opposite y —
+       the corner holds still, the left edge takes the whole sag, and the fall
+       continues from the same origin with nothing to compensate. The weight
+       settle rides in the same keyframes (one owner per property). */
     {
-      const hinge = `${RCPT_X + RCPT_W} ${MOUTH_Y}`;
-      tt.to(cloneRoot, { rotation: -1.5, duration: 0.3, ease: "power1.out", svgOrigin: hinge }, 0);
-      tt.to(cloneRoot, { rotation: -4, duration: 0.35, ease: roughTear, svgOrigin: hinge }, 0.3);
-      tt.to(cloneRoot, { rotation: -7, duration: 0.35, ease: roughTear, svgOrigin: hinge }, 0.65);
+      const comp = (deg: number): number =>
+        (RCPT_W / 2) * Math.sin((Math.abs(deg) * Math.PI) / 180);
+      const stages: readonly (readonly [number, number, number, string])[] = [
+        /* [rotation, at, until, ease] — settle share grows power1.in-ish. */
+        [-1.5, 0, 0.3, "power1.out"],
+        [-4, 0.3, 0.65, roughTear],
+        [-7, 0.65, 1.0, roughTear],
+        [TEAR_END_ROT, 1.0, TEAR_RUN, "power2.in"],
+      ];
+      const settleShare = [0.5, 1.5, 3, 5];
+      stages.forEach(([deg, at, until, ease], i) => {
+        tt.to(
+          cloneRoot,
+          {
+            rotation: deg,
+            y: hoverY + settleShare[i]! + comp(deg),
+            duration: until - at,
+            ease,
+          },
+          at,
+        );
+      });
+      /* THE CONE: paper flexes toward the held corner while it is pulled —
+         skew only (see TEAR_CONE_SKEW's note). */
       tt.to(
         cloneRoot,
-        { rotation: TEAR_END_ROT, duration: TEAR_RUN - 1.0, ease: "power2.in", svgOrigin: hinge },
-        1.0,
-      );
-      /* The sheet SETTLES a few px as fibres let go — weight, not just angle
-         (on the clone, whose y the fall's path never owns). */
-      tt.to(cloneRoot, { y: "+=5", duration: TEAR_RUN, ease: "power1.in" }, 0);
-      /* THE CONE: paper flexes toward the held corner while it is pulled. */
-      tt.to(
-        cloneRoot,
-        {
-          skewX: TEAR_CONE_SKEW,
-          scaleY: TEAR_CONE_SCALE,
-          duration: TEAR_RUN * 0.85,
-          ease: "power1.in",
-          svgOrigin: hinge,
-        },
+        { skewX: TEAR_CONE_SKEW, duration: TEAR_RUN * 0.85, ease: "power1.in" },
         0,
       );
     }
@@ -4507,10 +4522,8 @@ export function createEditScene(): EditScene {
     {
       const stalls = [0.28, 0.52, 0.72, 0.88];
       /* The fall picks the paper up where the tear left it — sagged and
-         flexed — and its first keyframe is the SPRING FLAT at the release
-         (about the strip's centre now: the pivot moving off the hinge is the
-         corner letting go). */
-      gsap.set(cloneRoot, { svgOrigin: `${RCPT_X + RCPT_W / 2} ${MOUTH_Y + RCPT_H / 2}` });
+         flexed, about the SAME centre origin it has had since the clone was
+         made — and its first keyframe is the spring flat at the release. */
       let prevR = TEAR_END_ROT;
       let prevB = TEAR_CONE_SKEW;
       let prevT = 0;
