@@ -1204,7 +1204,7 @@ const TEETH_H = 3.5;
  *  face has a different ADVANCE: every monoWidth() assert about a string
  *  containing one is measuring a number it cannot know. `->` is two glyphs
  *  the font has, in a machine's own register, on a machine's own printout. */
-const RCPT_HEAD: readonly string[] = ["acme · support prompt", "edit a4f2c1 · v6 -> v7"];
+const RCPT_HEAD: readonly string[] = ["acme · system prompt", "edit a4f2c1 · v6 -> v7"];
 /** The stamp lines as [label, value] pairs. A receipt's signature typography
  *  is the DOT LEADER — label left, value on the right edge, `·` glyphs (IN
  *  the subset, U+00B7) filling the span between. `routed` and `gated` have no
