@@ -2862,25 +2862,29 @@
                    measurement register. All eight stamp slots are positioned
                    by edit.ts and every one of the eight labels is width-
                    asserted at boot, including the six later slices own: eight
-                   mono strings sharing 960u either fit or they do not, and the
-                   failure mode is two of them reading as one.
+                   ticked mono strings sharing 1020u either fit or they do not,
+                   and the failure mode is two of them reading as one. The
+                   rail's own line, its origin tick and its origin label are
+                   authored here (a still clone is a clone of the markup) and
+                   asserted against RAIL_* at boot, because nothing writes
+                   them back.
 
                    THE TORN TICKET is what the CI gate caught, on paper, and it
                    never leaves. Its outline is generated (a fixed tooth cycle,
                    never rolled) so the same piece of paper is there on the way
                    back up. -->
               <g id="edt-frame">
-                <path class="edt-rail-line" id="edt-rail-line" d="M 60 58 L 1020 58" />
-                <path class="edt-rail-tick" id="edt-rail-origin" d="M 60 52 L 60 64" />
-                <text class="edt-rail-lbl" id="edt-rail-v0" x="60" y="82" text-anchor="middle">v6</text>
+                <path class="edt-rail-line" id="edt-rail-line" d="M 30 58 L 1050 58" />
+                <path class="edt-rail-tick" id="edt-rail-origin" d="M 30 50 L 30 66" />
+                <text class="edt-rail-lbl" id="edt-rail-v0" x="30" y="88" text-anchor="middle">v6</text>
                 <!-- VERSION NOTCHES point UP, event ticks point across. The
                      rail records eight events but only two VERSIONS, and a
                      reader who can see which two ticks are boundaries can read
                      the whole recorder without a legend. Both are written from
                      RAIL_* in edit.ts; they are authored here so a still clone
                      of the markup carries them. -->
-                <path class="edt-rail-tick" id="edt-notch-v6" d="M 60 58 L 60 44" />
-                <path class="edt-rail-tick" id="edt-notch-v7" d="M 360 58 L 360 44" />
+                <path class="edt-rail-tick" id="edt-notch-v6" d="M 30 58 L 30 40" />
+                <path class="edt-rail-tick" id="edt-notch-v7" d="M 357 58 L 357 40" />
                 <g id="edt-stamps"></g>
 
                 <g id="edt-ticket">
@@ -2942,20 +2946,29 @@
                     </g>
                   </g>
                   <!-- The door's whisper, in scene 4's `click here` grammar:
-                       small, quiet, one short curve dipping to the
-                       perforation, and a head that agrees with the curve's own
-                       end tangent. It arrives strictly AFTER the print has
-                       settled — an instruction printed over a page still
-                       coming out of the machine would be an instruction about
-                       something that is not there yet. -->
+                       one short curve dipping to the perforation, and a head
+                       that agrees with the curve's own end tangent. It arrives
+                       strictly AFTER the print has settled — an instruction
+                       printed over a page still coming out of the machine
+                       would be an instruction about something that is not
+                       there yet.
+
+                       QUIET IN BEHAVIOUR, NOT IN VOLUME: it arrives once and
+                       never loops, and that is what makes it a whisper. At 10u
+                       in the faintest ink it was also simply hard to find, and
+                       a door nobody finds is a door nobody takes — so the
+                       lettering, the curve and the head all went up together
+                       (~1.4x), which is why every number on this group moved. -->
                   <g id="edt-tear-hint">
-                    <text class="edt-whisper" id="edt-tear-here" x="800" y="548">tear here</text>
-                    <path class="edt-hint-arrow" id="edt-tear-arrow" d="M 796 541 C 788 538 780 532 776 526" />
+                    <text class="edt-whisper" id="edt-tear-here" x="812" y="548">tear here</text>
+                    <path class="edt-hint-arrow" id="edt-tear-arrow" d="M 806 543 C 793.2 539 780.4 531 774 523" />
                     <!-- Barbs derived from the curve's END TANGENT (last
-                         control 780,532 -> tip 776,526), ±28° about it — an
-                         arrowhead is only an arrowhead if it agrees with its
-                         own line (scene 4's rule). -->
-                    <path class="edt-hint-arrow" id="edt-tear-head" d="M 776.8 534 L 776 526 L 783 529.8" />
+                         control 780.4,531 -> tip 774,523), ±28° about it, 11u
+                         long — an arrowhead is only an arrowhead if it agrees
+                         with its own line (scene 4's rule). edit.ts re-derives
+                         both of these points at boot and throws if they drift,
+                         so they are arithmetic rather than a drawing. -->
+                    <path class="edt-hint-arrow" id="edt-tear-head" d="M 776.03 533.81 L 774 523 L 784.1 527.36" />
                   </g>
                 </g>
               </g>

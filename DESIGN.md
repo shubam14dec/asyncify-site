@@ -112,6 +112,13 @@ storytelling, feedback, or state change. "It looked cool" is not an answer — d
   top"` states the intent itself — the timeline ends at the moment the next scene pins,
   whatever the page between them does. Any scrub whose finale must coincide with another
   element's arrival gets an `endTrigger` on that element, never a tuned offset.
+- **Geometry authored only in the markup is asserted against its constants at boot.** A
+  shape JS reads but never writes (a rail line, an origin label, a notch) can drift from
+  the constants the scene's math is derived from, and the drift is invisible — a rail 30u
+  short still looks like a rail. Whenever markup and a constant describe the same number,
+  a boot assert reads the attribute back and compares. (Found in the A16 review fixes:
+  four rail numbers moved in one edit; without the read-back, stamps would have been
+  spaced for a rail that no longer existed.)
 
 ### `prefers-reduced-motion`
 

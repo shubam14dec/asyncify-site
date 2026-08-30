@@ -3599,6 +3599,18 @@ html {
   fill: var(--text-faint);
 }
 
+/* THE DOOR'S WHISPER IS THE ONE EXCEPTION, and it is an exception about
+   volume rather than about behaviour. It still arrives once and never loops —
+   that is what makes it a whisper — but it is the only instruction on the
+   stage and the only thing standing between the reader and the next scene, so
+   it is set two rungs up the ladder and three sizes up from the rest.
+   font-size MUST match TEAR_HERE_SIZE in edit.ts: its frame-clearance assert
+   is monoWidth() arithmetic off that number. */
+#edt-tear-here {
+  font-size: 13px;
+  fill: var(--text);
+}
+
 /* The switch's affordance, and it belongs to the POINTER, not to the scrub:
    it is faded up when the beat has settled and the control is armed, and it
    is gone again the moment the camera leaves that bay. */
@@ -3832,15 +3844,13 @@ html {
    both are outside the camera, because both are promises the camera must not
    be able to break. */
 
+/* THE RAIL IS WHAT THE SCENE IS ABOUT, so it is read at the top of the ladder
+   rather than the bottom. Each of the three parts moved one rung and kept the
+   hierarchy it had: the line is structure (--hairline-strong), the ticks and
+   notches are the events on it (--text-dim), and the words are what the
+   reader actually reads (--text, the brightest step there is). Still a
+   hairline-and-lettering object — no box, no fill, no colour. */
 .edt-rail-line {
-  fill: none;
-  stroke: var(--hairline);
-  stroke-width: 1;
-  stroke-linecap: butt;
-  vector-effect: non-scaling-stroke;
-}
-
-.edt-rail-tick {
   fill: none;
   stroke: var(--hairline-strong);
   stroke-width: 1;
@@ -3848,12 +3858,22 @@ html {
   vector-effect: non-scaling-stroke;
 }
 
+.edt-rail-tick {
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* MUST match RAIL_LBL_SIZE in edit.ts: every clearance on the rail is
+   monoWidth() arithmetic off that number and this is what paints it. */
 .edt-rail-lbl {
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: 13.5px;
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
-  fill: var(--text-faint);
+  fill: var(--text);
 }
 
 /* The paper. --surface on --canvas with a hairline, like every raised object
@@ -3988,12 +4008,15 @@ html {
   vector-effect: non-scaling-stroke;
 }
 
-/* The whisper's curve. Scene 4's `click here` annotation, one scene on: a
-   short dip to the thing it is about, and nothing else. */
+/* The whisper's curve and its head. Scene 4's `click here` annotation, one
+   scene on: a short dip to the thing it is about, and nothing else. Raised
+   with the lettering it belongs to — an annotation whose line is fainter than
+   its words points at nothing. 1.5 is `.edt-tick`'s weight and its reasoning:
+   a mark that has to read at a glance, not a scene silhouette. */
 .edt-hint-arrow {
   fill: none;
-  stroke: var(--text-faint);
-  stroke-width: 1;
+  stroke: var(--text-dim);
+  stroke-width: 1.5;
   stroke-linecap: butt;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
@@ -4071,13 +4094,14 @@ html {
 /* The still's own door out. It is a real control, so it takes the site's
    control ink and its focus ring — and it is the ONLY control in the still,
    because the canary's switch became a second picture instead (see the still
-   block below). */
+   block below). Set at the pinned whisper's own size, for the pinned
+   whisper's own reason: this is the way to the next scene. */
 .edt-still-door {
   display: inline-block;
   margin-top: 28px;
   padding: 10px 16px;
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 13px;
   letter-spacing: 0.01em;
   color: var(--text);
   background: var(--surface);
@@ -4157,8 +4181,9 @@ html {
 }
 
 /* The rail itself. .agt-still-list's grammar exactly — a top rule, a rule
-   under every row, and a fixed first column so the three stamps that carry a
-   tick line up with the five that do not. */
+   under every row, and a fixed first column, which now holds a tick on every
+   one of the eight: the phone gets the same claim the desktop rail makes
+   rather than a shorter version of it. */
 .edt-still-rail {
   margin: 0 0 clamp(24px, 4vh, 40px);
   padding: 0;
@@ -4168,13 +4193,13 @@ html {
 
 .edt-still-stamp {
   display: grid;
-  grid-template-columns: 14px 1fr;
+  grid-template-columns: 16px 1fr;
   gap: 10px;
   align-items: center;
   padding: 10px 0;
   border-bottom: 1px solid var(--hairline);
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
   color: var(--text);
@@ -4182,8 +4207,8 @@ html {
 
 .edt-still-mark {
   display: block;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 
 /* When this station happens. The pinned scene's clock, one reading per card —

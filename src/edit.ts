@@ -267,19 +267,26 @@ const CAM_START = { z: 1, fx: bayCx(0), fy: CAM_FY };
 
    ALL EIGHT POSITIONS ARE AUTHORED NOW. The rail is the one object in this
    scene whose layout cannot be worked out one station at a time — eight
-   labels sharing 960u either fit or they do not — so slice A places all of
-   them and asserts every neighbouring pair clears, and slice B fills in the
-   six `at` values it earns. A stamp with `at: null` has no DOM and no tween.
+   labels and eight ticks sharing 1020u either fit or they do not — so slice A
+   places all of them and asserts every neighbouring pair clears, and slice B
+   fills in the six `at` values it earns. A stamp with `at: null` has no DOM
+   and no tween.
 
    The origin tick at RAIL_X0 is the version the scene starts on. It is not a
    stamp: nothing happened there, it is where the story was already standing. */
 const RAIL_Y = 58;
-const RAIL_X0 = 60;
-const RAIL_X1 = 1020;
+const RAIL_X0 = 30;
+const RAIL_X1 = 1050;
 /** Half the tick's height, and the label's baseline under the rail. */
-const RAIL_TICK_H = 6;
-const RAIL_LBL_Y = 82;
-const RAIL_LBL_SIZE = 10.5;
+const RAIL_TICK_H = 8;
+const RAIL_LBL_Y = 88;
+/** The rail's lettering, and it is the LOUDEST mono on this stage rather than
+ *  the quietest. The recorder is what the scene is about — eight gates one
+ *  edit cleared — so it is read at the size a reader reads a heading at, not
+ *  at the size a footnote is set in. MUST match `.edt-rail-lbl`'s font-size:
+ *  every clearance below is monoWidth() arithmetic off this number, and the
+ *  stylesheet is what actually paints it. */
+const RAIL_LBL_SIZE = 13.5;
 /** The starting version, written under the rail's own origin. */
 const RAIL_ORIGIN_LABEL = "v6";
 /** Minimum daylight between two neighbouring stamp labels. Below ~12u two
@@ -287,30 +294,44 @@ const RAIL_ORIGIN_LABEL = "v6";
  *  one long one; 16 is the assert's floor. */
 const RAIL_LBL_GAP = 16;
 
-/** The drawn checkmark a PASS stamp carries, in an 11u box. The rail never
- *  gets a ✓ glyph — it is not in the self-hosted latin subset, the same trap
- *  the star, the block and U+2116 hit elsewhere on this page — so a tick here
- *  is always a drawn path. */
-const RAIL_MARK = 11;
+/** The drawn checkmark EVERY stamp carries, in a 14u box sized to the
+ *  lettering beside it. The rail never gets a ✓ glyph — it is not in the
+ *  self-hosted latin subset, the same trap the star, the block and U+2116 hit
+ *  elsewhere on this page — so a tick here is always a drawn path. */
+const RAIL_MARK = 14;
 const RAIL_MARK_GAP = 5;
 
-/* The eight stamps, in the order the chip earns them. `at` is null for the
-   ones later slices own; their x and their label are already load-bearing,
-   because the assert below measures all eight. */
-const STAMPS: readonly { label: string; mark: boolean; at: number | null }[] = [
-  { label: "judged 4.6", mark: false, at: 34.6 }, // station 2 — a score, not a verdict
-  { label: "ci · green", mark: true, at: 52.4 }, // station 3 — the word, never the colour
-  { label: "saved · v7", mark: false, at: 75.4 }, // station 4 — the save commits
-  { label: "canary 10%", mark: false, at: 81.0 }, // station 5 — the canary opens
-  { label: "promoted", mark: true, at: 93.6 }, // station 5 — and closes on evidence
-  { label: "routed", mark: false, at: 112.6 }, // station 6
-  { label: "gated", mark: true, at: 129.8 }, // station 7
-  { label: "throttled 1", mark: false, at: 139.6 }, // station 8
+/* The eight stamps, in the order the chip earns them.
+
+   EVERY ONE OF THEM CARRIES A TICK, and that is the rail's whole claim. The
+   first version of this rail ticked only the three stamps whose station was
+   literally a pass/fail check, which quietly said the other five were
+   book-keeping — a number, a percentage, a count. They are not: a canary that
+   opened, a route that held, a flood that was throttled to one message are
+   each a gate this edit cleared. Eight stations, eight ticks, one edit. */
+const STAMPS: readonly { label: string; at: number | null }[] = [
+  { label: "judged 4.6", at: 34.6 }, // station 2 — a score, not a verdict
+  { label: "ci · green", at: 52.4 }, // station 3 — the word, never the colour
+  { label: "saved · v7", at: 75.4 }, // station 4 — the save commits
+  { label: "canary 10%", at: 81.0 }, // station 5 — the canary opens
+  { label: "promoted", at: 93.6 }, // station 5 — and closes on evidence
+  { label: "routed", at: 112.6 }, // station 6
+  { label: "gated", at: 129.8 }, // station 7
+  { label: "throttled 1", at: 139.6 }, // station 8
 ];
-/** Even pitch across the rail, so the recorder reads as a clock rather than
- *  as eight labels that happened to fit. */
-const RAIL_PITCH = (RAIL_X1 - RAIL_X0) / STAMPS.length;
-const stampX = (i: number): number => RAIL_X0 + (i + 0.5) * RAIL_PITCH;
+/** Where the first stamp stands, and the even pitch after it — so the
+ *  recorder reads as a clock rather than as eight labels that happened to fit.
+ *
+ *  THE RUN IS NO LONGER HALF A PITCH IN FROM THE RAIL'S END, and the reason is
+ *  arithmetic rather than taste. At 13.5u lettering with a tick on all eight,
+ *  the widest stamp is a ~101u block; half of the old 120u pitch could not
+ *  hold half of that plus the origin label plus RAIL_LBL_GAP, so the first
+ *  stamp would have sat on top of `v6`. The run is therefore placed
+ *  explicitly, centred on the rail (113 + 3.5 × 122 = 540 = the rail's own
+ *  mid-point), and both ends are asserted. */
+const STAMP_X0 = 113;
+const RAIL_PITCH = 122;
+const stampX = (i: number): number => STAMP_X0 + i * RAIL_PITCH;
 
 /* ── the version notches ───────────────────────────────────────────────────
    The rail records eight EVENTS but only two VERSIONS, and the difference is
@@ -321,7 +342,7 @@ const stampX = (i: number): number => RAIL_X0 + (i + 0.5) * RAIL_PITCH;
 
    Above the rail is empty frame (the labels hang below at RAIL_LBL_Y), so the
    notch costs nothing and collides with nothing; both facts are asserted. */
-const RAIL_NOTCH_TOP = 44;
+const RAIL_NOTCH_TOP = 40;
 /** Which stamp the v7 notch stands on: the one that says the save committed. */
 const NOTCH_V7_STAMP = 2;
 
@@ -1165,22 +1186,42 @@ const RCPT_LINES: readonly string[] = [
 const RCPT_TOTAL = `total · ${STATION_AT.length - 1} stations · 1 edit`;
 
 /* ── the door ──────────────────────────────────────────────────────────────
-   The whisper, in scene 4's `click here` grammar: small, quiet, one short
-   curve dipping to the perforation. It arrives strictly after the print has
-   settled — an instruction printed over a page still coming out of the
-   machine would be an instruction about something that is not there yet. */
+   The whisper, in scene 4's `click here` grammar: one short curve dipping to
+   the perforation, arriving strictly after the print has settled — an
+   instruction printed over a page still coming out of the machine would be an
+   instruction about something that is not there yet.
+
+   IT IS QUIET IN BEHAVIOUR, NOT IN VOLUME, and the two were confused. Arriving
+   once and never looping is what makes it a whisper; being set at 10u in the
+   faintest ink on the ladder only made it hard to find, and a door nobody
+   finds is a door nobody takes. Same behaviour, two rungs brighter and three
+   sizes up, with a curve and a head scaled to match. */
 const TEAR_HERE = "tear here";
-const TEAR_HERE_X = 800;
+const TEAR_HERE_X = 812;
 const TEAR_HERE_Y = 548;
+/** QUIET IN BEHAVIOUR IS NOT QUIET IN VOLUME. This is the only instruction on
+ *  the whole stage and it is what stands between the reader and the door, so
+ *  it arrives once, never loops, and is set at a size a reader does not have
+ *  to lean in for. MUST match `#edt-tear-here`'s font-size — the width assert
+ *  below is monoWidth() arithmetic off this number. */
+const TEAR_HERE_SIZE = 13;
+/** The whisper's arrowhead: how long each barb is, and the angle it makes
+ *  with the curve's own END TANGENT. Both are written down because the head's
+ *  two points are authored in the markup and the assert below re-derives them
+ *  — an arrowhead is only an arrowhead if it agrees with its line. */
+const TEAR_HEAD_LEN = 11;
+const TEAR_HEAD_DEG = 28;
 
 /** THE SNAP. A receipt is not peeled, it is pulled once against a bar, and
- *  the separation runs the width of the strip in one stroke. 0.35s: scene 4's
- *  ticket takes 1.45 to tear because a perforation gives dash by dash, and
- *  the whole point of the two doors being different is that this one does
- *  not. */
-const SNAP_RUN = 0.35;
-/** The fall. Once, damped, no bounce and no loop. */
-const FALL_DUR = 2.15;
+ *  the separation runs the width of the strip in one stroke. Still ONE
+ *  continuous stroke at 0.7s — scene 4's ticket takes 1.45 to tear because a
+ *  perforation gives dash by dash, and the whole point of the two doors being
+ *  different is that this one does not. 0.35 was a snap the reader's eye
+ *  never caught: the separation was over before they had found it. */
+const SNAP_RUN = 0.7;
+/** The fall. Once, damped, no bounce and no loop — and long enough to watch,
+ *  which is the point of tearing something off. */
+const FALL_DUR = 2.7;
 /** How far down the viewport the strip travels, as a fraction of its height,
  *  and the swings it takes on the way. SHRINKING, and alternating — free
  *  paper does not oscillate at a constant amplitude, it spills its energy. */
@@ -1195,9 +1236,12 @@ const FALL_TILT: readonly number[] = [14, -10, 6, -3];
  *  ripple. A hint, never a fold — skewX in degrees, about the strip's own
  *  centre. */
 const FALL_BOW: readonly number[] = [-5, 4, -2.5, 1.2];
-/** The glide, at the release. Scene 4's ticket's numbers exactly: the reader
- *  who tears one door and the reader who tears the other must not feel two
- *  different pages moving. */
+/** The glide, AT THE RELEASE — its delay is SNAP_RUN by reference and not by
+ *  number, so the slower snap moved the page's departure with it rather than
+ *  leaving the page travelling under a strip that had not come off yet. Its
+ *  own duration is scene 4's ticket's exactly: the reader who tears one door
+ *  and the reader who tears the other must not feel two different pages
+ *  moving. */
 const GLIDE_DUR = 1.3;
 /** How far the strip stiffens toward the teeth under a pointer. 1.5u is under
  *  two pixels at the stage's render scale — the paper going taut, not the
@@ -1418,10 +1462,14 @@ function svgEl<K extends keyof SVGElementTagNameMap>(
 
 /** The checkmark's `d` for a box whose origin is (x, y). One place, so a tick
  *  in the rail, a tick in a scenario card and a tick in the check row are the
- *  same tick. */
-function tickPath(x: number, y: number): string {
+ *  same tick. `k` scales the gesture for a box that is not MARK — the rail's
+ *  is 14u, because a tick beside 13.5u lettering has to be the lettering's
+ *  size or it reads as a bullet. Everything else passes no scale and gets
+ *  byte-identical geometry to before. */
+function tickPath(x: number, y: number, k = 1): string {
   return TICK.map(
-    ([dx, dy], i) => `${i === 0 ? "M" : "L"} ${(x + dx).toFixed(2)} ${(y + dy).toFixed(2)}`,
+    ([dx, dy], i) =>
+      `${i === 0 ? "M" : "L"} ${(x + dx * k).toFixed(2)} ${(y + dy * k).toFixed(2)}`,
   ).join(" ");
 }
 
@@ -1565,17 +1613,18 @@ export function createEditScene(): EditScene {
 
   /* ════════════════════════════════════════════════════════════════════════
      BOOT ASSERTS — the version rail
-     Eight labels sharing 960u either fit or they do not, and the failure mode
-     is two mono strings reading as one. Measured with the arithmetic above,
-     for all eight, including the six no tween touches yet — that is the whole
-     reason their x and their text are authored a slice early.
+     Eight ticked labels sharing 1020u either fit or they do not, and the
+     failure mode is two mono strings reading as one. Measured with the
+     arithmetic above, for all eight, including the six no tween touches yet —
+     that is the whole reason their x and their text are authored a slice
+     early. Every one of these numbers moved when the rail was raised to 13.5u
+     and every stamp was given a tick, which is exactly what they are for.
      ════════════════════════════════════════════════════════════════════════ */
 
-  /** How wide a stamp's block is, mark included. */
-  const stampWidth = (i: number): number => {
-    const s = STAMPS[i]!;
-    return monoWidth(s.label, RAIL_LBL_SIZE) + (s.mark ? RAIL_MARK + RAIL_MARK_GAP : 0);
-  };
+  /** How wide a stamp's block is: tick, gap, label. Every stamp has all
+   *  three now, so there is no longer a second shape to measure. */
+  const stampWidth = (i: number): number =>
+    RAIL_MARK + RAIL_MARK_GAP + monoWidth(STAMPS[i]!.label, RAIL_LBL_SIZE);
   for (let i = 0; i < STAMPS.length; i++) {
     const half = stampWidth(i) / 2;
     if (stampX(i) - half < 0 || stampX(i) + half > FRAME_W) {
@@ -1591,6 +1640,19 @@ export function createEditScene(): EditScene {
     const originHalf = monoWidth(RAIL_ORIGIN_LABEL, RAIL_LBL_SIZE) / 2;
     if (RAIL_X0 + originHalf + RAIL_LBL_GAP > stampX(0) - stampWidth(0) / 2) {
       throw new Error("[edit] the rail's origin label collides with the first stamp");
+    }
+  }
+  {
+    /* And every stamp stands ON the rail rather than off the end of it, with
+       the run centred on the rail's own mid-point — the two facts that used
+       to be free when the pitch was derived from RAIL_X0/RAIL_X1 and are now
+       written down, because STAMP_X0 and RAIL_PITCH are typed by hand. */
+    if (stampX(0) < RAIL_X0 || stampX(STAMPS.length - 1) > RAIL_X1) {
+      throw new Error("[edit] a rail stamp stands off the end of the rail it is recorded on");
+    }
+    const mid = (stampX(0) + stampX(STAMPS.length - 1)) / 2;
+    if (Math.abs(mid - (RAIL_X0 + RAIL_X1) / 2) > 1) {
+      throw new Error("[edit] the rail's stamps are not centred on the rail");
     }
   }
   /* Every stamp with a moment has to earn it inside the slice, and the ones
@@ -1781,9 +1843,11 @@ export function createEditScene(): EditScene {
 
   /* ── the version rail ──────────────────────────────────────────────────── */
   const stampsG = q<SVGGElement>(svg, "#edt-stamps");
-  /** Per stamp: its tick, its label, and its mark if it has one. Null for the
-   *  slots later slices own — no DOM at all, so nothing can fade in by
-   *  accident. */
+  /** Per stamp: the event tick that crosses the rail, the drawn checkmark
+   *  under it, and the word for it. Null for the slots later slices own — no
+   *  DOM at all, so nothing can fade in by accident. All three exist for all
+   *  eight now, so the block is one shape: [ tick ][gap][ label ], centred on
+   *  the stamp's own x. */
   const stamps = STAMPS.map((s, i) => {
     if (s.at === null) return null;
     const x = stampX(i);
@@ -1794,20 +1858,16 @@ export function createEditScene(): EditScene {
     });
     const label = svgEl("text", {
       class: "edt-rail-lbl",
-      x: s.mark ? x - w / 2 + RAIL_MARK + RAIL_MARK_GAP : x,
+      x: x - w / 2 + RAIL_MARK + RAIL_MARK_GAP,
       y: RAIL_LBL_Y,
-      "text-anchor": s.mark ? "start" : "middle",
+      "text-anchor": "start",
     });
     label.textContent = s.label;
-    stampsG.append(tick, label);
-    let mark: SVGPathElement | null = null;
-    if (s.mark) {
-      mark = svgEl("path", {
-        class: "edt-tick",
-        d: tickPath(x - w / 2, RAIL_LBL_Y - RAIL_MARK + 1),
-      });
-      stampsG.appendChild(mark);
-    }
+    const mark = svgEl("path", {
+      class: "edt-tick",
+      d: tickPath(x - w / 2, RAIL_LBL_Y - RAIL_MARK + 1, RAIL_MARK / MARK),
+    });
+    stampsG.append(tick, mark, label);
     return { at: s.at, tick, label, mark };
   });
 
@@ -2379,6 +2439,33 @@ export function createEditScene(): EditScene {
       if (el.textContent !== want) {
         throw new Error(`[edit] the markup says "${el.textContent}" where this file says "${want}"`);
       }
+    }
+  }
+  /* THE RAIL'S OWN LINE AND ORIGIN ARE AUTHORED IN THE MARKUP — a still clone
+     is a clone of the markup, so they have to be there — and nothing in this
+     file writes them back. That makes RAIL_X0/RAIL_X1/RAIL_Y/RAIL_TICK_H the
+     one set of numbers here that can drift from what is actually drawn: this
+     slice moved all four and the drift would have been invisible, because a
+     rail 30u short still looks like a rail. Read back, never assumed. */
+  {
+    const drawn: readonly [SVGPathElement, string, string][] = [
+      [railLine, `M ${RAIL_X0} ${RAIL_Y} L ${RAIL_X1} ${RAIL_Y}`, "#edt-rail-line"],
+      [
+        railOriginTick,
+        `M ${RAIL_X0} ${RAIL_Y - RAIL_TICK_H} L ${RAIL_X0} ${RAIL_Y + RAIL_TICK_H}`,
+        "#edt-rail-origin",
+      ],
+    ];
+    for (const [el, d, sel] of drawn) {
+      if (el.getAttribute("d") !== d) {
+        throw new Error(`[edit] ${sel} is drawn at numbers this file does not use`);
+      }
+    }
+    if (
+      Number(railOriginLbl.getAttribute("x")) !== RAIL_X0 ||
+      Number(railOriginLbl.getAttribute("y")) !== RAIL_LBL_Y
+    ) {
+      throw new Error("[edit] the rail's origin label is not under the rail's own origin");
     }
   }
   /* Widths, in the arithmetic rather than in getBBox(): the scene is built
@@ -2996,8 +3083,43 @@ export function createEditScene(): EditScene {
     if (TEAR_HERE_X < RCPT_X + RCPT_W + 12) {
       throw new Error("[edit] `tear here` is printed on the paper it is about");
     }
-    if (TEAR_HERE_X + monoWidth(TEAR_HERE, 10) > FRAME_W - 4 || TEAR_HERE_Y > FRAME_H - 40) {
+    if (TEAR_HERE_X + monoWidth(TEAR_HERE, TEAR_HERE_SIZE) > FRAME_W - 4 || TEAR_HERE_Y > FRAME_H - 40) {
       throw new Error("[edit] `tear here` runs off the frame");
+    }
+    /* THE HEAD AGREES WITH ITS OWN CURVE. Both the curve and the head are
+       authored in the markup (a still clone has to carry them), so both are
+       read back and the head is re-derived here rather than trusted: its two
+       barbs must stand on the curve's tip, be the same length, and sit at
+       ±TEAR_HEAD_DEG about the tangent the curve actually ends on. A chevron
+       parked near a line is scene 4's exact mistake, one scene on. */
+    {
+      const nums = (el: SVGPathElement): number[] =>
+        ((el.getAttribute("d") ?? "").match(/-?\d+(?:\.\d+)?/g) ?? []).map(Number);
+      const c = nums(tearArrow);
+      const h = nums(tearHead);
+      if (c.length !== 8 || h.length !== 6) {
+        throw new Error("[edit] the whisper's arrow is not one cubic and one three-point head");
+      }
+      const deg = (dx: number, dy: number): number => (Math.atan2(dy, dx) * 180) / Math.PI;
+      /* Back along the end tangent: the curve's last control, from its tip. */
+      const back = deg(c[4]! - c[6]!, c[5]! - c[7]!);
+      if (Math.abs(h[2]! - c[6]!) > 0.01 || Math.abs(h[3]! - c[7]!) > 0.01) {
+        throw new Error("[edit] the whisper's head does not stand on the curve's own tip");
+      }
+      const barbs: readonly (readonly [number, number])[] = [
+        [h[0]! - h[2]!, h[1]! - h[3]!],
+        [h[4]! - h[2]!, h[5]! - h[3]!],
+      ];
+      const lens = barbs.map(([dx, dy]) => Math.hypot(dx, dy));
+      if (Math.abs(lens[0]! - lens[1]!) > 0.2 || Math.abs(lens[0]! - TEAR_HEAD_LEN) > 0.2) {
+        throw new Error("[edit] the whisper's barbs are not the length this file names, or each other's");
+      }
+      for (const [dx, dy] of barbs) {
+        const off = ((deg(dx, dy) - back + 540) % 360) - 180;
+        if (Math.abs(Math.abs(off) - TEAR_HEAD_DEG) > 0.5) {
+          throw new Error("[edit] the whisper's head does not agree with its curve's end tangent");
+        }
+      }
     }
     /* THE PRINT SETTLES BEFORE THE WHISPER, and nothing is still being built
        when the held ending begins. The second one is what makes the ending an
@@ -3040,8 +3162,18 @@ export function createEditScene(): EditScene {
         throw new Error("[edit] the paper's bend is a fold rather than a hint");
       }
     }
-    if (SNAP_RUN >= 0.5) {
+    /* The snap got slower — 0.35 was a separation the eye never caught — but
+       it must stay clearly faster than scene 4's 1.45s perforation peel, or
+       the two doors on this page stop having two characters. 1.0 is the
+       ceiling: past it, one stroke and dash-by-dash read the same. */
+    if (SNAP_RUN >= 1.0) {
       throw new Error("[edit] the snap is slow enough to read as a peel, which is the other door");
+    }
+    /* And the fall stays a fall. Long enough to watch, short enough that the
+       reader is not waiting on a piece of paper — and it must outlast the
+       glide it is released with, or the page arrives before the strip does. */
+    if (FALL_DUR < 2.0 || FALL_DUR > 3.2 || SNAP_RUN + FALL_DUR <= SNAP_RUN + GLIDE_DUR) {
+      throw new Error("[edit] the fall is not a fall, or the page lands before the strip is gone");
     }
     /* THE SUBSET LAW, AS AN ASSERT rather than as one more comment nobody
        reads. The self-hosted latin faces carry U+0000–00FF plus a short list;
@@ -3566,7 +3698,7 @@ export function createEditScene(): EditScene {
     ...failCross,
     chipBody,
     tktBody,
-    ...stamps.flatMap((s) => (s ? [s.tick, ...(s.mark ? [s.mark] : [])] : [])),
+    ...stamps.flatMap((s) => (s ? [s.tick, s.mark] : [])),
     /* stations 4–8 */
     notchV6,
     notchV7,
@@ -4493,9 +4625,9 @@ export function createEditScene(): EditScene {
    *  survives the fallback by CHANGING FORM rather than by being cropped, and
    *  it survives better than it started: eight events in the order they
    *  happened, in the register a machine writes in, on a device that is good
-   *  at lists. The three that carry a drawn tick keep it — a stamp that says
-   *  a check passed is a different kind of stamp from one that records a
-   *  number, and that difference is the rail's whole legend. */
+   *  at lists. Every row carries the drawn tick the pinned rail draws — eight
+   *  gates, eight ticks, and the phone gets the same claim the desktop does
+   *  rather than a shorter version of it. */
   function stillRail(): HTMLElement {
     const ul = doc.createElement("ul");
     ul.className = "edt-still-rail";
@@ -4506,7 +4638,7 @@ export function createEditScene(): EditScene {
       mark.setAttribute("class", "edt-still-mark");
       mark.setAttribute("viewBox", `0 0 ${MARK + 1} ${MARK + 1}`);
       mark.setAttribute("aria-hidden", "true");
-      if (s.mark) mark.appendChild(svgEl("path", { class: "edt-tick", d: tickPath(0.5, 0.5) }));
+      mark.appendChild(svgEl("path", { class: "edt-tick", d: tickPath(0.5, 0.5) }));
       const w = doc.createElement("span");
       w.textContent = s.label;
       li.append(mark, w);
@@ -4630,6 +4762,16 @@ export function createEditScene(): EditScene {
        has not started yet. */
     if (still.querySelectorAll(".eng-card").length !== STATION_AT.length + 1) {
       throw new Error("[edit] the still is not one card per station plus the landing");
+    }
+    /* THE LIST IS THE RAIL, so it carries the rail's whole claim: one row per
+       stamp, and a drawn tick on every one of them. A row that lost its tick
+       would say, on the one device that cannot see the pinned rail, that the
+       edit cleared seven gates. */
+    if (
+      still.querySelectorAll(".edt-still-stamp").length !== STAMPS.length ||
+      still.querySelectorAll(".edt-still-rail .edt-tick").length !== STAMPS.length
+    ) {
+      throw new Error("[edit] the still's rail is not eight stamps each carrying its tick");
     }
     {
       /* Every authored window, plus the ticket, plus the canary's second
@@ -4796,12 +4938,14 @@ export function createEditScene(): EditScene {
     draw(notchV6, 1.7, 0.5);
     fadeIn(railOriginLbl, 1.8, 0.9);
 
-    /* Each stamp lands as its station earns it: the tick first — the rail is
-       a timeline and a tick is the event — then the word for it. */
+    /* Each stamp lands as its station earns it, in the order the event
+       actually happens: the tick first — the rail is a timeline and a tick is
+       the event — then the checkmark that says it was cleared rather than
+       merely recorded, then the word for it. */
     for (const s of stamps) {
       if (!s) continue;
       draw(s.tick, s.at, 0.5);
-      if (s.mark) draw(s.mark, s.at + 0.2, 0.6);
+      draw(s.mark, s.at + 0.2, 0.6);
       fadeIn(s.label, s.at + 0.3, 0.9);
     }
 
