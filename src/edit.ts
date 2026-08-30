@@ -1263,13 +1263,22 @@ const TEAR_HERE_SIZE = 13;
 const TEAR_HEAD_LEN = 11;
 const TEAR_HEAD_DEG = 28;
 
-/** THE SNAP. A receipt is not peeled, it is pulled once against a bar, and
- *  the separation runs the width of the strip in one stroke. Still ONE
- *  continuous stroke at 0.7s — scene 4's ticket takes 1.45 to tear because a
- *  perforation gives dash by dash, and the whole point of the two doors being
- *  different is that this one does not. 0.35 was a snap the reader's eye
- *  never caught: the separation was over before they had found it. */
-const SNAP_RUN = 0.7;
+/** THE TEAR, at scene 4's ticket's own bar (user call: the ticket's tear is
+ *  the real one — one tearing feel on this page, not two). 1.45s, the
+ *  ticket's exact run: a real receipt torn deliberately, not snatched. The
+ *  front crosses the teeth under the same hand-tremor ease, the freed corner
+ *  sags as it goes (the hinge travels with the front), and the paper flexes
+ *  toward the corner still held — then springs flat at the release into the
+ *  fall. */
+const TEAR_RUN = 1.45;
+/** How far the freed edge has sagged by the moment the last fibres give —
+ *  small, because the strip hangs from a bar rather than off a wall
+ *  dispenser: the drama is the fall's, not the peel's. */
+const TEAR_END_ROT = -10;
+/** The flex toward the held corner while the tear runs (the ticket's cone),
+ *  sprung flat by the fall's own first keyframe. */
+const TEAR_CONE_SKEW = -4;
+const TEAR_CONE_SCALE = 0.97;
 /** The fall. Once, damped, no bounce and no loop — and long enough to watch,
  *  which is the point of tearing something off. */
 const FALL_DUR = 2.7;
@@ -1287,8 +1296,8 @@ const FALL_TILT: readonly number[] = [14, -10, 6, -3];
  *  ripple. A hint, never a fold — skewX in degrees, about the strip's own
  *  centre. */
 const FALL_BOW: readonly number[] = [-5, 4, -2.5, 1.2];
-/** The glide, AT THE RELEASE — its delay is SNAP_RUN by reference and not by
- *  number, so the slower snap moved the page's departure with it rather than
+/** The glide, AT THE RELEASE — its delay is TEAR_RUN by reference and not by
+ *  number, so the slower tear moved the page's departure with it rather than
  *  leaving the page travelling under a strip that had not come off yet. Its
  *  own duration is scene 4's ticket's exactly: the reader who tears one door
  *  and the reader who tears the other must not feel two different pages
@@ -3323,17 +3332,19 @@ export function createEditScene(): EditScene {
         throw new Error("[edit] the paper's bend is a fold rather than a hint");
       }
     }
-    /* The snap got slower — 0.35 was a separation the eye never caught — but
-       it must stay clearly faster than scene 4's 1.45s perforation peel, or
-       the two doors on this page stop having two characters. 1.0 is the
-       ceiling: past it, one stroke and dash-by-dash read the same. */
-    if (SNAP_RUN >= 1.0) {
-      throw new Error("[edit] the snap is slow enough to read as a peel, which is the other door");
+    /* The tear matches scene 4's ticket EXACTLY (user call, overruling the
+       earlier two-characters rule): one page, one tearing feel. Parity is by
+       equality so neither door can drift a different hand. */
+    if (TEAR_RUN !== 1.45) {
+      throw new Error("[edit] the tear does not run at scene 4's ticket's bar (one tearing feel)");
+    }
+    if (TEAR_END_ROT >= 0 || TEAR_END_ROT < -20 || TEAR_CONE_SKEW >= 0 || TEAR_CONE_SCALE >= 1) {
+      throw new Error("[edit] the tear's sag or flex is not a sag or a flex");
     }
     /* And the fall stays a fall. Long enough to watch, short enough that the
        reader is not waiting on a piece of paper — and it must outlast the
        glide it is released with, or the page arrives before the strip does. */
-    if (FALL_DUR < 2.0 || FALL_DUR > 3.2 || SNAP_RUN + FALL_DUR <= SNAP_RUN + GLIDE_DUR) {
+    if (FALL_DUR < 2.0 || FALL_DUR > 3.2 || TEAR_RUN + FALL_DUR <= TEAR_RUN + GLIDE_DUR) {
       throw new Error("[edit] the fall is not a fall, or the page lands before the strip is gone");
     }
     /* THE SUBSET LAW, AS AN ASSERT rather than as one more comment nobody
@@ -4392,9 +4403,12 @@ export function createEditScene(): EditScene {
     gsap.set(rcptPaper, { opacity: 0 });
 
     /* The machine's half of the separation, revealed left to right BEHIND the
-       tear front — a propagation, not a fade. */
+       tear front — a propagation, not a fade, under the ticket's own
+       hand-tremor ease (0.12 is the hand's tremor, tuned there). */
+    const roughTear =
+      "rough({ strength: 0.12, points: 7, taper: 'none', randomize: false, template: 'power1.inOut' })";
     gsap.set(rcptFringe, { opacity: 1, drawSVG: "0% 0%" });
-    gsap.to(rcptFringe, { drawSVG: "0% 100%", duration: SNAP_RUN, ease: "power2.out" });
+    gsap.to(rcptFringe, { drawSVG: "0% 100%", duration: TEAR_RUN, ease: roughTear });
 
     /* One origin for the whole flight: the strip's own centre, set once
        rather than re-declared per tween, because every svgOrigin hand-off is
@@ -4415,15 +4429,47 @@ export function createEditScene(): EditScene {
       },
     });
 
-    /* THE SNAP: the separation runs the width of the bar in one stroke, and
-       the strip lifts against the teeth as it is pulled. */
+    /* THE TEAR FRONT: the strip's own ragged edge, drawn behind the front at
+       the same tremor as the machine's half — two halves of one separation. */
     tt.fromTo(
       stubEdge,
       { drawSVG: "0% 0%" },
-      { drawSVG: "0% 100%", duration: SNAP_RUN, ease: "power2.out" },
+      { drawSVG: "0% 100%", duration: TEAR_RUN, ease: roughTear },
       0,
     );
-    tt.to(cloneRoot, { y: -6, duration: SNAP_RUN, ease: "power2.out" }, 0);
+    /* THE HINGE TRAVELS WITH THE FRONT (the ticket's law): only as much paper
+       may hang as has been cut. The front runs left to right, so the strip
+       pivots about its still-attached RIGHT-TOP corner — near-flat while the
+       front crosses the first half, a sag past three-quarters, and the last
+       fibres give only at the end. Then the fall's own first keyframe springs
+       it flat about the strip's centre — the hop at the hand-off IS the
+       release. */
+    {
+      const hinge = `${RCPT_X + RCPT_W} ${MOUTH_Y}`;
+      tt.to(cloneRoot, { rotation: -1.5, duration: 0.3, ease: "power1.out", svgOrigin: hinge }, 0);
+      tt.to(cloneRoot, { rotation: -4, duration: 0.35, ease: roughTear, svgOrigin: hinge }, 0.3);
+      tt.to(cloneRoot, { rotation: -7, duration: 0.35, ease: roughTear, svgOrigin: hinge }, 0.65);
+      tt.to(
+        cloneRoot,
+        { rotation: TEAR_END_ROT, duration: TEAR_RUN - 1.0, ease: "power2.in", svgOrigin: hinge },
+        1.0,
+      );
+      /* The sheet SETTLES a few px as fibres let go — weight, not just angle
+         (on the clone, whose y the fall's path never owns). */
+      tt.to(cloneRoot, { y: "+=5", duration: TEAR_RUN, ease: "power1.in" }, 0);
+      /* THE CONE: paper flexes toward the held corner while it is pulled. */
+      tt.to(
+        cloneRoot,
+        {
+          skewX: TEAR_CONE_SKEW,
+          scaleY: TEAR_CONE_SCALE,
+          duration: TEAR_RUN * 0.85,
+          ease: "power1.in",
+          svgOrigin: hinge,
+        },
+        0,
+      );
+    }
 
     /* THE FALL. An authored S down the viewport with shrinking, alternating
        swings, travelled with motionPath (registered in main.ts alongside
@@ -4442,7 +4488,7 @@ export function createEditScene(): EditScene {
     tt.to(
       fall,
       { motionPath: { path, autoRotate: false }, duration: FALL_DUR, ease: "power1.inOut" },
-      SNAP_RUN,
+      TEAR_RUN,
     );
 
     /* The lean and the bow, keyframed WITH the swings rather than derived
@@ -4451,8 +4497,13 @@ export function createEditScene(): EditScene {
        cannot drift out of phase with the lean it belongs to. */
     {
       const stalls = [0.28, 0.52, 0.72, 0.88];
-      let prevR = 0;
-      let prevB = 0;
+      /* The fall picks the paper up where the tear left it — sagged and
+         flexed — and its first keyframe is the SPRING FLAT at the release
+         (about the strip's centre now: the pivot moving off the hinge is the
+         corner letting go). */
+      gsap.set(cloneRoot, { svgOrigin: `${RCPT_X + RCPT_W / 2} ${MOUTH_Y + RCPT_H / 2}` });
+      let prevR = TEAR_END_ROT;
+      let prevB = TEAR_CONE_SKEW;
       let prevT = 0;
       FALL_TILT.forEach((deg, i) => {
         const at = stalls[i]! * FALL_DUR;
@@ -4465,7 +4516,7 @@ export function createEditScene(): EditScene {
             duration: at - prevT,
             ease: "power1.inOut",
           },
-          SNAP_RUN + prevT,
+          TEAR_RUN + prevT,
         );
         prevR = deg;
         prevB = FALL_BOW[i]!;
@@ -4475,7 +4526,7 @@ export function createEditScene(): EditScene {
         cloneRoot,
         { rotation: prevR, skewX: prevB },
         { rotation: 0, skewX: 0, duration: FALL_DUR - prevT, ease: "power1.inOut" },
-        SNAP_RUN + prevT,
+        TEAR_RUN + prevT,
       );
     }
 
@@ -4484,7 +4535,7 @@ export function createEditScene(): EditScene {
     tt.to(
       fall,
       { opacity: 0, duration: FALL_DUR * 0.4, ease: "power1.in" },
-      SNAP_RUN + FALL_DUR * 0.6,
+      TEAR_RUN + FALL_DUR * 0.6,
     );
 
     /* THE GLIDE, at the release, so the fall and the travel are one event:
@@ -4502,7 +4553,7 @@ export function createEditScene(): EditScene {
         scrollTo: { y: target, autoKill: false },
         duration: GLIDE_DUR,
         ease: "power2.inOut",
-        delay: SNAP_RUN,
+        delay: TEAR_RUN,
         onComplete: () => {
           gliding = null;
         },
@@ -5818,13 +5869,13 @@ export function createEditScene(): EditScene {
     };
   }
 
-  /** Hover is its own regime (DESIGN §5). The strip STIFFENS — a 1.5u lift
-   *  toward the teeth, which is paper being pulled taut rather than paper
-   *  moving. The switch leans; this goes tight. Two controls, two gestures. */
+  /** Hover is its own regime (DESIGN §5). The strip comes DOWN a step — the
+   *  ticket's own gesture (user call): paper wanting to be taken, pulled
+   *  toward the hand that is about to tear it. */
   function wireDoorHover(): () => void {
     const on = (): void => {
       if (!doorArmed || tearing) return;
-      gsap.to(rcptPaper, { y: -TEAR_LIFT, duration: HOVER_DUR, ease: "power2.out" });
+      gsap.to(rcptPaper, { y: 2 * TEAR_LIFT, duration: HOVER_DUR, ease: "power2.out" });
     };
     const off = (): void => {
       if (tearing) return;
