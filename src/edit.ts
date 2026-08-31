@@ -1348,13 +1348,13 @@ const PILE: readonly {
   y: number;
   rot: number;
 }[] = [
-  { commit: "8c04d1", from: 3, to: 4, judged: 4.1, x: 302, y: 490, rot: -5 },
-  { commit: "b7e2a9", from: 4, to: 5, judged: 4.2, x: 292, y: 486, rot: 3 },
+  { commit: "8c04d1", from: 3, to: 4, judged: 4.1, x: 294, y: 490, rot: -5 },
+  { commit: "b7e2a9", from: 4, to: 5, judged: 4.2, x: 284, y: 486, rot: 3 },
   /* +1°, not a counter-lean: at 220 wide, ANY negative degree lifts this
      card's right edge over the middle card's ident (the clearOfStack
      assert) — leaning WITH the middle card lays that edge low instead.
      And y 508: at 88 tall, 510 would put the low corner past the floor. */
-  { commit: "4d91f7", from: 5, to: 6, judged: 4.4, x: 264, y: 508, rot: 1 },
+  { commit: "4d91f7", from: 5, to: 6, judged: 4.4, x: 256, y: 508, rot: 1 },
 ];
 type PileEdit = (typeof PILE)[number];
 
@@ -1395,11 +1395,10 @@ const PILE_TITLE_Y = 444;
 const PILE_SUB = "and the new one ready to use is here";
 const PILE_SUB_SIZE = 13;
 const PILE_SUB_Y = 467;
-/* 244 (user call: the whole pile a step right): the sub-line at 13 ends at
-   529.5, which clears the printer's left bound (the caption-width assert)
-   by 2.5 — the sub-line's length is what stops the column going further
-   right, not taste. */
-const PILE_LABEL_X = 244;
+/* 236 (user-tuned: a step right of the floor's edge, then eased back): the
+   13px sub-line ends at 521.5 against the printer bound of 532 — the
+   sentence's length is what caps how far right this column can ever sit. */
+const PILE_LABEL_X = 236;
 
 /** A box in a card's OWN coordinates (0,0 = the paper's top-left corner),
  *  carried through that card's rotation about that card's centre — the exact
