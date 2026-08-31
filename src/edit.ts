@@ -377,6 +377,16 @@ const TKT_SIZE = 11;
 const TKT_HEAD = "caught · refund-path";
 const TKT_SUB = "silently broken 31 days";
 
+/** The closing statement's three lines, in-stage now (user call, scene 4's
+ *  grammar) with the CI ticket filed directly beneath. A const, because an
+ *  svg group's textContent concatenates its lines WITHOUT spaces — the still
+ *  joins this instead of reading the DOM. */
+const CLOSING_LINES: readonly string[] = [
+  "One edit. Seven stations.",
+  "Nothing reached a customer",
+  "that hadn't earned it.",
+];
+
 /* ══════════════════════════════════════════════════════════════════════════
    STATION 1 — THE DIFF
    ══════════════════════════════════════════════════════════════════════════ */
@@ -2587,8 +2597,8 @@ export function createEditScene(): EditScene {
      a drawn line that rises to the printer's mouth. Same ink family as the
      door's hook; the head derives from the curve's end tangent (the tear
      arrow's law — a chevron cannot disagree with the line that draws it). */
-  const pileArrow = svgEl("path", { class: "edt-hint-arrow", d: "M 0 0" }) as SVGPathElement;
-  const pileArrowHead = svgEl("path", { class: "edt-hint-arrow", d: "M 0 0" }) as SVGPathElement;
+  const pileArrow = svgEl("path", { class: "edt-pointer", d: "M 0 0" }) as SVGPathElement;
+  const pileArrowHead = svgEl("path", { class: "edt-pointer", d: "M 0 0" }) as SVGPathElement;
   {
     const pileG = q<SVGGElement>(svg, "#edt-pile");
     const inner = PILE_W - 2 * PILE_PAD;
@@ -3020,8 +3030,19 @@ export function createEditScene(): EditScene {
   const toggle = q<HTMLButtonElement>(doc, "#edt-toggle");
   const toggleName = q<HTMLElement>(doc, "#edt-toggle-name");
   const tearBtn = q<HTMLButtonElement>(doc, "#edt-tear");
-  const closingRule = q<HTMLElement>(doc, "#edt-closing-rule");
-  const closingText = q<HTMLElement>(doc, "#edt-closing-text");
+  const closingRule = q<SVGPathElement>(svg, "#edt-closing-rule");
+  const closingText = q<SVGGElement>(svg, "#edt-closing-text");
+  /* The markup's three lines must agree with CLOSING_LINES (the still joins
+     the const — see its docblock). */
+  {
+    const lines = Array.from(closingText.querySelectorAll("text")).map((t) => t.textContent);
+    if (
+      lines.length !== CLOSING_LINES.length ||
+      lines.some((l, i) => l !== CLOSING_LINES[i])
+    ) {
+      throw new Error("[edit] the closing statement's markup and constant disagree");
+    }
+  }
   const bridgeLines = Array.from(doc.querySelectorAll<HTMLElement>(".edt-bridge-line"));
 
   /* ── the markup and the constants have to agree ─────────────────────────
@@ -5128,7 +5149,7 @@ export function createEditScene(): EditScene {
     gsap.set(fillOnly, { fillOpacity: 0 });
     gsap.set(fadeParts, { opacity: 0 });
     gsap.set(ticket, { opacity: 0 });
-    gsap.set([closingRule], { scaleX: 0 });
+    gsap.set([closingRule], { scaleX: 0, transformOrigin: "50% 50%" });
     gsap.set([closingText], { opacity: 0, y: 10 });
 
     /* THE RECEIPT IS ROLLED BACK INSIDE THE MACHINE. Nothing printed on it
@@ -5503,7 +5524,7 @@ export function createEditScene(): EditScene {
        element the still has no rail for. */
     const close = doc.createElement("p");
     close.className = "edt-still-closing";
-    close.textContent = closingText.textContent?.trim().replace(/\s+/g, " ") ?? "";
+    close.textContent = CLOSING_LINES.join(" ");
     landing.appendChild(close);
 
     /* THE DOOR. No fall here by design: a reduced-motion reader is owed the
@@ -6292,10 +6313,11 @@ export function createEditScene(): EditScene {
        stations have been read, and what is left to say is the RECORD. */
     ft(chip, { x: bayCx(7) }, { x: bayCx(8), duration: 3.0, ease: "power2.inOut" }, L);
 
-    /* THE CLOSING STATEMENT takes the rail from the stations. A rule out of
-       its own middle, and the sentence rising under it — scene 4's
-       #agt-closing, and like it, no exit tween anywhere: this is where the
-       scene lands, and it is still there when the reader stops. */
+    /* THE CLOSING STATEMENT, in-stage now (scene 4's #agt-closing, fully —
+       same corner, same grammar): a rule out of its own middle, three lines
+       rising under it, the torn CI ticket filed directly beneath as the
+       verdict's evidence. No exit tween anywhere: this is where the scene
+       lands, and it is still there when the reader stops. */
     ft(
       closingRule,
       { scaleX: 0 },
