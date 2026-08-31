@@ -1391,13 +1391,17 @@ const pileLines = (c: PileEdit): readonly string[] =>
  *  before its subject. */
 const PILE_TITLE = "Version history";
 const PILE_TITLE_SIZE = 21;
-const PILE_TITLE_Y = 444;
+/* 434/457, ten units above where they first sat: the caption keeps clear
+   air between its sub-line and the tallest card's torn teeth (user call —
+   the label was riding the paper). */
+const PILE_TITLE_Y = 434;
 const PILE_SUB = "and the new one ready to use is here";
 const PILE_SUB_SIZE = 13;
-const PILE_SUB_Y = 467;
-/* 236 (user-tuned: a step right of the floor's edge, then eased back): the
-   13px sub-line ends at 521.5 against the printer bound of 532 — the
-   sentence's length is what caps how far right this column can ever sit. */
+const PILE_SUB_Y = 457;
+/* 236, user-tuned by eye (a step right of the floor's edge, then eased
+   back). The caption-width assert holds it against the printer's left
+   bound (RCPT_X − 16 = 604), which leaves slack — the position is taste,
+   the assert is the guardrail. */
 const PILE_LABEL_X = 236;
 
 /** A box in a card's OWN coordinates (0,0 = the paper's top-left corner),
