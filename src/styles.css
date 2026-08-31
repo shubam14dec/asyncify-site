@@ -4201,7 +4201,7 @@ html {
 .edt-closing-tkt {
   display: block;
   width: 176px;
-  margin-top: 6px;
+  margin-top: 0;
   overflow: visible;
   opacity: 0;
 }

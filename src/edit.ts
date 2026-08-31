@@ -2871,7 +2871,10 @@ export function createEditScene(): EditScene {
      appears at all. */
   const closingTkt = doc.createElementNS(SVG_NS, "svg") as unknown as SVGSVGElement;
   closingTkt.setAttribute("class", "edt-closing-tkt");
-  closingTkt.setAttribute("viewBox", "14 500 210 92");
+  /* The still's window (STILL_TKT_VIEW) with its 10u of top headroom cut:
+     a card frames with air, but in the rail the paper hangs from the words
+     above it, and dead sky between them reads as a gap (user call). */
+  closingTkt.setAttribute("viewBox", "14 510 210 82");
   closingTkt.setAttribute("aria-hidden", "true");
   for (const el of Array.from(ticket.children)) {
     const c = el.cloneNode(true) as SVGElement;
