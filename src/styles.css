@@ -4052,7 +4052,7 @@ html {
    numbers, and this is what actually paints them. */
 .edt-pile-ident {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
   fill: var(--text-faint);
@@ -4060,7 +4060,7 @@ html {
 
 .edt-pile-line {
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
   fill: var(--text-faint);
@@ -4082,7 +4082,7 @@ html {
    loudest); the sub-line stays a rung under it and hands off to the pointer. */
 .edt-pile-title {
   font-family: var(--mono);
-  font-size: 17px;
+  font-size: 19px;
   letter-spacing: 0.01em;
   fill: var(--text);
 }

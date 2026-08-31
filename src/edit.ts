@@ -1286,27 +1286,31 @@ const RCPT_TOTAL = `total · ${STATION_AT.length - 1} stations · 1 edit`;
    live paper has hairline-strong, text-faint where it has text-dim, and no
    shop name at all. The wordmark at full ink belongs to the edition still in
    the machine, which is the whole old/new contrast the floor line names. */
-const PILE_W = 180;
-const PILE_H = 76;
-const PILE_PAD = 12;
-/** THE SAME BLADE: 180 = 18 × TEETH_W exactly, so an earlier edition's torn
+const PILE_W = 200;
+const PILE_H = 84;
+const PILE_PAD = 13;
+/** THE SAME BLADE: 200 = 20 × TEETH_W exactly, so an earlier edition's torn
  *  top edge has the mouth's tooth pitch and the mouth's tooth depth. One
  *  machine, one separation — asserted, because a second tooth cycle would be
  *  a second printer. */
-const PILE_TEETH_N = 18;
+const PILE_TEETH_N = 20;
 /** The card's lettering. MUST match `.edt-pile-ident` / `.edt-pile-line` —
  *  every width assert below is monoWidth() arithmetic off these two numbers
  *  and the stylesheet is what actually paints them. */
-const PILE_IDENT_SIZE = 10;
-/* 9, not the ident's 10: the canary stamp is 28 characters, and at the
-   card's inner width (180 − 2×12) the width assert allows 9.06 — the
+const PILE_IDENT_SIZE = 11;
+/* 10, not the ident's 11: the canary stamp is 28 characters, and at the
+   card's inner width (200 − 2×13) the width assert allows 10.19 — the
    longest line is what sizes the type, not the average one. */
-const PILE_LINE_SIZE = 9;
+const PILE_LINE_SIZE = 10;
 /** The card's anatomy, in units below its own top edge. */
-const PILE_IDENT_DY = 14.5;
-const PILE_RULE_DY = 19;
-const PILE_LINE_DY0 = 32;
-const PILE_LINE_PITCH = 12;
+/* 15, not the proportional 16: the middle card leans +3°, which dips its
+   ident's right corner, and the card on top has to leave that corner
+   readable (the clearOfStack assert) — the ident rides a unit higher so
+   the two clear each other with margin. */
+const PILE_IDENT_DY = 15;
+const PILE_RULE_DY = 21;
+const PILE_LINE_DY0 = 35;
+const PILE_LINE_PITCH = 13;
 /** The clearance a printed line keeps from the bottom of its own paper. */
 const PILE_LINE_BOTTOM = 5;
 /** How many stamps a card's paper holds. DERIVED, never typed, so a card that
@@ -1350,7 +1354,10 @@ const PILE: readonly {
 }[] = [
   { commit: "8c04d1", from: 3, to: 4, judged: 4.1, x: 290, y: 490, rot: -5 },
   { commit: "b7e2a9", from: 4, to: 5, judged: 4.2, x: 280, y: 486, rot: 3 },
-  { commit: "4d91f7", from: 5, to: 6, judged: 4.4, x: 252, y: 510, rot: -2 },
+  /* −1°, not the old −2°: at 200 wide, −2° raised this card's right edge
+     over the middle card's ident (the wider the paper, the higher a degree
+     lifts its far corner) — the fan eases instead of the ident hiding. */
+  { commit: "4d91f7", from: 5, to: 6, judged: 4.4, x: 252, y: 510, rot: -1 },
 ];
 type PileEdit = (typeof PILE)[number];
 
@@ -1386,15 +1393,16 @@ const pileLines = (c: PileEdit): readonly string[] =>
  *  pointer that runs to the printer's side. Above the pile — a caption reads
  *  before its subject. */
 const PILE_TITLE = "Version history";
-const PILE_TITLE_SIZE = 17;
-const PILE_TITLE_Y = 448;
+const PILE_TITLE_SIZE = 19;
+const PILE_TITLE_Y = 446;
 const PILE_SUB = "and the new one ready to use is here";
 const PILE_SUB_SIZE = 13;
 const PILE_SUB_Y = 467;
-/* 242, not the old 256: the sub-line grew to 13 and its right end has to
-   clear the printer's left edge (the caption-width assert) — the column
-   slides left instead of the sentence shrinking back. */
-const PILE_LABEL_X = 242;
+/* At the floor's own left edge (PILE_FLOOR_X0): the sub-line at 13 has to
+   clear the printer's left edge (the caption-width assert), and starting
+   the column as far left as the floor allows also hands the pointer its
+   longest possible run into the printer's flank. */
+const PILE_LABEL_X = 232;
 
 /** A box in a card's OWN coordinates (0,0 = the paper's top-left corner),
  *  carried through that card's rotation about that card's centre — the exact
