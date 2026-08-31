@@ -1140,7 +1140,10 @@ const floodArrivedBy = (t: number): number =>
    (the taut lift on hover, and the vanish at the tear). Station 5's law, and
    scene 4's ticket's before it. */
 const MOUTH_Y = 300;
-const RCPT_X = 548;
+/** 380 centres the strip on frame-x 540 — exactly below the commit chip,
+ *  which parks on the bay's centre (user call), and two-thirds closer to the
+ *  torn CI ticket. */
+const RCPT_X = 380;
 /** Widened from 224 (user call: the paper looked starved) — the scene's
  *  payoff should have a payoff's presence. Every dependent number below and
  *  in the markup (clip, body, rule, perf, punches, whisper anchor) moves
@@ -1248,7 +1251,7 @@ const RCPT_TOTAL = `total · ${STATION_AT.length - 1} stations · 1 edit`;
    finds is a door nobody takes. Same behaviour, two rungs brighter and three
    sizes up, with a curve and a head scaled to match. */
 const TEAR_HERE = "Tear here";
-const TEAR_HERE_X = 905;
+const TEAR_HERE_X = 737;
 const TEAR_HERE_Y = 583;
 /** QUIET IN BEHAVIOUR IS NOT QUIET IN VOLUME. This is the only instruction on
  *  the whole stage and it is what stands between the reader and the door, so
@@ -1402,7 +1405,7 @@ const STILL_VIEW_MAX_W = 470;
    the camera group taken out — otherwise bay 0's prompt panel, which sits at
    the same numbers, would be painted underneath them. */
 const STILL_TKT_VIEW = "14 500 210 92";
-const STILL_RCPT_VIEW = "536 288 344 318";
+const STILL_RCPT_VIEW = "368 288 344 318";
 /** The scene's LAST FRAME, whole, and it is genuinely the last frame: at the
  *  landing the camera is parked on bay 8, which is empty by design, so the
  *  frame layer standing alone is exactly what the reader is left looking at.
