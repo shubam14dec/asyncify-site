@@ -1378,10 +1378,14 @@ const pileLines = (c: PileEdit): readonly string[] =>
  *  an eyebrow (DESIGN §7) and not a whisper: the serif annotation voice on
  *  this page is spoken for by the switch and the door, and a third one would
  *  make it a chorus. */
-const PILE_LABEL = "earlier versions · the new one is in the printer";
-const PILE_LABEL_SIZE = 9.5;
+/** User-tuned: "version history" names the pile in the product's own word;
+ *  "and the new one is here" hands the sentence to a drawn pointer that ends
+ *  at the printer's mouth. ABOVE the pile now (a caption reads before its
+ *  subject), a step bigger and brighter than the papers it captions. */
+const PILE_LABEL = "version history · and the new one is here";
+const PILE_LABEL_SIZE = 12;
 const PILE_LABEL_X = 256;
-const PILE_LABEL_Y = 600;
+const PILE_LABEL_Y = 466;
 
 /** A box in a card's OWN coordinates (0,0 = the paper's top-left corner),
  *  carried through that card's rotation about that card's centre — the exact
@@ -2569,6 +2573,12 @@ export function createEditScene(): EditScene {
     x: PILE_LABEL_X,
     y: PILE_LABEL_Y,
   });
+  /* The caption's pointer: "…and the new one is here" hands the sentence to
+     a drawn line that rises to the printer's mouth. Same ink family as the
+     door's hook; the head derives from the curve's end tangent (the tear
+     arrow's law — a chevron cannot disagree with the line that draws it). */
+  const pileArrow = svgEl("path", { class: "edt-hint-arrow", d: "M 0 0" }) as SVGPathElement;
+  const pileArrowHead = svgEl("path", { class: "edt-hint-arrow", d: "M 0 0" }) as SVGPathElement;
   {
     const pileG = q<SVGGElement>(svg, "#edt-pile");
     const inner = PILE_W - 2 * PILE_PAD;
@@ -2721,20 +2731,21 @@ export function createEditScene(): EditScene {
       }
     }
 
-    /* ── THE FLOOR LINE ─────────────────────────────────────────────────── */
+    /* ── THE CAPTION (above the pile now — a caption reads before its
+       subject, per the user's call). Its ink must clear the tallest card's
+       torn teeth below it, and it still may not run into the ticket or the
+       printer. */
     if (
       PILE_LABEL_X < PILE_FLOOR_X0 ||
       PILE_LABEL_X + monoWidth(PILE_LABEL, PILE_LABEL_SIZE) > PILE_FLOOR_X1
     ) {
-      throw new Error("[edit] the pile's floor line runs into the ticket or the printer");
+      throw new Error("[edit] the pile's caption runs into the ticket or the printer");
     }
     {
-      const lowest = Math.max(...PILE.flatMap((c) => pileQuad(c).map((p) => p[1])));
-      if (PILE_LABEL_Y - PILE_LABEL_SIZE * INK_CAP <= lowest + 4) {
-        throw new Error("[edit] the pile's floor line is printed on the paper it is about");
-      }
-      if (PILE_LABEL_Y + PILE_LABEL_SIZE * INK_DESC > FRAME_H - 30) {
-        throw new Error("[edit] the pile's floor line runs off the frame");
+      const highest =
+        Math.min(...PILE.flatMap((c) => pileQuad(c).map((p) => p[1]))) - TEETH_H;
+      if (PILE_LABEL_Y + PILE_LABEL_SIZE * INK_DESC >= highest - 4) {
+        throw new Error("[edit] the pile's caption is printed on the paper it is about");
       }
     }
     /* The history is on the floor before the new edition starts coming out. */
@@ -2778,6 +2789,36 @@ export function createEditScene(): EditScene {
     }
     pileLabel.textContent = PILE_LABEL;
     pileG.appendChild(pileLabel);
+
+    /* ── the pointer to the printer ─────────────────────────────────────── */
+    {
+      const lblEnd = PILE_LABEL_X + monoWidth(PILE_LABEL, PILE_LABEL_SIZE);
+      const c: readonly number[] = [
+        lblEnd + 8, PILE_LABEL_Y - 5,
+        lblEnd + 44, PILE_LABEL_Y - 26,
+        RCPT_X - 10, MOUTH_Y + 84,
+        RCPT_X - 8, MOUTH_Y + 16,
+      ];
+      pileArrow.setAttribute(
+        "d",
+        `M ${c[0]} ${c[1]} C ${c[2]} ${c[3]} ${c[4]} ${c[5]} ${c[6]} ${c[7]}`,
+      );
+      const back = Math.atan2(c[5]! - c[7]!, c[4]! - c[6]!);
+      const rad = (TEAR_HEAD_DEG * Math.PI) / 180;
+      const b = (a: number): string =>
+        `${(c[6]! + TEAR_HEAD_LEN * Math.cos(a)).toFixed(2)} ${(c[7]! + TEAR_HEAD_LEN * Math.sin(a)).toFixed(2)}`;
+      pileArrowHead.setAttribute("d", `M ${b(back - rad)} L ${c[6]} ${c[7]} L ${b(back + rad)}`);
+      if (
+        c[0]! <= lblEnd ||
+        c[6]! >= RCPT_X ||
+        c[6]! < RCPT_X - 24 ||
+        c[7]! < MOUTH_Y ||
+        c[7]! > MOUTH_Y + 40
+      ) {
+        throw new Error("[edit] the pile's pointer does not run from the caption to the printer's mouth");
+      }
+      pileG.append(pileArrow, pileArrowHead);
+    }
   }
 
   /* ── the torn ticket's outline ─────────────────────────────────────────── */
@@ -4308,6 +4349,8 @@ export function createEditScene(): EditScene {
   const strokeParts: SVGGeometryElement[] = [
     railLine,
     railOriginTick,
+    pileArrow,
+    pileArrowHead,
     panel,
     panelRule,
     ...scnRects,
@@ -6260,6 +6303,10 @@ export function createEditScene(): EditScene {
       { opacity: 1, y: 0, duration: L_PILE_RUN, ease: "power2.out" },
       L + L_PILE_AT + PILE.length * L_PILE_STEP,
     );
+    /* The pointer draws off the caption's last word and rises to the mouth —
+       arriving as the print begins, which is exactly what it is pointing at. */
+    draw(pileArrow, L + L_PILE_AT + PILE.length * L_PILE_STEP + 0.35, 0.6);
+    draw(pileArrowHead, L + L_PILE_AT + PILE.length * L_PILE_STEP + 0.95, 0.2);
 
     /* AND THE PRINT. One translate on one group, under an aperture that never
        moves, revealing eleven lines in the order the journey earned them at

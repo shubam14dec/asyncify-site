@@ -4077,15 +4077,15 @@ html {
   vector-effect: non-scaling-stroke;
 }
 
-/* The floor line under the pile: a caption, not an instruction. The receipts'
-   own register at the receipts' own rung, so it reads as part of the paper on
-   the floor rather than as a label stuck to it. */
+/* The pile's caption, above the papers it names (user-tuned: a step bigger
+   and brighter than the receipts — a caption must be findable — but still a
+   rung under the live receipt's headline ink). */
 .edt-pile-floor {
   font-family: var(--mono);
-  font-size: 9.5px;
+  font-size: 12px;
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
-  fill: var(--text-faint);
+  fill: var(--text-dim);
 }
 
 .edt-rcpt-rule {
