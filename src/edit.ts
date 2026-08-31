@@ -1358,14 +1358,14 @@ const PILE: readonly {
      goes UNDER the stack — array order is stack order — showing paper and a
      free corner on the right while its ident lies wholly under 8c04d1 (the
      deepest-card burial assert moved onto this one when it took index 0). */
-  { commit: "9f27b3", from: 2, to: 3, judged: 3.9, x: 304, y: 492, rot: -6 },
-  { commit: "8c04d1", from: 3, to: 4, judged: 4.1, x: 282, y: 490, rot: -5 },
-  { commit: "b7e2a9", from: 4, to: 5, judged: 4.2, x: 272, y: 486, rot: 3 },
+  { commit: "9f27b3", from: 2, to: 3, judged: 3.9, x: 292, y: 492, rot: -6 },
+  { commit: "8c04d1", from: 3, to: 4, judged: 4.1, x: 270, y: 490, rot: -5 },
+  { commit: "b7e2a9", from: 4, to: 5, judged: 4.2, x: 260, y: 486, rot: 3 },
   /* +1°, not a counter-lean: at 220 wide, ANY negative degree lifts this
      card's right edge over the middle card's ident (the clearOfStack
      assert) — leaning WITH the middle card lays that edge low instead.
      And y 508: at 88 tall, 510 would put the low corner past the floor. */
-  { commit: "4d91f7", from: 5, to: 6, judged: 4.4, x: 244, y: 508, rot: 1 },
+  { commit: "4d91f7", from: 5, to: 6, judged: 4.4, x: 232, y: 508, rot: 1 },
 ];
 type PileEdit = (typeof PILE)[number];
 
@@ -2844,9 +2844,15 @@ export function createEditScene(): EditScene {
        catch: an upward tip near the mouth read as pointing at air). */
     {
       const lblEnd = PILE_LABEL_X + monoWidth(PILE_SUB, PILE_SUB_SIZE);
+      /* PRINTER-ANCHORED, FIXED RUN (user call: the pile slides, the pointer
+         does not stretch after it). All four x's hang off RCPT_X, so the
+         arrow keeps one size and one shape wherever the caption stands —
+         the numbers are today's exact curve, frozen — and the c[0] > lblEnd
+         assert below still guarantees it starts past the sentence's last
+         word rather than under it. */
       const c: readonly number[] = [
-        lblEnd + 8, PILE_SUB_Y - 4,
-        lblEnd + 40, PILE_SUB_Y - 15,
+        RCPT_X - 102, PILE_SUB_Y - 4,
+        RCPT_X - 70, PILE_SUB_Y - 15,
         RCPT_X - 32, PILE_SUB_Y - 13,
         RCPT_X - 6, PILE_SUB_Y - 8,
       ];
