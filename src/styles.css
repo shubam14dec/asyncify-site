@@ -4201,7 +4201,11 @@ html {
 .edt-closing-tkt {
   display: block;
   width: 176px;
-  margin-top: 0;
+  /* Negative: the paper's top edge rides 8px up into the caption box's
+     reserved floor (user call, third nudge). The long captions end well
+     above this line, but any further and they will not — this is the last
+     rung before the overlap his catch was about comes back. */
+  margin-top: -8px;
   overflow: visible;
   opacity: 0;
 }
