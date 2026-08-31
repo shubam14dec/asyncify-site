@@ -4188,6 +4188,16 @@ html {
   opacity: 0;
 }
 
+/* The ticket's rail twin, filed under the sentence at the landing. Rest is
+   HERE (the stylesheet owns the first paint); the hand-off beats reveal it. */
+.edt-closing-tkt {
+  display: block;
+  width: 176px;
+  margin-top: 16px;
+  overflow: visible;
+  opacity: 0;
+}
+
 /* ── the third bridge ────────────────────────────────────────────────────
    Layout and type are the first bridge's, borrowed outright (.bridge,
    .bridge-copy). Only the animated hook is scene-local — see the comment in

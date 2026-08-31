@@ -2857,6 +2857,21 @@ export function createEditScene(): EditScene {
   const railOriginTick = q<SVGPathElement>(svg, "#edt-rail-origin");
   const railOriginLbl = q<SVGTextElement>(svg, "#edt-rail-v0");
   const ticket = q<SVGGElement>(svg, "#edt-ticket");
+  /* THE TICKET'S RAIL TWIN (user call): at the landing the torn ticket is
+     FILED below the closing sentence — the evidence next to the verdict. The
+     twin is CLONED from the stage's own nodes (never re-typed strings, so the
+     two can't drift), in the frame window the still already names for it.
+     Its rest is stylesheet-owned (opacity 0 in .edt-closing-tkt). */
+  const closingTkt = doc.createElementNS(SVG_NS, "svg") as unknown as SVGSVGElement;
+  closingTkt.setAttribute("class", "edt-closing-tkt");
+  closingTkt.setAttribute("viewBox", "14 500 210 92");
+  closingTkt.setAttribute("aria-hidden", "true");
+  for (const el of Array.from(ticket.children)) {
+    const c = el.cloneNode(true) as SVGElement;
+    c.removeAttribute("id");
+    closingTkt.appendChild(c);
+  }
+  q<HTMLElement>(doc, "#edt-closing").appendChild(closingTkt);
 
   const panel = q<SVGRectElement>(svg, "#edt-panel");
   const panelRule = q<SVGPathElement>(svg, "#edt-panel-rule");
@@ -4023,6 +4038,9 @@ export function createEditScene(): EditScene {
     "#edt-limit", //      the knob's reading becomes the verdict
     "#edt-ghost", //      the other design is drawn, allowed to hurt, and removed
     "#edt-ghost-lbl",
+    "#edt-ticket", //     at the landing the ticket is FILED — it hands off to
+    //                    its twin under the closing sentence (user call), so
+    //                    the finished frame holds it there, not on the stage
   ];
   const STILL_PLACED: readonly { sel: string; x: number; y: number }[] = [
     { sel: "#edt-chip", x: STILL_CHIP_AT, y: CHIP_LANE_Y },
@@ -5503,6 +5521,11 @@ export function createEditScene(): EditScene {
     close.className = "edt-still-closing";
     close.textContent = closingText.textContent?.trim().replace(/\s+/g, " ") ?? "";
     landing.appendChild(close);
+    /* The filed ticket, under the sentence here too — the still shows the
+       finished frame, and in the finished frame the evidence is filed. */
+    const stillTkt = closingTkt.cloneNode(true) as SVGElement;
+    stillTkt.style.opacity = "1";
+    landing.appendChild(stillTkt);
 
     /* THE DOOR. No fall here by design: a reduced-motion reader is owed the
        INFORMATION the motion carried, not the motion — and what the tear
@@ -6305,6 +6328,16 @@ export function createEditScene(): EditScene {
       { opacity: 0, y: 10 },
       { opacity: 1, y: 0, duration: 1.1, ease: "power2.out" },
       L + L_CLOSE_AT + 0.35,
+    );
+    /* THE HAND-OFF (user call): as the verdict lands, the evidence is filed
+       under it — the stage ticket fades while its rail twin rises below the
+       sentence. A scroll back up un-files it. */
+    ft(ticket, { opacity: 1 }, { opacity: 0, duration: 0.6, ease: "power1.inOut" }, L + L_CLOSE_AT + 0.5);
+    ft(
+      closingTkt,
+      { opacity: 0, y: 8 },
+      { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" },
+      L + L_CLOSE_AT + 0.7,
     );
 
     /* The mouth: a serrated bar, drawn like every other machine on this
