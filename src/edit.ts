@@ -3030,6 +3030,7 @@ export function createEditScene(): EditScene {
   const toggle = q<HTMLButtonElement>(doc, "#edt-toggle");
   const toggleName = q<HTMLElement>(doc, "#edt-toggle-name");
   const tearBtn = q<HTMLButtonElement>(doc, "#edt-tear");
+  const closingG = q<SVGGElement>(svg, "#edt-closing-g");
   const closingRule = q<SVGPathElement>(svg, "#edt-closing-rule");
   const closingText = q<SVGGElement>(svg, "#edt-closing-text");
   /* The markup's three lines must agree with CLOSING_LINES (the still joins
@@ -5149,8 +5150,11 @@ export function createEditScene(): EditScene {
     gsap.set(fillOnly, { fillOpacity: 0 });
     gsap.set(fadeParts, { opacity: 0 });
     gsap.set(ticket, { opacity: 0 });
+    /* The closing group rests OFF the stage's left edge — where the rail is —
+       so its arrival is a journey from the place the sentence used to live
+       (user call): it glides in under the scrub and settles in the corner. */
+    gsap.set(closingG, { x: -170, opacity: 0 });
     gsap.set([closingRule], { scaleX: 0, transformOrigin: "50% 50%" });
-    gsap.set([closingText], { opacity: 0, y: 10 });
 
     /* THE RECEIPT IS ROLLED BACK INSIDE THE MACHINE. Nothing printed on it
        needs hiding: the paper starts a full strip's height above the mouth,
@@ -6318,17 +6322,21 @@ export function createEditScene(): EditScene {
        rising under it, the torn CI ticket filed directly beneath as the
        verdict's evidence. No exit tween anywhere: this is where the scene
        lands, and it is still there when the reader stops. */
+    /* The sentence ARRIVES from the rail's side (user call): the whole group
+       glides in from off the stage's left edge under the scrub — the reader's
+       own scroll carries it from where it used to live to where it lands —
+       and the rule draws only once it has settled. */
     ft(
-      closingRule,
-      { scaleX: 0 },
-      { scaleX: 1, duration: 1.2, ease: "power2.out" },
+      closingG,
+      { x: -170, opacity: 0 },
+      { x: 0, opacity: 1, duration: 1.5, ease: "power2.out" },
       L + L_CLOSE_AT,
     );
     ft(
-      closingText,
-      { opacity: 0, y: 10 },
-      { opacity: 1, y: 0, duration: 1.1, ease: "power2.out" },
-      L + L_CLOSE_AT + 0.35,
+      closingRule,
+      { scaleX: 0 },
+      { scaleX: 1, duration: 1.0, ease: "power2.out" },
+      L + L_CLOSE_AT + 1.2,
     );
 
     /* The mouth: a serrated bar, drawn like every other machine on this
