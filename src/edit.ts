@@ -1286,24 +1286,27 @@ const RCPT_TOTAL = `total · ${STATION_AT.length - 1} stations · 1 edit`;
    live paper has hairline-strong, text-faint where it has text-dim, and no
    shop name at all. The wordmark at full ink belongs to the edition still in
    the machine, which is the whole old/new contrast the floor line names. */
-const PILE_W = 170;
-const PILE_H = 72;
-const PILE_PAD = 11;
-/** THE SAME BLADE: 170 = 17 × TEETH_W exactly, so an earlier edition's torn
+const PILE_W = 180;
+const PILE_H = 76;
+const PILE_PAD = 12;
+/** THE SAME BLADE: 180 = 18 × TEETH_W exactly, so an earlier edition's torn
  *  top edge has the mouth's tooth pitch and the mouth's tooth depth. One
  *  machine, one separation — asserted, because a second tooth cycle would be
  *  a second printer. */
-const PILE_TEETH_N = 17;
+const PILE_TEETH_N = 18;
 /** The card's lettering. MUST match `.edt-pile-ident` / `.edt-pile-line` —
  *  every width assert below is monoWidth() arithmetic off these two numbers
  *  and the stylesheet is what actually paints them. */
-const PILE_IDENT_SIZE = 9;
-const PILE_LINE_SIZE = 8.5;
+const PILE_IDENT_SIZE = 10;
+/* 9, not the ident's 10: the canary stamp is 28 characters, and at the
+   card's inner width (180 − 2×12) the width assert allows 9.06 — the
+   longest line is what sizes the type, not the average one. */
+const PILE_LINE_SIZE = 9;
 /** The card's anatomy, in units below its own top edge. */
-const PILE_IDENT_DY = 13;
-const PILE_RULE_DY = 17;
-const PILE_LINE_DY0 = 29;
-const PILE_LINE_PITCH = 11;
+const PILE_IDENT_DY = 14.5;
+const PILE_RULE_DY = 19;
+const PILE_LINE_DY0 = 32;
+const PILE_LINE_PITCH = 12;
 /** The clearance a printed line keeps from the bottom of its own paper. */
 const PILE_LINE_BOTTOM = 5;
 /** How many stamps a card's paper holds. DERIVED, never typed, so a card that
@@ -1383,12 +1386,15 @@ const pileLines = (c: PileEdit): readonly string[] =>
  *  pointer that runs to the printer's side. Above the pile — a caption reads
  *  before its subject. */
 const PILE_TITLE = "Version history";
-const PILE_TITLE_SIZE = 15;
+const PILE_TITLE_SIZE = 17;
 const PILE_TITLE_Y = 448;
 const PILE_SUB = "and the new one ready to use is here";
-const PILE_SUB_SIZE = 12;
+const PILE_SUB_SIZE = 13;
 const PILE_SUB_Y = 467;
-const PILE_LABEL_X = 256;
+/* 242, not the old 256: the sub-line grew to 13 and its right end has to
+   clear the printer's left edge (the caption-width assert) — the column
+   slides left instead of the sentence shrinking back. */
+const PILE_LABEL_X = 242;
 
 /** A box in a card's OWN coordinates (0,0 = the paper's top-left corner),
  *  carried through that card's rotation about that card's centre — the exact
