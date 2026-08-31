@@ -383,8 +383,8 @@ const TKT_SUB = "silently broken 31 days";
  *  joins this instead of reading the DOM. */
 const CLOSING_LINES: readonly string[] = [
   "One edit. Seven stations.",
-  "Nothing reached a customer",
-  "that hadn't earned it.",
+  "Nothing unearned",
+  "reaches a customer.",
 ];
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -3081,8 +3081,8 @@ export function createEditScene(): EditScene {
     const target = new DOMPoint(10, 459).matrixTransform(m);
     travel.style.left = `${start.left}px`;
     travel.style.top = `${start.top}px`;
-    travel.style.fontSize = `${15 * m.a}px`;
-    travel.style.lineHeight = `${22 * m.a}px`;
+    travel.style.fontSize = `${18 * m.a}px`;
+    travel.style.lineHeight = `${24 * m.a}px`;
     travelDX = target.x - start.left;
     travelDY = target.y - start.top;
   };
