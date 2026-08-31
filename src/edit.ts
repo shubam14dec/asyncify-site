@@ -1524,9 +1524,10 @@ const FALL_BOW: readonly number[] = [-5, 4, -2.5, 1.2];
 const GLIDE_DUR = 1.3;
 /** How far the strip stands taut toward the teeth. This began as a hover
  *  offset; the reader liked the hovered posture and asked for it to be the
- *  RESTING one (user call), so the armed strip now holds 2×this always and
- *  the door has no hover regime. 1.5u is under two pixels at the stage's
- *  render scale — the paper held taut, not the paper moved. */
+ *  RESTING one, so the armed strip holds 2×this always, and the pointer adds
+ *  ONE more step (3×, wireDoorHover — his second call: "very little bit").
+ *  1.5u is under two pixels at the stage's render scale — the paper held
+ *  taut, not the paper moved. */
 const TEAR_LIFT = 1.5;
 
 /* ── the landing's own clock, in units from LANDING_AT ─────────────────────
@@ -2587,8 +2588,8 @@ export function createEditScene(): EditScene {
      a drawn line that rises to the printer's mouth. Same ink family as the
      door's hook; the head derives from the curve's end tangent (the tear
      arrow's law — a chevron cannot disagree with the line that draws it). */
-  const pileArrow = svgEl("path", { class: "edt-hint-arrow edt-pile-arrow", d: "M 0 0" }) as SVGPathElement;
-  const pileArrowHead = svgEl("path", { class: "edt-hint-arrow edt-pile-arrow", d: "M 0 0" }) as SVGPathElement;
+  const pileArrow = svgEl("path", { class: "edt-hint-arrow", d: "M 0 0" }) as SVGPathElement;
+  const pileArrowHead = svgEl("path", { class: "edt-hint-arrow", d: "M 0 0" }) as SVGPathElement;
   {
     const pileG = q<SVGGElement>(svg, "#edt-pile");
     const inner = PILE_W - 2 * PILE_PAD;
@@ -4867,7 +4868,8 @@ export function createEditScene(): EditScene {
     gsap.set(rcptFringe, { opacity: 0, drawSVG: "0% 0%" });
     /* The strip rests at the hover's old offset — taut, pulled a step toward
        the hand — because the reader liked the hovered posture and asked for
-       it to BE the posture (user call). One value, no hover regime left. */
+       it to BE the posture (user call). The pointer adds one more TEAR_LIFT
+       step on top (wireDoorHover). */
     gsap.set(rcptPaper, { opacity: 1, y: 2 * TEAR_LIFT });
     tearBtn.hidden = !doorArmed;
   }
@@ -6501,10 +6503,30 @@ export function createEditScene(): EditScene {
     };
   }
 
-  /* The door HAD a hover regime (the strip pulled a step toward the hand on
-     pointerenter). The reader liked that posture and asked for it without the
-     pointer, so the offset moved into resetDoor's rest state and the regime
-     is gone — the strip is always taut, and hover changes nothing. */
+  /** Hover is its own regime again (DESIGN §5), one size down: the strip
+   *  already RESTS taut at 2×TEAR_LIFT (the reader made the old hovered
+   *  posture the resting one — see resetDoor), so the pointer now adds just
+   *  one more step, a whisker over a pixel (user call: "very little bit"). */
+  function wireDoorHover(): () => void {
+    const on = (): void => {
+      if (!doorArmed || tearing) return;
+      gsap.to(rcptPaper, { y: 3 * TEAR_LIFT, duration: HOVER_DUR, ease: "power2.out" });
+    };
+    const off = (): void => {
+      if (tearing) return;
+      gsap.to(rcptPaper, { y: 2 * TEAR_LIFT, duration: HOVER_DUR, ease: "power2.out" });
+    };
+    tearBtn.addEventListener("pointerenter", on);
+    tearBtn.addEventListener("pointerleave", off);
+    tearBtn.addEventListener("focus", on);
+    tearBtn.addEventListener("blur", off);
+    return () => {
+      tearBtn.removeEventListener("pointerenter", on);
+      tearBtn.removeEventListener("pointerleave", off);
+      tearBtn.removeEventListener("focus", on);
+      tearBtn.removeEventListener("blur", off);
+    };
+  }
 
   /* ════════════════════════════════════════════════════════════════════════
      THE BRIDGE  —  the narrative hinge above this scene, free scroll
@@ -6560,11 +6582,11 @@ export function createEditScene(): EditScene {
   mm.add(
     "(min-width: 768px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)",
     () => {
-      /* Only the switch keeps a hover half — the door's strip holds its
-         taut posture at rest now (see resetDoor). */
       const a = wireToggleHover();
+      const b = wireDoorHover();
       return () => {
         a();
+        b();
       };
     },
   );

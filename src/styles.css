@@ -4123,21 +4123,17 @@ html {
    a mark that has to read at a glance, not a scene silhouette. */
 .edt-hint-arrow {
   fill: none;
-  stroke: var(--hairline-strong);
+  /* --text-dim, not the hairline the click-here grammar started on: the user
+     brightened the pile caption's pointer first and then asked the tear-here
+     whisper up to match, and this class's only two wearers ARE those two
+     arrows — so the rung lives on the base class, one ink for both. */
+  stroke: var(--text-dim);
   /* 1, the click-here arrow's own weight: an annotation's line is a nick,
      not a mark (user call — scene 4's grammar, exactly). */
   stroke-width: 1;
   stroke-linecap: butt;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
-}
-
-/* The pile caption's pointer runs brighter than the whisper it borrows its
-   anatomy from (user call): it carries a sentence to the printer, so its
-   line takes the sentence's own rung — the sub line's --text-dim — while
-   the tear-here whisper stays a nick. */
-.edt-pile-arrow {
-  stroke: var(--text-dim);
 }
 
 /* The door. Placed over the printed strip by edit.ts from the svg's own
