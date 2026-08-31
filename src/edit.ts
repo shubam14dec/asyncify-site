@@ -364,16 +364,27 @@ const NOTCH_V7_STAMP = 2;
    The bottom edge is torn rather than cut — the tear is generated from a
    fixed depth cycle below, never rolled, so a reader scrolling back up finds
    the same piece of paper (scene 2's RECEIPT_MS rule). */
-const TKT_X0 = 26;
-const TKT_X1 = 212;
-const TKT_Y0 = 512;
+/** Nudged left twice (user-tuned 26 → 14 → 6), same width — the ticket hugs
+ *  the frame's margin and gives the pile's caption more room to breathe. */
+const TKT_X0 = 6;
+const TKT_X1 = 192;
+const TKT_Y0 = 538;
 /** Where the paper stops being paper. */
-const TKT_TEAR = 570;
+const TKT_TEAR = 596;
 const TKT_PAD = 12;
 const TKT_TOOTH = 7;
 const TKT_SIZE = 11;
 const TKT_HEAD = "caught · refund-path";
 const TKT_SUB = "silently broken 31 days";
+
+/** The closing statement's lines — two now (user call), in-stage (scene 4's
+ *  grammar) with the CI ticket filed directly beneath. A const, because an
+ *  svg group's textContent concatenates its lines WITHOUT spaces — the still
+ *  joins this instead of reading the DOM. */
+const CLOSING_LINES: readonly string[] = [
+  "One edit. Seven stations.",
+  "Nothing unearned reaches a customer.",
+];
 
 /* ══════════════════════════════════════════════════════════════════════════
    STATION 1 — THE DIFF
@@ -1345,9 +1356,12 @@ const PILE: readonly {
   y: number;
   rot: number;
 }[] = [
-  { commit: "8c04d1", from: 3, to: 4, judged: 4.1, x: 290, y: 490, rot: -5 },
-  { commit: "b7e2a9", from: 4, to: 5, judged: 4.2, x: 280, y: 486, rot: 3 },
-  { commit: "4d91f7", from: 5, to: 6, judged: 4.4, x: 252, y: 510, rot: -2 },
+  /* x shifted +60 when the closing went to two lines: its second line runs
+     ~310u from x 10, and a card corner under full-ink sentence is a collision
+     the coverage asserts below cannot see (they only test card-on-card). */
+  { commit: "8c04d1", from: 3, to: 4, judged: 4.1, x: 350, y: 490, rot: -5 },
+  { commit: "b7e2a9", from: 4, to: 5, judged: 4.2, x: 340, y: 486, rot: 3 },
+  { commit: "4d91f7", from: 5, to: 6, judged: 4.4, x: 312, y: 510, rot: -2 },
 ];
 type PileEdit = (typeof PILE)[number];
 
@@ -1533,7 +1547,14 @@ const TEAR_LIFT = 1.5;
    nothing is still being built when the held ending starts — are comparisons
    between numbers, and a comparison the file can make is a comparison a
    future edit cannot get wrong. */
-const L_CLOSE_AT = 1.4;
+const L_CLOSE_AT = 0.2;
+/** The crossing (user law, twice corrected): the sentence is SEATED below the
+ *  rail's `day 9` clock first — visibly, while the pile settles — and then
+ *  makes the rail→stage journey under the reader's own scroll. Five units of
+ *  flight because the first draft's 1.3 was one wheel-notch: a move nobody
+ *  can see is an appearance, which is the exact thing the user rejected. */
+const L_TRAVEL_AT = 2.4;
+const L_TRAVEL_DUR = 5.0;
 const L_TEETH_AT = 0.6;
 /** The pile settles OLDEST FIRST — they were laid down over time and the
  *  landing shows them the way they accumulated — and its floor line lands with
@@ -1623,7 +1644,7 @@ const STILL_VIEW_MAX_W = 470;
    They are in frame coordinates, so their windows are cut from a clone with
    the camera group taken out — otherwise bay 0's prompt panel, which sits at
    the same numbers, would be painted underneath them. */
-const STILL_TKT_VIEW = "14 500 210 92";
+const STILL_TKT_VIEW = "4 526 210 102";
 const STILL_RCPT_VIEW = "608 288 344 318";
 /** The scene's LAST FRAME, whole, and it is genuinely the last frame: at the
  *  landing the camera is parked on bay 8, which is empty by design, so the
@@ -2585,8 +2606,8 @@ export function createEditScene(): EditScene {
      a drawn line that rises to the printer's mouth. Same ink family as the
      door's hook; the head derives from the curve's end tangent (the tear
      arrow's law — a chevron cannot disagree with the line that draws it). */
-  const pileArrow = svgEl("path", { class: "edt-hint-arrow", d: "M 0 0" }) as SVGPathElement;
-  const pileArrowHead = svgEl("path", { class: "edt-hint-arrow", d: "M 0 0" }) as SVGPathElement;
+  const pileArrow = svgEl("path", { class: "edt-pointer", d: "M 0 0" }) as SVGPathElement;
+  const pileArrowHead = svgEl("path", { class: "edt-pointer", d: "M 0 0" }) as SVGPathElement;
   {
     const pileG = q<SVGGElement>(svg, "#edt-pile");
     const inner = PILE_W - 2 * PILE_PAD;
@@ -2857,21 +2878,6 @@ export function createEditScene(): EditScene {
   const railOriginTick = q<SVGPathElement>(svg, "#edt-rail-origin");
   const railOriginLbl = q<SVGTextElement>(svg, "#edt-rail-v0");
   const ticket = q<SVGGElement>(svg, "#edt-ticket");
-  /* THE TICKET'S RAIL TWIN (user call): at the landing the torn ticket is
-     FILED below the closing sentence — the evidence next to the verdict. The
-     twin is CLONED from the stage's own nodes (never re-typed strings, so the
-     two can't drift), in the frame window the still already names for it.
-     Its rest is stylesheet-owned (opacity 0 in .edt-closing-tkt). */
-  const closingTkt = doc.createElementNS(SVG_NS, "svg") as unknown as SVGSVGElement;
-  closingTkt.setAttribute("class", "edt-closing-tkt");
-  closingTkt.setAttribute("viewBox", "14 500 210 92");
-  closingTkt.setAttribute("aria-hidden", "true");
-  for (const el of Array.from(ticket.children)) {
-    const c = el.cloneNode(true) as SVGElement;
-    c.removeAttribute("id");
-    closingTkt.appendChild(c);
-  }
-  q<HTMLElement>(doc, "#edt-closing").appendChild(closingTkt);
 
   const panel = q<SVGRectElement>(svg, "#edt-panel");
   const panelRule = q<SVGPathElement>(svg, "#edt-panel-rule");
@@ -3033,8 +3039,59 @@ export function createEditScene(): EditScene {
   const toggle = q<HTMLButtonElement>(doc, "#edt-toggle");
   const toggleName = q<HTMLElement>(doc, "#edt-toggle-name");
   const tearBtn = q<HTMLButtonElement>(doc, "#edt-tear");
-  const closingRule = q<HTMLElement>(doc, "#edt-closing-rule");
-  const closingText = q<HTMLElement>(doc, "#edt-closing-text");
+  const closingG = q<SVGGElement>(svg, "#edt-closing-g");
+  const closingRule = q<SVGPathElement>(svg, "#edt-closing-rule");
+  const closingText = q<SVGGElement>(svg, "#edt-closing-text");
+  /* The markup's three lines must agree with CLOSING_LINES (the still joins
+     the const — see its docblock). */
+  {
+    const lines = Array.from(closingText.querySelectorAll("text")).map((t) => t.textContent);
+    if (
+      lines.length !== CLOSING_LINES.length ||
+      lines.some((l, i) => l !== CLOSING_LINES[i])
+    ) {
+      throw new Error("[edit] the closing statement's markup and constant disagree");
+    }
+  }
+
+  /* THE TRAVELER (function scope — the scrub builds in one function, the
+     rest states in another, and both drive it): the fixed-position copy that
+     carries the closing sentence from the caption rail into the stage. */
+  const travel = doc.createElement("div");
+  travel.className = "edt-closing-travel";
+  travel.setAttribute("aria-hidden", "true");
+  for (const line of CLOSING_LINES) {
+    const p = doc.createElement("p");
+    p.textContent = line;
+    travel.appendChild(p);
+  }
+  doc.body.appendChild(travel);
+  let travelDX = 0;
+  let travelDY = 0;
+  /** Seated-by-measurement, and the only honest time to measure is while the
+   *  pin is actually holding the rail still on screen — a build-time rect is
+   *  the page at scroll 0, which is the bug the first draft shipped (the
+   *  traveler flew from wherever the rail had been before the pin landed).
+   *  syncArm() places it on approach; a resize unseats it for re-measure. */
+  let travelPlaced = false;
+  const placeTravel = (): void => {
+    const m = svg.getScreenCTM();
+    if (!m) return;
+    const start = capsWrap.getBoundingClientRect();
+    /* Land the traveler's first line where the svg's first line stands:
+       baseline 472 minus a cap-height, in screen space. */
+    const target = new DOMPoint(10, 459).matrixTransform(m);
+    travel.style.left = `${start.left}px`;
+    travel.style.top = `${start.top}px`;
+    travel.style.fontSize = `${18 * m.a}px`;
+    travel.style.lineHeight = `${24 * m.a}px`;
+    travelDX = target.x - start.left;
+    travelDY = target.y - start.top;
+  };
+  const unseatTravel = (): void => {
+    travelPlaced = false;
+  };
+  window.addEventListener("resize", unseatTravel);
   const bridgeLines = Array.from(doc.querySelectorAll<HTMLElement>(".edt-bridge-line"));
 
   /* ── the markup and the constants have to agree ─────────────────────────
@@ -3829,7 +3886,16 @@ export function createEditScene(): EditScene {
       throw new Error("[edit] the landing is still building itself inside the held ending");
     }
     if (LANDING_AT + L_CLOSE_AT <= LANDING_AT || L_CLOSE_AT >= L_PRINT_AT) {
-      throw new Error("[edit] the closing statement does not arrive before the print it closes");
+      throw new Error("[edit] the closing statement is not seated in the rail before the print");
+    }
+    /* The crossing's own laws: a readable dwell below `day 9` before the
+       flight, and the landed sentence plus its rule finished before the
+       whisper asks the reader to tear anything. */
+    if (L_TRAVEL_AT < L_CLOSE_AT + 1.0) {
+      throw new Error("[edit] the sentence leaves the rail before the reader can find it there");
+    }
+    if (L_TRAVEL_AT + L_TRAVEL_DUR + 1.5 > L_HINT_AT) {
+      throw new Error("[edit] the closing statement is still crossing when the whisper begins");
     }
     /* ── the fall ─────────────────────────────────────────────────────────
        Damped, alternating, and a bow rather than a ripple. All three are
@@ -4038,9 +4104,6 @@ export function createEditScene(): EditScene {
     "#edt-limit", //      the knob's reading becomes the verdict
     "#edt-ghost", //      the other design is drawn, allowed to hurt, and removed
     "#edt-ghost-lbl",
-    "#edt-ticket", //     at the landing the ticket is FILED — it hands off to
-    //                    its twin under the closing sentence (user call), so
-    //                    the finished frame holds it there, not on the stage
   ];
   const STILL_PLACED: readonly { sel: string; x: number; y: number }[] = [
     { sel: "#edt-chip", x: STILL_CHIP_AT, y: CHIP_LANE_Y },
@@ -5131,6 +5194,17 @@ export function createEditScene(): EditScene {
   function syncArm(t: number): void {
     armToggle(t >= TOGGLE_FROM && t < TOGGLE_TO);
     armDoor(t >= HOLD_FROM);
+    /* The traveler's seat, measured on approach — inside the pin, before the
+       flight — and re-armed for re-measure once the reader has scrolled back
+       out of the landing. Pure function of t, like the two arms above. */
+    if (t >= LANDING_AT - 2 && t < LANDING_AT + L_TRAVEL_AT) {
+      if (!travelPlaced) {
+        placeTravel();
+        travelPlaced = true;
+      }
+    } else if (t < LANDING_AT - 2) {
+      travelPlaced = false;
+    }
   }
 
   function restState(): void {
@@ -5144,8 +5218,17 @@ export function createEditScene(): EditScene {
     gsap.set(fillOnly, { fillOpacity: 0 });
     gsap.set(fadeParts, { opacity: 0 });
     gsap.set(ticket, { opacity: 0 });
-    gsap.set([closingRule], { scaleX: 0 });
-    gsap.set([closingText], { opacity: 0, y: 10 });
+    /* The closing rests invisible IN PLACE; its arrival is played by a
+       fixed-position HTML traveler that starts at the caption rail itself —
+       the sentence's old home (user call) — and crosses the rail/stage
+       boundary the way the fall's clone does: fixed coordinates, which no
+       container can clip. The svg version fades in only as the traveler
+       lands exactly on top of it. Font size and line pitch are the stage's
+       own units through the CTM, so the hand-off has no visible seam. */
+    gsap.set(closingG, { opacity: 0 });
+    gsap.set([closingRule], { scaleX: 0, transformOrigin: "50% 50%" });
+    gsap.set(travel, { x: 0, y: 0 });
+    travelPlaced = false;
 
     /* THE RECEIPT IS ROLLED BACK INSIDE THE MACHINE. Nothing printed on it
        needs hiding: the paper starts a full strip's height above the mouth,
@@ -5519,13 +5602,8 @@ export function createEditScene(): EditScene {
        element the still has no rail for. */
     const close = doc.createElement("p");
     close.className = "edt-still-closing";
-    close.textContent = closingText.textContent?.trim().replace(/\s+/g, " ") ?? "";
+    close.textContent = CLOSING_LINES.join(" ");
     landing.appendChild(close);
-    /* The filed ticket, under the sentence here too — the still shows the
-       finished frame, and in the finished frame the evidence is filed. */
-    const stillTkt = closingTkt.cloneNode(true) as SVGElement;
-    stillTkt.style.opacity = "1";
-    landing.appendChild(stillTkt);
 
     /* THE DOOR. No fall here by design: a reduced-motion reader is owed the
        INFORMATION the motion carried, not the motion — and what the tear
@@ -6313,31 +6391,57 @@ export function createEditScene(): EditScene {
        stations have been read, and what is left to say is the RECORD. */
     ft(chip, { x: bayCx(7) }, { x: bayCx(8), duration: 3.0, ease: "power2.inOut" }, L);
 
-    /* THE CLOSING STATEMENT takes the rail from the stations. A rule out of
-       its own middle, and the sentence rising under it — scene 4's
-       #agt-closing, and like it, no exit tween anywhere: this is where the
-       scene lands, and it is still there when the reader stops. */
+    /* THE CLOSING STATEMENT, in-stage now (scene 4's #agt-closing, fully —
+       same corner, same grammar): a rule out of its own middle, three lines
+       rising under it, the torn CI ticket filed directly beneath as the
+       verdict's evidence. No exit tween anywhere: this is where the scene
+       lands, and it is still there when the reader stops. */
+    /* The sentence TRAVELS from the rail itself (user law, twice corrected):
+       it fades up BELOW the rail's `day 9` clock — the caption box the last
+       station just vacated — sits there while the pile settles, and then
+       crosses into the stage over five units of the reader's own scroll.
+       The flight is a progress proxy driven by the scrub and applied against
+       travelDX/DY on every frame, so the tween never captures a coordinate:
+       the seat is measured on approach (syncArm), and a re-measure moves the
+       very next frame. The svg version fades in as the traveler lands on it;
+       only then does the rule draw. */
+    ft(
+      travel,
+      { autoAlpha: 0 },
+      { autoAlpha: 1, duration: 0.5, ease: "power2.out" },
+      L + L_CLOSE_AT,
+    );
+    const travelP = { p: 0 };
+    ft(
+      travelP,
+      { p: 0 },
+      {
+        p: 1,
+        duration: L_TRAVEL_DUR,
+        ease: "power1.inOut",
+        onUpdate: () => {
+          gsap.set(travel, { x: travelDX * travelP.p, y: travelDY * travelP.p });
+        },
+      },
+      L + L_TRAVEL_AT,
+    );
+    ft(
+      travel,
+      { autoAlpha: 1 },
+      { autoAlpha: 0, duration: 0.3, ease: "power1.in" },
+      L + L_TRAVEL_AT + L_TRAVEL_DUR - 0.1,
+    );
+    ft(
+      closingG,
+      { opacity: 0 },
+      { opacity: 1, duration: 0.3, ease: "power1.out" },
+      L + L_TRAVEL_AT + L_TRAVEL_DUR - 0.15,
+    );
     ft(
       closingRule,
       { scaleX: 0 },
-      { scaleX: 1, duration: 1.2, ease: "power2.out" },
-      L + L_CLOSE_AT,
-    );
-    ft(
-      closingText,
-      { opacity: 0, y: 10 },
-      { opacity: 1, y: 0, duration: 1.1, ease: "power2.out" },
-      L + L_CLOSE_AT + 0.35,
-    );
-    /* THE HAND-OFF (user call): as the verdict lands, the evidence is filed
-       under it — the stage ticket fades while its rail twin rises below the
-       sentence. A scroll back up un-files it. */
-    ft(ticket, { opacity: 1 }, { opacity: 0, duration: 0.6, ease: "power1.inOut" }, L + L_CLOSE_AT + 0.5);
-    ft(
-      closingTkt,
-      { opacity: 0, y: 8 },
-      { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" },
-      L + L_CLOSE_AT + 0.7,
+      { scaleX: 1, duration: 1.0, ease: "power2.out" },
+      L + L_TRAVEL_AT + L_TRAVEL_DUR + 0.3,
     );
 
     /* The mouth: a serrated bar, drawn like every other machine on this
@@ -6570,6 +6674,8 @@ export function createEditScene(): EditScene {
   mm.add("(prefers-reduced-motion: reduce)", () => buildStill(true));
 
   function destroy(): void {
+    window.removeEventListener("resize", unseatTravel);
+    travel.remove();
     mm.revert();
   }
 
