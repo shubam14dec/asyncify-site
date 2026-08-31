@@ -364,8 +364,10 @@ const NOTCH_V7_STAMP = 2;
    The bottom edge is torn rather than cut — the tear is generated from a
    fixed depth cycle below, never rolled, so a reader scrolling back up finds
    the same piece of paper (scene 2's RECEIPT_MS rule). */
-const TKT_X0 = 26;
-const TKT_X1 = 212;
+/** Nudged left twice (user-tuned 26 → 14 → 6), same width — the ticket hugs
+ *  the frame's margin and gives the pile's caption more room to breathe. */
+const TKT_X0 = 6;
+const TKT_X1 = 192;
 const TKT_Y0 = 512;
 /** Where the paper stops being paper. */
 const TKT_TEAR = 570;
@@ -1623,7 +1625,7 @@ const STILL_VIEW_MAX_W = 470;
    They are in frame coordinates, so their windows are cut from a clone with
    the camera group taken out — otherwise bay 0's prompt panel, which sits at
    the same numbers, would be painted underneath them. */
-const STILL_TKT_VIEW = "14 500 210 92";
+const STILL_TKT_VIEW = "4 500 210 92";
 const STILL_RCPT_VIEW = "608 288 344 318";
 /** The scene's LAST FRAME, whole, and it is genuinely the last frame: at the
  *  landing the camera is parked on bay 8, which is empty by design, so the
