@@ -3044,6 +3044,36 @@ export function createEditScene(): EditScene {
       throw new Error("[edit] the closing statement's markup and constant disagree");
     }
   }
+
+  /* THE TRAVELER (function scope — the scrub builds in one function, the
+     rest states in another, and both drive it): the fixed-position copy that
+     carries the closing sentence from the caption rail into the stage. */
+  const travel = doc.createElement("div");
+  travel.className = "edt-closing-travel";
+  travel.setAttribute("aria-hidden", "true");
+  for (const line of CLOSING_LINES) {
+    const p = doc.createElement("p");
+    p.textContent = line;
+    travel.appendChild(p);
+  }
+  doc.body.appendChild(travel);
+  let travelDX = 0;
+  let travelDY = 0;
+  const placeTravel = (): void => {
+    const m = svg.getScreenCTM();
+    if (!m) return;
+    const start = capsWrap.getBoundingClientRect();
+    /* Land the traveler's first line where the svg's first line stands:
+       baseline 472 minus a cap-height, in screen space. */
+    const target = new DOMPoint(10, 459).matrixTransform(m);
+    travel.style.left = `${start.left}px`;
+    travel.style.top = `${start.top}px`;
+    travel.style.fontSize = `${15 * m.a}px`;
+    travel.style.lineHeight = `${22 * m.a}px`;
+    travelDX = target.x - start.left;
+    travelDY = target.y - start.top;
+  };
+  window.addEventListener("resize", placeTravel);
   const bridgeLines = Array.from(doc.querySelectorAll<HTMLElement>(".edt-bridge-line"));
 
   /* ── the markup and the constants have to agree ─────────────────────────
@@ -5150,11 +5180,16 @@ export function createEditScene(): EditScene {
     gsap.set(fillOnly, { fillOpacity: 0 });
     gsap.set(fadeParts, { opacity: 0 });
     gsap.set(ticket, { opacity: 0 });
-    /* The closing group rests OFF the stage's left edge — where the rail is —
-       so its arrival is a journey from the place the sentence used to live
-       (user call): it glides in under the scrub and settles in the corner. */
-    gsap.set(closingG, { x: -170, opacity: 0 });
+    /* The closing rests invisible IN PLACE; its arrival is played by a
+       fixed-position HTML traveler that starts at the caption rail itself —
+       the sentence's old home (user call) — and crosses the rail/stage
+       boundary the way the fall's clone does: fixed coordinates, which no
+       container can clip. The svg version fades in only as the traveler
+       lands exactly on top of it. Font size and line pitch are the stage's
+       own units through the CTM, so the hand-off has no visible seam. */
+    gsap.set(closingG, { opacity: 0 });
     gsap.set([closingRule], { scaleX: 0, transformOrigin: "50% 50%" });
+    placeTravel();
 
     /* THE RECEIPT IS ROLLED BACK INSIDE THE MACHINE. Nothing printed on it
        needs hiding: the paper starts a full strip's height above the mouth,
@@ -6322,21 +6357,40 @@ export function createEditScene(): EditScene {
        rising under it, the torn CI ticket filed directly beneath as the
        verdict's evidence. No exit tween anywhere: this is where the scene
        lands, and it is still there when the reader stops. */
-    /* The sentence ARRIVES from the rail's side (user call): the whole group
-       glides in from off the stage's left edge under the scrub — the reader's
-       own scroll carries it from where it used to live to where it lands —
-       and the rule draws only once it has settled. */
+    /* The sentence TRAVELS from the rail itself (user call): the fixed
+       traveler fades up at the caption rail's own spot, crosses into the
+       stage under the reader's scroll, and hands off to the svg version in
+       place — which fades in exactly as the traveler lands on it. Then the
+       rule draws under the settled lines. */
+    ft(
+      travel,
+      { autoAlpha: 0, x: 0, y: 0 },
+      { autoAlpha: 1, duration: 0.3, ease: "power2.out" },
+      L + L_CLOSE_AT,
+    );
+    ft(
+      travel,
+      { x: 0, y: 0 },
+      { x: () => travelDX, y: () => travelDY, duration: 1.3, ease: "power2.inOut" },
+      L + L_CLOSE_AT + 0.3,
+    );
+    ft(
+      travel,
+      { autoAlpha: 1 },
+      { autoAlpha: 0, duration: 0.25, ease: "power1.in" },
+      L + L_CLOSE_AT + 1.6,
+    );
     ft(
       closingG,
-      { x: -170, opacity: 0 },
-      { x: 0, opacity: 1, duration: 1.5, ease: "power2.out" },
-      L + L_CLOSE_AT,
+      { opacity: 0 },
+      { opacity: 1, duration: 0.25, ease: "power1.out" },
+      L + L_CLOSE_AT + 1.55,
     );
     ft(
       closingRule,
       { scaleX: 0 },
       { scaleX: 1, duration: 1.0, ease: "power2.out" },
-      L + L_CLOSE_AT + 1.2,
+      L + L_CLOSE_AT + 1.9,
     );
 
     /* The mouth: a serrated bar, drawn like every other machine on this
