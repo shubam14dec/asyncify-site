@@ -1578,6 +1578,34 @@ function teethPath(y: number, sign: number): string {
   return parts.join(" ");
 }
 
+/** THE TEAR ITSELF — one wandering line BOTH halves share (user call: the
+ *  uniform saw-tooth read as a machine's pattern; the CI margin ticket's
+ *  ragged edge is the register). A real tear is a single line the two pieces
+ *  have in common, so the machine's fringe and the strip's own edge draw this
+ *  same path — two halves of one tear cannot fail to interlock. Wander is
+ *  DETERMINISTIC: depth and apex-drift cycle fixed patterns (lengths 10 and
+ *  8, coprime past the 32 teeth, so nothing visibly repeats), bounded and
+ *  checked. The blade (#edt-teeth) keeps teethPath: machines are regular,
+ *  tears are not. */
+const TORN_DEPTHS: readonly number[] = [2.6, -1.4, 3.6, -0.6, 1.8, -2.6, 3.0, -1.0, 2.2, -2.0];
+const TORN_DRIFT: readonly number[] = [-1.6, 1.1, 0.4, -0.9, 1.8, -0.4, 0.9, -1.3];
+function tornLinePath(y: number): string {
+  const parts = [`M ${RCPT_X} ${y}`];
+  for (let i = 0; i < TEETH_N; i++) {
+    const d = TORN_DEPTHS[i % TORN_DEPTHS.length]!;
+    const drift = TORN_DRIFT[i % TORN_DRIFT.length]!;
+    if (Math.abs(d) > 4 || Math.abs(drift) >= TEETH_W / 2) {
+      throw new Error("[edit] the tear's wander is out of its bounds");
+    }
+    const apexX = RCPT_X + i * TEETH_W + TEETH_W / 2 + drift;
+    parts.push(
+      `L ${apexX.toFixed(2)} ${(y + d).toFixed(2)}`,
+      `L ${(RCPT_X + (i + 1) * TEETH_W).toFixed(2)} ${y}`,
+    );
+  }
+  return parts.join(" ");
+}
+
 /** The bracket over the four lanes the flood never touched. Two subpaths in
  *  one path, one per contiguous run, because the flooding lane is what splits
  *  it — a single span would be the opposite of what it says. */
@@ -3659,11 +3687,13 @@ export function createEditScene(): EditScene {
   tearHere.setAttribute("x", String(TEAR_HERE_X));
   tearHere.setAttribute("y", String(TEAR_HERE_Y));
 
-  /* The serrated bar and the two halves of the tear it makes. All three are
-     one shape at three offsets, so a bar that moved could not leave a fringe
-     that no longer fitted it. */
+  /* The blade keeps its machine-regular serration; the tear the reader makes
+     is tornLinePath — one wandering line both halves share (the stub edge in
+     tearOff and the still draw the SAME path), so the fringe and the strip's
+     ragged top cannot fail to interlock, and neither can drift from a bar
+     that moved: all of them are offsets of the same constants. */
   teeth.setAttribute("d", teethPath(MOUTH_Y, 1));
-  rcptFringe.setAttribute("d", teethPath(MOUTH_Y + 1, 1));
+  rcptFringe.setAttribute("d", tornLinePath(MOUTH_Y + 1));
 
   /* The boxes and the sentences stay in the markup and are only checked here
      — that is what makes a clone of the markup the finished frame. */
@@ -4395,7 +4425,7 @@ export function createEditScene(): EditScene {
     });
     const stubEdge = svgEl("path", {
       class: "edt-rcpt-stub-edge",
-      d: teethPath(MOUTH_Y + 1, -1),
+      d: tornLinePath(MOUTH_Y + 1),
     });
     cloneRoot.insertBefore(tornBody, cloneRoot.firstChild);
     cloneRoot.appendChild(stubEdge);
@@ -4748,7 +4778,7 @@ export function createEditScene(): EditScene {
     const fringe = c.querySelector<SVGElement>("#edt-rcpt-fringe");
     if (fringe) fringe.style.opacity = "1";
     c.querySelector("#edt-rcpt-paper")?.appendChild(
-      svgEl("path", { class: "edt-rcpt-stub-edge", d: teethPath(MOUTH_Y + 1, -1) }),
+      svgEl("path", { class: "edt-rcpt-stub-edge", d: tornLinePath(MOUTH_Y + 1) }),
     );
     return c;
   }
