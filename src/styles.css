@@ -4201,9 +4201,26 @@ html {
 .edt-closing-tkt {
   display: block;
   width: 176px;
-  margin-top: 16px;
+  margin-top: 6px;
   overflow: visible;
   opacity: 0;
+}
+
+/* The rail copy reads one rung brighter than the stage classes it clones
+   (user call): in the rail it sits beside real page type, not machine
+   furniture, so its lettering climbs the ladder — hd to full text, sub to
+   dim — and its outline takes the lettering's old ink. Scoped here so the
+   still's ci-card crop keeps the stage's quieter rungs. */
+.edt-closing-tkt .edt-tkt-hd {
+  fill: var(--text);
+}
+
+.edt-closing-tkt .edt-tkt-sub {
+  fill: var(--text-dim);
+}
+
+.edt-closing-tkt .edt-tkt-body {
+  stroke: var(--text-faint);
 }
 
 /* ── the third bridge ────────────────────────────────────────────────────
