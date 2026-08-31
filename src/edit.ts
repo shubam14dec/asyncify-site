@@ -1318,12 +1318,17 @@ const PILE_LINE_N = Math.min(
 /** The user's floor for the topmost old card: it has to read as a receipt and
  *  not as a hint of one — its ident plus at least four of its seven stamps. */
 const PILE_MIN_LINES = 4;
-/** The floor the pile lies on, and both ends of it are other objects: the
- *  torn ticket's right edge and the printer's left. The top is four units
- *  above the old 480 because the blade's teeth stand ABOVE a torn-off strip's
- *  own top edge — the bound is about where the paper lies, not about the
- *  rectangle its numbers are derived from. */
-const PILE_FLOOR_X0 = TKT_X1 + 20;
+/** The floor the pile lies on. Its right end is the printer's left; its LEFT
+ *  end was the torn ticket's right edge, but the stage ticket never appears
+ *  any more (it lives in the rail — see the twin), so what actually bounds
+ *  the floor there now is the still's ci-card window (STILL_TKT_VIEW,
+ *  "14 500 210 92"): the still crops that rectangle from this frame with the
+ *  ticket un-hidden, and a pile that wandered past x 224 would lie in that
+ *  picture. The top is four units above the old 480 because the blade's
+ *  teeth stand ABOVE a torn-off strip's own top edge — the bound is about
+ *  where the paper lies, not about the rectangle its numbers are derived
+ *  from. */
+const PILE_FLOOR_X0 = 224;
 const PILE_FLOOR_X1 = RCPT_X - 16;
 const PILE_FLOOR_Y0 = 476;
 const PILE_FLOOR_Y1 = FRAME_H - 36;
@@ -1353,14 +1358,14 @@ const PILE: readonly {
      goes UNDER the stack — array order is stack order — showing paper and a
      free corner on the right while its ident lies wholly under 8c04d1 (the
      deepest-card burial assert moved onto this one when it took index 0). */
-  { commit: "9f27b3", from: 2, to: 3, judged: 3.9, x: 316, y: 492, rot: -6 },
-  { commit: "8c04d1", from: 3, to: 4, judged: 4.1, x: 294, y: 490, rot: -5 },
-  { commit: "b7e2a9", from: 4, to: 5, judged: 4.2, x: 284, y: 486, rot: 3 },
+  { commit: "9f27b3", from: 2, to: 3, judged: 3.9, x: 304, y: 492, rot: -6 },
+  { commit: "8c04d1", from: 3, to: 4, judged: 4.1, x: 282, y: 490, rot: -5 },
+  { commit: "b7e2a9", from: 4, to: 5, judged: 4.2, x: 272, y: 486, rot: 3 },
   /* +1°, not a counter-lean: at 220 wide, ANY negative degree lifts this
      card's right edge over the middle card's ident (the clearOfStack
      assert) — leaning WITH the middle card lays that edge low instead.
      And y 508: at 88 tall, 510 would put the low corner past the floor. */
-  { commit: "4d91f7", from: 5, to: 6, judged: 4.4, x: 256, y: 508, rot: 1 },
+  { commit: "4d91f7", from: 5, to: 6, judged: 4.4, x: 244, y: 508, rot: 1 },
 ];
 type PileEdit = (typeof PILE)[number];
 
@@ -1404,11 +1409,11 @@ const PILE_TITLE_Y = 434;
 const PILE_SUB = "and the new one ready to use is here";
 const PILE_SUB_SIZE = 13;
 const PILE_SUB_Y = 457;
-/* 236, user-tuned by eye (a step right of the floor's edge, then eased
-   back). The caption-width assert holds it against the printer's left
+/* At the floor's left edge again (user-tuned by eye, twice each way).
+   The caption-width assert holds the line against the printer's left
    bound (RCPT_X − 16 = 604), which leaves slack — the position is taste,
    the assert is the guardrail. */
-const PILE_LABEL_X = 236;
+const PILE_LABEL_X = 224;
 
 /** A box in a card's OWN coordinates (0,0 = the paper's top-left corner),
  *  carried through that card's rotation about that card's centre — the exact
