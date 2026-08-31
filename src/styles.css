@@ -4132,6 +4132,14 @@ html {
   vector-effect: non-scaling-stroke;
 }
 
+/* The pile caption's pointer runs brighter than the whisper it borrows its
+   anatomy from (user call): it carries a sentence to the printer, so its
+   line takes the sentence's own rung — the sub line's --text-dim — while
+   the tear-here whisper stays a nick. */
+.edt-pile-arrow {
+  stroke: var(--text-dim);
+}
+
 /* The door. Placed over the printed strip by edit.ts from the svg's own
    matrix, exactly as the canary's toggle is, and carrying no paint of its own
    — the drawing underneath is the control's appearance. */

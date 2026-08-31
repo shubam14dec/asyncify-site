@@ -2585,8 +2585,8 @@ export function createEditScene(): EditScene {
      a drawn line that rises to the printer's mouth. Same ink family as the
      door's hook; the head derives from the curve's end tangent (the tear
      arrow's law — a chevron cannot disagree with the line that draws it). */
-  const pileArrow = svgEl("path", { class: "edt-hint-arrow", d: "M 0 0" }) as SVGPathElement;
-  const pileArrowHead = svgEl("path", { class: "edt-hint-arrow", d: "M 0 0" }) as SVGPathElement;
+  const pileArrow = svgEl("path", { class: "edt-hint-arrow edt-pile-arrow", d: "M 0 0" }) as SVGPathElement;
+  const pileArrowHead = svgEl("path", { class: "edt-hint-arrow edt-pile-arrow", d: "M 0 0" }) as SVGPathElement;
   {
     const pileG = q<SVGGElement>(svg, "#edt-pile");
     const inner = PILE_W - 2 * PILE_PAD;
