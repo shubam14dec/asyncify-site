@@ -1545,7 +1545,14 @@ const TEAR_LIFT = 1.5;
    nothing is still being built when the held ending starts — are comparisons
    between numbers, and a comparison the file can make is a comparison a
    future edit cannot get wrong. */
-const L_CLOSE_AT = 1.4;
+const L_CLOSE_AT = 0.2;
+/** The crossing (user law, twice corrected): the sentence is SEATED below the
+ *  rail's `day 9` clock first — visibly, while the pile settles — and then
+ *  makes the rail→stage journey under the reader's own scroll. Five units of
+ *  flight because the first draft's 1.3 was one wheel-notch: a move nobody
+ *  can see is an appearance, which is the exact thing the user rejected. */
+const L_TRAVEL_AT = 2.4;
+const L_TRAVEL_DUR = 5.0;
 const L_TEETH_AT = 0.6;
 /** The pile settles OLDEST FIRST — they were laid down over time and the
  *  landing shows them the way they accumulated — and its floor line lands with
@@ -3059,6 +3066,12 @@ export function createEditScene(): EditScene {
   doc.body.appendChild(travel);
   let travelDX = 0;
   let travelDY = 0;
+  /** Seated-by-measurement, and the only honest time to measure is while the
+   *  pin is actually holding the rail still on screen — a build-time rect is
+   *  the page at scroll 0, which is the bug the first draft shipped (the
+   *  traveler flew from wherever the rail had been before the pin landed).
+   *  syncArm() places it on approach; a resize unseats it for re-measure. */
+  let travelPlaced = false;
   const placeTravel = (): void => {
     const m = svg.getScreenCTM();
     if (!m) return;
@@ -3073,7 +3086,10 @@ export function createEditScene(): EditScene {
     travelDX = target.x - start.left;
     travelDY = target.y - start.top;
   };
-  window.addEventListener("resize", placeTravel);
+  const unseatTravel = (): void => {
+    travelPlaced = false;
+  };
+  window.addEventListener("resize", unseatTravel);
   const bridgeLines = Array.from(doc.querySelectorAll<HTMLElement>(".edt-bridge-line"));
 
   /* ── the markup and the constants have to agree ─────────────────────────
@@ -3868,7 +3884,16 @@ export function createEditScene(): EditScene {
       throw new Error("[edit] the landing is still building itself inside the held ending");
     }
     if (LANDING_AT + L_CLOSE_AT <= LANDING_AT || L_CLOSE_AT >= L_PRINT_AT) {
-      throw new Error("[edit] the closing statement does not arrive before the print it closes");
+      throw new Error("[edit] the closing statement is not seated in the rail before the print");
+    }
+    /* The crossing's own laws: a readable dwell below `day 9` before the
+       flight, and the landed sentence plus its rule finished before the
+       whisper asks the reader to tear anything. */
+    if (L_TRAVEL_AT < L_CLOSE_AT + 1.0) {
+      throw new Error("[edit] the sentence leaves the rail before the reader can find it there");
+    }
+    if (L_TRAVEL_AT + L_TRAVEL_DUR + 1.5 > L_HINT_AT) {
+      throw new Error("[edit] the closing statement is still crossing when the whisper begins");
     }
     /* ── the fall ─────────────────────────────────────────────────────────
        Damped, alternating, and a bow rather than a ripple. All three are
@@ -5167,6 +5192,17 @@ export function createEditScene(): EditScene {
   function syncArm(t: number): void {
     armToggle(t >= TOGGLE_FROM && t < TOGGLE_TO);
     armDoor(t >= HOLD_FROM);
+    /* The traveler's seat, measured on approach — inside the pin, before the
+       flight — and re-armed for re-measure once the reader has scrolled back
+       out of the landing. Pure function of t, like the two arms above. */
+    if (t >= LANDING_AT - 2 && t < LANDING_AT + L_TRAVEL_AT) {
+      if (!travelPlaced) {
+        placeTravel();
+        travelPlaced = true;
+      }
+    } else if (t < LANDING_AT - 2) {
+      travelPlaced = false;
+    }
   }
 
   function restState(): void {
@@ -5189,7 +5225,8 @@ export function createEditScene(): EditScene {
        own units through the CTM, so the hand-off has no visible seam. */
     gsap.set(closingG, { opacity: 0 });
     gsap.set([closingRule], { scaleX: 0, transformOrigin: "50% 50%" });
-    placeTravel();
+    gsap.set(travel, { x: 0, y: 0 });
+    travelPlaced = false;
 
     /* THE RECEIPT IS ROLLED BACK INSIDE THE MACHINE. Nothing printed on it
        needs hiding: the paper starts a full strip's height above the mouth,
@@ -6357,40 +6394,52 @@ export function createEditScene(): EditScene {
        rising under it, the torn CI ticket filed directly beneath as the
        verdict's evidence. No exit tween anywhere: this is where the scene
        lands, and it is still there when the reader stops. */
-    /* The sentence TRAVELS from the rail itself (user call): the fixed
-       traveler fades up at the caption rail's own spot, crosses into the
-       stage under the reader's scroll, and hands off to the svg version in
-       place — which fades in exactly as the traveler lands on it. Then the
-       rule draws under the settled lines. */
+    /* The sentence TRAVELS from the rail itself (user law, twice corrected):
+       it fades up BELOW the rail's `day 9` clock — the caption box the last
+       station just vacated — sits there while the pile settles, and then
+       crosses into the stage over five units of the reader's own scroll.
+       The flight is a progress proxy driven by the scrub and applied against
+       travelDX/DY on every frame, so the tween never captures a coordinate:
+       the seat is measured on approach (syncArm), and a re-measure moves the
+       very next frame. The svg version fades in as the traveler lands on it;
+       only then does the rule draw. */
     ft(
       travel,
-      { autoAlpha: 0, x: 0, y: 0 },
-      { autoAlpha: 1, duration: 0.3, ease: "power2.out" },
+      { autoAlpha: 0 },
+      { autoAlpha: 1, duration: 0.5, ease: "power2.out" },
       L + L_CLOSE_AT,
     );
+    const travelP = { p: 0 };
     ft(
-      travel,
-      { x: 0, y: 0 },
-      { x: () => travelDX, y: () => travelDY, duration: 1.3, ease: "power2.inOut" },
-      L + L_CLOSE_AT + 0.3,
+      travelP,
+      { p: 0 },
+      {
+        p: 1,
+        duration: L_TRAVEL_DUR,
+        ease: "power1.inOut",
+        onUpdate: () => {
+          gsap.set(travel, { x: travelDX * travelP.p, y: travelDY * travelP.p });
+        },
+      },
+      L + L_TRAVEL_AT,
     );
     ft(
       travel,
       { autoAlpha: 1 },
-      { autoAlpha: 0, duration: 0.25, ease: "power1.in" },
-      L + L_CLOSE_AT + 1.6,
+      { autoAlpha: 0, duration: 0.3, ease: "power1.in" },
+      L + L_TRAVEL_AT + L_TRAVEL_DUR - 0.1,
     );
     ft(
       closingG,
       { opacity: 0 },
-      { opacity: 1, duration: 0.25, ease: "power1.out" },
-      L + L_CLOSE_AT + 1.55,
+      { opacity: 1, duration: 0.3, ease: "power1.out" },
+      L + L_TRAVEL_AT + L_TRAVEL_DUR - 0.15,
     );
     ft(
       closingRule,
       { scaleX: 0 },
       { scaleX: 1, duration: 1.0, ease: "power2.out" },
-      L + L_CLOSE_AT + 1.9,
+      L + L_TRAVEL_AT + L_TRAVEL_DUR + 0.3,
     );
 
     /* The mouth: a serrated bar, drawn like every other machine on this
@@ -6623,6 +6672,8 @@ export function createEditScene(): EditScene {
   mm.add("(prefers-reduced-motion: reduce)", () => buildStill(true));
 
   function destroy(): void {
+    window.removeEventListener("resize", unseatTravel);
+    travel.remove();
     mm.revert();
   }
 
