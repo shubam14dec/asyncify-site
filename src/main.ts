@@ -214,7 +214,7 @@ let proof: ReturnType<typeof createProofScene> | null = null;
    SLICE_END, and a literal here would drift out of date silently — the exact
    failure this array exists to prevent (a thumb that shrinks a beat after
    load). It is the only entry that can move; the other four are settled. */
-const PIN_SHARES_VH = [400, 250, 300, EDIT_PIN_VH, 150];
+const PIN_SHARES_VH = [400, 230, 300, EDIT_PIN_VH, 150];
 const reservePins = window.matchMedia(
   "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
 ).matches;

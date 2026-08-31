@@ -79,7 +79,7 @@ import { gsap } from "gsap";
    rework costs the reader exactly the scroll it always did. That is the same
    discipline scene 2 keeps with C_ADD, and it is what makes a scene safe to
    lengthen — and safe to shorten again if the phone ever goes. */
-const PIN_HEIGHTS = 2.5; // user call (2026-08-31): the page-wide slow-down pass — 1.8 read too fast; 2.5 gives ~29u/screen, 0.0347vh/unit. No beat re-timed, the scene just gets more road (scene 2 took the same treatment, 2.5 -> 4).
+const PIN_HEIGHTS = 2.3; // user call (2026-08-31): the page-wide slow-down pass — 1.8 read too fast; rode 2.5, settled 2.3 (~31u/screen, 0.0319vh/unit). No beat re-timed, the scene just gets more road (scene 2 took the same treatment, 2.5 -> 4).
 const TL_END = 72;
 
 /** Scrub catch-up, in seconds. Matched to scene 2 on purpose — the two
