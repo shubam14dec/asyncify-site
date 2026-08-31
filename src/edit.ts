@@ -1328,7 +1328,7 @@ const PILE_FLOOR_X1 = RCPT_X - 16;
 const PILE_FLOOR_Y0 = 476;
 const PILE_FLOOR_Y1 = FRAME_H - 36;
 
-/** The three earlier editions, OLDEST FIRST — array order is stack order, so
+/** The four earlier editions, OLDEST FIRST — array order is stack order, so
  *  the last one lies on top. Each is one edit: the commit it was, the version
  *  it took the story from, the version it left it at, and the score the judge
  *  gave it.
@@ -1338,7 +1338,8 @@ const PILE_FLOOR_Y1 = FRAME_H - 36;
  *  the floor and the bay are talking about the same edition, so they are not
  *  allowed to disagree about how good it was. The three scores ascend for the
  *  same reason the versions do: each edition was judged better than the one it
- *  replaced, and v7's 4.7 is the next step of the same climb. */
+ *  replaced, and v7's 4.7 is the next step of the same climb (3.9 opens it —
+ *  below every later score, as the oldest paper must be). */
 const PILE: readonly {
   commit: string;
   from: number;
@@ -1348,6 +1349,11 @@ const PILE: readonly {
   y: number;
   rot: number;
 }[] = [
+  /* The fourth paper (user ask): the story's oldest surviving edition, so it
+     goes UNDER the stack — array order is stack order — showing paper and a
+     free corner on the right while its ident lies wholly under 8c04d1 (the
+     deepest-card burial assert moved onto this one when it took index 0). */
+  { commit: "9f27b3", from: 2, to: 3, judged: 3.9, x: 316, y: 492, rot: -6 },
   { commit: "8c04d1", from: 3, to: 4, judged: 4.1, x: 294, y: 490, rot: -5 },
   { commit: "b7e2a9", from: 4, to: 5, judged: 4.2, x: 284, y: 486, rot: 3 },
   /* +1°, not a counter-lean: at 220 wide, ANY negative degree lifts this
@@ -1557,8 +1563,11 @@ const L_TEETH_AT = 0.6;
  *  the last of them. All of it before the print, because the history has to be
  *  on the floor already when the new edition starts coming out; asserted
  *  against L_PRINT_AT rather than trusted. */
-const L_PILE_AT = 0.7;
-const L_PILE_STEP = 0.3;
+/* 0.6 and 0.25, from 0.7 and 0.3: the pile grew a fourth card and the whole
+   history still has to be on the floor before the print starts at 2.2 —
+   0.6 + 4×0.25 + 0.5 = 2.1, back under the bar the assert holds. */
+const L_PILE_AT = 0.6;
+const L_PILE_STEP = 0.25;
 const L_PILE_RUN = 0.5;
 const L_PRINT_AT = 2.2;
 /** The print's length. Eight units of scroll for the full anatomy — sixteen
