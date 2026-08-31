@@ -4188,8 +4188,10 @@ html {
   opacity: 0;
 }
 
-/* The ticket's rail twin, filed under the sentence at the landing. Rest is
-   HERE (the stylesheet owns the first paint); the hand-off beats reveal it. */
+/* The ticket's rail twin, living under the rail's words from the moment the
+   first ci run tears it (station 3) — under the ci caption then, under the
+   closing sentence at the landing, one spot the whole way. Rest is
+   HERE (the stylesheet owns the first paint); the arrival beat reveals it. */
 .edt-closing-tkt {
   display: block;
   width: 176px;

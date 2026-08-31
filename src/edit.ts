@@ -2857,11 +2857,14 @@ export function createEditScene(): EditScene {
   const railOriginTick = q<SVGPathElement>(svg, "#edt-rail-origin");
   const railOriginLbl = q<SVGTextElement>(svg, "#edt-rail-v0");
   const ticket = q<SVGGElement>(svg, "#edt-ticket");
-  /* THE TICKET'S RAIL TWIN (user call): at the landing the torn ticket is
-     FILED below the closing sentence — the evidence next to the verdict. The
-     twin is CLONED from the stage's own nodes (never re-typed strings, so the
-     two can't drift), in the frame window the still already names for it.
-     Its rest is stylesheet-owned (opacity 0 in .edt-closing-tkt). */
+  /* THE TICKET'S RAIL TWIN (user call, twice refined): the torn ticket lives
+     IN THE RAIL from the moment the first ci run produces it — below the ci
+     caption at station 3, and, because the closing statement takes the same
+     box, below the verdict at the landing without moving. The twin is CLONED
+     from the stage's own nodes (never re-typed strings, so the two can't
+     drift), in the frame window the still already names for it. Its rest is
+     stylesheet-owned (opacity 0 in .edt-closing-tkt); the stage copy never
+     appears at all. */
   const closingTkt = doc.createElementNS(SVG_NS, "svg") as unknown as SVGSVGElement;
   closingTkt.setAttribute("class", "edt-closing-tkt");
   closingTkt.setAttribute("viewBox", "14 500 210 92");
@@ -4038,9 +4041,10 @@ export function createEditScene(): EditScene {
     "#edt-limit", //      the knob's reading becomes the verdict
     "#edt-ghost", //      the other design is drawn, allowed to hurt, and removed
     "#edt-ghost-lbl",
-    "#edt-ticket", //     at the landing the ticket is FILED — it hands off to
-    //                    its twin under the closing sentence (user call), so
-    //                    the finished frame holds it there, not on the stage
+    "#edt-ticket", //     the ticket lives in the RAIL, not on the stage: its
+    //                    twin sits under the rail's words from station 3 on
+    //                    (user call), so the stage copy never appears — the
+    //                    still's ci card un-hides its own cropped copy
   ];
   const STILL_PLACED: readonly { sel: string; x: number; y: number }[] = [
     { sel: "#edt-chip", x: STILL_CHIP_AT, y: CHIP_LANE_Y },
@@ -5496,8 +5500,17 @@ export function createEditScene(): EditScene {
         for (const b of v.boxes) card.appendChild(figure(world, b));
         /* What the first ci run CAUGHT is frame furniture — it has to be, it
            stays for the rest of the scene — so it is a third window, cut from
-           the frame, on the card whose beat produced it. */
-        if (i === 2) card.appendChild(figure(frame, STILL_TKT_VIEW));
+           the frame, on the card whose beat produced it. The finished frame
+           hides #edt-ticket (the ticket lives in the rail, not on the stage),
+           so this one figure un-hides its own cropped copy: the card is ABOUT
+           the ticket, and a window on hidden paper would be an empty margin.
+           figure() renames ids with a -stillN suffix, so the group is found
+           through its body's class and the parent walk, not its id. */
+        if (i === 2) {
+          const caught = figure(frame, STILL_TKT_VIEW);
+          (q<SVGPathElement>(caught, ".edt-tkt-body").parentNode as SVGGElement).style.opacity = "1";
+          card.appendChild(caught);
+        }
       }
       frag.appendChild(card);
     }
@@ -5921,8 +5934,12 @@ export function createEditScene(): EditScene {
        STAYS there for the rest of the scene. It is the one piece of evidence
        this scene produces that a reader who stops scrolling should still be
        able to read. */
-    drawBox(tktBody, S3 + 9.0, 1.2);
-    ft(ticket, { opacity: 0 }, { opacity: 1, duration: 1.2 }, S3 + 9.0);
+    /* The ticket arrives IN THE RAIL, under the caption (user call, twice
+       refined): the evidence files itself below whatever the rail is saying
+       from the moment it exists — the ci caption now, the closing verdict at
+       the landing — and never stands on the stage at all. The stage copy
+       stays at rest (STILL_GONE agrees); the rail twin is the one object. */
+    ft(closingTkt, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 1.2 }, S3 + 9.0);
 
     /* Run two, on the fixed prompt. The cross un-draws before the tick is
        drawn — the mark is corrected, not overwritten. */
@@ -6329,16 +6346,9 @@ export function createEditScene(): EditScene {
       { opacity: 1, y: 0, duration: 1.1, ease: "power2.out" },
       L + L_CLOSE_AT + 0.35,
     );
-    /* THE HAND-OFF (user call): as the verdict lands, the evidence is filed
-       under it — the stage ticket fades while its rail twin rises below the
-       sentence. A scroll back up un-files it. */
-    ft(ticket, { opacity: 1 }, { opacity: 0, duration: 0.6, ease: "power1.inOut" }, L + L_CLOSE_AT + 0.5);
-    ft(
-      closingTkt,
-      { opacity: 0, y: 8 },
-      { opacity: 1, y: 0, duration: 0.7, ease: "power2.out" },
-      L + L_CLOSE_AT + 0.7,
-    );
+    /* No hand-off any more: the ticket has lived under the rail's words since
+       station 3, so when the closing sentence takes the rail, the evidence is
+       already filed beneath it. */
 
     /* The mouth: a serrated bar, drawn like every other machine on this
        stage. */
