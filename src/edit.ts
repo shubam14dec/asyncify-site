@@ -2851,8 +2851,8 @@ export function createEditScene(): EditScene {
          assert below still guarantees it starts past the sentence's last
          word rather than under it. */
       const c: readonly number[] = [
-        RCPT_X - 102, PILE_SUB_Y - 4,
-        RCPT_X - 70, PILE_SUB_Y - 15,
+        RCPT_X - 82, PILE_SUB_Y - 4,
+        RCPT_X - 56, PILE_SUB_Y - 15,
         RCPT_X - 32, PILE_SUB_Y - 13,
         RCPT_X - 6, PILE_SUB_Y - 8,
       ];
