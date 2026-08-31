@@ -4029,6 +4029,23 @@ html {
   stroke-width: 1;
 }
 
+/* The pile of old version receipts: paper ghosts, a step fainter than the
+   live receipt — they are history, not headline. */
+.edt-pile-card {
+  fill: var(--surface);
+  stroke: var(--hairline);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.edt-pile-lbl {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-faint);
+}
+
 .edt-rcpt-rule {
   fill: none;
   stroke: var(--hairline);

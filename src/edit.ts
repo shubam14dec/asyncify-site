@@ -1140,7 +1140,9 @@ const floodArrivedBy = (t: number): number =>
    (the taut lift on hover, and the vanish at the tear). Station 5's law, and
    scene 4's ticket's before it. */
 const MOUTH_Y = 300;
-const RCPT_X = 548;
+/** 620 (was 548): the printer stands a step right (user call) to clear floor
+ *  for the pile of old version receipts below-left of it. */
+const RCPT_X = 620;
 /** Widened from 224 (user call: the paper looked starved) — the scene's
  *  payoff should have a payoff's presence. Every dependent number below and
  *  in the markup (clip, body, rule, perf, punches, whisper anchor) moves
@@ -1190,6 +1192,22 @@ const RCPT_CODE_CAP_Y = 590;
 const TEETH_N = 32;
 const TEETH_W = RCPT_W / TEETH_N;
 const TEETH_H = 3.5;
+
+/* ── the pile: history made visible (user call) ────────────────────────────
+   The flat fan of OLD version receipts lying on the floor between the torn
+   CI ticket and the printer — every edit before this one got a receipt too,
+   and the one hanging from the mouth (v7) is simply the NEXT one. Append-only
+   history as furniture: nothing on a floor ever un-happens. Newest of the old
+   on top (array order = stack order), each a faint paper ghost with one mono
+   ident line, resting at the small angles paper actually rests at. */
+const PILE_W = 168;
+const PILE_H = 56;
+/** [ident, x, y, rotation°] — bottom of the stack first. */
+const PILE: readonly (readonly [string, number, number, number])[] = [
+  ["edit 8c04d1 · v4", 262, 506, -4],
+  ["edit b7e2a9 · v5", 312, 522, 3],
+  ["edit 4d91f7 · v6", 288, 540, -2],
+];
 
 /** What the receipt is OF. Two header lines, then the rail's eight stamps as
  *  seven lines — the canary's two stamps are one line, because opening a
@@ -1248,7 +1266,7 @@ const RCPT_TOTAL = `total · ${STATION_AT.length - 1} stations · 1 edit`;
    finds is a door nobody takes. Same behaviour, two rungs brighter and three
    sizes up, with a curve and a head scaled to match. */
 const TEAR_HERE = "Tear here";
-const TEAR_HERE_X = 905;
+const TEAR_HERE_X = 977;
 const TEAR_HERE_Y = 583;
 /** QUIET IN BEHAVIOUR IS NOT QUIET IN VOLUME. This is the only instruction on
  *  the whole stage and it is what stands between the reader and the door, so
@@ -1402,7 +1420,7 @@ const STILL_VIEW_MAX_W = 470;
    the camera group taken out — otherwise bay 0's prompt panel, which sits at
    the same numbers, would be painted underneath them. */
 const STILL_TKT_VIEW = "14 500 210 92";
-const STILL_RCPT_VIEW = "536 288 344 318";
+const STILL_RCPT_VIEW = "608 288 344 318";
 /** The scene's LAST FRAME, whole, and it is genuinely the last frame: at the
  *  landing the camera is parked on bay 8, which is empty by design, so the
  *  frame layer standing alone is exactly what the reader is left looking at.
@@ -2326,6 +2344,43 @@ export function createEditScene(): EditScene {
     });
     cap.textContent = RCPT_CODE_CAP;
     extraG.appendChild(cap);
+  }
+
+  /* ── the pile of old version receipts ──────────────────────────────────── */
+  const pileCards: SVGGElement[] = [];
+  {
+    const pileG = q<SVGGElement>(svg, "#edt-pile");
+    let prevVersion = 0;
+    for (const [ident, px, py, rot] of PILE) {
+      /* Every card sits on the floor between the ticket and the printer, and
+         its ident fits its own paper — asserted, since the pile is authored
+         numbers like everything else on this stage. */
+      if (px < TKT_X1 + 20 || px + PILE_W > RCPT_X - 16) {
+        throw new Error("[edit] a pile receipt lies under the ticket or the printer");
+      }
+      if (py < 480 || py + PILE_H > FRAME_H - 36) {
+        throw new Error("[edit] a pile receipt is off the floor");
+      }
+      if (monoWidth(ident, 10) > PILE_W - 28) {
+        throw new Error(`[edit] the pile is narrower than "${ident}"`);
+      }
+      const v = Number((ident.match(/v(\d+)$/) ?? [])[1] ?? NaN);
+      if (!(v > prevVersion) || v >= 7) {
+        throw new Error("[edit] the pile's versions are not older history in order");
+      }
+      prevVersion = v;
+      const g = svgEl("g", {
+        transform: `rotate(${rot} ${px + PILE_W / 2} ${py + PILE_H / 2})`,
+      }) as SVGGElement;
+      g.appendChild(
+        svgEl("rect", { class: "edt-pile-card", x: px, y: py, width: PILE_W, height: PILE_H }),
+      );
+      const t = svgEl("text", { class: "edt-pile-lbl", x: px + 14, y: py + PILE_H / 2 + 3.5 });
+      t.textContent = ident;
+      g.appendChild(t);
+      pileG.appendChild(g);
+      pileCards.push(g);
+    }
   }
 
   /* ── the torn ticket's outline ─────────────────────────────────────────── */
@@ -3925,6 +3980,7 @@ export function createEditScene(): EditScene {
   const fadeParts: SVGElement[] = [
     railOriginLbl,
     ...stamps.flatMap((s) => (s ? [s.label] : [])),
+    ...pileCards,
     fileLbl,
     ...nums,
     ...lines,
@@ -5784,6 +5840,13 @@ export function createEditScene(): EditScene {
     /* The mouth: a serrated bar, drawn like every other machine on this
        stage. */
     draw(teeth, L + L_TEETH_AT, 1.2);
+
+    /* The pile settles in oldest-first — they were laid down over time, and
+       the landing shows them the way they accumulated. Before the print: the
+       history is already on the floor when the new receipt starts. */
+    pileCards.forEach((g, i) => {
+      ft(g, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, L + 0.7 + i * 0.35);
+    });
 
     /* AND THE PRINT. One translate on one group, under an aperture that never
        moves, revealing eleven lines in the order the journey earned them at
