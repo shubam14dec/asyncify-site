@@ -4029,18 +4029,60 @@ html {
   stroke-width: 1;
 }
 
-/* The pile of old version receipts: paper ghosts, a step fainter than the
-   live receipt — they are history, not headline. */
+/* The pile of earlier editions: real receipts from this printer, torn off the
+   same blade, A STEP FAINTER EVERYWHERE than the one still in it — hairline
+   where the live paper has hairline-strong, text-faint where it has text-dim,
+   and no shop name at all. History, not headline (DESIGN §1); the wordmark at
+   full ink belongs to the edition the machine is still printing.
+
+   The card is ONE path — torn top edge and three cut sides — so its single
+   hairline draws the paper and the tear together. `round` joins because a
+   sawtooth apex mitred at 1px grows a spike. */
 .edt-pile-card {
   fill: var(--surface);
   stroke: var(--hairline);
   stroke-width: 1;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
 
-.edt-pile-lbl {
+/* MUST match PILE_IDENT_SIZE / PILE_LINE_SIZE / PILE_LABEL_SIZE in edit.ts —
+   every width assert over these strings is monoWidth() arithmetic off those
+   numbers, and this is what actually paints them. */
+.edt-pile-ident {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 9px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-faint);
+}
+
+.edt-pile-line {
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-faint);
+}
+
+/* The ladder bottoms out at --hairline: the live receipt's own rules already
+   sit there, so the pile's share the rung rather than inventing an eighth
+   gray (BRAND §2). The card's own stroke is what carries the contrast. */
+.edt-pile-rule {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The floor line under the pile: a caption, not an instruction. The receipts'
+   own register at the receipts' own rung, so it reads as part of the paper on
+   the floor rather than as a label stuck to it. */
+.edt-pile-floor {
+  font-family: var(--mono);
+  font-size: 9.5px;
   letter-spacing: 0.01em;
   font-variant-numeric: tabular-nums;
   fill: var(--text-faint);

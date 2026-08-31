@@ -1193,21 +1193,9 @@ const TEETH_N = 32;
 const TEETH_W = RCPT_W / TEETH_N;
 const TEETH_H = 3.5;
 
-/* ── the pile: history made visible (user call) ────────────────────────────
-   The flat fan of OLD version receipts lying on the floor between the torn
-   CI ticket and the printer — every edit before this one got a receipt too,
-   and the one hanging from the mouth (v7) is simply the NEXT one. Append-only
-   history as furniture: nothing on a floor ever un-happens. Newest of the old
-   on top (array order = stack order), each a faint paper ghost with one mono
-   ident line, resting at the small angles paper actually rests at. */
-const PILE_W = 168;
-const PILE_H = 56;
-/** [ident, x, y, rotation°] — bottom of the stack first. */
-const PILE: readonly (readonly [string, number, number, number])[] = [
-  ["edit 8c04d1 · v4", 262, 506, -4],
-  ["edit b7e2a9 · v5", 312, 522, 3],
-  ["edit 4d91f7 · v6", 288, 540, -2],
-];
+/* The pile of earlier editions lies below this block — it is built out of the
+   live receipt's own rows and its own leaderLine(), so it is declared after
+   them (see "the pile" below RCPT_TOTAL). */
 
 /** What the receipt is OF. Two header lines, then the rail's eight stamps as
  *  seven lines — the canary's two stamps are one line, because opening a
@@ -1242,17 +1230,218 @@ const RCPT_TICK_SLOT = 3;
 /** One leader line, filled so every value ends on the same right edge — mono
  *  makes this arithmetic: the column count is the paper's inner width over
  *  one advance, and the dots (each `· ` = two columns) fill what the label
- *  and value leave. Built, never typed, so the column cannot drift. */
-function leaderLine(label: string, value: string): string {
-  const cols = Math.floor((RCPT_W - 2 * RCPT_PAD) / (RCPT_SIZE * 0.61));
+ *  and value leave. Built, never typed, so the column cannot drift.
+ *
+ *  THE PAPER AND THE SIZE ARE PARAMETERS because this printer prints on two
+ *  paper widths: the strip hanging from the mouth, and every earlier edition
+ *  lying on the floor below it. The defaults are the live receipt's own
+ *  numbers, so its call sites are unchanged — one builder, one grammar, two
+ *  scales. (`0.61` is MONO_ADVANCE's value written out rather than
+ *  referenced: this function is CALLED at module init, and the const it would
+ *  reference is declared further down.) */
+function leaderLine(
+  label: string,
+  value: string,
+  inner: number = RCPT_W - 2 * RCPT_PAD,
+  size: number = RCPT_SIZE,
+): string {
+  const cols = Math.floor(inner / (size * 0.61));
   const used = label.length + 1 + (value ? value.length : RCPT_TICK_SLOT);
   const dots = Math.max(3, Math.floor((cols - used) / 2));
   return `${label} ${"· ".repeat(dots).trimEnd()}${value ? ` ${value}` : ""}`;
 }
+/** How much of a mono line's own size stands above its baseline, and how much
+ *  hangs below it. Used to turn a printed string into an INK BOX — the pile's
+ *  visibility asserts ask what a reader can actually read, and a box cut at
+ *  the baseline lies about every line with a `j`, a `g` or a `p` in it. */
+const INK_CAP = 0.72;
+const INK_DESC = 0.22;
 const RCPT_LINES: readonly string[] = RCPT_ROWS.map(([l, v]) => leaderLine(l, v));
 /** The bottom line. Seven stations, because station 1 is the EDIT itself —
  *  the thing that then travelled through seven more. */
 const RCPT_TOTAL = `total · ${STATION_AT.length - 1} stations · 1 edit`;
+
+/* ── the pile: the earlier editions, on the floor ──────────────────────────
+   The flat fan of OLD version receipts lying between the torn CI ticket and
+   the printer — every edit before this one got a receipt too, and the one
+   hanging from the mouth (v7) is simply the NEXT one. Append-only history as
+   furniture: nothing on a floor ever un-happens.
+
+   THEY ARE REAL RECEIPTS FROM THIS PRINTER (user call: three blank ghosts
+   with one ident line each were furniture, not history). Every card carries
+   the hanging receipt's anatomy at pile scale — a torn top edge cut by the
+   SAME blade, an ident in the same `edit <commit> · vA -> vB` register, a
+   rule, and its own station stamps as DOT LEADER lines built by the same
+   leaderLine() the live paper is built with. Nothing here is typed twice:
+   change the live receipt's grammar and the pile changes with it.
+
+   WHAT A CARD PRINTS IS WHAT ITS PAPER HOLDS — the stamps its own height has
+   room for; the rest of the strip is under the card in front of it. What the
+   READER can see is the STACK's job, and it is measured rather than eyeballed
+   (below): the deepest shows a corner and no print, the middle one hands over
+   its ident, and the newest of the old reads as a receipt — its ident plus
+   every stamp it prints.
+
+   A STEP FAINTER EVERYWHERE (DESIGN §1, BRAND §2's ladder): hairline where the
+   live paper has hairline-strong, text-faint where it has text-dim, and no
+   shop name at all. The wordmark at full ink belongs to the edition still in
+   the machine, which is the whole old/new contrast the floor line names. */
+const PILE_W = 170;
+const PILE_H = 72;
+const PILE_PAD = 11;
+/** THE SAME BLADE: 170 = 17 × TEETH_W exactly, so an earlier edition's torn
+ *  top edge has the mouth's tooth pitch and the mouth's tooth depth. One
+ *  machine, one separation — asserted, because a second tooth cycle would be
+ *  a second printer. */
+const PILE_TEETH_N = 17;
+/** The card's lettering. MUST match `.edt-pile-ident` / `.edt-pile-line` —
+ *  every width assert below is monoWidth() arithmetic off these two numbers
+ *  and the stylesheet is what actually paints them. */
+const PILE_IDENT_SIZE = 9;
+const PILE_LINE_SIZE = 8.5;
+/** The card's anatomy, in units below its own top edge. */
+const PILE_IDENT_DY = 13;
+const PILE_RULE_DY = 17;
+const PILE_LINE_DY0 = 29;
+const PILE_LINE_PITCH = 11;
+/** The clearance a printed line keeps from the bottom of its own paper. */
+const PILE_LINE_BOTTOM = 5;
+/** How many stamps a card's paper holds. DERIVED, never typed, so a card that
+ *  changed height cannot print off its own bottom edge. */
+const PILE_LINE_N = Math.min(
+  RCPT_ROWS.length,
+  Math.floor((PILE_H - PILE_LINE_BOTTOM - PILE_LINE_DY0) / PILE_LINE_PITCH) + 1,
+);
+/** The user's floor for the topmost old card: it has to read as a receipt and
+ *  not as a hint of one — its ident plus at least four of its seven stamps. */
+const PILE_MIN_LINES = 4;
+/** The floor the pile lies on, and both ends of it are other objects: the
+ *  torn ticket's right edge and the printer's left. The top is four units
+ *  above the old 480 because the blade's teeth stand ABOVE a torn-off strip's
+ *  own top edge — the bound is about where the paper lies, not about the
+ *  rectangle its numbers are derived from. */
+const PILE_FLOOR_X0 = TKT_X1 + 20;
+const PILE_FLOOR_X1 = RCPT_X - 16;
+const PILE_FLOOR_Y0 = 476;
+const PILE_FLOOR_Y1 = FRAME_H - 36;
+
+/** The three earlier editions, OLDEST FIRST — array order is stack order, so
+ *  the last one lies on top. Each is one edit: the commit it was, the version
+ *  it took the story from, the version it left it at, and the score the judge
+ *  gave it.
+ *
+ *  4.4 IS NOT A DECORATION. It is the very number the canary station's own
+ *  score bar prints for v6 (SCORE_A), and the two are asserted equal below —
+ *  the floor and the bay are talking about the same edition, so they are not
+ *  allowed to disagree about how good it was. The three scores ascend for the
+ *  same reason the versions do: each edition was judged better than the one it
+ *  replaced, and v7's 4.7 is the next step of the same climb. */
+const PILE: readonly {
+  commit: string;
+  from: number;
+  to: number;
+  judged: number;
+  x: number;
+  y: number;
+  rot: number;
+}[] = [
+  { commit: "8c04d1", from: 3, to: 4, judged: 4.1, x: 290, y: 490, rot: -5 },
+  { commit: "b7e2a9", from: 4, to: 5, judged: 4.2, x: 280, y: 486, rot: 3 },
+  { commit: "4d91f7", from: 5, to: 6, judged: 4.4, x: 252, y: 510, rot: -2 },
+];
+type PileEdit = (typeof PILE)[number];
+
+/** An earlier edition's ident, in the hanging receipt's own register. */
+const pileIdent = (c: PileEdit): string => `edit ${c.commit} · v${c.from} -> v${c.to}`;
+/** Its stamps — and they are the LIVE receipt's stamps with the two
+ *  version-specific values substituted. Same labels, same order, same count,
+ *  so an earlier edition cannot drift into a different journey than the one
+ *  this printer prints. */
+const pileRows = (c: PileEdit): readonly (readonly [string, string])[] =>
+  RCPT_ROWS.map(([l, v]) =>
+    l === "judged"
+      ? ([l, c.judged.toFixed(1)] as const)
+      : l === "saved"
+        ? ([l, `v${c.to}`] as const)
+        : ([l, v] as const),
+  );
+/** What its paper actually holds, as leader lines at pile scale. */
+const pileLines = (c: PileEdit): readonly string[] =>
+  pileRows(c)
+    .slice(0, PILE_LINE_N)
+    .map(([l, v]) => leaderLine(l, v, PILE_W - 2 * PILE_PAD, PILE_LINE_SIZE));
+
+/** THE FLOOR LINE, and it is the reason the pile is drawn at all. A reader
+ *  who sees three papers on a floor has to be told what they are and what the
+ *  one in the machine is, in the page's own voice — so: a caption, in the
+ *  register the receipts themselves are set in, at the receipts' own rung. Not
+ *  an eyebrow (DESIGN §7) and not a whisper: the serif annotation voice on
+ *  this page is spoken for by the switch and the door, and a third one would
+ *  make it a chorus. */
+const PILE_LABEL = "earlier versions · the new one is in the printer";
+const PILE_LABEL_SIZE = 9.5;
+const PILE_LABEL_X = 256;
+const PILE_LABEL_Y = 600;
+
+/** A box in a card's OWN coordinates (0,0 = the paper's top-left corner),
+ *  carried through that card's rotation about that card's centre — the exact
+ *  rotation the group carries, written out in one place so the arithmetic
+ *  that PLACES the paper is the arithmetic that asks what it covers. Corners
+ *  come back tl, tr, br, bl. */
+function pileBox(
+  c: PileEdit,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+): readonly (readonly [number, number])[] {
+  const cx = c.x + PILE_W / 2;
+  const cy = c.y + PILE_H / 2;
+  const t = (c.rot * Math.PI) / 180;
+  const s = Math.sin(t);
+  const k = Math.cos(t);
+  return (
+    [
+      [x0, y0],
+      [x1, y0],
+      [x1, y1],
+      [x0, y1],
+    ] as const
+  ).map(([px, py]) => {
+    const dx = c.x + px - cx;
+    const dy = c.y + py - cy;
+    return [cx + dx * k - dy * s, cy + dx * s + dy * k] as const;
+  });
+}
+/** The card itself. */
+const pileQuad = (c: PileEdit): readonly (readonly [number, number])[] =>
+  pileBox(c, 0, 0, PILE_W, PILE_H);
+/** A printed line's ink box: mono width, a cap above the baseline and a
+ *  descender below it. */
+const pileInk = (
+  c: PileEdit,
+  text: string,
+  size: number,
+  dy: number,
+): readonly (readonly [number, number])[] =>
+  pileBox(c, PILE_PAD, dy - size * INK_CAP, PILE_PAD + monoWidth(text, size), dy + size * INK_DESC);
+/** Is a point inside a convex quad? Sign-consistent cross products, so it
+ *  works on a rotated card without ever building an axis-aligned box — an
+ *  AABB would over-report coverage and quietly weaken the very asserts that
+ *  say what the reader can read. */
+function inQuad(quad: readonly (readonly [number, number])[], px: number, py: number): boolean {
+  let sign = 0;
+  for (let i = 0; i < 4; i++) {
+    const a = quad[i]!;
+    const b = quad[(i + 1) % 4]!;
+    const cr = (b[0] - a[0]) * (py - a[1]) - (b[1] - a[1]) * (px - a[0]);
+    if (cr === 0) continue;
+    const s = cr > 0 ? 1 : -1;
+    if (sign === 0) sign = s;
+    else if (s !== sign) return false;
+  }
+  return true;
+}
 
 /* ── the door ──────────────────────────────────────────────────────────────
    The whisper, in scene 4's `click here` grammar: one short curve dipping to
@@ -1339,6 +1528,14 @@ const TEAR_LIFT = 1.5;
    future edit cannot get wrong. */
 const L_CLOSE_AT = 1.4;
 const L_TEETH_AT = 0.6;
+/** The pile settles OLDEST FIRST — they were laid down over time and the
+ *  landing shows them the way they accumulated — and its floor line lands with
+ *  the last of them. All of it before the print, because the history has to be
+ *  on the floor already when the new edition starts coming out; asserted
+ *  against L_PRINT_AT rather than trusted. */
+const L_PILE_AT = 0.7;
+const L_PILE_STEP = 0.3;
+const L_PILE_RUN = 0.5;
 const L_PRINT_AT = 2.2;
 /** The print's length. Eight units of scroll for the full anatomy — sixteen
  *  printed things — is a printer the reader can read AS it prints rather
@@ -1584,16 +1781,35 @@ function ticketPath(): string {
   return parts.join(" ");
 }
 
-/** The serrated bar's saw tooth, and both halves of the separation it makes.
- *  `sign` +1 is the bar itself and the fringe it leaves in the machine; −1 is
- *  the complementary edge on the strip that comes away. One function, so the
- *  two halves of one tear cannot stop interlocking. */
-function teethPath(y: number, sign: number): string {
-  const parts = [`M ${RCPT_X} ${y}`];
-  for (let i = 0; i < TEETH_N; i++) {
+/** ONE RUN OF THE MACHINE'S BLADE: `n` teeth of TEETH_W each, TEETH_H deep,
+ *  starting at (x, y). `sign` +1 is the bar itself and the fringe it leaves in
+ *  the machine; −1 is the complementary edge on the strip that comes away.
+ *
+ *  It takes an origin and a count because this printer cuts on two paper
+ *  widths — the strip at the mouth, and every earlier edition lying on the
+ *  floor below it. A tooth cycle that existed in two places would be two
+ *  blades, and two blades do not make one separation. */
+function serration(x: number, y: number, n: number, sign: number): string {
+  const parts = [`M ${x} ${y}`];
+  for (let i = 0; i < n; i++) {
     parts.push(`l ${TEETH_W / 2} ${sign * TEETH_H}`, `l ${TEETH_W / 2} ${-sign * TEETH_H}`);
   }
   return parts.join(" ");
+}
+/** The mouth's own bar, and the strip's own torn edge. */
+function teethPath(y: number, sign: number): string {
+  return serration(RCPT_X, y, TEETH_N, sign);
+}
+
+/** An earlier edition's outline: the blade's torn edge across the top (sign
+ *  −1, the strip's half of the separation — the same edge the falling receipt
+ *  carries), then the three cut sides. ONE path, so the paper and its tear are
+ *  one object and the card's single hairline draws both. */
+function pileCardPath(c: PileEdit): string {
+  return (
+    `${serration(c.x, c.y, PILE_TEETH_N, -1)}` +
+    ` L ${c.x + PILE_W} ${c.y + PILE_H} L ${c.x} ${c.y + PILE_H} Z`
+  );
 }
 
 /** The bracket over the four lanes the flood never touched. Two subpaths in
@@ -2346,41 +2562,222 @@ export function createEditScene(): EditScene {
     extraG.appendChild(cap);
   }
 
-  /* ── the pile of old version receipts ──────────────────────────────────── */
+  /* ── the pile of earlier editions ──────────────────────────────────────── */
   const pileCards: SVGGElement[] = [];
+  const pileLabel = svgEl("text", {
+    class: "edt-pile-floor",
+    x: PILE_LABEL_X,
+    y: PILE_LABEL_Y,
+  });
   {
     const pileG = q<SVGGElement>(svg, "#edt-pile");
-    let prevVersion = 0;
-    for (const [ident, px, py, rot] of PILE) {
-      /* Every card sits on the floor between the ticket and the printer, and
-         its ident fits its own paper — asserted, since the pile is authored
-         numbers like everything else on this stage. */
-      if (px < TKT_X1 + 20 || px + PILE_W > RCPT_X - 16) {
-        throw new Error("[edit] a pile receipt lies under the ticket or the printer");
+    const inner = PILE_W - 2 * PILE_PAD;
+
+    /* ── THE PAPER, and the blade that cut it ───────────────────────────── */
+    if (PILE_TEETH_N * TEETH_W !== PILE_W) {
+      throw new Error("[edit] an earlier edition was torn off a different blade than the one at the mouth");
+    }
+    if (PILE.length < 3) {
+      throw new Error("[edit] the pile is not a stack");
+    }
+    /* The anatomy stacks down the paper and stops before the bottom edge, and
+       the number of lines that fit is DERIVED — so a card can never print off
+       its own paper, and can never print fewer stamps than the user's floor. */
+    if (
+      PILE_IDENT_DY <= TEETH_H + PILE_IDENT_SIZE ||
+      PILE_RULE_DY <= PILE_IDENT_DY ||
+      PILE_LINE_DY0 <= PILE_RULE_DY + PILE_LINE_SIZE
+    ) {
+      throw new Error("[edit] an earlier edition's anatomy overlaps itself or its own torn edge");
+    }
+    if (PILE_LINE_N < PILE_MIN_LINES) {
+      throw new Error(`[edit] an earlier edition's paper holds ${PILE_LINE_N} stamps, and the pile is meant to print at least ${PILE_MIN_LINES}`);
+    }
+    if (
+      PILE_LINE_DY0 + (PILE_LINE_N - 1) * PILE_LINE_PITCH + PILE_LINE_SIZE * INK_DESC >
+      PILE_H - PILE_LINE_BOTTOM
+    ) {
+      throw new Error("[edit] an earlier edition prints past the bottom of its own paper");
+    }
+
+    /* ── THE CHAIN, from v3 to the paper still in the machine ────────────
+       Each edition moves the story by exactly one version, each one picks up
+       where the one under it left off, and the newest of the old is the very
+       version the hanging receipt takes over from. Parsed out of RCPT_HEAD
+       rather than typed again, so the floor and the mouth cannot disagree
+       about where the story was when this edit started. */
+    const handoff = RCPT_HEAD[1]!.match(/v(\d+) -> v(\d+)$/);
+    if (!handoff) {
+      throw new Error("[edit] the hanging receipt's ident is not a version hand-off");
+    }
+    PILE.forEach((c, i) => {
+      if (c.to !== c.from + 1) {
+        throw new Error(`[edit] "${pileIdent(c)}" does not move the story by one version`);
       }
-      if (py < 480 || py + PILE_H > FRAME_H - 36) {
-        throw new Error("[edit] a pile receipt is off the floor");
+      if (i > 0 && c.from !== PILE[i - 1]!.to) {
+        throw new Error(`[edit] "${pileIdent(c)}" does not pick up where the edition under it left off`);
       }
-      if (monoWidth(ident, 10) > PILE_W - 28) {
-        throw new Error(`[edit] the pile is narrower than "${ident}"`);
+      if (i > 0 && !(c.judged > PILE[i - 1]!.judged)) {
+        throw new Error(`[edit] "${pileIdent(c)}" was not judged better than the edition it replaced`);
       }
-      const v = Number((ident.match(/v(\d+)$/) ?? [])[1] ?? NaN);
-      if (!(v > prevVersion) || v >= 7) {
-        throw new Error("[edit] the pile's versions are not older history in order");
+    });
+    const newest = PILE[PILE.length - 1]!;
+    if (Number(handoff[1]) !== newest.to) {
+      throw new Error("[edit] the newest edition on the floor is not the one the hanging receipt takes over from");
+    }
+    /* THE 4.4 CROSS-CHECK. The score the floor prints for the last edition and
+       the score the canary station's own bar prints for it are ONE number, and
+       the read is out of the array so the comparison is a real one at boot
+       rather than something the bundler folds away. */
+    if (newest.judged !== SCORE_A) {
+      throw new Error("[edit] the pile's newest receipt scores v6 differently than the canary's own bar does");
+    }
+    if (BAR_A_LBL !== `v${newest.to} ${SCORE_A}`) {
+      throw new Error("[edit] the canary's bar does not name the version the pile's newest receipt is of");
+    }
+    if (!(newest.judged < SCORE_B)) {
+      throw new Error("[edit] the new edition did not out-score the one it replaced");
+    }
+
+    /* ── WHAT EACH CARD PRINTS ──────────────────────────────────────────── */
+    for (const c of PILE) {
+      const rows = pileRows(c);
+      if (rows.length !== RCPT_ROWS.length || rows.some(([l], k) => l !== RCPT_ROWS[k]![0])) {
+        throw new Error(`[edit] "${pileIdent(c)}" prints a different journey than this printer prints`);
       }
-      prevVersion = v;
+      /* The live paper draws a tick where a stamp has no value to print. At
+         pile scale that mark is smaller than a reader can resolve, so a card
+         stops at the stamps that carry one — checked rather than assumed, and
+         it trips the moment a taller card starts printing `routed`. */
+      if (rows.slice(0, PILE_LINE_N).some(([, v]) => v === "")) {
+        throw new Error("[edit] an earlier edition would need a drawn tick, which is unreadable at pile scale");
+      }
+      if (monoWidth(pileIdent(c), PILE_IDENT_SIZE) > inner) {
+        throw new Error(`[edit] the pile is narrower than "${pileIdent(c)}"`);
+      }
+      for (const l of pileLines(c)) {
+        if (monoWidth(l, PILE_LINE_SIZE) > inner) {
+          throw new Error(`[edit] the pile is narrower than "${l}"`);
+        }
+      }
+      if (!pileLines(c).some((l) => l.endsWith(` v${c.to}`))) {
+        throw new Error(`[edit] "${pileIdent(c)}" does not say which version it saved`);
+      }
+      /* Where it lies, rotation and torn teeth included: between the ticket
+         and the printer, and on the floor rather than through it. */
+      const quad = pileQuad(c);
+      const xs = quad.map((p) => p[0]);
+      const ys = quad.map((p) => p[1]);
+      if (Math.min(...xs) < PILE_FLOOR_X0 || Math.max(...xs) > PILE_FLOOR_X1) {
+        throw new Error("[edit] an earlier edition lies under the ticket or the printer");
+      }
+      if (Math.min(...ys) - TEETH_H < PILE_FLOOR_Y0 || Math.max(...ys) > PILE_FLOOR_Y1) {
+        throw new Error("[edit] an earlier edition is off the floor");
+      }
+    }
+
+    /* ── WHAT THE STACK LETS THE READER READ ─────────────────────────────
+       The pile's whole claim, and the only part of it a comment cannot keep
+       true. Every ink box is asked against the cards lying ON TOP of it —
+       later in the array is later in the paint order — so the three statements
+       below are measurements rather than intentions:
+
+         · the deepest shows paper and no print (its ident is buried),
+         · the middle one hands over its ident,
+         · the newest of the old reads as a receipt: its ident plus at least
+           PILE_MIN_LINES of its stamps, none of them under anything. */
+    const clearOfStack = (i: number, ink: readonly (readonly [number, number])[]): boolean =>
+      PILE.every((o, j) => j <= i || ink.every((p) => !inQuad(pileQuad(o), p[0], p[1])));
+    const buriedByStack = (i: number, ink: readonly (readonly [number, number])[]): boolean =>
+      PILE.some((o, j) => j > i && ink.every((p) => inQuad(pileQuad(o), p[0], p[1])));
+    const identInk = (c: PileEdit): readonly (readonly [number, number])[] =>
+      pileInk(c, pileIdent(c), PILE_IDENT_SIZE, PILE_IDENT_DY);
+    const top = PILE.length - 1;
+    const middle = PILE.length - 2;
+    /* And every card is IN the picture: a stack whose deepest sheet is wholly
+       under the ones on top of it is a stack of one, however many are in the
+       array. One free corner each is the whole of "a corner peeking". */
+    PILE.forEach((c, i) => {
+      if (!pileQuad(c).some((p) => clearOfStack(i, [p]))) {
+        throw new Error(`[edit] "${pileIdent(c)}" is completely buried — the pile is shorter than it says it is`);
+      }
+    });
+    if (!buriedByStack(0, identInk(PILE[0]!))) {
+      throw new Error("[edit] the deepest edition in the pile shows print it is meant to keep under the next one");
+    }
+    if (!clearOfStack(middle, identInk(PILE[middle]!))) {
+      throw new Error("[edit] the middle edition in the pile cannot be identified — its ident is under the card on top");
+    }
+    if (!clearOfStack(top, identInk(PILE[top]!))) {
+      throw new Error("[edit] the newest edition on the floor cannot be identified");
+    }
+    {
+      const c = PILE[top]!;
+      const readable = pileLines(c).filter((l, k) =>
+        clearOfStack(top, pileInk(c, l, PILE_LINE_SIZE, PILE_LINE_DY0 + k * PILE_LINE_PITCH)),
+      ).length;
+      if (readable < PILE_MIN_LINES) {
+        throw new Error(`[edit] the newest edition on the floor shows ${readable} of its stamps, and the pile is meant to show at least ${PILE_MIN_LINES}`);
+      }
+    }
+
+    /* ── THE FLOOR LINE ─────────────────────────────────────────────────── */
+    if (
+      PILE_LABEL_X < PILE_FLOOR_X0 ||
+      PILE_LABEL_X + monoWidth(PILE_LABEL, PILE_LABEL_SIZE) > PILE_FLOOR_X1
+    ) {
+      throw new Error("[edit] the pile's floor line runs into the ticket or the printer");
+    }
+    {
+      const lowest = Math.max(...PILE.flatMap((c) => pileQuad(c).map((p) => p[1])));
+      if (PILE_LABEL_Y - PILE_LABEL_SIZE * INK_CAP <= lowest + 4) {
+        throw new Error("[edit] the pile's floor line is printed on the paper it is about");
+      }
+      if (PILE_LABEL_Y + PILE_LABEL_SIZE * INK_DESC > FRAME_H - 30) {
+        throw new Error("[edit] the pile's floor line runs off the frame");
+      }
+    }
+    /* The history is on the floor before the new edition starts coming out. */
+    if (L_PILE_AT + PILE.length * L_PILE_STEP + L_PILE_RUN > L_PRINT_AT) {
+      throw new Error("[edit] the pile is still settling when the new receipt starts printing");
+    }
+
+    /* ── AND THE PAPER ITSELF ───────────────────────────────────────────── */
+    for (const c of PILE) {
+      /* Explicit origin (DESIGN §3): the card turns about its own centre, and
+         the number is written into the transform rather than left to a
+         default. The scrub only ever tweens this group's y and opacity. */
       const g = svgEl("g", {
-        transform: `rotate(${rot} ${px + PILE_W / 2} ${py + PILE_H / 2})`,
+        transform: `rotate(${c.rot} ${c.x + PILE_W / 2} ${c.y + PILE_H / 2})`,
       }) as SVGGElement;
+      g.appendChild(svgEl("path", { class: "edt-pile-card", d: pileCardPath(c) }));
+      const id = svgEl("text", {
+        class: "edt-pile-ident",
+        x: c.x + PILE_PAD,
+        y: c.y + PILE_IDENT_DY,
+      });
+      id.textContent = pileIdent(c);
+      g.appendChild(id);
       g.appendChild(
-        svgEl("rect", { class: "edt-pile-card", x: px, y: py, width: PILE_W, height: PILE_H }),
+        svgEl("path", {
+          class: "edt-pile-rule",
+          d: `M ${c.x + PILE_PAD} ${c.y + PILE_RULE_DY} L ${c.x + PILE_W - PILE_PAD} ${c.y + PILE_RULE_DY}`,
+        }),
       );
-      const t = svgEl("text", { class: "edt-pile-lbl", x: px + 14, y: py + PILE_H / 2 + 3.5 });
-      t.textContent = ident;
-      g.appendChild(t);
+      pileLines(c).forEach((text, k) => {
+        const t = svgEl("text", {
+          class: "edt-pile-line",
+          x: c.x + PILE_PAD,
+          y: c.y + PILE_LINE_DY0 + k * PILE_LINE_PITCH,
+        });
+        t.textContent = text;
+        g.appendChild(t);
+      });
       pileG.appendChild(g);
       pileCards.push(g);
     }
+    pileLabel.textContent = PILE_LABEL;
+    pileG.appendChild(pileLabel);
   }
 
   /* ── the torn ticket's outline ─────────────────────────────────────────── */
@@ -3412,6 +3809,9 @@ export function createEditScene(): EditScene {
       ...RCPT_HEAD,
       ...RCPT_LINES,
       RCPT_TOTAL,
+      ...PILE.map(pileIdent),
+      ...PILE.flatMap((c) => pileLines(c)),
+      PILE_LABEL,
       TEAR_HERE,
       VALVE_LIMIT,
       VALVE_HELD,
@@ -3981,6 +4381,7 @@ export function createEditScene(): EditScene {
     railOriginLbl,
     ...stamps.flatMap((s) => (s ? [s.label] : [])),
     ...pileCards,
+    pileLabel,
     fileLbl,
     ...nums,
     ...lines,
@@ -5842,11 +6243,23 @@ export function createEditScene(): EditScene {
     draw(teeth, L + L_TEETH_AT, 1.2);
 
     /* The pile settles in oldest-first — they were laid down over time, and
-       the landing shows them the way they accumulated. Before the print: the
-       history is already on the floor when the new receipt starts. */
+       the landing shows them the way they accumulated — and the floor line
+       that names them lands with the last of them. All of it before the print:
+       the history is already on the floor when the new edition starts. */
     pileCards.forEach((g, i) => {
-      ft(g, { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, L + 0.7 + i * 0.35);
+      ft(
+        g,
+        { opacity: 0, y: 6 },
+        { opacity: 1, y: 0, duration: L_PILE_RUN, ease: "power2.out" },
+        L + L_PILE_AT + i * L_PILE_STEP,
+      );
     });
+    ft(
+      pileLabel,
+      { opacity: 0, y: 6 },
+      { opacity: 1, y: 0, duration: L_PILE_RUN, ease: "power2.out" },
+      L + L_PILE_AT + PILE.length * L_PILE_STEP,
+    );
 
     /* AND THE PRINT. One translate on one group, under an aperture that never
        moves, revealing eleven lines in the order the journey earned them at
