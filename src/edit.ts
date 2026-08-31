@@ -377,14 +377,13 @@ const TKT_SIZE = 11;
 const TKT_HEAD = "caught · refund-path";
 const TKT_SUB = "silently broken 31 days";
 
-/** The closing statement's three lines, in-stage now (user call, scene 4's
+/** The closing statement's lines — two now (user call), in-stage (scene 4's
  *  grammar) with the CI ticket filed directly beneath. A const, because an
  *  svg group's textContent concatenates its lines WITHOUT spaces — the still
  *  joins this instead of reading the DOM. */
 const CLOSING_LINES: readonly string[] = [
   "One edit. Seven stations.",
-  "Nothing unearned",
-  "reaches a customer.",
+  "Nothing unearned reaches a customer.",
 ];
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1357,9 +1356,12 @@ const PILE: readonly {
   y: number;
   rot: number;
 }[] = [
-  { commit: "8c04d1", from: 3, to: 4, judged: 4.1, x: 290, y: 490, rot: -5 },
-  { commit: "b7e2a9", from: 4, to: 5, judged: 4.2, x: 280, y: 486, rot: 3 },
-  { commit: "4d91f7", from: 5, to: 6, judged: 4.4, x: 252, y: 510, rot: -2 },
+  /* x shifted +60 when the closing went to two lines: its second line runs
+     ~310u from x 10, and a card corner under full-ink sentence is a collision
+     the coverage asserts below cannot see (they only test card-on-card). */
+  { commit: "8c04d1", from: 3, to: 4, judged: 4.1, x: 350, y: 490, rot: -5 },
+  { commit: "b7e2a9", from: 4, to: 5, judged: 4.2, x: 340, y: 486, rot: 3 },
+  { commit: "4d91f7", from: 5, to: 6, judged: 4.4, x: 312, y: 510, rot: -2 },
 ];
 type PileEdit = (typeof PILE)[number];
 
