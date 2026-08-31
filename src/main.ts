@@ -92,7 +92,7 @@ const scene = createBellScene({
     /* The REMAINING scenes (3-6) wait out the hero's whole opening:
        typing ~0.75s, the Install-now doodle to ~2.4s, the SDKs flick to
        ~3.1s, the unprompted demo ring closing at ~4.5s. They are only
-       reachable through scene 2's 3.2-screen pin, so the clocked chain —
+       reachable through scene 2's 4-screen pin, so the clocked chain —
        plus the scroll flush below — always beats the viewport there. */
     window.setTimeout(buildNextSceneWhenIdle, 4600);
   },
@@ -214,7 +214,7 @@ let proof: ReturnType<typeof createProofScene> | null = null;
    SLICE_END, and a literal here would drift out of date silently — the exact
    failure this array exists to prevent (a thumb that shrinks a beat after
    load). It is the only entry that can move; the other four are settled. */
-const PIN_SHARES_VH = [320, 180, 300, EDIT_PIN_VH, 150];
+const PIN_SHARES_VH = [400, 180, 300, EDIT_PIN_VH, 150];
 const reservePins = window.matchMedia(
   "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
 ).matches;
