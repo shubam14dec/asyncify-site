@@ -1286,31 +1286,27 @@ const RCPT_TOTAL = `total · ${STATION_AT.length - 1} stations · 1 edit`;
    live paper has hairline-strong, text-faint where it has text-dim, and no
    shop name at all. The wordmark at full ink belongs to the edition still in
    the machine, which is the whole old/new contrast the floor line names. */
-const PILE_W = 200;
-const PILE_H = 84;
-const PILE_PAD = 13;
-/** THE SAME BLADE: 200 = 20 × TEETH_W exactly, so an earlier edition's torn
+const PILE_W = 220;
+const PILE_H = 88;
+const PILE_PAD = 14;
+/** THE SAME BLADE: 220 = 22 × TEETH_W exactly, so an earlier edition's torn
  *  top edge has the mouth's tooth pitch and the mouth's tooth depth. One
  *  machine, one separation — asserted, because a second tooth cycle would be
  *  a second printer. */
-const PILE_TEETH_N = 20;
+const PILE_TEETH_N = 22;
 /** The card's lettering. MUST match `.edt-pile-ident` / `.edt-pile-line` —
  *  every width assert below is monoWidth() arithmetic off these two numbers
  *  and the stylesheet is what actually paints them. */
-const PILE_IDENT_SIZE = 11;
-/* 10, not the ident's 11: the canary stamp is 28 characters, and at the
-   card's inner width (200 − 2×13) the width assert allows 10.19 — the
+const PILE_IDENT_SIZE = 12;
+/* 11, not the ident's 12: the canary stamp is 28 characters, and at the
+   card's inner width (220 − 2×14) the width assert allows 11.24 — the
    longest line is what sizes the type, not the average one. */
-const PILE_LINE_SIZE = 10;
+const PILE_LINE_SIZE = 11;
 /** The card's anatomy, in units below its own top edge. */
-/* 15, not the proportional 16: the middle card leans +3°, which dips its
-   ident's right corner, and the card on top has to leave that corner
-   readable (the clearOfStack assert) — the ident rides a unit higher so
-   the two clear each other with margin. */
-const PILE_IDENT_DY = 15;
-const PILE_RULE_DY = 21;
-const PILE_LINE_DY0 = 35;
-const PILE_LINE_PITCH = 13;
+const PILE_IDENT_DY = 16;
+const PILE_RULE_DY = 23;
+const PILE_LINE_DY0 = 38;
+const PILE_LINE_PITCH = 14;
 /** The clearance a printed line keeps from the bottom of its own paper. */
 const PILE_LINE_BOTTOM = 5;
 /** How many stamps a card's paper holds. DERIVED, never typed, so a card that
@@ -1352,12 +1348,13 @@ const PILE: readonly {
   y: number;
   rot: number;
 }[] = [
-  { commit: "8c04d1", from: 3, to: 4, judged: 4.1, x: 290, y: 490, rot: -5 },
-  { commit: "b7e2a9", from: 4, to: 5, judged: 4.2, x: 280, y: 486, rot: 3 },
-  /* −1°, not the old −2°: at 200 wide, −2° raised this card's right edge
-     over the middle card's ident (the wider the paper, the higher a degree
-     lifts its far corner) — the fan eases instead of the ident hiding. */
-  { commit: "4d91f7", from: 5, to: 6, judged: 4.4, x: 252, y: 510, rot: -1 },
+  { commit: "8c04d1", from: 3, to: 4, judged: 4.1, x: 302, y: 490, rot: -5 },
+  { commit: "b7e2a9", from: 4, to: 5, judged: 4.2, x: 292, y: 486, rot: 3 },
+  /* +1°, not a counter-lean: at 220 wide, ANY negative degree lifts this
+     card's right edge over the middle card's ident (the clearOfStack
+     assert) — leaning WITH the middle card lays that edge low instead.
+     And y 508: at 88 tall, 510 would put the low corner past the floor. */
+  { commit: "4d91f7", from: 5, to: 6, judged: 4.4, x: 264, y: 508, rot: 1 },
 ];
 type PileEdit = (typeof PILE)[number];
 
@@ -1393,16 +1390,16 @@ const pileLines = (c: PileEdit): readonly string[] =>
  *  pointer that runs to the printer's side. Above the pile — a caption reads
  *  before its subject. */
 const PILE_TITLE = "Version history";
-const PILE_TITLE_SIZE = 19;
-const PILE_TITLE_Y = 446;
+const PILE_TITLE_SIZE = 21;
+const PILE_TITLE_Y = 444;
 const PILE_SUB = "and the new one ready to use is here";
 const PILE_SUB_SIZE = 13;
 const PILE_SUB_Y = 467;
-/* At the floor's own left edge (PILE_FLOOR_X0): the sub-line at 13 has to
-   clear the printer's left edge (the caption-width assert), and starting
-   the column as far left as the floor allows also hands the pointer its
-   longest possible run into the printer's flank. */
-const PILE_LABEL_X = 232;
+/* 244 (user call: the whole pile a step right): the sub-line at 13 ends at
+   529.5, which clears the printer's left bound (the caption-width assert)
+   by 2.5 — the sub-line's length is what stops the column going further
+   right, not taste. */
+const PILE_LABEL_X = 244;
 
 /** A box in a card's OWN coordinates (0,0 = the paper's top-left corner),
  *  carried through that card's rotation about that card's centre — the exact
