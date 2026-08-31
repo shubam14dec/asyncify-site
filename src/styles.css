@@ -4190,8 +4190,14 @@ html {
 
 /* The ticket's rail twin, living under the rail's words from the moment the
    first ci run tears it (station 3) — under the ci caption then, under the
-   closing sentence at the landing, one spot the whole way. Rest is
-   HERE (the stylesheet owns the first paint); the arrival beat reveals it. */
+   closing sentence at the landing, one spot the whole way. It is a FLOW
+   child of the rail between the caption box and the progress line, not a
+   child of the caption box: the captions own that box to their full
+   min-height, and a ticket parked inside it sat under the long captions'
+   last lines (his catch). The slot is reserved whether or not the paper is
+   lit — opacity is the only thing that ever changes, so the rail never
+   reflows. Rest is HERE (the stylesheet owns the first paint); the arrival
+   beat reveals it. */
 .edt-closing-tkt {
   display: block;
   width: 176px;

@@ -2857,10 +2857,14 @@ export function createEditScene(): EditScene {
   const railOriginTick = q<SVGPathElement>(svg, "#edt-rail-origin");
   const railOriginLbl = q<SVGTextElement>(svg, "#edt-rail-v0");
   const ticket = q<SVGGElement>(svg, "#edt-ticket");
-  /* THE TICKET'S RAIL TWIN (user call, twice refined): the torn ticket lives
-     IN THE RAIL from the moment the first ci run produces it — below the ci
-     caption at station 3, and, because the closing statement takes the same
-     box, below the verdict at the landing without moving. The twin is CLONED
+  /* THE TICKET'S RAIL TWIN (user call, thrice refined): the torn ticket lives
+     IN THE RAIL from the moment the first ci run produces it, and it lives in
+     its OWN SLOT — a flow child between the caption box and the progress
+     line, never inside the caption box, because the captions and the closing
+     statement own that box and the long captions ran into a ticket parked
+     there (his catch). One spot the whole way: below the ci caption at
+     station 3, below the verdict at the landing, nothing reflows because the
+     slot is reserved whether or not the paper is lit. The twin is CLONED
      from the stage's own nodes (never re-typed strings, so the two can't
      drift), in the frame window the still already names for it. Its rest is
      stylesheet-owned (opacity 0 in .edt-closing-tkt); the stage copy never
@@ -2874,7 +2878,10 @@ export function createEditScene(): EditScene {
     c.removeAttribute("id");
     closingTkt.appendChild(c);
   }
-  q<HTMLElement>(doc, "#edt-closing").appendChild(closingTkt);
+  {
+    const progress = q<HTMLElement>(doc, "#edt-pin .eng-progress");
+    (progress.parentNode as HTMLElement).insertBefore(closingTkt, progress);
+  }
 
   const panel = q<SVGRectElement>(svg, "#edt-panel");
   const panelRule = q<SVGPathElement>(svg, "#edt-panel-rule");
