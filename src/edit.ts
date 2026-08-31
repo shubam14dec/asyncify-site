@@ -1378,14 +1378,17 @@ const pileLines = (c: PileEdit): readonly string[] =>
  *  an eyebrow (DESIGN §7) and not a whisper: the serif annotation voice on
  *  this page is spoken for by the switch and the door, and a third one would
  *  make it a chorus. */
-/** User-tuned: "version history" names the pile in the product's own word;
- *  "and the new one is here" hands the sentence to a drawn pointer that ends
- *  at the printer's mouth. ABOVE the pile now (a caption reads before its
- *  subject), a step bigger and brighter than the papers it captions. */
-const PILE_LABEL = "version history · and the new one is here";
-const PILE_LABEL_SIZE = 12;
+/** User-tuned, two lines: the TITLE names the pile and carries the ink
+ *  (bigger, full bright); the sub-line below hands its sentence to the drawn
+ *  pointer that runs to the printer's side. Above the pile — a caption reads
+ *  before its subject. */
+const PILE_TITLE = "Version history";
+const PILE_TITLE_SIZE = 15;
+const PILE_TITLE_Y = 448;
+const PILE_SUB = "and the new one ready to use is here";
+const PILE_SUB_SIZE = 12;
+const PILE_SUB_Y = 467;
 const PILE_LABEL_X = 256;
-const PILE_LABEL_Y = 466;
 
 /** A box in a card's OWN coordinates (0,0 = the paper's top-left corner),
  *  carried through that card's rotation about that card's centre — the exact
@@ -2568,10 +2571,15 @@ export function createEditScene(): EditScene {
 
   /* ── the pile of earlier editions ──────────────────────────────────────── */
   const pileCards: SVGGElement[] = [];
-  const pileLabel = svgEl("text", {
+  const pileTitle = svgEl("text", {
+    class: "edt-pile-title",
+    x: PILE_LABEL_X,
+    y: PILE_TITLE_Y,
+  });
+  const pileSub = svgEl("text", {
     class: "edt-pile-floor",
     x: PILE_LABEL_X,
-    y: PILE_LABEL_Y,
+    y: PILE_SUB_Y,
   });
   /* The caption's pointer: "…and the new one is here" hands the sentence to
      a drawn line that rises to the printer's mouth. Same ink family as the
@@ -2735,16 +2743,24 @@ export function createEditScene(): EditScene {
        subject, per the user's call). Its ink must clear the tallest card's
        torn teeth below it, and it still may not run into the ticket or the
        printer. */
-    if (
-      PILE_LABEL_X < PILE_FLOOR_X0 ||
-      PILE_LABEL_X + monoWidth(PILE_LABEL, PILE_LABEL_SIZE) > PILE_FLOOR_X1
-    ) {
-      throw new Error("[edit] the pile's caption runs into the ticket or the printer");
+    for (const [line, size] of [
+      [PILE_TITLE, PILE_TITLE_SIZE],
+      [PILE_SUB, PILE_SUB_SIZE],
+    ] as const) {
+      if (
+        PILE_LABEL_X < PILE_FLOOR_X0 ||
+        PILE_LABEL_X + monoWidth(line, size) > PILE_FLOOR_X1
+      ) {
+        throw new Error("[edit] the pile's caption runs into the ticket or the printer");
+      }
+    }
+    if (PILE_SUB_Y - PILE_SUB_SIZE * INK_CAP <= PILE_TITLE_Y + 2) {
+      throw new Error("[edit] the pile's two caption lines are printed over each other");
     }
     {
       const highest =
         Math.min(...PILE.flatMap((c) => pileQuad(c).map((p) => p[1]))) - TEETH_H;
-      if (PILE_LABEL_Y + PILE_LABEL_SIZE * INK_DESC >= highest - 4) {
+      if (PILE_SUB_Y + PILE_SUB_SIZE * INK_DESC >= highest - 4) {
         throw new Error("[edit] the pile's caption is printed on the paper it is about");
       }
     }
@@ -2787,17 +2803,21 @@ export function createEditScene(): EditScene {
       pileG.appendChild(g);
       pileCards.push(g);
     }
-    pileLabel.textContent = PILE_LABEL;
-    pileG.appendChild(pileLabel);
+    pileTitle.textContent = PILE_TITLE;
+    pileSub.textContent = PILE_SUB;
+    pileG.append(pileTitle, pileSub);
 
-    /* ── the pointer to the printer ─────────────────────────────────────── */
+    /* ── the pointer to the printer ─────────────────────────────────────
+       It leaves the sub-line's last word and travels RIGHT, nearly level,
+       into the printer's flank — so the head points AT the machine (user
+       catch: an upward tip near the mouth read as pointing at air). */
     {
-      const lblEnd = PILE_LABEL_X + monoWidth(PILE_LABEL, PILE_LABEL_SIZE);
+      const lblEnd = PILE_LABEL_X + monoWidth(PILE_SUB, PILE_SUB_SIZE);
       const c: readonly number[] = [
-        lblEnd + 8, PILE_LABEL_Y - 5,
-        lblEnd + 44, PILE_LABEL_Y - 26,
-        RCPT_X - 10, MOUTH_Y + 84,
-        RCPT_X - 8, MOUTH_Y + 16,
+        lblEnd + 8, PILE_SUB_Y - 4,
+        lblEnd + 40, PILE_SUB_Y - 15,
+        RCPT_X - 32, PILE_SUB_Y - 13,
+        RCPT_X - 6, PILE_SUB_Y - 8,
       ];
       pileArrow.setAttribute(
         "d",
@@ -2808,14 +2828,18 @@ export function createEditScene(): EditScene {
       const b = (a: number): string =>
         `${(c[6]! + TEAR_HEAD_LEN * Math.cos(a)).toFixed(2)} ${(c[7]! + TEAR_HEAD_LEN * Math.sin(a)).toFixed(2)}`;
       pileArrowHead.setAttribute("d", `M ${b(back - rad)} L ${c[6]} ${c[7]} L ${b(back + rad)}`);
+      /* The tip must stand just off the printer's left edge, on its flank —
+         and the approach must be TRAVELLING RIGHT (tip x past the last
+         control), or the head faces the wrong thing. */
       if (
         c[0]! <= lblEnd ||
         c[6]! >= RCPT_X ||
-        c[6]! < RCPT_X - 24 ||
-        c[7]! < MOUTH_Y ||
-        c[7]! > MOUTH_Y + 40
+        c[6]! < RCPT_X - 16 ||
+        c[6]! <= c[4]! ||
+        c[7]! < MOUTH_Y + 60 ||
+        c[7]! > RCPT_PERF_Y - 60
       ) {
-        throw new Error("[edit] the pile's pointer does not run from the caption to the printer's mouth");
+        throw new Error("[edit] the pile's pointer does not run from the caption into the printer's side");
       }
       pileG.append(pileArrow, pileArrowHead);
     }
@@ -3852,7 +3876,8 @@ export function createEditScene(): EditScene {
       RCPT_TOTAL,
       ...PILE.map(pileIdent),
       ...PILE.flatMap((c) => pileLines(c)),
-      PILE_LABEL,
+      PILE_TITLE,
+      PILE_SUB,
       TEAR_HERE,
       VALVE_LIMIT,
       VALVE_HELD,
@@ -4424,7 +4449,8 @@ export function createEditScene(): EditScene {
     railOriginLbl,
     ...stamps.flatMap((s) => (s ? [s.label] : [])),
     ...pileCards,
-    pileLabel,
+    pileTitle,
+    pileSub,
     fileLbl,
     ...nums,
     ...lines,
@@ -6298,10 +6324,16 @@ export function createEditScene(): EditScene {
       );
     });
     ft(
-      pileLabel,
+      pileTitle,
       { opacity: 0, y: 6 },
       { opacity: 1, y: 0, duration: L_PILE_RUN, ease: "power2.out" },
       L + L_PILE_AT + PILE.length * L_PILE_STEP,
+    );
+    ft(
+      pileSub,
+      { opacity: 0, y: 6 },
+      { opacity: 1, y: 0, duration: L_PILE_RUN, ease: "power2.out" },
+      L + L_PILE_AT + PILE.length * L_PILE_STEP + 0.15,
     );
     /* The pointer draws off the caption's last word and rises to the mouth —
        arriving as the print begins, which is exactly what it is pointing at. */

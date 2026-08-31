@@ -4077,9 +4077,16 @@ html {
   vector-effect: non-scaling-stroke;
 }
 
-/* The pile's caption, above the papers it names (user-tuned: a step bigger
-   and brighter than the receipts — a caption must be findable — but still a
-   rung under the live receipt's headline ink). */
+/* The pile's caption, two lines above the papers it names. The TITLE carries
+   the ink (user-tuned: bigger, full bright — the one thing the floor says
+   loudest); the sub-line stays a rung under it and hands off to the pointer. */
+.edt-pile-title {
+  font-family: var(--mono);
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  fill: var(--text);
+}
+
 .edt-pile-floor {
   font-family: var(--mono);
   font-size: 12px;
