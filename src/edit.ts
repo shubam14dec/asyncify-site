@@ -122,7 +122,7 @@ import { gsap } from "gsap";
    pin reserves the whole 3.5 screens and PIN_HEIGHTS × SLICE_END / TL_END is
    simply PIN_HEIGHTS. Every beat below has sat on its final unit since slice
    A; the only thing that ever moved was where the reader was asked to stop. */
-const PIN_HEIGHTS = 4.3; // user call (2026-08-31, the page-wide slow-down pass): 3.5 was the page's fastest density (0.0211vh/unit) once scenes 2 and 3 stretched — 4.3 gives 0.0259, still the densest scene but no longer an outlier. The arithmetic note above describes the 3.5 era; no beat re-timed.
+const PIN_HEIGHTS = 4; // user call (2026-08-31, the page-wide slow-down pass): 3.5 was the page's fastest density (0.0211vh/unit) once scenes 2 and 3 stretched — rode 4.3, settled 4 (0.0241vh/unit), still the densest scene but no longer an outlier. The arithmetic note above describes the 3.5 era; no beat re-timed.
 const TL_END = 166;
 
 /** Scrub catch-up, in seconds. Matched to scenes 2, 3 and 4 on purpose: three
