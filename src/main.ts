@@ -61,8 +61,60 @@ gsap.registerPlugin(
    (user call: "it should scroll and take me"). The href stays a real
    anchor — no-JS and reduced-motion readers get the browser's own jump —
    and the glide only runs for readers who get motion at all. autoKill so
-   a reader's own wheel input takes the scroll back instantly. */
+   a reader's own wheel input takes the scroll back instantly.
+
+   THE CUE (user call): the glide parks the reader over dark canvas below
+   the install line, so when it lands, a cue rises at the viewport's foot —
+   the hero's own drain-line idiom one size louder: a mono label, the same
+   draining line, and a drawn head that makes it an arrow. It exists ONLY
+   on this path (a reader scrolling by hand never sees it) and dismisses
+   itself the moment scene 2's top enters the viewport — including
+   immediately, on a window tall enough that the engine is already in
+   sight. */
 if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
+  let cue: HTMLDivElement | null = null;
+
+  const dismissCue = (): void => {
+    if (!cue) return;
+    const el = cue;
+    cue = null;
+    gsap.to(el, {
+      opacity: 0,
+      y: 8,
+      duration: 0.35,
+      ease: "power1.in",
+      onComplete: () => el.remove(),
+    });
+  };
+
+  const showCue = (): void => {
+    if (cue) return;
+    cue = document.createElement("div");
+    cue.className = "install-cue";
+    cue.setAttribute("aria-hidden", "true");
+    const label = document.createElement("span");
+    label.className = "install-cue-text";
+    label.textContent = "scroll · the engine is below";
+    const line = document.createElement("div");
+    line.className = "scroll-hint";
+    cue.append(label, line);
+    // The head, drawn in the site's stroke language: two 1px barbs standing
+    // on the drain line's tip — the line becomes an arrow.
+    cue.insertAdjacentHTML(
+      "beforeend",
+      '<svg class="install-cue-head" width="13" height="8" viewBox="0 0 13 8" aria-hidden="true">' +
+        '<path d="M 1 1 L 6.5 6.5 L 12 1" fill="none" stroke="#6e6e6e" stroke-width="1" /></svg>',
+    );
+    document.body.appendChild(cue);
+    gsap.fromTo(cue, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" });
+    ScrollTrigger.create({
+      trigger: "#scene-engine",
+      start: "top bottom",
+      once: true,
+      onEnter: dismissCue,
+    });
+  };
+
   document.querySelector<HTMLAnchorElement>('.nav-links a[href="#headline"]')?.addEventListener(
     "click",
     (e) => {
@@ -71,6 +123,7 @@ if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
         scrollTo: { y: "#headline", offsetY: 24, autoKill: true },
         duration: 0.8,
         ease: "power2.inOut",
+        onComplete: showCue,
       });
     },
   );

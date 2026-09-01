@@ -937,6 +937,43 @@ html {
    REDUCED MOTION — a designed still state, not a disabled one.
    ══════════════════════════════════════════════════════════════════════════ */
 
+/* ── the install cue ─────────────────────────────────────────────────────
+   Shown ONLY after the nav's Install link glides the reader to the
+   headline (user call): the landing leaves dark canvas below the install
+   line, and a reader who was carried there needs to be told the page
+   continues. It is the hero's own drain-line idiom returned one size
+   louder — a spoken label, the same draining 1px line (the .scroll-hint
+   class inside is the hero's, reused verbatim), and a drawn head that
+   turns the line into an arrow. Built by main.ts on demand, never in the
+   resting markup; it dismisses itself the moment scene 2 enters the
+   viewport. A reader who scrolls on their own never sees it. */
+.install-cue {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.install-cue-text {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--text-dim);
+}
+
+.install-cue-head {
+  display: block;
+  margin-top: -9px; /* the head stands on the drain line's own tip */
+}
+
 @media (prefers-reduced-motion: reduce) {
   .brand-dot {
     animation: none;
