@@ -68,16 +68,26 @@ gsap.registerPlugin(
    the hero's own drain-line idiom one size louder: a mono label, the same
    draining line, and a drawn head that makes it an arrow. It exists ONLY
    on this path (a reader scrolling by hand never sees it) and dismisses
-   itself the moment scene 2's top enters the viewport — including
-   immediately, on a window tall enough that the engine is already in
-   sight. */
+   itself once the reader has MOVED and the engine has genuinely risen
+   into the frame. NOT a ScrollTrigger on the section's top edge: after
+   the glide that edge is already inside the viewport while the section
+   still paints black (its content entry-fades much later and builds
+   lazily), so a geometric trigger dismissed the cue the instant it
+   appeared (user catch). The condition is two-part instead — the reader
+   scrolled past the landing point, and the engine's top has climbed to
+   72% of the viewport, where its entry fade is visibly underway. */
 if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
   let cue: HTMLDivElement | null = null;
+  let watch: (() => void) | null = null;
 
   const dismissCue = (): void => {
     if (!cue) return;
     const el = cue;
     cue = null;
+    if (watch) {
+      window.removeEventListener("scroll", watch);
+      watch = null;
+    }
     gsap.to(el, {
       opacity: 0,
       y: 8,
@@ -107,12 +117,15 @@ if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
     );
     document.body.appendChild(cue);
     gsap.fromTo(cue, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" });
-    ScrollTrigger.create({
-      trigger: "#scene-engine",
-      start: "top bottom",
-      once: true,
-      onEnter: dismissCue,
-    });
+    const landingY = window.scrollY;
+    const engine = document.querySelector("#scene-engine");
+    watch = () => {
+      if (!cue || !engine) return;
+      const moved = window.scrollY > landingY + 40;
+      const risen = engine.getBoundingClientRect().top < window.innerHeight * 0.72;
+      if (moved && risen) dismissCue();
+    };
+    window.addEventListener("scroll", watch, { passive: true });
   };
 
   document.querySelector<HTMLAnchorElement>('.nav-links a[href="#headline"]')?.addEventListener(
