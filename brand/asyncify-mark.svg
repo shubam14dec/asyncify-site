@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- The Asyncify mark, avatar-scale: the delivered-dot inside the
+       ripple-at-rest ring. Same glyph as the site nav's .brand-mark and
+       favicon.svg. Colors are BRAND.md tokens: canvas #0a0a0a, ring
+       hairline-strong #3f3f3f, dot green #3dd68c (the one accent, doing
+       its one job). Use for the GitHub org avatar, npm org avatar, and
+       any square identity surface; rasterize at 512px. -->
+  <rect width="512" height="512" rx="112" fill="#0a0a0a" />
+  <circle cx="256" cy="256" r="168" fill="none" stroke="#3f3f3f" stroke-width="20" />
+  <circle cx="256" cy="256" r="80" fill="#3dd68c" />
+</svg>

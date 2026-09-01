@@ -199,6 +199,20 @@ html {
   color: var(--text);
 }
 
+/* The ring around the delivered-dot: the bell's ripple at rest. Hairline
+   ink only (the rationing law: the dot alone is green), hairline-strong
+   because a 14px circle at the default hairline vanishes on the canvas.
+   Together the two are the mark — the same glyph the favicon draws. */
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: 50%;
+}
+
 /* The delivered-dot, used as the brand mark. The one sanctioned green that
    is not a delivery moment — because it *is* the delivery moment, at rest. */
 .brand-dot {
@@ -236,6 +250,25 @@ html {
 
 .nav-sep {
   color: var(--hairline-strong);
+}
+
+/* The release badge: a measurement, so mono (BRAND §3), and one rung
+   fainter than the links — it informs, it does not compete. Hover joins
+   the links' ladder-climb. */
+.nav-version {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+  transition: color 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .nav-version:hover {
+    color: var(--text-dim);
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {

@@ -68,13 +68,31 @@
            ───────────────────────────────────────────────────────────────── -->
       <section class="hero" id="hero">
         <header class="nav">
+          <!-- The mark: the delivered-dot inside a hairline ring — the bell's
+               ripple at rest around the moment of delivery. BRAND §2's first
+               sanctioned identity use of green; the ring is hairline ink, so
+               the rationing law holds. Wordmark capitalized (user call). -->
           <a class="wordmark" href="/" aria-label="Asyncify, home">
-            Asyncify<span class="brand-dot" aria-hidden="true"></span>
+            Asyncify<span class="brand-mark" aria-hidden="true"><span class="brand-dot"></span></span>
           </a>
           <nav class="nav-links" aria-label="Primary">
             <a href="/docs">Docs</a>
             <span class="nav-sep" aria-hidden="true">·</span>
-            <a href="https://github.com/" rel="noreferrer">GitHub</a>
+            <a href="#install-line">Install</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <a href="https://github.com/shubam14dec/Scalable-Notification-System" rel="noreferrer">GitHub</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <!-- The version is REAL: vite fetches @asyncify-hq/node's published
+                 version from the npm registry at build time and replaces the
+                 token below (see vite.config.ts) — the badge can never name a
+                 version that was never released. Mono, one rung fainter than
+                 the links: a version is a measurement, not a menu item. -->
+            <a
+              class="nav-version"
+              href="https://github.com/shubam14dec/Scalable-Notification-System/releases"
+              rel="noreferrer"
+              aria-label="Current release, v__ASYNCIFY_VERSION__"
+            >v__ASYNCIFY_VERSION__</a>
           </nav>
         </header>
 
