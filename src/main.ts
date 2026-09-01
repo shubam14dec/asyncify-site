@@ -104,7 +104,7 @@ if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
     cue.setAttribute("aria-hidden", "true");
     const label = document.createElement("span");
     label.className = "install-cue-text";
-    label.textContent = "scroll · the engine is below";
+    label.textContent = "scroll · there is a lot more to come";
     const line = document.createElement("div");
     line.className = "scroll-hint";
     cue.append(label, line);
