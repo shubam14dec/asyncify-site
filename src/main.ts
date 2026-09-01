@@ -57,6 +57,25 @@ gsap.registerPlugin(
   SplitText,
 );
 
+/* The nav's Install link GLIDES to the headline rather than teleporting
+   (user call: "it should scroll and take me"). The href stays a real
+   anchor — no-JS and reduced-motion readers get the browser's own jump —
+   and the glide only runs for readers who get motion at all. autoKill so
+   a reader's own wheel input takes the scroll back instantly. */
+if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
+  document.querySelector<HTMLAnchorElement>('.nav-links a[href="#headline"]')?.addEventListener(
+    "click",
+    (e) => {
+      e.preventDefault();
+      gsap.to(window, {
+        scrollTo: { y: "#headline", offsetY: 24, autoKill: true },
+        duration: 0.8,
+        ease: "power2.inOut",
+      });
+    },
+  );
+}
+
 /* GSAP defaults, so nothing in this codebase can accidentally ship a linear
    0.5s tween. The house curve is expo-out. */
 gsap.defaults({ ease: "power2.out", duration: 0.4 });
