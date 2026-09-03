@@ -5629,19 +5629,23 @@ html {
 
 /* The page's one green element at rest (BRAND §2). There is no second CTA on
    this page, and no hover tint — green is not a hover state. */
+/* The finale CTA's own anatomy (user call: the button earned an upgrade),
+   one step down in size to sit inside a card: same type, same paint, and
+   the same one-step-brighter hover — brightness(1.08), because there is no
+   rung above --green and BRAND §1 forbids inventing one. */
 .ct-send {
   flex: none;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 34px;
-  padding: 0 16px;
+  height: 40px;
+  padding: 0 18px;
   border: 0;
   border-radius: var(--r-chip);
   background: var(--green);
   color: var(--canvas);
   font-family: var(--sans);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   letter-spacing: -0.005em;
   line-height: 1;
@@ -5649,7 +5653,15 @@ html {
   -webkit-tap-highlight-color: transparent;
   transition:
     opacity 180ms ease,
-    transform 140ms var(--ease-out);
+    filter 180ms ease,
+    transform 160ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ct-send:hover:not(:disabled) {
+    filter: brightness(1.08);
+    transform: scale(1.02);
+  }
 }
 
 .ct-send:active {
@@ -5728,8 +5740,8 @@ html {
    silhouette, not accent — and it swings once on a valid submit. */
 .ct-btn-bell {
   flex: none;
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px; /* sized with the 15px label */
   overflow: visible;
 }
 
@@ -5927,14 +5939,7 @@ html {
   }
 }
 
-/* No pointer to be precise with: the button takes DESIGN.md §5's 40px floor.
-   It sits at 34px otherwise, which is the height the hero's install line
-   already set — on a mouse the two controls should read as the same object. */
-@media (hover: none) {
-  .ct-send {
-    height: 40px;
-  }
-}
+/* The 40px base height already meets DESIGN.md §5's touch floor. */
 
 /* ── contact: reduced motion ────────────────────────────────────────────── */
 
