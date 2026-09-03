@@ -102,19 +102,6 @@
               <span class="ct-chip">email</span>
             </div>
 
-            <!-- The direct routes, as a row of the machine itself (user call:
-                 no scroll, nothing below the fold): a compose surface that
-                 knows its recipient also knows the other ways to reach him. -->
-            <div class="ct-row ct-row-fixed">
-              <span class="ct-label">routes</span>
-              <span class="ct-routes-inline">
-                <a href="mailto:shubamp981@gmail.com">shubamp981@gmail.com</a>
-                <span class="nav-sep" aria-hidden="true">·</span>
-                <a href="https://github.com/shubam14dec/Scalable-Notification-System" target="_blank" rel="noreferrer">github</a>
-                <span class="nav-sep" aria-hidden="true">·</span>
-                <a href="https://www.linkedin.com/in/shubam-patil-491176273" target="_blank" rel="noreferrer">linkedin</a>
-              </span>
-            </div>
 
             <div class="ct-row">
               <label class="ct-label" for="ct-from">from</label>
@@ -214,6 +201,20 @@
               </button>
             </div>
           </form>
+
+          <!-- ── the direct routes ──────────────────────────────────────────
+               Pinned at the viewport's lower LEFT (user call: outside the
+               form, and the page holds one screen) — the quiet mirror of the
+               receipt's lower-right corner. Always reachable, no form
+               required. -->
+          <p class="ct-routes" id="ct-routes">
+            <span class="ct-routes-label">routes</span>
+            <a href="mailto:shubamp981@gmail.com">shubamp981@gmail.com</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <a href="https://github.com/shubam14dec/Scalable-Notification-System" target="_blank" rel="noreferrer">github</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <a href="https://www.linkedin.com/in/shubam-patil-491176273" target="_blank" rel="noreferrer">linkedin</a>
+          </p>
 
           <!-- ── the receipt ────────────────────────────────────────────────
                A fixed printout at the viewport's lower right (user call: the

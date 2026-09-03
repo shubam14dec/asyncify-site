@@ -5678,19 +5678,29 @@ html {
 
 /* ── the receipt slot ───────────────────────────────────────────────────── */
 
-/* The routes, as a row of the machine (user call): the same mono the card's
-   values wear, links one rung up on hover. */
-.ct-routes-inline {
+/* The direct routes: pinned at the viewport's lower left (user call —
+   outside the form), the quiet mirror of the receipt's corner. Costs the
+   page no height; a fixed row of mono at the canvas's edge. */
+.ct-routes {
+  position: fixed;
+  left: clamp(16px, 4vw, 48px);
+  bottom: 24px;
+  z-index: 4;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  margin: 0;
   font-family: var(--mono);
   font-size: 12px;
   letter-spacing: 0.01em;
 }
 
-.ct-routes-inline a {
+.ct-routes-label {
+  color: var(--text-faint);
+}
+
+.ct-routes a {
   color: var(--text-dim);
   transition: color 180ms ease;
 }
@@ -5784,7 +5794,7 @@ html {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .ct-routes-inline a:hover {
+  .ct-routes a:hover {
     color: var(--text);
   }
 
@@ -5872,7 +5882,12 @@ html {
     padding: 0 14px;
   }
 
+  /* A phone scrolls anyway, and a fixed rail would sit under the receipt's
+     near-full-width printout — the routes rejoin the flow, centred. */
   .ct-routes {
+    position: static;
+    justify-content: center;
+    margin-top: 24px;
     gap: 6px;
     font-size: 11.5px;
   }
