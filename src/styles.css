@@ -5724,6 +5724,35 @@ html {
   z-index: 6;
 }
 
+/* THE FLIGHT — the departing envelope and its greeting, riding off the
+   right edge of the screen together (user call). A fixed column: envelope
+   above, "Hello Shubam" beneath, slow enough to read. */
+.ct-flight {
+  position: fixed;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 92px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ct-flight .ct-env {
+  position: static;
+  opacity: 1;
+  width: 30px;
+}
+
+.ct-flight-hello {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  color: var(--text-dim);
+}
+
 /* THE ENVELOPE — scene 2's #digest-env verbatim (one rect, one fold), the
    site's only non-box glyph, in its own green-dim ink. It births where the
    dots converge, carries them to the send button, and flashes to full green

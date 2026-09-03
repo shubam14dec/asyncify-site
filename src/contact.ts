@@ -53,6 +53,7 @@ const meter = q<HTMLElement>("#ct-meter");
 q<HTMLElement>(".ct-head"); /* the request line exists — q throws if not */
 const bell = q<SVGGElement>("#ct-bell");
 const clapper = q<SVGCircleElement>("#ct-clapper");
+const bellSvg = q<SVGSVGElement>(".ct-btn-bell");
 const sendLabel = q<HTMLElement>("#ct-send-label");
 const sendDone = q<HTMLElement>("#ct-send-done");
 const sendEnv = q<SVGSVGElement>("#ct-send-env");
@@ -130,9 +131,9 @@ function packFields(): Promise<void> {
   const sources = [fromInput, nameInput, messageInput].filter(
     (el) => el.value.trim().length > 0,
   );
-  /* The words step aside and the envelope takes the button (user call):
-     the packing happens inside the machine's own control. */
-  gsap.to([sendLabel, sendDone], { opacity: 0, duration: 0.15, ease: "power1.out" });
+  /* The words AND the bell step aside and the envelope takes the button
+     (user calls): the packing happens inside the machine's own control. */
+  gsap.to([sendLabel, sendDone, bellSvg], { opacity: 0, duration: 0.15, ease: "power1.out" });
   gsap.to(sendEnv, { opacity: 1, duration: 0.25, ease: "power1.out", delay: 0.1 });
   const target = sendEnv.getBoundingClientRect();
   const tx = target.left + target.width / 2;
@@ -178,9 +179,12 @@ function departAndRestore(): void {
     gsap.to(sendDone, { opacity: 1, duration: 0.2, ease: "power1.out" });
     gsap.delayedCall(1.4, () => {
       gsap.to(sendDone, { opacity: 0, duration: 0.2, ease: "power1.in" });
-      gsap.to(sendLabel, { opacity: 1, duration: 0.25, ease: "power1.out", delay: 0.15 });
+      gsap.to([sendLabel, bellSvg], { opacity: 1, duration: 0.25, ease: "power1.out", delay: 0.15 });
       send.disabled = false;
       inFlight = false;
+      /* The bell returns WITH the words (user call) — and strikes once as
+         it does: delivered, at your service again. */
+      if (!reduced) gsap.delayedCall(0.45, ringBell);
     });
   };
   if (reduced) {
@@ -189,25 +193,27 @@ function departAndRestore(): void {
     settle();
     return;
   }
-  ringBell();
   const r = sendEnv.getBoundingClientRect();
   /* A fixed-position twin takes over for the flight: the card clips its
-     overflow, and an envelope leaving the SCREEN cannot live inside it. */
-  const flight = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  flight.setAttribute("class", "ct-env is-lit");
-  flight.setAttribute("viewBox", "-14 -10 28 20");
+     overflow, and an envelope leaving the SCREEN cannot live inside it.
+     Under the envelope rides the greeting (user call) — the message wears
+     its address — and the flight runs slow enough to read it. */
+  const flight = document.createElement("div");
+  flight.className = "ct-flight";
   flight.setAttribute("aria-hidden", "true");
   flight.innerHTML =
-    '<rect x="-13" y="-9" width="26" height="18" rx="2" /><path d="M -13 -9 L 0 2 L 13 -9" />';
-  flight.style.left = `${r.left + r.width / 2 - 15}px`;
+    '<svg class="ct-env is-lit" viewBox="-14 -10 28 20">' +
+    '<rect x="-13" y="-9" width="26" height="18" rx="2" /><path d="M -13 -9 L 0 2 L 13 -9" /></svg>' +
+    '<span class="ct-flight-hello">Hello Shubam</span>';
+  flight.style.left = `${r.left + r.width / 2 - 46}px`;
   flight.style.top = `${r.top + r.height / 2 - 11}px`;
   document.body.appendChild(flight);
   gsap.set(sendEnv, { opacity: 0 });
   gsap.set(flight, { opacity: 1 });
   gsap.to(flight, {
-    x: window.innerWidth - r.left + 80,
-    duration: 0.6,
-    ease: "power2.in",
+    x: window.innerWidth - r.left + 140,
+    duration: 1.15,
+    ease: "power1.in",
     onComplete: () => {
       flight.remove();
       settle();
@@ -411,7 +417,7 @@ form.addEventListener("submit", (event) => {
        message stays with its sender. The words return, the receipt says
        what is true, and the button comes back for a retry. */
     gsap.to(sendEnv, { opacity: 0, duration: 0.2, ease: "power1.in" });
-    gsap.to(sendLabel, { opacity: 1, duration: 0.25, ease: "power1.out", delay: 0.15 });
+    gsap.to([sendLabel, bellSvg], { opacity: 1, duration: 0.25, ease: "power1.out", delay: 0.15 });
     printReceipt(true);
     send.disabled = false;
     inFlight = false;
