@@ -289,7 +289,7 @@ export function mount(container: HTMLElement): Curtain {
       roughness: 0.38,
       metalness: 0,
       sheen: 1,
-      sheenColor: new Color(0x9d9d9d),
+      sheenColor: new Color(0x848484),
       sheenRoughness: 0.25,
       emissive: new Color(0xffffff),
       emissiveMap: tex,
@@ -309,7 +309,7 @@ export function mount(container: HTMLElement): Curtain {
      light path, the cloth cannot read as anything but black. */
   /* Silk wants a harder key than velvet: the specular bands ARE the cloth's
      legibility now, so the wash comes up and the ambient goes down. */
-  const spot = new SpotLight(0xffffff, 3.2, 0, 0.9, 0.95, 0);
+  const spot = new SpotLight(0xffffff, 2.4, 0, 0.9, 0.95, 0);
   spot.position.set(0, 4.4, 4.2);
   const spotTarget = new Object3D();
   spotTarget.position.set(0, -0.7, 0);
