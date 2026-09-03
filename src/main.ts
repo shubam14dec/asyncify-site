@@ -145,6 +145,27 @@ if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
       });
     },
   );
+
+  /* ARRIVING at the headline from another page (the contact nav's Install
+     is a cross-page /#headline link): the browser's native fragment jump
+     lands flush to the top and knows nothing of the cue. Give that landing
+     the same treatment the home glide gives (user catch): the 24px breath
+     above the headline, and the cue. The correction sets an absolute
+     position, so it is idempotent whichever of us — browser or code —
+     scrolled first; it runs on the next frame and again on load, when the
+     fragment scroll may be re-applied. */
+  if (location.hash === "#headline") {
+    const settleAnchor = (): void => {
+      const target = document.querySelector("#headline");
+      if (!target) return;
+      window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 24 });
+    };
+    requestAnimationFrame(() => {
+      settleAnchor();
+      showCue();
+    });
+    window.addEventListener("load", settleAnchor, { once: true });
+  }
 }
 
 /* GSAP defaults, so nothing in this codebase can accidentally ship a linear
