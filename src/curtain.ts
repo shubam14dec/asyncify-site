@@ -100,9 +100,18 @@ const AMP = 0.052;
 const PACK_DEEPEN = 1.45;
 
 /** Idle hem sway and the lift the leading edge takes during the pull, both
- *  as fractions of span / height. */
-const SWAY = 0.013;
+ *  as fractions of span / height. Sway doubled from 0.013 (user call: the
+ *  closed cloth read too still). */
+const SWAY = 0.028;
 const LIFT = 0.055;
+
+/** THE HAND (user call): the pointer presses a soft dimple into the cloth,
+ *  following the cursor like a palm run across hanging velvet. Amplitude
+ *  and radius as fractions of a half's span; the wobble gives the dent a
+ *  living edge instead of a stamped circle. */
+const HAND_AMP = 0.055;
+const HAND_SIGMA = 0.17;
+const HAND_WOB = 0.35;
 
 /** The pull. 2.6s, power2.inOut. */
 const OPEN_MS = 2600;
@@ -305,6 +314,13 @@ export function mount(container: HTMLElement): Curtain {
     const { pos, nrm, dir } = half;
     const n = pos.length / 3;
 
+    /* The hand's dent, precomputed per frame. */
+    const sigma = span * HAND_SIGMA;
+    const sigma2 = sigma * sigma;
+    const reach = 3 * sigma;
+    const handAmp = span * HAND_AMP * handStrength;
+    const handOn = handAmp > 0.0005;
+
     const amp = span * AMP;
     const swayAmp = span * SWAY * (0.35 + 0.65 * (1 - t));
     const swayZ = Math.sin(SWAY_F2 * time);
@@ -374,17 +390,41 @@ export function mount(container: HTMLElement): Curtain {
 
       const fold = aFold[i]!;
       const j = i * 3;
-      pos[j] = xOuter + dir * g * span + sway;
-      pos[j + 1] = (v - 0.5) * height - sagAmt * aSag[i]! + liftY;
-      pos[j + 2] = depth * fold + env * 0.6 * swayZ;
+      const wx = xOuter + dir * g * span + sway;
+      const wy = (v - 0.5) * height - sagAmt * aSag[i]! + liftY;
+      let wz = depth * fold + env * swayZ;
 
       /* ANALYTIC NORMALS. z is a height field over (x, y), so the surface
          normal is (−∂z/∂x, −∂z/∂y, 1) normalised. ∂z/∂x comes through the
          material: (dz/dm)/(dx/dm), and dx/dm is dir·span·gp — which is why
          a compressed region automatically gets steeper, brighter fold walls
          instead of the flat shading a screen-space fold would give. */
-      const nx = -(depth * aDFold[i]!) / (dir * span * gp);
-      const ny = -(amp * aDAmpV[i]! * ampT * fold) / height;
+      let nx = -(depth * aDFold[i]!) / (dir * span * gp);
+      let ny = -(amp * aDAmpV[i]! * ampT * fold) / height;
+
+      /* THE HAND: a gaussian press into the cloth under the pointer, with a
+         slow-living edge, and — critically — its own slope folded into the
+         normals so the dent SHADES instead of reading as a flat decal. */
+      if (handOn) {
+        const hdx = wx - handX;
+        if (hdx > -reach && hdx < reach) {
+          const hdy = wy - handY;
+          if (hdy > -reach && hdy < reach) {
+            const d2 = hdx * hdx + hdy * hdy;
+            const gauss = Math.exp(-d2 / (2 * sigma2));
+            const wob = 1 - HAND_WOB * 0.5 + HAND_WOB * 0.5 * Math.sin(4.2 * ((wx + wy) / span) - 5 * time);
+            const press = handAmp * gauss * wob;
+            wz -= press;
+            const slope = press / sigma2;
+            nx += slope * hdx;
+            ny += slope * hdy;
+          }
+        }
+      }
+
+      pos[j] = wx;
+      pos[j + 1] = wy;
+      pos[j + 2] = wz;
       const inv = 1 / Math.sqrt(nx * nx + ny * ny + 1);
       nrm[j] = nx * inv;
       nrm[j + 1] = ny * inv;
@@ -419,6 +459,30 @@ export function mount(container: HTMLElement): Curtain {
   resize();
   window.addEventListener("resize", resize);
 
+  /* ── the hand ─────────────────────────────────────────────────────────────
+     Window-level, because the overlay's button and valance sit above the
+     canvas and would eat a canvas-local pointermove. Screen coords project
+     onto the z=0 plane the same way resize() sized it. Strength eases in
+     and out (a hand arrives and leaves, it does not teleport) and dies with
+     the pull — a parting curtain is nobody's to stroke. */
+  let handX = 0;
+  let handY = 0;
+  let handIn = false;
+  let handStrength = 0;
+
+  function onPointerMove(e: PointerEvent): void {
+    const w = container.clientWidth || window.innerWidth;
+    const h = container.clientHeight || window.innerHeight;
+    handX = (e.clientX / w - 0.5) * viewW;
+    handY = (0.5 - e.clientY / h) * viewH;
+    handIn = true;
+  }
+  function onPointerGone(): void {
+    handIn = false;
+  }
+  window.addEventListener("pointermove", onPointerMove, { passive: true });
+  document.documentElement.addEventListener("pointerleave", onPointerGone);
+
   /* ── the loop ─────────────────────────────────────────────────────────── */
 
   let raf = 0;
@@ -445,6 +509,10 @@ export function mount(container: HTMLElement): Curtain {
     }
 
     const time = (now - t0) / 1000;
+    /* The hand arrives and leaves smoothly, and lets go as the pull begins —
+       a parting curtain is nobody's to stroke. */
+    const handTarget = handIn ? 1 - t : 0;
+    handStrength += (handTarget - handStrength) * 0.08;
     shape(left, t, time);
     shape(right, t, time);
     renderer.render(scene, camera);
@@ -466,6 +534,8 @@ export function mount(container: HTMLElement): Curtain {
       alive = false;
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
+      window.removeEventListener("pointermove", onPointerMove);
+      document.documentElement.removeEventListener("pointerleave", onPointerGone);
       /* A pending open() must never leave its awaiter hanging — disposing
          mid-pull resolves it, so intro.ts's flow always continues. */
       const pending = resolveOpen;
