@@ -5929,12 +5929,14 @@ html {
   background: var(--canvas);
 }
 
+/* Tightened after his AbortError report: every ms a transition runs is a ms
+   the main thread can kill it — ~440ms total instead of ~580. */
 ::view-transition-old(root) {
-  animation: 180ms cubic-bezier(0.4, 0, 1, 1) both vt-sink;
+  animation: 150ms cubic-bezier(0.4, 0, 1, 1) both vt-sink;
 }
 
 ::view-transition-new(root) {
-  animation: 260ms cubic-bezier(0, 0, 0.2, 1) 140ms both vt-rise;
+  animation: 200ms cubic-bezier(0, 0, 0.2, 1) 90ms both vt-rise;
 }
 
 @keyframes vt-sink {

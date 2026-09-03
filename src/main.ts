@@ -63,11 +63,30 @@ gsap.registerPlugin(
    one for a same-site arrival). Costs nothing, answers "why did the scene
    change skip" without guessing. */
 window.addEventListener("pagereveal", (e: Event) => {
-  const vt = (e as Event & { viewTransition?: { finished: Promise<void> } }).viewTransition;
+  const vt = (
+    e as Event & {
+      viewTransition?: { ready: Promise<void>; finished: Promise<void> };
+    }
+  ).viewTransition;
   if (vt) {
+    /* BOTH promises, because a skipped transition rejects both and an
+       unhandled `ready` surfaces as an uncaught AbortError in the console
+       (his paste proved it). One log, no noise. */
+    vt.ready.catch(() => {});
     vt.finished.catch((err: DOMException) =>
       console.debug("[vt] transition skipped:", err.name, err.message),
     );
+    /* AND the whole page holds its breath: his AbortError came with 199ms
+       rAF frames — the bell entrance fighting the transition for the main
+       thread, and the transition losing. GSAP pauses for the ~440ms the
+       scene change runs and resumes the instant it settles (or dies);
+       every entrance beat plays exactly as authored, just after the page
+       has finished arriving. */
+    gsap.globalTimeline.pause();
+    const resume = (): void => {
+      gsap.globalTimeline.resume();
+    };
+    vt.finished.then(resume, resume);
     return;
   }
   try {

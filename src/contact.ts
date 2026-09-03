@@ -269,11 +269,26 @@ function ringBell(): void {
 /* Page-transition telemetry, main.ts's twin: silent unless a transition
    dies, then one console.debug names the reason. */
 window.addEventListener("pagereveal", (e: Event) => {
-  const vt = (e as Event & { viewTransition?: { finished: Promise<void> } }).viewTransition;
+  const vt = (
+    e as Event & {
+      viewTransition?: { ready: Promise<void>; finished: Promise<void> };
+    }
+  ).viewTransition;
   if (vt) {
+    /* Both promises — an unhandled `ready` on a skipped transition surfaces
+       as an uncaught AbortError (his paste proved it). */
+    vt.ready.catch(() => {});
     vt.finished.catch((err: DOMException) =>
       console.debug("[vt] transition skipped:", err.name, err.message),
     );
+    /* main.ts's twin: GSAP holds its breath while the scene change runs, so
+       nothing competes with the transition for frames — and the arrival
+       pulse lands, as designed, a beat after the page has settled. */
+    gsap.globalTimeline.pause();
+    const resume = (): void => {
+      gsap.globalTimeline.resume();
+    };
+    vt.finished.then(resume, resume);
     return;
   }
   try {
