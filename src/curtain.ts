@@ -72,7 +72,7 @@ const SEG_Y = 64;
  *  with 6 curves" = six across the whole stage). The per-half phase offsets
  *  (p0/p1 below) keep the centre seam from mirroring even at an integer
  *  count. */
-const FOLDS = 1.5; /* user-tuned: riding 6 → 10 → 3 total across the stage */
+const FOLDS = 2; /* user-tuned: riding 6 → 10 → 3 → 6 → 4 total across the stage */
 
 /** THE LIVING PLEATS (user call: real brushed cloth CHANGES its fold count
  *  and the folds SHIFT). Two fold tables per half — the rest state above
