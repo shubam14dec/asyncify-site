@@ -5622,46 +5622,9 @@ html {
 }
 
 .ct-row-foot {
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 16px;
   padding: 12px 16px;
-}
-
-/* Five words in one place, stacked and crossfaded. Sized to the longest of
-   them in its own mono `ch`, so the row never reflows as the state changes. */
-.ct-status {
-  position: relative;
-  flex: none;
-  min-width: 9ch;
-  height: 1.4em;
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.01em;
-  line-height: 1.4;
-}
-
-.ct-st {
-  position: absolute;
-  left: 0;
-  top: 0;
-  white-space: nowrap;
-  color: var(--text-faint);
-  opacity: 0;
-}
-
-.ct-st.is-on {
-  opacity: 1;
-}
-
-/* One rung up the ladder — a delivery is the sentence this page exists to
-   say, and weight/ink is how this site emphasises (BRAND §3). */
-.ct-st[data-st="delivered"] {
-  color: var(--text-dim);
-}
-
-/* Amber's whole domain here: the word that means it did not go. */
-.ct-st-held {
-  color: var(--amber);
 }
 
 /* The page's one green element at rest (BRAND §2). There is no second CTA on

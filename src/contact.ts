@@ -54,12 +54,6 @@ q<HTMLElement>(".ct-head"); /* the request line exists — q throws if not */
 const bell = q<SVGGElement>("#ct-bell");
 const clapper = q<SVGCircleElement>("#ct-clapper");
 
-const statusEls = new Map<string, HTMLElement>();
-for (const el of document.querySelectorAll<HTMLElement>(".ct-st")) {
-  const key = el.dataset["st"];
-  if (key) statusEls.set(key, el);
-}
-
 /* Colors come out of the tokens, never out of this file (BRAND.md §1). The
    box blink needs resolved values because gsap interpolates numbers, not
    `var()` references. */
@@ -117,29 +111,11 @@ const greens = Array.from(form.querySelectorAll<HTMLElement>("*")).filter(
 must(greens.length === 1, `${greens.length} green elements in the compose card, expected 1`);
 must(greens[0] === send, "the green element in the compose card is not the send button");
 
-must(statusEls.size === 5, `${statusEls.size} status words, expected 5`);
-for (const word of ["ready", "queued", "sending", "delivered", "held"]) {
-  must(statusEls.has(word), `the status word "${word}" is missing`);
-}
-
 /* ── state ─────────────────────────────────────────────────────────────── */
 
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-let current = statusEls.get("ready") as HTMLElement;
 let inFlight = false;
-
-/** Two stacked spans, crossfaded. The site never rewrites one element's text
- *  while it is animating — a status that swaps characters flickers, one that
- *  dissolves into the next reads as a state change. */
-function status(next: string): void {
-  const el = statusEls.get(next);
-  if (!el || el === current) return;
-  const from = current;
-  current = el;
-  gsap.to(from, { opacity: 0, duration: 0.18, ease: "power1.out", overwrite: "auto" });
-  gsap.to(el, { opacity: 1, duration: 0.18, ease: "power1.out", overwrite: "auto" });
-}
 
 /** A narrative beat: the queued/sending words need a moment to be read even
  *  when the round-trip is quick — the receipt still prints only from the
@@ -287,20 +263,16 @@ form.addEventListener("submit", (event) => {
   send.disabled = true;
 
   ringBell();
-  status("queued");
-  gsap.delayedCall(0.26, () => status("sending"));
 
   void Promise.all([wait(reduced ? 0 : 0.9), post()]).then(([, sent]) => {
     if (sent.ok) {
       msOut.textContent = String(sent.ms);
       idOut.textContent = sent.id.slice(0, 10) || "unknown";
-      status("delivered");
       printReceipt(false);
       return;
     }
-    /* No fake success, ever. The word changes, the receipt says what is true,
-       and the button comes back so they can try again. */
-    status("held");
+    /* No fake success, ever. The receipt says what is true, and the button
+       comes back so they can try again. */
     printReceipt(true);
     send.disabled = false;
     inFlight = false;
