@@ -5697,6 +5697,7 @@ html {
 }
 
 .ct-routes-label {
+  margin-right: 10px; /* the label stands apart from the links it announces */
   color: var(--text-faint);
 }
 
