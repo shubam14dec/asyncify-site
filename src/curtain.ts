@@ -251,24 +251,31 @@ export function mount(container: HTMLElement): Curtain {
   const labelCanvas = document.createElement("canvas");
   labelCanvas.width = 2048;
   labelCanvas.height = 1024;
-  const lctx = labelCanvas.getContext("2d");
-  if (lctx) {
+  /* The invitation speaks the site's emphasis voice (user call): the same
+     Instrument Serif italic as "say." in the hero — not the engineered
+     letterspaced sans it wore first. Georgia italic is the fallback while
+     the face loads; the repaint below trues it up. */
+  const LABEL_FONT = 'italic 400 66px "Instrument Serif", Georgia, serif';
+  const paintLabel = (): void => {
+    const lctx = labelCanvas.getContext("2d");
+    if (!lctx) return;
     lctx.clearRect(0, 0, 2048, 1024);
     lctx.fillStyle = "#dcc48a";
     lctx.textAlign = "center";
     lctx.textBaseline = "middle";
     try {
-      (lctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = "18px";
+      (lctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = "9px";
     } catch {
       /* older engines: tighter tracking, still legible */
     }
-    lctx.font = "500 54px system-ui, Segoe UI, Arial, sans-serif";
+    lctx.font = LABEL_FONT;
     /* 567, not the texture's 512 midline: the hem cut shifted the whole
        cloth up by 0.055·viewH, so the words are painted the same distance
        DOWN the fabric (0.055/1.03 of its height ≈ 55px of 1024) to keep
        them at screen centre, inside the pool of light. */
     lctx.fillText("click to reveal", 1024 + 9, 567);
-  }
+  };
+  paintLabel();
   const makeLabelTex = (): CanvasTexture => {
     const t = new CanvasTexture(labelCanvas);
     t.anisotropy = 4;
@@ -276,6 +283,18 @@ export function mount(container: HTMLElement): Curtain {
   };
   const labelTexL = makeLabelTex();
   const labelTexR = makeLabelTex();
+  /* Canvas text ignores font-display: if the face was not resident at
+     mount, the first paint fell back to Georgia — repaint once it lands.
+     Fire-and-forget; the fallback paint already stands. */
+  try {
+    void document.fonts.load(LABEL_FONT).then(() => {
+      paintLabel();
+      labelTexL.needsUpdate = true;
+      labelTexR.needsUpdate = true;
+    });
+  } catch {
+    /* no FontFaceSet: the fallback serif stays */
+  }
 
   /* The site's own inks: surface #111111 as the cloth, hairline-strong
      #3f3f3f as the crest sheen — the curtain is drawn with the page's

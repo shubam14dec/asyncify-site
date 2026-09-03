@@ -6348,6 +6348,12 @@ html.in-lock body {
    desktop): without this, the crossfade swapped small DOM words for large
    painted ones and the whole curtain read as replaced. */
 .in-btn-ink {
+  /* The site's emphasis voice (user call: the face of "say."), replacing
+     the letterspaced sans — tracking and indent reset accordingly. */
+  font-family: "Instrument Serif", Georgia, serif;
+  font-style: italic;
+  letter-spacing: 0.09em;
+  text-indent: 0;
   font-size: clamp(12px, 2.35vw, 32px);
   /* Wider than the 210px hit area at desktop sizes: one unwrapped line,
      pinned to the button's centre so it sits exactly where the velvet
