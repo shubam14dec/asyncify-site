@@ -199,6 +199,14 @@
                   <span class="ct-send-label" id="ct-send-label">send message</span>
                   <span class="ct-send-done" id="ct-send-done">sent</span>
                 </span>
+                <!-- The envelope IN the button (user call): while a send is
+                     packing, the words step aside and this takes their place —
+                     scene 2's glyph in the button's own dark ink. Hidden at
+                     rest by the stylesheet. -->
+                <svg class="ct-send-env" id="ct-send-env" viewBox="-14 -10 28 20" aria-hidden="true" focusable="false">
+                  <rect x="-13" y="-9" width="26" height="18" rx="2" />
+                  <path d="M -13 -9 L 0 2 L 13 -9" />
+                </svg>
               </button>
             </div>
           </form>

@@ -5634,6 +5634,7 @@ html {
    the same one-step-brighter hover — brightness(1.08), because there is no
    rung above --green and BRAND §1 forbids inventing one. */
 .ct-send {
+  position: relative; /* the in-button envelope anchors to it */
   flex: none;
   display: inline-flex;
   align-items: center;
@@ -5683,6 +5684,30 @@ html {
   transform: translateX(-50%);
   white-space: nowrap;
   opacity: 0;
+}
+
+/* The in-button envelope: centred over the words' slot, the button's own
+   dark ink (a green-dim stroke would vanish on the green field). Invisible
+   at rest — it exists only while a send is packing. */
+.ct-send-env {
+  position: absolute;
+  left: 55%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 26px;
+  height: auto;
+  overflow: visible;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ct-send-env rect,
+.ct-send-env path {
+  fill: none;
+  stroke: var(--canvas);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
 }
 
 /* THE PACKING DOTS (user call, scene 2's digest miniaturized): one dot per

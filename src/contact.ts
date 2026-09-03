@@ -55,6 +55,7 @@ const bell = q<SVGGElement>("#ct-bell");
 const clapper = q<SVGCircleElement>("#ct-clapper");
 const sendLabel = q<HTMLElement>("#ct-send-label");
 const sendDone = q<HTMLElement>("#ct-send-done");
+const sendEnv = q<SVGSVGElement>("#ct-send-env");
 
 /* Colors come out of the tokens, never out of this file (BRAND.md §1). The
    box blink needs resolved values because gsap interpolates numbers, not
@@ -129,36 +130,22 @@ function packFields(): Promise<void> {
   const sources = [fromInput, nameInput, messageInput].filter(
     (el) => el.value.trim().length > 0,
   );
-  /* The envelope births at the card's own centre; the button is where it is
-     handed over. Both read fresh — the page may have been resized. */
-  const card = form.getBoundingClientRect();
-  const ex = card.left + card.width / 2;
-  const ey = card.top + card.height * 0.52;
-  const target = send.getBoundingClientRect();
+  /* The words step aside and the envelope takes the button (user call):
+     the packing happens inside the machine's own control. */
+  gsap.to([sendLabel, sendDone], { opacity: 0, duration: 0.15, ease: "power1.out" });
+  gsap.to(sendEnv, { opacity: 1, duration: 0.25, ease: "power1.out", delay: 0.1 });
+  const target = sendEnv.getBoundingClientRect();
   const tx = target.left + target.width / 2;
   const ty = target.top + target.height / 2;
-
   const dots: HTMLElement[] = [];
-  /* Scene 2's #digest-env, verbatim: one rect, one fold. */
-  const env = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  env.setAttribute("class", "ct-env");
-  env.setAttribute("viewBox", "-14 -10 28 20");
-  env.setAttribute("aria-hidden", "true");
-  env.innerHTML =
-    '<rect x="-13" y="-9" width="26" height="18" rx="2" /><path d="M -13 -9 L 0 2 L 13 -9" />';
-  env.style.left = `${ex - 15}px`;
-  env.style.top = `${ey - 11}px`;
-  document.body.appendChild(env);
-
   return new Promise<void>((resolve) => {
     const tl = gsap.timeline({
       onComplete: () => {
         for (const d of dots) d.remove();
-        env.remove();
         resolve();
       },
     });
-    /* The dots pack INTO the envelope, not the button. */
+    /* The dots pack into the envelope where it now lives: the button. */
     sources.forEach((el, i) => {
       const r = el.getBoundingClientRect();
       const sx = r.left + 12; /* the value column's own inset */
@@ -173,30 +160,58 @@ function packFields(): Promise<void> {
       tl.to(dot, { opacity: 1, duration: 0.12, ease: "power1.out" }, at);
       tl.to(
         dot,
-        { x: ex - sx, y: ey - sy, scale: 0.5, duration: 0.45, ease: "power2.in" },
+        { x: tx - sx, y: ty - sy, scale: 0.5, duration: 0.5, ease: "power2.in" },
         at + 0.1,
       );
-      tl.to(dot, { opacity: 0, duration: 0.1, ease: "power1.in" }, at + 0.48);
+      tl.to(dot, { opacity: 0, duration: 0.1, ease: "power1.in" }, at + 0.53);
     });
-    /* The envelope arrives as the dots do (scene 2's own entry: 0.9 → 1). */
-    tl.fromTo(
-      env,
-      { opacity: 0, scale: 0.9 },
-      { opacity: 1, scale: 1, duration: 0.45, ease: "power2.out", immediateRender: false },
-      0.3,
-    );
-    /* Sealed, it is HANDED to the send button. */
-    tl.to(env, { x: tx - ex, y: ty - ey, duration: 0.6, ease: "power1.inOut" }, 1.0);
-    /* The hand-off: the digest's own green flash — and the bell answers. */
-    tl.call(
-      () => {
-        env.classList.add("is-lit");
-        ringBell();
-      },
-      undefined,
-      1.5,
-    );
-    tl.to(env, { opacity: 0, scale: 0.6, duration: 0.25, ease: "power1.in" }, 1.62);
+  });
+}
+
+/** THE DEPARTURE IS THE SENT CLAIM (user call), so it plays only on the
+ *  server's yes: the sealed envelope leaves the button and rides off the
+ *  RIGHT edge of the screen — lit full green as it goes, the digest's own
+ *  delivery flash — while the bell strikes. `sent` holds the button for a
+ *  beat, then `send message` returns and the button is re-armed. */
+function departAndRestore(): void {
+  const settle = (): void => {
+    gsap.to(sendDone, { opacity: 1, duration: 0.2, ease: "power1.out" });
+    gsap.delayedCall(1.4, () => {
+      gsap.to(sendDone, { opacity: 0, duration: 0.2, ease: "power1.in" });
+      gsap.to(sendLabel, { opacity: 1, duration: 0.25, ease: "power1.out", delay: 0.15 });
+      send.disabled = false;
+      inFlight = false;
+    });
+  };
+  if (reduced) {
+    gsap.set(sendLabel, { opacity: 0 });
+    gsap.set(sendEnv, { opacity: 0 });
+    settle();
+    return;
+  }
+  ringBell();
+  const r = sendEnv.getBoundingClientRect();
+  /* A fixed-position twin takes over for the flight: the card clips its
+     overflow, and an envelope leaving the SCREEN cannot live inside it. */
+  const flight = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  flight.setAttribute("class", "ct-env is-lit");
+  flight.setAttribute("viewBox", "-14 -10 28 20");
+  flight.setAttribute("aria-hidden", "true");
+  flight.innerHTML =
+    '<rect x="-13" y="-9" width="26" height="18" rx="2" /><path d="M -13 -9 L 0 2 L 13 -9" />';
+  flight.style.left = `${r.left + r.width / 2 - 15}px`;
+  flight.style.top = `${r.top + r.height / 2 - 11}px`;
+  document.body.appendChild(flight);
+  gsap.set(sendEnv, { opacity: 0 });
+  gsap.set(flight, { opacity: 1 });
+  gsap.to(flight, {
+    x: window.innerWidth - r.left + 80,
+    duration: 0.6,
+    ease: "power2.in",
+    onComplete: () => {
+      flight.remove();
+      settle();
+    },
   });
 }
 
@@ -379,13 +394,11 @@ form.addEventListener("submit", (event) => {
     if (sent.ok) {
       msOut.textContent = String(sent.ms);
       idOut.textContent = sent.id.slice(0, 10) || "unknown";
-      /* The button says so itself (user call): the label dissolves into
-         `sent` — but only because the server said it was. */
-      gsap.to(sendLabel, { opacity: 0, duration: 0.18, ease: "power1.out" });
-      gsap.to(sendDone, { opacity: 1, duration: 0.18, ease: "power1.out" });
-      /* And the fields EMPTY (user call): the envelope took the values, so
-         paper that still showed them would contradict the story. Only on
-         success — a held send keeps everything, so a retry costs nothing. */
+      /* The envelope departs, `sent` holds the button, `send message`
+         returns re-armed — and the fields EMPTY (user calls): the envelope
+         took the values, so paper still showing them would contradict the
+         story. Only on success. */
+      departAndRestore();
       form.reset();
       for (const row of document.querySelectorAll(".ct-row.is-ok")) {
         row.classList.remove("is-ok");
@@ -394,8 +407,11 @@ form.addEventListener("submit", (event) => {
       printReceipt(false);
       return;
     }
-    /* No fake success, ever. The receipt says what is true, and the button
-       comes back so they can try again. */
+    /* No fake success, ever — and the envelope does NOT leave: a held
+       message stays with its sender. The words return, the receipt says
+       what is true, and the button comes back for a retry. */
+    gsap.to(sendEnv, { opacity: 0, duration: 0.2, ease: "power1.in" });
+    gsap.to(sendLabel, { opacity: 1, duration: 0.25, ease: "power1.out", delay: 0.15 });
     printReceipt(true);
     send.disabled = false;
     inFlight = false;
