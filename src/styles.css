@@ -5512,6 +5512,24 @@ html {
   opacity: 1; /* Firefox dims placeholders by default; the ladder decides */
 }
 
+/* The browser's autofill wash (user call: a filled field grew a background).
+   Chrome paints its own tint over any background rule, so the counter is the
+   canonical one: a transition too long to ever arrive keeps the tint from
+   painting, and the fill color is restated in webkit's own property. */
+.ct-input:-webkit-autofill,
+.ct-input:-webkit-autofill:hover,
+.ct-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--text);
+  transition:
+    background-color 9999999s ease 9999999s,
+    color 9999999s ease 9999999s;
+}
+
+.ct-input:autofill {
+  background: transparent;
+}
+
 /* No ring on these inputs (user call: the green halo read as un-premium).
    The row IS the focus indicator — its label lights a rung and its edge
    tick stands — so the control needs no second announcement. */
