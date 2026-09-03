@@ -5693,7 +5693,7 @@ html {
    at rest — it exists only while a send is packing. */
 .ct-send-env {
   position: absolute;
-  left: 55%;
+  left: 50%; /* the button's true centre — bell and words are hidden while it shows (user catch, with `sent`'s) */
   top: 50%;
   transform: translate(-50%, -50%);
   width: 26px;
