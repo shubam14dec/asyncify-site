@@ -6181,33 +6181,25 @@ html.in-lock body {
   overflow: visible;
 }
 
-/* The word itself: real type in his face, sized in SVG user units — the
-   viewBox does the responsive scaling, so the mask pen and the glyphs can
-   never drift apart. */
-.in-sig-word {
+/* Eight letters, one word (user call, after two mask generations either
+   dropped ink or revealed neighbours early — the mask is gone): each
+   glyph is its own element, so it appears whole exactly when the pen
+   writes it. The stylesheet owns the rest state: invisible until then —
+   a slow boot cannot flash the finished word. */
+.in-sig-l {
   font-family: "Instrument Serif", Georgia, serif;
   font-style: italic;
   font-size: 200px;
   fill: #f4efe6;
   user-select: none;
+  opacity: 0;
 }
 
-/* The pen: fat white mask strokes hand-traced along the letterforms.
-   The stylesheet owns the rest state (DESIGN §3): offset === dasharray
-   paints nothing, so a slow boot cannot flash the finished word; 6000 is
-   comfortably longer than any stroke, and intro.ts replaces both with the
-   measured length before it writes. No vector-effect here, so dash space
-   is user units and getTotalLength() needs no scale correction. */
-.in-sig-m {
+/* The pen's guide rails: measured for the gold point's travel, never
+   painted. */
+.in-sig-g {
   fill: none;
-  stroke: #fff;
-  /* 40: wide enough to swallow Alex Brush's swells everywhere (user catch:
-     a thinner pen left mid-word chunks of the f loop unwritten). */
-  stroke-width: 40;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 6000;
-  stroke-dashoffset: 6000;
+  stroke: none;
 }
 
 /* ── the poster: the closed curtain, in CSS alone ───────────────────────── */

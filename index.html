@@ -130,36 +130,43 @@
              letter's own gestures; retraced in a 6-round probe loop). -->
         <svg class="in-sig" viewBox="260 45 660 300" aria-hidden="true" focusable="false">
           <defs>
-            <mask id="in-sig-mask" maskUnits="userSpaceOnUse" x="250" y="35" width="680" height="320">
-              <path class="in-sig-m" d="M 366 106 C 348 152 318 216 296 258 C 290 265 283 263 281 257"/>
-              <path class="in-sig-m" d="M 371 106 C 388 152 412 214 432 258 C 437 264 445 264 451 259"/>
-              <path class="in-sig-m" d="M 320 209 C 352 206 386 205 418 206"/>
-              <path class="in-sig-m" d="M 476 184 C 464 166 436 166 430 186 C 424 206 448 214 460 226 C 474 238 472 258 456 263 C 440 268 420 260 418 246"/>
-              <path class="in-sig-m" d="M 484 166 C 478 204 482 240 494 252 C 504 262 520 260 534 248"/>
-              <path class="in-sig-m" d="M 553 168 C 546 200 537 232 528 255 C 520 290 506 318 486 320 C 468 320 462 322 450 296 C 453 287 462 285 468 289"/>
-              <path class="in-sig-m" d="M 592 170 C 584 205 578 236 572 261"/>
-              <path class="in-sig-m" d="M 576 208 C 582 184 598 172 614 174 C 630 176 634 190 629 214 C 624 238 619 253 616 264"/>
-              <path class="in-sig-m" d="M 714 186 C 702 168 674 166 658 184 C 644 200 644 232 656 250 C 668 264 692 262 706 248"/>
-              <path class="in-sig-m" d="M 756 170 C 746 174 742 186 739 202 C 735 224 730 244 734 260"/>
-              <path class="in-sig-m" d="M 744 128 C 746 118 762 118 760 130 C 758 140 744 138 744 128"/>
-              <path class="in-sig-m" d="M 846 116 C 838 104 822 104 816 122 C 808 146 806 180 799 215 C 793 252 787 285 777 302 C 769 318 749 318 743 306 C 739 296 749 290 755 295"/>
-              <path class="in-sig-m" d="M 782 178 C 802 176 824 176 842 176"/>
-              <path class="in-sig-m" d="M 856 166 C 850 204 854 240 864 252 C 872 262 886 262 896 250"/>
-              <path class="in-sig-m" d="M 922 162 C 914 200 904 234 895 256 C 888 292 872 320 852 320 C 832 320 822 306 828 294 C 832 286 840 285 846 289"/>
-              <!-- THE INK GUARANTEE (user call: "make sure the ink is
-                   fully there"): as the pen lifts from the last stroke,
-                   intro.ts fades this flood to white, revealing the ENTIRE
-                   glyph area — any sliver the traced pen missed is filled
-                   by the time the word stands. The finished signature is
-                   complete by construction, not by trace accuracy. -->
-              <rect class="in-sig-flood" x="250" y="35" width="680" height="320" fill="#fff" opacity="0" />
-            </mask>
             <radialGradient id="in-pen-glow">
               <stop offset="0%" stop-color="#dcc48a" stop-opacity="0.55" />
               <stop offset="100%" stop-color="#dcc48a" stop-opacity="0" />
             </radialGradient>
           </defs>
-          <text class="in-sig-word" x="600" y="260" text-anchor="middle" mask="url(#in-sig-mask)">Asyncify</text>
+          <!-- NO MASK ANY MORE (user call, after two mask generations both
+               failed structurally: a traced mask either drops ink where
+               the trace misses, or — widened to compensate — reveals
+               slivers of the NEIGHBOUR letter early). The paths below are
+               invisible PEN GUIDES: the gold point travels them in writing
+               order, and each of the eight letters — its own real glyph,
+               placed at the word's measured advance offsets — materialises
+               while the pen traces it. A letter is whole by definition the
+               moment it exists, and nothing can leak between letters. -->
+          <path class="in-sig-g" d="M 366 106 C 348 152 318 216 296 258 C 290 265 283 263 281 257"/>
+          <path class="in-sig-g" d="M 371 106 C 388 152 412 214 432 258 C 437 264 445 264 451 259"/>
+          <path class="in-sig-g" d="M 320 209 C 352 206 386 205 418 206"/>
+          <path class="in-sig-g" d="M 476 184 C 464 166 436 166 430 186 C 424 206 448 214 460 226 C 474 238 472 258 456 263 C 440 268 420 260 418 246"/>
+          <path class="in-sig-g" d="M 484 166 C 478 204 482 240 494 252 C 504 262 520 260 534 248"/>
+          <path class="in-sig-g" d="M 553 168 C 546 200 537 232 528 255 C 520 290 506 318 486 320 C 468 320 462 322 450 296 C 453 287 462 285 468 289"/>
+          <path class="in-sig-g" d="M 592 170 C 584 205 578 236 572 261"/>
+          <path class="in-sig-g" d="M 576 208 C 582 184 598 172 614 174 C 630 176 634 190 629 214 C 624 238 619 253 616 264"/>
+          <path class="in-sig-g" d="M 714 186 C 702 168 674 166 658 184 C 644 200 644 232 656 250 C 668 264 692 262 706 248"/>
+          <path class="in-sig-g" d="M 756 170 C 746 174 742 186 739 202 C 735 224 730 244 734 260"/>
+          <path class="in-sig-g" d="M 744 128 C 746 118 762 118 760 130 C 758 140 744 138 744 128"/>
+          <path class="in-sig-g" d="M 846 116 C 838 104 822 104 816 122 C 808 146 806 180 799 215 C 793 252 787 285 777 302 C 769 318 749 318 743 306 C 739 296 749 290 755 295"/>
+          <path class="in-sig-g" d="M 782 178 C 802 176 824 176 842 176"/>
+          <path class="in-sig-g" d="M 856 166 C 850 204 854 240 864 252 C 872 262 886 262 896 250"/>
+          <path class="in-sig-g" d="M 922 162 C 914 200 904 234 895 256 C 888 292 872 320 852 320 C 832 320 822 306 828 294 C 832 286 840 285 846 289"/>
+          <text class="in-sig-l" x="299" y="260">A</text>
+          <text class="in-sig-l" x="390" y="260">s</text>
+          <text class="in-sig-l" x="451" y="260">y</text>
+          <text class="in-sig-l" x="534" y="260">n</text>
+          <text class="in-sig-l" x="639" y="260">c</text>
+          <text class="in-sig-l" x="709" y="260">i</text>
+          <text class="in-sig-l" x="766" y="260">f</text>
+          <text class="in-sig-l" x="821" y="260">y</text>
           <!-- THE PEN (user call: it should be visible): a point of warm
                light riding the stroke tip. intro.ts places it every frame
                at the reveal edge of the stroke being written, blinks it at

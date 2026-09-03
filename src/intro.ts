@@ -187,36 +187,11 @@ export function introGate(): Promise<void> {
       const halfL = root.querySelector<HTMLElement>(".in-half-l");
       const halfR = root.querySelector<HTMLElement>(".in-half-r");
       const host = root.querySelector<HTMLElement>("#in-canvas");
-      /* The mask pen's strokes, in authored (= writing) order — and the
-         visible pen itself, a point of light placed at the reveal edge. */
-      const sigPaths = Array.from(root.querySelectorAll<SVGPathElement>(".in-sig-m"));
+      /* The pen's guide paths (invisible rails, in writing order), the
+         eight letter glyphs they conjure, and the visible pen itself. */
+      const sigPaths = Array.from(root.querySelectorAll<SVGPathElement>(".in-sig-g"));
+      const sigLetters = Array.from(root.querySelectorAll<SVGTextElement>(".in-sig-l"));
       const pen = root.querySelector<SVGGElement>("#in-pen");
-
-      /* PER-STROKE INK SETTLE (user call: the fill must arrive WITH each
-         letter, not after the whole word). Every mask stroke gets a fat
-         clone — same path, much wider pen, fully drawn but transparent —
-         faded in as its stroke's pen finishes. Each letter is therefore
-         completely inked the moment it is written; the end-of-word flood
-         remains only as a silent backstop. Cloning at runtime keeps the
-         path data in one place. */
-      const settles: SVGPathElement[] = [];
-      try {
-        const sigMask = root.querySelector("#in-sig-mask");
-        if (sigMask) {
-          for (const p of sigPaths) {
-            const c = p.cloneNode(false) as SVGPathElement;
-            c.style.strokeWidth = "68";
-            c.style.strokeDasharray = "none";
-            c.style.strokeDashoffset = "0";
-            c.style.opacity = "0";
-            sigMask.appendChild(c);
-            settles.push(c);
-          }
-        }
-      } catch {
-        /* the settles are a guarantee, not a dependency — the pen still
-           writes without them */
-      }
 
       /* No button, no way in — and no way for the visitor out. Bail loudly
          to the page rather than sealing it behind an inert curtain. */
@@ -362,44 +337,46 @@ export function introGate(): Promise<void> {
 
           let penEnd = CLEAR + pull * SIG_CUE;
           if (sigPaths.length > 0) {
-            /* Stroke by stroke: each mask path is measured and
-               dash-revealed in writing order — A bowl, A stem, the running
-               s-y-n-c-i-f-y line, the i's dab — so the ink appears exactly
-               where a pen would put it down. SIG_WRITE is split by stroke
-               length; the small gap between strokes is the pen lifting.
-               power1.inOut per stroke: a pen accelerates out of a touch-down
-               and eases into a lift. */
+            /* THE WRITE, rebuilt from the root (user call, after reading
+               the whole mechanism): the traced-mask approach either
+               dropped ink where the trace missed or, widened to
+               compensate, revealed slivers of the neighbour letter early —
+               both structural. No mask any more: the pen traces invisible
+               guides, and each of the eight glyphs fades in across
+               exactly its own strokes' window. Whole letters, only ever
+               under the pen. */
             const LIFT = 0.07;
-            const lens = sigPaths.map((p) => {
-              const len = p.getTotalLength() + 2;
-              p.style.strokeDasharray = String(len);
-              p.style.strokeDashoffset = String(len);
-              return len;
-            });
-            const total = lens.reduce((a, b) => a + b, 0);
+            /* stroke index -> letter index: A(0-2) s(3) y(4-5) n(6-7)
+               c(8) i(9-10) f(11-12) y(13-14). */
+            const OWNER = [0, 0, 0, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6, 7, 7];
+            const lens = sigPaths.map((p) => p.getTotalLength());
+            const total = lens.reduce((a, b) => a + b, 0) || 1;
+            const letterStart: number[] = [];
+            const letterEnd: number[] = [];
             let at = penEnd;
             sigPaths.forEach((p, i) => {
               const len = lens[i] ?? 0;
               const d = SIG_WRITE * (len / total);
+              const owner = OWNER[i] ?? 7;
+              if (letterStart[owner] === undefined) letterStart[owner] = at;
+              letterEnd[owner] = at + d;
+              /* The pen rides a plain 0..1 progress along the guide —
+                 guarded, because a pen that fails to place must never
+                 take the letters down with it. */
+              const trace = { t: 0 };
               tl.to(
-                p,
+                trace,
                 {
-                  strokeDashoffset: 0,
+                  t: 1,
                   duration: d,
                   ease: "power1.inOut",
-                  /* The visible pen rides the reveal edge: the tip of the
-                     drawn dash is at (length − offset) along the path, and
-                     the current offset is read back from the style GSAP is
-                     animating. Guarded — a pen that fails to place must
-                     never take the writing down with it. */
                   onUpdate: () => {
                     if (!pen) return;
                     try {
-                      const off = parseFloat(p.style.strokeDashoffset || "0") || 0;
-                      const pt = p.getPointAtLength(Math.max(0, Math.min(len, len - off)));
+                      const pt = p.getPointAtLength(trace.t * len);
                       pen.setAttribute("transform", `translate(${pt.x} ${pt.y})`);
                     } catch {
-                      /* pen stalls; ink continues */
+                      /* pen stalls; the letters still arrive */
                     }
                   },
                 },
@@ -411,23 +388,20 @@ export function introGate(): Promise<void> {
                 if (i === 0) tl.to(pen, { opacity: 1, duration: 0.12 }, at);
                 else tl.fromTo(pen, { opacity: 0.3 }, { opacity: 1, duration: LIFT }, at - LIFT / 2);
               }
-              /* The stroke's ink settles as its pen finishes — the fat
-                 clone floods this stroke's full swells over the last
-                 fifth of the write, so the letter never waits for its
-                 missing slivers. */
-              const settle = settles[i];
-              if (settle) tl.to(settle, { opacity: 1, duration: 0.16, ease: "power1.out" }, at + d * 0.8);
               at += d + LIFT;
+            });
+            /* Each glyph rises across its own writing window: complete
+               ink from its first moment, materialising under the pen's
+               traverse of exactly that letter. */
+            sigLetters.forEach((el, k) => {
+              const start = letterStart[k];
+              const end = letterEnd[k];
+              if (start === undefined || end === undefined) return;
+              tl.to(el, { opacity: 1, duration: Math.max(0.2, end - start), ease: "power1.in" }, start);
             });
             penEnd = at - LIFT;
             /* The pen lifts away from the finished word. */
             if (pen) tl.to(pen, { opacity: 0, duration: 0.3 }, penEnd);
-            /* The ink guarantee (user call): as the pen lifts, the mask's
-               flood layer fades to white and reveals the whole glyph area,
-               so any sliver the traced strokes missed is filled in — the
-               finished word is complete by construction. */
-            const flood = root.querySelector<SVGRectElement>(".in-sig-flood");
-            if (flood) tl.to(flood, { opacity: 1, duration: 0.35, ease: "power1.out" }, penEnd - 0.1);
           }
 
           /* Hold on the finished picture — both the parted cloth and the
