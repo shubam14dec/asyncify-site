@@ -82,7 +82,7 @@ const FOLDS = 2; /* user-tuned: riding 6 → 10 → 3 → 6 → 4 total across t
  *  stroke-driven PHASE DRIFT slides the whole pattern along the hand's
  *  direction and springs back home. All of it stays trig-free per vertex
  *  via the angle-sum identity over precomputed cos/sin tables. */
-const FOLDS_B = 4.5;
+const FOLDS_B = 2.5; /* user call: the brush adds just ONE fold — 4 at rest, 5 disturbed */
 const RATE_A = Math.PI * 2 * FOLDS;
 const RATE_B = Math.PI * 2 * FOLDS_B;
 /** How fast the pleats reorganize toward the disturbed state, and how much
