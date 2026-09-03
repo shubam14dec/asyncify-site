@@ -52,9 +52,10 @@ const CLEAR = 0.35;
  *  opened, early enough that the two motions overlap and the writing is not
  *  an epilogue. */
 const SIG_CUE = 0.35;
-/* The pen travels every letterform; 2.2s read as hurried (user call:
-   "the writing speed is little fast") — a hand takes its time. */
-const SIG_WRITE = 3.2;
+/* User-tuned pacing, both directions: 2.2 read as hurried against the
+   old stroke-by-stroke write, 3.2 read as dragging once the letters
+   began materialising whole ("make this writting fast little bit"). */
+const SIG_WRITE = 2.4;
 
 /** A held beat on the finished word, then out. */
 const HOLD = 0.6;
