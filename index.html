@@ -129,21 +129,17 @@
              stroke (A's two diagonals + crossbar, then each lowercase
              letter's own gestures; retraced in a 6-round probe loop). -->
         <svg class="in-sig" viewBox="260 45 660 300" aria-hidden="true" focusable="false">
-          <defs>
-            <radialGradient id="in-pen-glow">
-              <stop offset="0%" stop-color="#dcc48a" stop-opacity="0.55" />
-              <stop offset="100%" stop-color="#dcc48a" stop-opacity="0" />
-            </radialGradient>
-          </defs>
           <!-- NO MASK ANY MORE (user call, after two mask generations both
                failed structurally: a traced mask either drops ink where
                the trace misses, or — widened to compensate — reveals
                slivers of the NEIGHBOUR letter early). The paths below are
-               invisible PEN GUIDES: the gold point travels them in writing
+               invisible TIMING RAILS: their lengths pace the writing
                order, and each of the eight letters — its own real glyph,
                placed at the word's measured advance offsets — materialises
-               while the pen traces it. A letter is whole by definition the
-               moment it exists, and nothing can leak between letters. -->
+               across exactly its own strokes' window. (The gold pen dot
+               that once travelled them was removed at the user's call.)
+               A letter is whole by definition the moment it exists, and
+               nothing can leak between letters. -->
           <path class="in-sig-g" d="M 366 106 C 348 152 318 216 296 258 C 290 265 283 263 281 257"/>
           <path class="in-sig-g" d="M 371 106 C 388 152 412 214 432 258 C 437 264 445 264 451 259"/>
           <path class="in-sig-g" d="M 320 209 C 352 206 386 205 418 206"/>
@@ -167,14 +163,6 @@
           <text class="in-sig-l" x="709" y="260">i</text>
           <text class="in-sig-l" x="766" y="260">f</text>
           <text class="in-sig-l" x="821" y="260">y</text>
-          <!-- THE PEN (user call: it should be visible): a point of warm
-               light riding the stroke tip. intro.ts places it every frame
-               at the reveal edge of the stroke being written, blinks it at
-               each pen lift, and lifts it away with the finished word. -->
-          <g id="in-pen" opacity="0">
-            <circle r="24" fill="url(#in-pen-glow)" />
-            <circle r="4.5" fill="#f7f1e2" />
-          </g>
         </svg>
       </div>
 

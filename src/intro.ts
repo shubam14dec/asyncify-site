@@ -187,11 +187,11 @@ export function introGate(): Promise<void> {
       const halfL = root.querySelector<HTMLElement>(".in-half-l");
       const halfR = root.querySelector<HTMLElement>(".in-half-r");
       const host = root.querySelector<HTMLElement>("#in-canvas");
-      /* The pen's guide paths (invisible rails, in writing order), the
-         eight letter glyphs they conjure, and the visible pen itself. */
+      /* The timing rails (invisible paths, in writing order — their
+         lengths pace the write) and the eight letter glyphs they pace.
+         (The visible gold pen dot was removed at the user's call.) */
       const sigPaths = Array.from(root.querySelectorAll<SVGPathElement>(".in-sig-g"));
       const sigLetters = Array.from(root.querySelectorAll<SVGTextElement>(".in-sig-l"));
-      const pen = root.querySelector<SVGGElement>("#in-pen");
 
       /* No button, no way in — and no way for the visitor out. Bail loudly
          to the page rather than sealing it behind an inert curtain. */
@@ -341,10 +341,9 @@ export function introGate(): Promise<void> {
                the whole mechanism): the traced-mask approach either
                dropped ink where the trace missed or, widened to
                compensate, revealed slivers of the neighbour letter early —
-               both structural. No mask any more: the pen traces invisible
-               guides, and each of the eight glyphs fades in across
-               exactly its own strokes' window. Whole letters, only ever
-               under the pen. */
+               both structural. No mask any more: each of the eight glyphs
+               fades in across exactly its own strokes' window, paced by
+               the invisible rails' lengths. Whole letters, on time. */
             const LIFT = 0.07;
             /* stroke index -> letter index: A(0-2) s(3) y(4-5) n(6-7)
                c(8) i(9-10) f(11-12) y(13-14). */
@@ -354,45 +353,17 @@ export function introGate(): Promise<void> {
             const letterStart: number[] = [];
             const letterEnd: number[] = [];
             let at = penEnd;
-            sigPaths.forEach((p, i) => {
+            sigPaths.forEach((_, i) => {
               const len = lens[i] ?? 0;
               const d = SIG_WRITE * (len / total);
               const owner = OWNER[i] ?? 7;
               if (letterStart[owner] === undefined) letterStart[owner] = at;
               letterEnd[owner] = at + d;
-              /* The pen rides a plain 0..1 progress along the guide —
-                 guarded, because a pen that fails to place must never
-                 take the letters down with it. */
-              const trace = { t: 0 };
-              tl.to(
-                trace,
-                {
-                  t: 1,
-                  duration: d,
-                  ease: "power1.inOut",
-                  onUpdate: () => {
-                    if (!pen) return;
-                    try {
-                      const pt = p.getPointAtLength(trace.t * len);
-                      pen.setAttribute("transform", `translate(${pt.x} ${pt.y})`);
-                    } catch {
-                      /* pen stalls; the letters still arrive */
-                    }
-                  },
-                },
-                at,
-              );
-              /* The pen blinks low as the hand lifts between strokes and
-                 lands with the next touch-down. */
-              if (pen) {
-                if (i === 0) tl.to(pen, { opacity: 1, duration: 0.12 }, at);
-                else tl.fromTo(pen, { opacity: 0.3 }, { opacity: 1, duration: LIFT }, at - LIFT / 2);
-              }
               at += d + LIFT;
             });
             /* Each glyph rises across its own writing window: complete
-               ink from its first moment, materialising under the pen's
-               traverse of exactly that letter. */
+               ink from its first moment, materialising through exactly
+               that letter's beat of the write. */
             sigLetters.forEach((el, k) => {
               const start = letterStart[k];
               const end = letterEnd[k];
@@ -400,8 +371,6 @@ export function introGate(): Promise<void> {
               tl.to(el, { opacity: 1, duration: Math.max(0.2, end - start), ease: "power1.in" }, start);
             });
             penEnd = at - LIFT;
-            /* The pen lifts away from the finished word. */
-            if (pen) tl.to(pen, { opacity: 0, duration: 0.3 }, penEnd);
           }
 
           /* Hold on the finished picture — both the parted cloth and the
