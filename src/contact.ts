@@ -266,6 +266,25 @@ function ringBell(): void {
   tl.to(clapper, { fill: CANVAS, scale: 1, duration: 0.4, ease: "power2.out", svgOrigin: "0 17.5" }, 0.22);
 }
 
+/* Page-transition telemetry, main.ts's twin: silent unless a transition
+   dies, then one console.debug names the reason. */
+window.addEventListener("pagereveal", (e: Event) => {
+  const vt = (e as Event & { viewTransition?: { finished: Promise<void> } }).viewTransition;
+  if (vt) {
+    vt.finished.catch((err: DOMException) =>
+      console.debug("[vt] transition skipped:", err.name, err.message),
+    );
+    return;
+  }
+  try {
+    if (document.referrer && new URL(document.referrer).origin === location.origin) {
+      console.debug("[vt] no transition armed for a same-site arrival");
+    }
+  } catch {
+    /* external referrer */
+  }
+});
+
 /* THE ARRIVAL PULSE (the hybrid's second half): a reader who navigated here
    from inside the site arrived AS a message, and the brand's delivered-dot
    beats once to receive them — scale only, because the dot's resting breath

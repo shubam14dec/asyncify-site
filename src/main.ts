@@ -57,6 +57,28 @@ gsap.registerPlugin(
   SplitText,
 );
 
+/* Page-transition telemetry: silent unless a cross-document transition
+   DIES, then one console.debug names the reason (TimeoutError = the next
+   page missed Chrome's 4s render budget; "none" = the browser never armed
+   one for a same-site arrival). Costs nothing, answers "why did the scene
+   change skip" without guessing. */
+window.addEventListener("pagereveal", (e: Event) => {
+  const vt = (e as Event & { viewTransition?: { finished: Promise<void> } }).viewTransition;
+  if (vt) {
+    vt.finished.catch((err: DOMException) =>
+      console.debug("[vt] transition skipped:", err.name, err.message),
+    );
+    return;
+  }
+  try {
+    if (document.referrer && new URL(document.referrer).origin === location.origin) {
+      console.debug("[vt] no transition armed for a same-site arrival");
+    }
+  } catch {
+    /* external referrer */
+  }
+});
+
 /* The nav's Install link GLIDES to the headline rather than teleporting
    (user call: "it should scroll and take me"). The href stays a real
    anchor — no-JS and reduced-motion readers get the browser's own jump —
