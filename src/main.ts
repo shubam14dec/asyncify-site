@@ -57,67 +57,6 @@ gsap.registerPlugin(
   SplitText,
 );
 
-/* Page-transition telemetry: silent unless a cross-document transition
-   DIES, then one console.debug names the reason (TimeoutError = the next
-   page missed Chrome's 4s render budget; "none" = the browser never armed
-   one for a same-site arrival). Costs nothing, answers "why did the scene
-   change skip" without guessing. */
-window.addEventListener("pagereveal", (e: Event) => {
-  const vt = (
-    e as Event & {
-      viewTransition?: { ready: Promise<void>; finished: Promise<void> };
-    }
-  ).viewTransition;
-  if (vt) {
-    /* BOTH promises, because a skipped transition rejects both and an
-       unhandled `ready` surfaces as an uncaught AbortError in the console
-       (his paste proved it). One log, no noise. */
-    vt.ready.catch(() => {});
-    vt.finished.catch((err: DOMException) =>
-      console.debug("[vt] transition skipped:", err.name, err.message),
-    );
-    /* AND the whole page holds its breath: his AbortError came with 199ms
-       rAF frames — the bell entrance fighting the transition for the main
-       thread, and the transition losing. GSAP pauses for the ~440ms the
-       scene change runs and resumes the instant it settles (or dies);
-       every entrance beat plays exactly as authored, just after the page
-       has finished arriving. */
-    gsap.globalTimeline.pause();
-    const resume = (): void => {
-      gsap.globalTimeline.resume();
-    };
-    vt.finished.then(resume, resume);
-    return;
-  }
-  try {
-    if (document.referrer && new URL(document.referrer).origin === location.origin) {
-      console.debug("[vt] no transition armed for a same-site arrival");
-    }
-  } catch {
-    /* external referrer */
-  }
-});
-
-/* The OUTGOING side of the same telemetry: the leaving document holds its
-   own transition object, and a skip rejects ITS promises too — the second
-   source of his uncaught AbortError. Caught, and GSAP stops ticking so the
-   old page's last frames cost the capture nothing. */
-window.addEventListener("pageswap", (e: Event) => {
-  const vt = (
-    e as Event & {
-      viewTransition?: { ready: Promise<void>; finished: Promise<void> };
-    }
-  ).viewTransition;
-  if (!vt) return;
-  vt.ready.catch(() => {});
-  vt.finished.catch(() => {});
-  gsap.globalTimeline.pause();
-  const resume = (): void => {
-    gsap.globalTimeline.resume();
-  };
-  vt.finished.then(resume, resume);
-});
-
 /* The nav's Install link GLIDES to the headline rather than teleporting
    (user call: "it should scroll and take me"). The href stays a real
    anchor — no-JS and reduced-motion readers get the browser's own jump —
