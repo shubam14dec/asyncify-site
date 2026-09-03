@@ -74,6 +74,28 @@ const SEG_Y = 64;
  *  count. */
 const FOLDS = 1.5; /* user-tuned: riding 6 → 10 → 3 total across the stage */
 
+/** THE LIVING PLEATS (user call: real brushed cloth CHANGES its fold count
+ *  and the folds SHIFT). Two fold tables per half — the rest state above
+ *  and a disturbed state with more, tighter folds — blended per vertex by
+ *  the wake's local energy: cloth bunches into extra folds under the
+ *  stroke and lazily relaxes back to the broad rest pleats. On top, a
+ *  stroke-driven PHASE DRIFT slides the whole pattern along the hand's
+ *  direction and springs back home. All of it stays trig-free per vertex
+ *  via the angle-sum identity over precomputed cos/sin tables. */
+const FOLDS_B = 4.5;
+const RATE_A = Math.PI * 2 * FOLDS;
+const RATE_B = Math.PI * 2 * FOLDS_B;
+/** How fast the pleats reorganize toward the disturbed state, and how much
+ *  more lazily they settle back. */
+const MIX_IN = 0.055;
+const MIX_OUT = 0.012;
+/** Local field magnitude → extra local fold-mix. */
+const MIX_LOCAL = 9.0;
+/** Stroke → phase drift coupling, its damping, and its travel cap (rad). */
+const DRIFT_K = 2.6;
+const DRIFT_DAMP = 0.975;
+const DRIFT_MAX = 1.6;
+
 /** The secondary ripple rides at 2.6× the primary and 0.34 of its depth —
  *  incommensurate, so no two folds in the run are quite the same shape. */
 const RIPPLE_RATE = 2.6;
@@ -164,9 +186,18 @@ interface Half {
   /** m^0.8 (deepening) and m³ (the leading-edge lift). */
   mSoft: Float32Array;
   mCube: Float32Array;
-  /** The fold profile and its derivative, both functions of m alone. */
-  fold: Float32Array;
-  dfold: Float32Array;
+  /** The two fold states, as cos/sin pairs of primary (P) and ripple (R)
+   *  angles — the angle-sum identity turns a live phase drift and a
+   *  two-state blend into pure arithmetic per vertex. A = rest, B =
+   *  disturbed (more, tighter folds). */
+  foldAcP: Float32Array;
+  foldAsP: Float32Array;
+  foldAcR: Float32Array;
+  foldAsR: Float32Array;
+  foldBcP: Float32Array;
+  foldBsP: Float32Array;
+  foldBcR: Float32Array;
+  foldBsR: Float32Array;
   /** Material coordinate, 0 at the outer (stack) edge, 1 at the leading edge. */
   m: Float32Array;
   /** Height coordinate, 0 at the hem, 1 at the rail. */
@@ -326,8 +357,14 @@ export function mount(container: HTMLElement): Curtain {
       mPowD: new Float32Array(n),
       mSoft: new Float32Array(n),
       mCube: new Float32Array(n),
-      fold: new Float32Array(n),
-      dfold: new Float32Array(n),
+      foldAcP: new Float32Array(n),
+      foldAsP: new Float32Array(n),
+      foldAcR: new Float32Array(n),
+      foldAsR: new Float32Array(n),
+      foldBcP: new Float32Array(n),
+      foldBsP: new Float32Array(n),
+      foldBcR: new Float32Array(n),
+      foldBsR: new Float32Array(n),
       m: new Float32Array(n),
       v: new Float32Array(n),
       ampV: new Float32Array(n),
@@ -340,9 +377,13 @@ export function mount(container: HTMLElement): Curtain {
 
     const A = Math.PI * 2 * FOLDS;
     const B = A * RIPPLE_RATE;
+    const A2 = Math.PI * 2 * FOLDS_B;
+    const B2 = A2 * RIPPLE_RATE;
     /* Offset phases so neither half starts on a crest at its outer edge. */
     const p0 = dir > 0 ? 0.42 : 2.15;
     const p1 = dir > 0 ? 1.9 : 0.6;
+    const q0 = dir > 0 ? 1.1 : 2.7;
+    const q1 = dir > 0 ? 0.3 : 1.4;
 
     for (let i = 0; i < n; i++) {
       /* PlaneGeometry(1,1) puts x in [−0.5, 0.5] and y in [−0.5, 0.5]. The
@@ -360,8 +401,14 @@ export function mount(container: HTMLElement): Curtain {
       half.mPowD[i] = Math.pow(m, PACK - 1);
       half.mSoft[i] = Math.pow(m, 0.8);
       half.mCube[i] = m * m * m;
-      half.fold[i] = Math.cos(A * m + p0) + RIPPLE_DEPTH * Math.cos(B * m + p1);
-      half.dfold[i] = -A * Math.sin(A * m + p0) - RIPPLE_DEPTH * B * Math.sin(B * m + p1);
+      half.foldAcP[i] = Math.cos(A * m + p0);
+      half.foldAsP[i] = Math.sin(A * m + p0);
+      half.foldAcR[i] = Math.cos(B * m + p1);
+      half.foldAsR[i] = Math.sin(B * m + p1);
+      half.foldBcP[i] = Math.cos(A2 * m + q0);
+      half.foldBsP[i] = Math.sin(A2 * m + q0);
+      half.foldBcR[i] = Math.cos(B2 * m + q1);
+      half.foldBsR[i] = Math.sin(B2 * m + q1);
 
       /* Fabric is gathered tight at the rail and hangs open at the hem, so
          the folds are shallowest at the top and deepest at the bottom. */
@@ -416,8 +463,16 @@ export function mount(container: HTMLElement): Curtain {
     const aMPowD = half.mPowD;
     const aMSoft = half.mSoft;
     const aMCube = half.mCube;
-    const aFold = half.fold;
-    const aDFold = half.dfold;
+    const aAcP = half.foldAcP;
+    const aAsP = half.foldAsP;
+    const aAcR = half.foldAcR;
+    const aAsR = half.foldAsR;
+    const aBcP = half.foldBcP;
+    const aBsP = half.foldBsP;
+    const aBcR = half.foldBcR;
+    const aBsR = half.foldBsR;
+    const RATE_AR = RATE_A * RIPPLE_RATE;
+    const RATE_BR = RATE_B * RIPPLE_RATE;
     const aAmpV = half.ampV;
     const aDAmpV = half.dampV;
     const aHem = half.hem;
@@ -461,30 +516,46 @@ export function mount(container: HTMLElement): Curtain {
          without the call. */
       const liftY = lift * (4 * tv * utv) * aMCube[i]!;
 
-      const fold = aFold[i]!;
       const j = i * 3;
       const wx = xOuter + dir * g * span + sway;
       const wy = (v - 0.5) * height - sagAmt * aSag[i]! + liftY;
-      let wz = depth * fold + env * swayZ;
+
+      /* THE WAKE first: its local energy also drives the pleats' living
+         reorganization below. */
+      let fz = 0;
+      let fgx = 0;
+      let fgy = 0;
+      if (fieldOn) {
+        sampleField(wx, wy);
+        fz = fieldOut[0]!;
+        fgx = fieldOut[1]!;
+        fgy = fieldOut[2]!;
+      }
+
+      /* THE LIVING PLEATS: the two fold states, each phase-shifted by the
+         stroke drift (angle-sum identities over the precomputed tables),
+         blended by global energy + the wake's local magnitude — cloth
+         bunches into more, tighter folds under the hand and settles back. */
+      let mix = mixG + (fz > 0 ? fz : -fz) * MIX_LOCAL;
+      if (mix > 1) mix = 1;
+      const um = 1 - mix;
+      const fA = aAcP[i]! * cD - aAsP[i]! * sD + RIPPLE_DEPTH * (aAcR[i]! * cD2 - aAsR[i]! * sD2);
+      const dA = -RATE_A * (aAsP[i]! * cD + aAcP[i]! * sD) - RIPPLE_DEPTH * RATE_AR * (aAsR[i]! * cD2 + aAcR[i]! * sD2);
+      const fB = aBcP[i]! * cD - aBsP[i]! * sD + RIPPLE_DEPTH * (aBcR[i]! * cD2 - aBsR[i]! * sD2);
+      const dB = -RATE_B * (aBsP[i]! * cD + aBcP[i]! * sD) - RIPPLE_DEPTH * RATE_BR * (aBsR[i]! * cD2 + aBcR[i]! * sD2);
+      const fold = um * fA + mix * fB;
+      const dfold = um * dA + mix * dB;
+
+      const wz = depth * fold + env * swayZ + fz * fieldAmp;
 
       /* ANALYTIC NORMALS. z is a height field over (x, y), so the surface
          normal is (−∂z/∂x, −∂z/∂y, 1) normalised. ∂z/∂x comes through the
          material: (dz/dm)/(dx/dm), and dx/dm is dir·span·gp — which is why
          a compressed region automatically gets steeper, brighter fold walls
-         instead of the flat shading a screen-space fold would give. */
-      let nx = -(depth * aDFold[i]!) / (dir * span * gp);
-      let ny = -(amp * aDAmpV[i]! * ampT * fold) / height;
-
-      /* THE WAKE: sample the wave field at this point of cloth. The field's
-         slope folds into the normals, so every travelling ripple SHADES —
-         crests catch the wash, troughs darken — instead of reading as a
-         flat decal. */
-      if (fieldOn) {
-        sampleField(wx, wy);
-        wz += fieldOut[0]! * fieldAmp;
-        nx -= fieldOut[1]! * fieldAmp;
-        ny -= fieldOut[2]! * fieldAmp;
-      }
+         instead of the flat shading a screen-space fold would give. The
+         wake's slope rides in as well, so ripples shade too. */
+      const nx = -(depth * dfold) / (dir * span * gp) - fgx * fieldAmp;
+      const ny = -(amp * aDAmpV[i]! * ampT * fold) / height - fgy * fieldAmp;
 
       pos[j] = wx;
       pos[j + 1] = wy;
@@ -576,6 +647,8 @@ export function mount(container: HTMLElement): Curtain {
          a resting touch barely stirs the cloth, a sweep shoves it. */
       const dx = handX - handPX;
       const dy = handY - handPY;
+      /* The stroke's sideways component feeds the pleats' phase drift. */
+      strokeVX = (dx / Math.max(viewW, 0.001)) * handStrength;
       const speed = Math.sqrt(dx * dx + dy * dy) / Math.max(viewW, 0.001);
       let force = FIELD_TOUCH * (handFresh ? 1 : 0.2) + FIELD_STROKE * speed * 14;
       if (force > FIELD_MAX_IMPULSE) force = FIELD_MAX_IMPULSE;
@@ -649,6 +722,15 @@ export function mount(container: HTMLElement): Curtain {
   let openStart = 0;
   let opening = false;
   let fieldEnergy = 0;
+  /* The living pleats' state: global mix, phase drift, and the per-frame
+     cos/sin of the drift the shape loop reads. */
+  let mixG = 0;
+  let drift = 0;
+  let strokeVX = 0;
+  let cD = 1;
+  let sD = 0;
+  let cD2 = 1;
+  let sD2 = 0;
   let t = 0;
   let resolveOpen: (() => void) | null = null;
   const t0 = performance.now();
@@ -686,6 +768,18 @@ export function mount(container: HTMLElement): Curtain {
        is not. */
     const handTarget = handIn ? 1 - t : 0;
     handStrength += (handTarget - handStrength) * 0.08;
+    /* The living pleats: drift follows the stroke and springs home; the
+       mix chases the wake's energy in quickly and settles out lazily. */
+    drift = drift * DRIFT_DAMP + strokeVX * DRIFT_K;
+    if (drift > DRIFT_MAX) drift = DRIFT_MAX;
+    else if (drift < -DRIFT_MAX) drift = -DRIFT_MAX;
+    strokeVX = 0;
+    cD = Math.cos(drift);
+    sD = Math.sin(drift);
+    cD2 = Math.cos(drift * 1.6);
+    sD2 = Math.sin(drift * 1.6);
+    const mixTarget = Math.min(1, handStrength * 0.35 + fieldEnergy * 26) * (1 - t);
+    mixG += (mixTarget - mixG) * (mixTarget > mixG ? MIX_IN : MIX_OUT);
     stepField();
     fieldEnergy = 0;
     for (let i = 0; i < fieldZ.length; i += 7) {
