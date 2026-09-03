@@ -209,7 +209,7 @@ export function mount(container: HTMLElement): Curtain {
     roughness: 0.85,
     metalness: 0,
     sheen: 1,
-    sheenColor: new Color(0x9a9186),
+    sheenColor: new Color(0x8c8c8c),
     sheenRoughness: 0.5,
   });
 
@@ -218,12 +218,11 @@ export function mount(container: HTMLElement): Curtain {
      so the pool falls off down the cloth instead of drawing an edge. No
      decay: this is a theatre lamp a long way off, not a bulb in the room,
      and no shadow map — the fold normals do every bit of the shading. */
-  /* Grade round 3 (probe loop): rounds 1-2 proved the HUE was the problem —
-     a champagne lamp tints black cloth chocolate no matter the intensity.
-     Black velvet under stage light reads as black cloth with near-NEUTRAL
-     silvery-warm crest light, so the lamp goes almost white with only a
-     whisper of warmth, and the narrower cone pools it centre-top. */
-  const spot = new SpotLight(0xf7efdd, 3.0, 0, 0.9, 0.95, 0);
+  /* Grade round 4 (user verdict on 3: still not black): even a whisper of
+     warmth reads brown on dark cloth, so the grade goes fully MONOCHROME —
+     black velvet under a silver-gray lamp. With zero hue anywhere in the
+     light path, the cloth cannot read as anything but black. */
+  const spot = new SpotLight(0xededed, 3.0, 0, 0.9, 0.95, 0);
   spot.position.set(0, 4.4, 4.2);
   const spotTarget = new Object3D();
   spotTarget.position.set(0, -0.7, 0);
@@ -233,7 +232,7 @@ export function mount(container: HTMLElement): Curtain {
   /* Enough to keep the valleys from clipping to absolute nothing. */
   const ambient = new AmbientLight(0x0b0b0d, 0.7);
   /* A dim front fill so the fabric nearest the camera is not a silhouette. */
-  const fill = new DirectionalLight(0xcfc6b8, 0.1);
+  const fill = new DirectionalLight(0xbfbfbf, 0.1);
   fill.position.set(0.4, 0.3, 1);
   scene.add(ambient, fill);
 
