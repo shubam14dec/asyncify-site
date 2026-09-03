@@ -266,6 +266,25 @@ function ringBell(): void {
   tl.to(clapper, { fill: CANVAS, scale: 1, duration: 0.4, ease: "power2.out", svgOrigin: "0 17.5" }, 0.22);
 }
 
+/* THE ARRIVAL PULSE (the hybrid's second half): a reader who navigated here
+   from inside the site arrived AS a message, and the brand's delivered-dot
+   beats once to receive them — scale only, because the dot's resting breath
+   already owns its opacity. Same-origin referrer is the whole test: an
+   external visitor gets no claim of having been delivered. */
+if (!reduced) {
+  try {
+    if (document.referrer && new URL(document.referrer).origin === location.origin) {
+      gsap.fromTo(
+        q<HTMLElement>(".brand-dot"),
+        { scale: 1.35 },
+        { scale: 1, duration: 0.5, ease: "power2.out", delay: 0.2 },
+      );
+    }
+  } catch {
+    /* an unparseable referrer is an external one */
+  }
+}
+
 /* The hover's motion IS the bell (user call, replacing the scale): a fine
    pointer arriving on a live button gets the strike — the same one the
    click and the envelope's hand-off play, and the `ringing` guard keeps

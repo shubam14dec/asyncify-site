@@ -5909,6 +5909,55 @@ html {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   PAGE-TO-PAGE TRANSITIONS — the scene change (user pick: the hybrid)
+   Cross-document view transitions: the page you leave dims and SINKS a few
+   pixels into the canvas, the dark holds for a breath, and the page you
+   arrive on rises out of it — the same motion grammar the scenes use to
+   materialize on scroll. Chrome/Edge animate it; Firefox/Safari fall back
+   to the instant swap, which is the correct graceful floor. The masthead is
+   deliberately NOT pinned across pages: home's nav is entrance-gated, and a
+   shared element that morphs into an invisible one reads as the brand dying.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@view-transition {
+  navigation: auto;
+}
+
+/* The dark breath between the two pages: the overlay's own ground. */
+::view-transition {
+  background: var(--canvas);
+}
+
+::view-transition-old(root) {
+  animation: 180ms cubic-bezier(0.4, 0, 1, 1) both vt-sink;
+}
+
+::view-transition-new(root) {
+  animation: 260ms cubic-bezier(0, 0, 0.2, 1) 140ms both vt-rise;
+}
+
+@keyframes vt-sink {
+  to {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes vt-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
 /* ── one screen (user call: no scroll) ──────────────────────────────────
    The page's whole budget is nav + title + card; on a short laptop the
    flexible costs shrink rather than the page growing a scrollbar. */
