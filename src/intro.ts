@@ -85,6 +85,7 @@ export function introGate(): Promise<void> {
     let finished = false;
     let started = false;
     let watchdog = 0;
+    let loadTick = 0;
     let curtain: { open(): Promise<void>; invite(on: boolean): void; dispose(): void } | null = null;
     let timeline: ReturnType<typeof gsap.timeline> | null = null;
 
@@ -98,6 +99,7 @@ export function introGate(): Promise<void> {
       finished = true;
       try {
         window.clearTimeout(watchdog);
+        window.clearInterval(loadTick);
       } catch {
         /* nothing to clear */
       }
@@ -222,10 +224,35 @@ export function introGate(): Promise<void> {
          loading screen: it starts hidden and appears solely on the
          fallback path — the chunk failing, or hanging past its budget —
          because the page must never be sealed behind an empty overlay. */
+      /* THE LOAD READOUT (user call): the wait shows a percentage, and the
+         velvet enters only at 100. A dynamic import exposes no byte
+         progress, so the number is an eased ramp that asymptotes at 93 and
+         is driven to 100 the moment the chunk actually resolves — honest
+         about completion, smooth about the middle. */
+      const loadBox = root.querySelector<HTMLElement>("#in-load");
+      const loadNum = root.querySelector<HTMLElement>("#in-load-num");
+      const pace = { p: 0 };
+      const setPct = (): void => {
+        if (loadNum) loadNum.textContent = `${Math.floor(pace.p)}%`;
+      };
+      loadTick = window.setInterval(() => {
+        pace.p += (93 - pace.p) * 0.085;
+        setPct();
+      }, 90);
+      const hideReadout = (): void => {
+        try {
+          window.clearInterval(loadTick);
+          if (loadBox) gsap.to(loadBox, { opacity: 0, duration: 0.3, ease: "power1.out" });
+        } catch {
+          /* the readout is decoration; never let it block a path */
+        }
+      };
+
       let fellBack = false;
       const fallBack = (): void => {
         if (finished || started || curtain || fellBack) return;
         fellBack = true;
+        hideReadout();
         root.classList.add("in-fallback");
       };
       /* A chunk that has not landed after 4s is not landing in time to be
@@ -238,12 +265,25 @@ export function introGate(): Promise<void> {
                show already started against it. */
             if (finished || started || fellBack) return;
             window.clearTimeout(fallbackTimer);
+            /* Mount now (hidden) so the first GL frame compiles while the
+               counter finishes its run to 100. */
             curtain = mod.mount(host);
-            /* The stylesheet gates the CSS invitation (words + glow) on
-               these classes — with real WebGL, the painted words and the
-               pool do the inviting. */
-            root.classList.add("in-gl");
-            gsap.to(host, { opacity: 1, duration: 0.6, ease: "power1.inOut" });
+            window.clearInterval(loadTick);
+            gsap.to(pace, {
+              p: 100,
+              duration: 0.4,
+              ease: "power1.out",
+              onUpdate: setPct,
+              onComplete: () => {
+                if (finished || started) return;
+                hideReadout();
+                /* The stylesheet gates the CSS invitation (words + glow)
+                   on these classes — with real WebGL, the painted words
+                   and the pool do the inviting. */
+                root.classList.add("in-gl");
+                gsap.to(host, { opacity: 1, duration: 0.6, ease: "power1.inOut" });
+              },
+            });
           })
           .catch(fallBack);
       } else {

@@ -6157,12 +6157,13 @@ html.in-lock body {
 
 /* ── the stage, behind the cloth ────────────────────────────────────────── */
 
-/* True black, not --canvas: the parting curtains have to read against
-   something darker than their own lit crests, or the reveal has no depth. */
+/* The site's own black (user call: the wait should be the home screen's
+   black, not a void). The lit crests still read against it — #0a0a0a is
+   far below their #2a2a2a — so the reveal keeps its depth. */
 .in-stage {
   position: absolute;
   inset: 0;
-  background: #000;
+  background: #0a0a0a;
   display: grid;
   place-items: center;
 }
@@ -6427,6 +6428,33 @@ html.in-lock body {
 }
 
 /* ── the way out ────────────────────────────────────────────────────────── */
+
+/* The load readout: number over label, right-aligned with skip below it.
+   Muted grays in the site's mono — chrome, not content; intro.ts drives
+   the number and fades the whole box before the velvet enters. */
+.in-load {
+  position: absolute;
+  right: 28px;
+  bottom: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.in-load-num {
+  font-family: var(--mono);
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+  color: #8a8a8a;
+}
+
+.in-load-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: #555555;
+}
 
 .in-skip {
   position: absolute;
