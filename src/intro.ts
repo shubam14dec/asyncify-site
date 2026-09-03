@@ -210,12 +210,11 @@ export function introGate(): Promise<void> {
       for (const type of SWALLOWED)
         window.addEventListener(type, swallow, { capture: true, passive: true });
 
-      /* Warm the signature face while the visitor waits. It is the site's
-         own Instrument italic (already in the page's @fontsource set), so
-         this is usually already resolved — but the word must never write
-         itself in a fallback serif. Fire-and-forget. */
+      /* Warm the signature face while the visitor waits: the letters must
+         never materialise in a fallback script. Fire-and-forget;
+         font-display: block backs it up. */
       try {
-        void document.fonts.load('italic 400 100px "Instrument Serif"');
+        void document.fonts.load('400 100px "AsyncifySig"');
       } catch {
         /* No FontFaceSet: font-display does its best alone. */
       }

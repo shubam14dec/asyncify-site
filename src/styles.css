@@ -6168,11 +6168,16 @@ html.in-lock body {
   place-items: center;
 }
 
-/* No @font-face here any more (user call, ending the imported-script era:
-   Awesome -> Alex Brush -> the site's own voice): the signature is set in
-   Instrument Serif italic, which the page already loads via @fontsource
-   for "say.", "agentic", and the doodle captions. The intro adds zero
-   font bytes and finally speaks the site's design language. */
+/* The cursive is back (user call): Alex Brush, his pick B — SIL OFL, so
+   shippable. Fetched only when the intro will actually run: the sole
+   selector using it lives inside #intro, which a returning visitor's head
+   script hides before first paint. `block` because the letters rest
+   invisible anyway — a fallback flash is the only wrong outcome. */
+@font-face {
+  font-family: "AsyncifySig";
+  src: url("/fonts/alexbrush.ttf") format("truetype");
+  font-display: block;
+}
 
 .in-sig {
   /* Down from min(64vw, 620px) — user call: the word ran too big. */
@@ -6187,8 +6192,7 @@ html.in-lock body {
    writes it. The stylesheet owns the rest state: invisible until then —
    a slow boot cannot flash the finished word. */
 .in-sig-l {
-  font-family: "Instrument Serif", Georgia, serif;
-  font-style: italic;
+  font-family: "AsyncifySig", "Segoe Script", cursive;
   font-size: 200px;
   fill: #f4efe6;
   user-select: none;
