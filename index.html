@@ -90,9 +90,10 @@
          layers, back to front:
            .in-stage    near-black stage + the "Asyncify" signature, set in
                         Alex Brush and written letter by letter by a mask pen.
-           .in-poster   the pure-CSS closed curtain — zero JS, painted with
-                        the first frame, and the ONLY curtain if WebGL is
-                        unavailable (it opens by transform instead).
+           .in-poster   the pure-CSS fallback curtain — HIDDEN by default
+                        (user call: the first frame is plain black, never a
+                        stand-in); it appears only if the WebGL chunk fails
+                        or hangs, and then opens by transform.
            .in-canvas   the three.js velvet, cross-faded over the poster once
                         its chunk lands.  Loaded by dynamic import only.
            .in-valance  the pelmet strip and its gold hairline.

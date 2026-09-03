@@ -178,7 +178,6 @@ export function introGate(): Promise<void> {
     try {
       const btn = root.querySelector<HTMLButtonElement>("#in-open");
       const skip = root.querySelector<HTMLButtonElement>("#in-skip");
-      const poster = root.querySelector<HTMLElement>(".in-poster");
       const halfL = root.querySelector<HTMLElement>(".in-half-l");
       const halfR = root.querySelector<HTMLElement>(".in-half-r");
       const host = root.querySelector<HTMLElement>("#in-canvas");
@@ -214,29 +213,41 @@ export function introGate(): Promise<void> {
         /* No FontFaceSet: font-display does its best alone. */
       }
 
-      /* ── the velvet, if it will come ───────────────────────────────────
-         Requested immediately, not on click: the chunk is large and the
-         visitor's reading of "click to reveal" is the loading budget. If it
-         lands, it cross-fades over the CSS poster showing the same closed
-         cloth, so the swap is invisible. If it never lands — no WebGL, a
-         blocked chunk, an integrated driver that refuses a context — the
-         poster simply stays and opens by transform instead. Nothing about
-         the flow below branches on WHY. */
+      /* ── the velvet, or nothing ────────────────────────────────────────
+         DIRECT TO THE REAL CURTAIN (user call, after two rounds of trying
+         to disguise the stand-in: "why dont u directly go to the correct
+         curtain rather then these fake once"). The first frame is plain
+         black — house lights down — and the ONLY curtain that ever fades
+         in over it is the WebGL velvet. The CSS poster is no longer a
+         loading screen: it starts hidden and appears solely on the
+         fallback path — the chunk failing, or hanging past its budget —
+         because the page must never be sealed behind an empty overlay. */
+      let fellBack = false;
+      const fallBack = (): void => {
+        if (finished || started || curtain || fellBack) return;
+        fellBack = true;
+        root.classList.add("in-fallback");
+      };
+      /* A chunk that has not landed after 4s is not landing in time to be
+         the first act; the CSS curtain takes the stage instead. */
+      const fallbackTimer = window.setTimeout(fallBack, 4000);
       if (host) {
         void import("./curtain")
           .then((mod) => {
-            /* Too late to swap mid-pull: the poster is already moving. */
-            if (finished || started) return;
+            /* Too late: the CSS fallback already took the stage, or the
+               show already started against it. */
+            if (finished || started || fellBack) return;
+            window.clearTimeout(fallbackTimer);
             curtain = mod.mount(host);
-            /* The stylesheet gates the CSS fallback glow on this class being
-               ABSENT — with real WebGL, the pool light does the inviting. */
+            /* The stylesheet gates the CSS invitation (words + glow) on
+               these classes — with real WebGL, the painted words and the
+               pool do the inviting. */
             root.classList.add("in-gl");
-            gsap.to(host, { opacity: 1, duration: 0.5, ease: "power1.inOut" });
-            if (poster) gsap.to(poster, { opacity: 0, duration: 0.5, ease: "power1.inOut" });
+            gsap.to(host, { opacity: 1, duration: 0.6, ease: "power1.inOut" });
           })
-          .catch(() => {
-            /* The poster is the fallback and it is already on screen. */
-          });
+          .catch(fallBack);
+      } else {
+        fallBack();
       }
 
       const reveal = (): void => {

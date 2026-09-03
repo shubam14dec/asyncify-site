@@ -6217,12 +6217,20 @@ html.in-lock body {
 
 /* ── the poster: the closed curtain, in CSS alone ───────────────────────── */
 
-/* This is what the visitor sees in the first painted frame — no JS, no
-   WebGL, no chunk. It is also the fallback curtain: if three.js never
-   arrives, these two halves are what part. */
+/* NO LONGER the first painted frame (user call: no stand-in curtain — the
+   first frame is plain black and the real velvet fades in). The poster is
+   now strictly the fallback: hidden until intro.ts declares the chunk
+   failed or overdue (.in-fallback on the root), and only then do these two
+   halves appear — and part by transform when asked. */
 .in-poster {
   position: absolute;
   inset: 0;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.in-root.in-fallback .in-poster {
+  opacity: 1;
 }
 
 .in-half {
@@ -6352,18 +6360,26 @@ html.in-lock body {
   font-size: clamp(12px, 2.35vw, 32px);
   /* Wider than the 210px hit area at desktop sizes: one unwrapped line,
      pinned to the button's centre so it sits exactly where the velvet
-     paints its words. */
+     paints its words. Hidden until a curtain exists to write them on: the
+     velvet paints its own words, so these DOM words belong only to the
+     fallback cloth. */
   white-space: nowrap;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.in-root.in-fallback .in-btn-ink {
+  opacity: 1;
 }
 
 /* The NO-WebGL fallback only: a soft CSS pool with the old breath, so the
    poster path still has an invitation made of light. With a live canvas
    (.in-gl on the root) the real pool does this on the cloth itself. */
-.in-root:not(.in-gl) .in-btn::before {
+.in-root.in-fallback .in-btn::before {
   content: "";
   position: absolute;
   inset: -30px;
