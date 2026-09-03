@@ -5673,7 +5673,7 @@ html {
 }
 
 /* THE PACKING DOTS (user call, scene 2's digest miniaturized): one dot per
-   filled field, lifted from the value and converged into the send button.
+   filled field, lifted from the value and converged into the envelope.
    Built by contact.ts on demand, fixed-positioned, gone when they arrive. */
 .ct-pack-dot {
   position: fixed;
@@ -5684,6 +5684,35 @@ html {
   opacity: 0;
   pointer-events: none;
   z-index: 6;
+}
+
+/* THE ENVELOPE — scene 2's #digest-env verbatim (one rect, one fold), the
+   site's only non-box glyph, in its own green-dim ink. It births where the
+   dots converge, carries them to the send button, and flashes to full green
+   at the hand-off exactly as the digest does at the spine. */
+.ct-env {
+  position: fixed;
+  width: 30px;
+  height: auto;
+  overflow: visible;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.ct-env rect,
+.ct-env path {
+  fill: none;
+  stroke: var(--green-dim);
+  stroke-width: 1.25;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  transition: stroke 200ms ease;
+}
+
+.ct-env.is-lit rect,
+.ct-env.is-lit path {
+  stroke: var(--green);
 }
 
 /* In flight. The label does not change and no spinner appears: the status

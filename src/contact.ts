@@ -129,17 +129,36 @@ function packFields(): Promise<void> {
   const sources = [fromInput, nameInput, messageInput].filter(
     (el) => el.value.trim().length > 0,
   );
+  /* The envelope births at the card's own centre; the button is where it is
+     handed over. Both read fresh — the page may have been resized. */
+  const card = form.getBoundingClientRect();
+  const ex = card.left + card.width / 2;
+  const ey = card.top + card.height * 0.52;
   const target = send.getBoundingClientRect();
   const tx = target.left + target.width / 2;
   const ty = target.top + target.height / 2;
+
   const dots: HTMLElement[] = [];
+  /* Scene 2's #digest-env, verbatim: one rect, one fold. */
+  const env = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  env.setAttribute("class", "ct-env");
+  env.setAttribute("viewBox", "-14 -10 28 20");
+  env.setAttribute("aria-hidden", "true");
+  env.innerHTML =
+    '<rect x="-13" y="-9" width="26" height="18" rx="2" /><path d="M -13 -9 L 0 2 L 13 -9" />';
+  env.style.left = `${ex - 15}px`;
+  env.style.top = `${ey - 11}px`;
+  document.body.appendChild(env);
+
   return new Promise<void>((resolve) => {
     const tl = gsap.timeline({
       onComplete: () => {
         for (const d of dots) d.remove();
+        env.remove();
         resolve();
       },
     });
+    /* The dots pack INTO the envelope, not the button. */
     sources.forEach((el, i) => {
       const r = el.getBoundingClientRect();
       const sx = r.left + 12; /* the value column's own inset */
@@ -154,11 +173,30 @@ function packFields(): Promise<void> {
       tl.to(dot, { opacity: 1, duration: 0.12, ease: "power1.out" }, at);
       tl.to(
         dot,
-        { x: tx - sx, y: ty - sy, scale: 0.5, duration: 0.55, ease: "power2.in" },
+        { x: ex - sx, y: ey - sy, scale: 0.5, duration: 0.45, ease: "power2.in" },
         at + 0.1,
       );
-      tl.to(dot, { opacity: 0, duration: 0.1, ease: "power1.in" }, at + 0.58);
+      tl.to(dot, { opacity: 0, duration: 0.1, ease: "power1.in" }, at + 0.48);
     });
+    /* The envelope arrives as the dots do (scene 2's own entry: 0.9 → 1). */
+    tl.fromTo(
+      env,
+      { opacity: 0, scale: 0.9 },
+      { opacity: 1, scale: 1, duration: 0.45, ease: "power2.out", immediateRender: false },
+      0.3,
+    );
+    /* Sealed, it is HANDED to the send button. */
+    tl.to(env, { x: tx - ex, y: ty - ey, duration: 0.6, ease: "power1.inOut" }, 1.0);
+    /* The hand-off: the digest's own green flash — and the bell answers. */
+    tl.call(
+      () => {
+        env.classList.add("is-lit");
+        ringBell();
+      },
+      undefined,
+      1.5,
+    );
+    tl.to(env, { opacity: 0, scale: 0.6, duration: 0.25, ease: "power1.in" }, 1.62);
   });
 }
 
@@ -298,8 +336,8 @@ form.addEventListener("submit", (event) => {
   inFlight = true;
   send.disabled = true;
 
-  ringBell();
-
+  /* The bell no longer rings on the click itself — it answers the envelope's
+     arrival, inside packFields' timeline: strike follows delivery-into-hand. */
   void Promise.all([packFields(), post()]).then(([, sent]) => {
     if (sent.ok) {
       msOut.textContent = String(sent.ms);
