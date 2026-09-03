@@ -6101,3 +6101,326 @@ html {
     font-size: 12.5px;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   INTRO — the curtain (first visit only)
+
+   THE EXEMPTION, stated plainly. A cinema-theatre reveal is a user-decreed
+   departure from BRAND.md's restraint, and it is fenced to this block: every
+   class below is prefixed `in-`, every one of them lives inside #intro, and
+   #intro is removed from the DOM the moment the intro finishes. Nothing here
+   is reachable from a page selector.
+
+   The velvet is BLACK (user call), which means most of this section is
+   already on the site's own gray ladder — #0a0a0a and its neighbours, plus
+   true #000 for the stage floor. Exactly two things are genuinely off-palette
+   and they are the whole of the exemption:
+
+     1. A warm gold — the valance hairline, the button's rim and lettering,
+        and the champagne glint on the pleat crests. Black velvet has no
+        shading of its own on a near-black page; the folds are legible ONLY
+        because a warm stage wash catches their crests. The gold is that
+        wash. It is not a second accent: --green is untouched by this file
+        and the rationing law (BRAND §2) is unaffected, because nothing here
+        is green and nothing here survives the first visit.
+     2. A cursive stroke — the signature, and only the signature. No cursive
+        font is loaded; the word is an authored SVG path (index.html), so
+        this costs the page nothing and cannot leak into type.
+
+   Colours here are literal hex, not tokens, deliberately: a token is a thing
+   the rest of the site may reach for, and none of this may be reached for.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* The head script decides this before the body parses, so a returning
+   visitor's first paint has no curtain in it — nothing to flash. */
+html.intro-skip #intro {
+  display: none;
+}
+
+/* Set by intro.ts while the overlay owns the screen: the page behind it must
+   not scroll out from under the reveal. Removed with the overlay. */
+html.in-lock,
+html.in-lock body {
+  overflow: hidden;
+}
+
+.in-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+  overflow: hidden;
+  /* Its own stacking context: nothing on the page can slip between layers. */
+  isolation: isolate;
+}
+
+/* ── the stage, behind the cloth ────────────────────────────────────────── */
+
+/* True black, not --canvas: the parting curtains have to read against
+   something darker than their own lit crests, or the reveal has no depth. */
+.in-stage {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  display: grid;
+  place-items: center;
+}
+
+.in-sig {
+  width: min(64vw, 620px);
+  /* The flourish's last few units sit outside the box at some widths. */
+  overflow: visible;
+}
+
+/* The stylesheet owns the rest state (DESIGN §3): a boot-time gsap.set is one
+   frame too late and the finished signature would flash. 4000 is comfortably
+   longer than the path at any rendered width, so offset === dasharray paints
+   nothing; intro.ts replaces both with the measured length before it writes.
+   `butt` because a zero-length dash with a round cap is a painted dot. */
+.in-sig-path {
+  fill: none;
+  stroke: #f4efe6;
+  stroke-width: 2;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 4000;
+  stroke-dashoffset: 4000;
+}
+
+/* ── the poster: the closed curtain, in CSS alone ───────────────────────── */
+
+/* This is what the visitor sees in the first painted frame — no JS, no
+   WebGL, no chunk. It is also the fallback curtain: if three.js never
+   arrives, these two halves are what part. */
+.in-poster {
+  position: absolute;
+  inset: 0;
+}
+
+.in-half {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* 51% each: a 2% overlap at the centre, so the seam is a fold, not a line. */
+  width: 51%;
+  will-change: transform;
+
+  /* Three layers, front to back:
+       1. the stage wash — a warm pool high and centre, falling off fast;
+       2. the vertical shading — gathered dark at the rail, a floor shadow
+          at the hem;
+       3. the pleats themselves — a 46px period of valley -> flank -> crest,
+          where the crest carries the only warm pixels in the cloth. */
+  background-image:
+    radial-gradient(
+      130% 92% at 50% 16%,
+      rgba(196, 166, 112, 0.13) 0%,
+      rgba(150, 126, 84, 0.05) 34%,
+      rgba(0, 0, 0, 0) 66%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.78) 0%,
+      rgba(0, 0, 0, 0.24) 11%,
+      rgba(0, 0, 0, 0) 38%,
+      rgba(0, 0, 0, 0.28) 74%,
+      rgba(0, 0, 0, 0.88) 100%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      #050505 0px,
+      #0a0a0a 8px,
+      #131313 16px,
+      #201d17 21px,
+      #37301f 23px,
+      #221f18 26px,
+      #121211 33px,
+      #080808 40px,
+      #050505 46px
+    );
+  background-repeat: no-repeat, no-repeat, repeat;
+}
+
+.in-half-l {
+  left: 0;
+  transform-origin: left center;
+}
+
+/* Half a pleat out of phase with its partner: two identical halves meeting at
+   the centre would read as one printed sheet. */
+.in-half-r {
+  right: 0;
+  transform-origin: right center;
+  background-position:
+    0 0,
+    0 0,
+    -23px 0;
+}
+
+/* ── the WebGL velvet ───────────────────────────────────────────────────── */
+
+/* Mounted and cross-faded over the poster only once the chunk resolves; if
+   it never does, this stays at 0 and nobody is any the wiser. */
+.in-canvas {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.in-canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── the valance ────────────────────────────────────────────────────────── */
+
+.in-valance {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: clamp(44px, 7vh, 78px);
+  background-image:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.9) 100%),
+    repeating-linear-gradient(
+      90deg,
+      #050505 0px,
+      #101010 9px,
+      #241f16 13px,
+      #131211 18px,
+      #050505 28px
+    );
+  border-bottom: 1px solid rgba(201, 162, 39, 0.26);
+}
+
+/* The pelmet throws the top of the cloth into shade. A gradient, not a
+   box-shadow — DESIGN §1 has no shadows and this block does not get to
+   invent one. */
+.in-valance::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 26px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+/* ── the invitation ─────────────────────────────────────────────────────── */
+
+.in-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 110px;
+  height: 110px;
+  margin: -55px 0 0 -55px;
+  border-radius: 50%;
+  border: 1px solid rgba(201, 162, 39, 0.42);
+  background: radial-gradient(circle at 50% 32%, #1b1913 0%, #0c0c0c 62%, #060606 100%);
+  color: #dcc48a;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  padding: 0;
+  transition:
+    transform 140ms ease-out,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+/* A slow breath around the button — 4.4s, the ambient band in DESIGN §3.
+   It says "this is the thing to press" without a single moving pixel of
+   content. Reduced motion never reaches this element at all. */
+.in-btn::before {
+  content: "";
+  position: absolute;
+  inset: -11px;
+  border-radius: 50%;
+  border: 1px solid rgba(201, 162, 39, 0.2);
+  animation: in-breathe 4.4s ease-in-out infinite;
+}
+
+@keyframes in-breathe {
+  0%,
+  100% {
+    transform: scale(0.965);
+    opacity: 0.55;
+  }
+
+  50% {
+    transform: scale(1.045);
+    opacity: 0.1;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .in-btn:hover {
+    border-color: rgba(201, 162, 39, 0.75);
+    color: #f0dcae;
+  }
+}
+
+.in-btn:active {
+  transform: scale(0.97);
+}
+
+/* The site's own focus ring, unchanged. A focus ring is a law (DESIGN §1),
+   not decoration, so it does not get gold-plated with the rest of this. */
+.in-btn:focus-visible,
+.in-skip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(61, 214, 140, 0.35);
+}
+
+/* ── the way out ────────────────────────────────────────────────────────── */
+
+.in-skip {
+  position: absolute;
+  right: 20px;
+  bottom: 18px;
+  /* >= 40px touch target (DESIGN §5) without a 40px-looking control. */
+  min-width: 44px;
+  height: 40px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--r-chip);
+  background: none;
+  color: rgba(237, 237, 237, 0.32);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    transform 140ms ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .in-skip:hover {
+    color: rgba(237, 237, 237, 0.62);
+  }
+}
+
+.in-skip:active {
+  transform: scale(0.97);
+}
+
+/* ── intro: mobile ─────────────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .in-sig {
+    width: 78vw;
+  }
+
+  .in-btn {
+    width: 96px;
+    height: 96px;
+    margin: -48px 0 0 -48px;
+  }
+}

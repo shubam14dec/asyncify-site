@@ -33,6 +33,7 @@ import { EDIT_PIN_VH, createEditScene } from "./edit";
 import { createEngineScene } from "./engine";
 import { createHangingHeadline } from "./headline";
 import { createInstallLine } from "./install";
+import { introGate } from "./intro";
 import { createProofScene } from "./proof";
 import { createTurnScene } from "./turn";
 
@@ -468,20 +469,33 @@ function boot(): void {
   scene.playEntrance();
 }
 
+/* TWO gates, not one. The font wait below is about MEASUREMENT — a headline
+   that reflows underneath a mid-flight SplitText. The curtain intro is about
+   AUDIENCE: the entrance is the page's opening line and it cannot be spoken
+   to a covered stage, so a first-time visitor's bell waits for the cloth.
+   introGate() resolves immediately when there is no curtain (a returning
+   visitor, reduced motion, no overlay in the markup), which is every visit
+   but the first, and it resolves on failure too — see the four guarantees at
+   the top of intro.ts. Both handlers are `boot` on purpose: a broken intro
+   costs the page nothing. */
+function queueBoot(): void {
+  void introGate().then(boot, boot);
+}
+
 if (document.fonts?.status === "loaded") {
-  boot();
+  queueBoot();
 } else if (document.fonts?.ready) {
   // Cap the wait: a slow font must never hold the hero hostage.
   let booted = false;
   const once = () => {
     if (booted) return;
     booted = true;
-    boot();
+    queueBoot();
   };
   void document.fonts.ready.then(once);
   window.setTimeout(once, 300);
 } else {
-  boot();
+  queueBoot();
 }
 
 /* Vite HMR: tear the scene down so ticker callbacks and listeners do not
