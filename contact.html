@@ -121,6 +121,10 @@
               <svg class="ct-ok" viewBox="0 0 10 8" aria-hidden="true" focusable="false">
                 <path d="M 1 4.2 L 3.8 7 L 9 1.4" />
               </svg>
+              <!-- The custom validation line (user call: no browser bubble):
+                 shown by contact.ts only after a send is attempted with the
+                 field empty, cleared the moment it holds a value. -->
+              <span class="ct-miss" role="alert">an address i can reply to</span>
             </div>
 
             <div class="ct-row">
@@ -155,6 +159,7 @@
                    cap is a character cap, and a meter must not claim a unit
                    it does not enforce. -->
               <span class="ct-meter" id="ct-meter" aria-hidden="true">0 / 2000</span>
+              <span class="ct-miss" role="alert">empty payloads don't deliver</span>
             </div>
 
             <!-- The honeypot. Off-screen, never display:none — some bots skip

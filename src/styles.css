@@ -5495,7 +5495,8 @@ html {
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
-  padding: 0;
+  padding: 0 0 0 12px; /* the value and its placeholder stand off the label's
+                          column (user call) — one inset for both */
   border: 0;
   background: transparent;
   font-family: var(--mono);
@@ -5511,8 +5512,39 @@ html {
   opacity: 1; /* Firefox dims placeholders by default; the ladder decides */
 }
 
-.ct-input:focus {
+/* No ring on these inputs (user call: the green halo read as un-premium).
+   The row IS the focus indicator — its label lights a rung and its edge
+   tick stands — so the control needs no second announcement. */
+.ct-compose .ct-input:focus,
+.ct-compose .ct-input:focus-visible {
   outline: none;
+  box-shadow: none;
+}
+
+/* The custom validation line (user call: never the browser's bubble). Amber
+   because it is the same word the status speaks when a send does not go —
+   function, not decoration. Shown only after an attempted send. */
+.ct-miss {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  color: var(--amber);
+  opacity: 0;
+  transition: opacity 180ms ease;
+  pointer-events: none;
+}
+
+.ct-row-payload .ct-miss {
+  top: 16px;
+  transform: none;
+}
+
+.ct-row.is-missing .ct-miss {
+  opacity: 1;
 }
 
 .ct-textarea {

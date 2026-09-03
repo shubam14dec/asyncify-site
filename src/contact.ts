@@ -245,7 +245,22 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 function arm(el: HTMLInputElement | HTMLTextAreaElement, usable: () => boolean): void {
   const row = el.closest<HTMLElement>(".ct-row");
   if (!row) return;
-  el.addEventListener("input", () => row.classList.toggle("is-ok", usable()));
+  el.addEventListener("input", () => {
+    const ok = usable();
+    row.classList.toggle("is-ok", ok);
+    /* The nudge clears the moment the field holds something usable. */
+    if (ok) row.classList.remove("is-missing");
+  });
+}
+
+/* The JS path owns validation and its wording (user call: the browser's
+   "please fill in this field" bubble is not this page's voice). With
+   JavaScript off this attribute is never set, so the native POST keeps the
+   native guard. */
+form.noValidate = true;
+
+function markMissing(el: HTMLElement, missing: boolean): void {
+  el.closest<HTMLElement>(".ct-row")?.classList.toggle("is-missing", missing);
 }
 arm(fromInput, () => EMAIL.test(fromInput.value.trim()));
 arm(messageInput, () => messageInput.value.trim().length > 0);
@@ -259,9 +274,12 @@ form.addEventListener("submit", (event) => {
 
   const from = fromInput.value.trim();
   const message = messageInput.value.trim();
-  if (!EMAIL.test(from) || message.length === 0) {
-    form.reportValidity();
-    (EMAIL.test(from) ? messageInput : fromInput).focus();
+  const missFrom = !EMAIL.test(from);
+  const missMsg = message.length === 0;
+  markMissing(fromInput, missFrom);
+  markMissing(messageInput, missMsg);
+  if (missFrom || missMsg) {
+    (missFrom ? fromInput : messageInput).focus();
     return;
   }
 
