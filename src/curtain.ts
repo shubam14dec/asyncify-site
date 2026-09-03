@@ -71,7 +71,7 @@ const SEG_Y = 64;
  *  with 6 curves" = six across the whole stage). The per-half phase offsets
  *  (p0/p1 below) keep the centre seam from mirroring even at an integer
  *  count. */
-const FOLDS = 3;
+const FOLDS = 5; /* user-tuned: 6 total → 10 total across the stage */
 
 /** The secondary ripple rides at 2.6× the primary and 0.34 of its depth —
  *  incommensurate, so no two folds in the run are quite the same shape. */
