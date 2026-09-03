@@ -6274,39 +6274,8 @@ html.in-lock body {
   height: 100%;
 }
 
-/* ── the valance ────────────────────────────────────────────────────────── */
-
-.in-valance {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: clamp(44px, 7vh, 78px);
-  background-image:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.9) 100%),
-    repeating-linear-gradient(
-      90deg,
-      #050505 0px,
-      #101010 9px,
-      #222222 13px,
-      #131313 18px,
-      #050505 28px
-    );
-  border-bottom: 1px solid rgba(201, 162, 39, 0.26);
-}
-
-/* The pelmet throws the top of the cloth into shade. A gradient, not a
-   box-shadow — DESIGN §1 has no shadows and this block does not get to
-   invent one. */
-.in-valance::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  height: 26px;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0) 100%);
-}
+/* (The valance/pelmet strip that stood here was removed at the user's
+   call — the cloth now runs to the frame's top edge.) */
 
 /* ── the invitation ─────────────────────────────────────────────────────── */
 

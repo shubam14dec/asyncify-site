@@ -176,7 +176,6 @@ export function introGate(): Promise<void> {
     try {
       const btn = root.querySelector<HTMLButtonElement>("#in-open");
       const skip = root.querySelector<HTMLButtonElement>("#in-skip");
-      const valance = root.querySelector<HTMLElement>(".in-valance");
       const poster = root.querySelector<HTMLElement>(".in-poster");
       const halfL = root.querySelector<HTMLElement>(".in-half-l");
       const halfR = root.querySelector<HTMLElement>(".in-half-r");
@@ -266,11 +265,10 @@ export function introGate(): Promise<void> {
           const tl = gsap.timeline({ onComplete: () => fadeOut(FADE) });
           timeline = tl;
 
-          /* The invitation and the pelmet leave first — the frame empties,
-             then the cloth moves. */
-          const clearing: Element[] = [openBtn];
-          if (valance) clearing.push(valance);
-          tl.to(clearing, { opacity: 0, duration: CLEAR, ease: "power2.out" }, 0);
+          /* The invitation leaves first — the frame empties, then the cloth
+             moves. (The valance that once left with it was removed at the
+             user's call.) */
+          tl.to(openBtn, { opacity: 0, duration: CLEAR, ease: "power2.out" }, 0);
           if (skip) tl.to(skip, { opacity: 0.55, duration: CLEAR, ease: "power2.out" }, 0);
 
           if (gl) {
