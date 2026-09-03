@@ -6192,11 +6192,18 @@ html.in-lock body {
 .in-sig-s {
   fill: none;
   stroke: #f4efe6;
-  stroke-width: 9;
+  /* The downstroke weight; hairlines below carry a third of it — the
+     thick/thin contrast is what makes the drawing calligraphy instead of
+     wire (user call: the flat monoline was not wow). */
+  stroke-width: 9.5;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 6000;
   stroke-dashoffset: 6000;
+}
+
+.in-sig-s.in-thin {
+  stroke-width: 4;
 }
 
 /* ── the poster: the closed curtain, in CSS alone ───────────────────────── */
