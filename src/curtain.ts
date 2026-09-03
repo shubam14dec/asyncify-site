@@ -37,12 +37,12 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 import {
-  ACESFilmicToneMapping,
   AmbientLight,
   Color,
   DirectionalLight,
   Mesh,
   MeshPhysicalMaterial,
+  NoToneMapping,
   Object3D,
   PerspectiveCamera,
   PlaneGeometry,
@@ -186,10 +186,12 @@ export function mount(container: HTMLElement): Curtain {
   const renderer = new WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setClearAlpha(0);
-  /* Filmic, and a touch hot: everything in frame is within a stop or two of
-     black, and the sheen highlights are the only thing carrying shape. */
-  renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.1;
+  /* Grade 5 (user call: "use the same colour as the site"): the cloth's
+     tones now target the site's own gray ladder — valleys at canvas
+     #0a0a0a, crests in the hairline grays. NO tone mapping, so the lit
+     values land literally on the ladder instead of being curve-shifted. */
+  renderer.toneMapping = NoToneMapping;
+  renderer.toneMappingExposure = 1.0;
   container.appendChild(renderer.domElement);
 
   const scene = new Scene();
@@ -207,12 +209,15 @@ export function mount(container: HTMLElement): Curtain {
      painted the whole cloth bronze-gold. Black velvet means the CLOTH stays
      black and only the crests carry a dim warm edge, so every light source
      comes down hard and the sheen goes dimmer and grayer. */
+  /* The site's own inks: surface #111111 as the cloth, hairline-strong
+     #3f3f3f as the crest sheen — the curtain is drawn with the page's
+     palette, just folded. */
   const material = new MeshPhysicalMaterial({
-    color: new Color(0x0e0e0e),
+    color: new Color(0x111111),
     roughness: 0.85,
     metalness: 0,
     sheen: 1,
-    sheenColor: new Color(0x8c8c8c),
+    sheenColor: new Color(0x555555),
     sheenRoughness: 0.5,
   });
 
@@ -225,7 +230,7 @@ export function mount(container: HTMLElement): Curtain {
      warmth reads brown on dark cloth, so the grade goes fully MONOCHROME —
      black velvet under a silver-gray lamp. With zero hue anywhere in the
      light path, the cloth cannot read as anything but black. */
-  const spot = new SpotLight(0xededed, 3.0, 0, 0.9, 0.95, 0);
+  const spot = new SpotLight(0xffffff, 2.7, 0, 0.9, 0.95, 0);
   spot.position.set(0, 4.4, 4.2);
   const spotTarget = new Object3D();
   spotTarget.position.set(0, -0.7, 0);
@@ -238,7 +243,7 @@ export function mount(container: HTMLElement): Curtain {
      whole reason it lives in here and not in CSS. It breathes brighter
      under a hovering pointer (invite()), blooms once at the click, and
      hands its light off as the pull begins. */
-  const pool = new SpotLight(0xf5f0e6, 2.0, 0, 0.24, 0.65, 0);
+  const pool = new SpotLight(0xffffff, 2.0, 0, 0.24, 0.65, 0);
   pool.position.set(0, 0.7, 4.6);
   const poolTarget = new Object3D();
   poolTarget.position.set(0, 0, 0);
@@ -251,9 +256,9 @@ export function mount(container: HTMLElement): Curtain {
   let bloomAt = -1;
 
   /* Enough to keep the valleys from clipping to absolute nothing. */
-  const ambient = new AmbientLight(0x0b0b0d, 0.7);
+  const ambient = new AmbientLight(0xffffff, 0.35);
   /* A dim front fill so the fabric nearest the camera is not a silhouette. */
-  const fill = new DirectionalLight(0xbfbfbf, 0.1);
+  const fill = new DirectionalLight(0xffffff, 0.08);
   fill.position.set(0.4, 0.3, 1);
   scene.add(ambient, fill);
 

@@ -6229,15 +6229,15 @@ html.in-lock body {
     ),
     repeating-linear-gradient(
       90deg,
-      #050505 0px,
+      #080808 0px,
       #0a0a0a 25px,
-      #131313 49px,
-      #1f1f1f 65px,
-      #343434 70px,
-      #212121 79px,
-      #121212 101px,
-      #080808 122px,
-      #050505 140px
+      #111111 49px,
+      #262626 65px,
+      #3f3f3f 70px,
+      #262626 79px,
+      #111111 101px,
+      #0a0a0a 122px,
+      #080808 140px
     );
   background-repeat: no-repeat, no-repeat, repeat;
 }
