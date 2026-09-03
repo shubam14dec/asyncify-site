@@ -6181,7 +6181,8 @@ html.in-lock body {
 }
 
 .in-sig {
-  width: min(64vw, 620px);
+  /* Down from min(64vw, 620px) — user call: the word ran too big. */
+  width: min(54vw, 520px);
   /* Swashes overshoot the viewBox at some widths. */
   overflow: visible;
 }
@@ -6205,9 +6206,9 @@ html.in-lock body {
 .in-sig-m {
   fill: none;
   stroke: #fff;
-  /* 36, down from the 44 the old fat brush needed: Alex Brush's strokes
-     are finer, and the pen only has to swallow their swells. */
-  stroke-width: 36;
+  /* 40: wide enough to swallow Alex Brush's swells everywhere (user catch:
+     a thinner pen left mid-word chunks of the f loop unwritten). */
+  stroke-width: 40;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 6000;
@@ -6421,7 +6422,7 @@ html.in-lock body {
 
 @media (max-width: 767px) {
   .in-sig {
-    width: 78vw;
+    width: 70vw;
   }
 
   .in-btn {

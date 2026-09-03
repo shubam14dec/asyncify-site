@@ -52,9 +52,9 @@ const CLEAR = 0.35;
  *  opened, early enough that the two motions overlap and the writing is not
  *  an epilogue. */
 const SIG_CUE = 0.35;
-/* A touch longer than the old single-stroke write: the pen now travels
-   every letterform, and 1.8s read as hurried against real letter shapes. */
-const SIG_WRITE = 2.2;
+/* The pen travels every letterform; 2.2s read as hurried (user call:
+   "the writing speed is little fast") — a hand takes its time. */
+const SIG_WRITE = 3.2;
 
 /** A held beat on the finished word, then out. */
 const HOLD = 0.6;
