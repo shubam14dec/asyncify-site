@@ -133,8 +133,8 @@ const OPEN_MS = 2600;
 /** Two incommensurate sway frequencies (rad/s) — their sum never repeats, so
  *  the idle loop has no seam to notice. Roughly doubled from 0.31/0.47
  *  (user call: the idle cloth moved too slowly). */
-const SWAY_F1 = 0.55;
-const SWAY_F2 = 0.85;
+const SWAY_F1 = 0.95;
+const SWAY_F2 = 1.45;
 
 /** Spatial phase of the travelling sway along the cloth. */
 const SWAY_K = 2.1;
