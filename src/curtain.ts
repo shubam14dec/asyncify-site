@@ -263,7 +263,11 @@ export function mount(container: HTMLElement): Curtain {
       /* older engines: tighter tracking, still legible */
     }
     lctx.font = "500 54px system-ui, Segoe UI, Arial, sans-serif";
-    lctx.fillText("click to reveal", 1024 + 9, 512);
+    /* 567, not the texture's 512 midline: the hem cut shifted the whole
+       cloth up by 0.055·viewH, so the words are painted the same distance
+       DOWN the fabric (0.055/1.03 of its height ≈ 55px of 1024) to keep
+       them at screen centre, inside the pool of light. */
+    lctx.fillText("click to reveal", 1024 + 9, 567);
   }
   const makeLabelTex = (): CanvasTexture => {
     const t = new CanvasTexture(labelCanvas);
@@ -341,6 +345,10 @@ export function mount(container: HTMLElement): Curtain {
   /** A half's material span in world units, and the cloth's height. */
   let span = 1;
   let height = 1;
+  /** Vertical centre offset: the cloth hangs from above the frame but the
+   *  hem stops short of the bottom edge (user call: "cut some little part
+   *  from the bottom") — a strip of stage floor under a real house curtain. */
+  let yOff = 0;
 
   function buildHalf(dir: number): Half {
     const geo = new PlaneGeometry(1, 1, SEG_X, SEG_Y);
@@ -518,7 +526,7 @@ export function mount(container: HTMLElement): Curtain {
 
       const j = i * 3;
       const wx = xOuter + dir * g * span + sway;
-      const wy = (v - 0.5) * height - sagAmt * aSag[i]! + liftY;
+      const wy = (v - 0.5) * height + yOff - sagAmt * aSag[i]! + liftY;
 
       /* THE WAKE first: its local energy also drives the pleats' living
          reorganization below. */
@@ -588,7 +596,12 @@ export function mount(container: HTMLElement): Curtain {
        seam is a fold on top of a fold and never a visible join. Taller than
        the frame for the same reason at the hem. */
     span = viewW * 0.53;
-    height = viewH * 1.14;
+    /* Was 1.14 symmetric. The top keeps its +7% overshoot (the rail must
+       never show) but the hem now stops at −0.46·viewH — 4% of the frame
+       above the bottom edge, showing the black stage floor beneath. Top
+       +0.57, bottom −0.46 → height 1.03 centred at +0.055. */
+    height = viewH * 1.03;
+    yOff = viewH * 0.055;
 
     /* World-align the label windows: the full cloth spans 1.02·viewW from
        the left half's outer edge to the right's; each half shows the slice

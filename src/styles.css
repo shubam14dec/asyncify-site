@@ -6225,7 +6225,9 @@ html.in-lock body {
 .in-half {
   position: absolute;
   top: 0;
-  bottom: 0;
+  /* Matches the WebGL hem (user call): the cloth stops 4% short of the
+     bottom edge; the root's #000 beneath is the stage floor. */
+  bottom: 4%;
   /* 51% each: a 2% overlap at the centre, so the seam is a fold, not a line. */
   width: 51%;
   will-change: transform;
