@@ -283,11 +283,11 @@ export function mount(container: HTMLElement): Curtain {
      shows its own window of the shared label texture. */
   const makeMaterial = (tex: CanvasTexture): MeshPhysicalMaterial =>
     new MeshPhysicalMaterial({
-      color: new Color(0x111111),
+      color: new Color(0x0c0c0c) /* one step darker (user call) */,
       roughness: 0.85,
       metalness: 0,
       sheen: 1,
-      sheenColor: new Color(0x555555),
+      sheenColor: new Color(0x4a4a4a),
       sheenRoughness: 0.5,
       emissive: new Color(0xffffff),
       emissiveMap: tex,
