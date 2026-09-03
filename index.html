@@ -80,6 +80,18 @@
         document.documentElement.classList.add("intro-skip");
       }
     </script>
+    <!-- CRITICAL SHELL (user catch: unstyled HTML and a white flash showed
+         before the black). The bundled stylesheet arrives through the JS
+         graph in dev, so these few rules are inlined to own the FIRST
+         frame: page black, intro overlay black, everything inside the
+         overlay hidden until the bundle lands (intro.ts adds .in-css) and
+         the real styles take over. -->
+    <style>
+      body { margin: 0; background: #0a0a0a; }
+      #intro { position: fixed; inset: 0; z-index: 9999; background: #0a0a0a; }
+      #intro:not(.in-css) > * { display: none; }
+      html.intro-skip #intro { display: none; }
+    </style>
     <!-- No JS, no way to open the curtains: the page must not be sealed. -->
     <noscript><style>#intro{display:none}</style></noscript>
   </head>

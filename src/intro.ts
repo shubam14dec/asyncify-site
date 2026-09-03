@@ -73,6 +73,10 @@ export function introGate(): Promise<void> {
   const root = document.getElementById("intro");
   if (!root) return Promise.resolve();
 
+  /* The bundle — and with it the real stylesheet — has arrived: lift the
+     head's critical-CSS blackout so the overlay's children may render. */
+  root.classList.add("in-css");
+
   /* The head script already decided this, before the body parsed — returning
      visitors and reduced-motion visitors never had a curtain painted. Clear
      the markup out and hand the page straight over. */
