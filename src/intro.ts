@@ -182,8 +182,10 @@ export function introGate(): Promise<void> {
       const halfL = root.querySelector<HTMLElement>(".in-half-l");
       const halfR = root.querySelector<HTMLElement>(".in-half-r");
       const host = root.querySelector<HTMLElement>("#in-canvas");
-      /* The mask pen's strokes, in authored (= writing) order. */
+      /* The mask pen's strokes, in authored (= writing) order — and the
+         visible pen itself, a point of light placed at the reveal edge. */
       const sigPaths = Array.from(root.querySelectorAll<SVGPathElement>(".in-sig-m"));
+      const pen = root.querySelector<SVGGElement>("#in-pen");
 
       /* No button, no way in — and no way for the visitor out. Bail loudly
          to the page rather than sealing it behind an inert curtain. */
@@ -296,11 +298,43 @@ export function introGate(): Promise<void> {
             const total = lens.reduce((a, b) => a + b, 0);
             let at = penEnd;
             sigPaths.forEach((p, i) => {
-              const d = SIG_WRITE * ((lens[i] ?? 0) / total);
-              tl.to(p, { strokeDashoffset: 0, duration: d, ease: "power1.inOut" }, at);
+              const len = lens[i] ?? 0;
+              const d = SIG_WRITE * (len / total);
+              tl.to(
+                p,
+                {
+                  strokeDashoffset: 0,
+                  duration: d,
+                  ease: "power1.inOut",
+                  /* The visible pen rides the reveal edge: the tip of the
+                     drawn dash is at (length − offset) along the path, and
+                     the current offset is read back from the style GSAP is
+                     animating. Guarded — a pen that fails to place must
+                     never take the writing down with it. */
+                  onUpdate: () => {
+                    if (!pen) return;
+                    try {
+                      const off = parseFloat(p.style.strokeDashoffset || "0") || 0;
+                      const pt = p.getPointAtLength(Math.max(0, Math.min(len, len - off)));
+                      pen.setAttribute("transform", `translate(${pt.x} ${pt.y})`);
+                    } catch {
+                      /* pen stalls; ink continues */
+                    }
+                  },
+                },
+                at,
+              );
+              /* The pen blinks low as the hand lifts between strokes and
+                 lands with the next touch-down. */
+              if (pen) {
+                if (i === 0) tl.to(pen, { opacity: 1, duration: 0.12 }, at);
+                else tl.fromTo(pen, { opacity: 0.3 }, { opacity: 1, duration: LIFT }, at - LIFT / 2);
+              }
               at += d + LIFT;
             });
             penEnd = at - LIFT;
+            /* The pen lifts away from the finished word. */
+            if (pen) tl.to(pen, { opacity: 0, duration: 0.3 }, penEnd);
           }
 
           /* Hold on the finished picture — both the parted cloth and the
