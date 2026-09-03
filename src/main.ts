@@ -121,9 +121,14 @@ if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
     const engine = document.querySelector("#scene-engine");
     watch = () => {
       if (!cue || !engine) return;
+      /* Downward: the cue guides through the dark until the engine is
+         visibly rising. UPWARD is different (user catch: the cue stayed
+         forever): a reader scrolling up has taken over and rejected the
+         cue's direction — it bows out at the first real step back. */
+      const up = window.scrollY < landingY - 40;
       const moved = window.scrollY > landingY + 40;
       const risen = engine.getBoundingClientRect().top < window.innerHeight * 0.72;
-      if (moved && risen) dismissCue();
+      if (up || (moved && risen)) dismissCue();
     };
     window.addEventListener("scroll", watch, { passive: true });
   };
