@@ -182,93 +182,34 @@
                 <span class="ct-st" data-st="delivered">delivered</span>
                 <span class="ct-st ct-st-held" data-st="held">held</span>
               </span>
-              <button class="ct-send" id="ct-send" type="submit">send notification</button>
+              <!-- The bell lives IN the button (user call): clicking send is
+                   ringing it. One damped swing on a valid submit, the
+                   clapper's white flash — drawn in the button's own dark
+                   ink, pivoting at the top-centre where a thread would be. -->
+              <button class="ct-send" id="ct-send" type="submit">
+                <svg class="ct-btn-bell" viewBox="-11 -1.5 22 22.5" aria-hidden="true" focusable="false">
+                  <g id="ct-bell">
+                    <path
+                      class="ct-bellbody"
+                      d="M -8 13 C -8 3.5 -4.5 0.5 0 0.5 C 4.5 0.5 8 3.5 8 13 L 10 15 L -10 15 Z"
+                    />
+                    <circle class="ct-clapper" id="ct-clapper" cx="0" cy="17.5" r="1.8" />
+                  </g>
+                </svg>
+                <span>send notification</span>
+              </button>
             </div>
           </form>
 
-          <!-- ── the delivery strip ─────────────────────────────────────────
-               The wire out of the card and into the provider. Drawn at rest —
-               the stylesheet owns the rest state, so this reads as finished
-               structure with JavaScript off. Only the packet is hidden, and
-               only because a packet at rest would be a lie.
-               ─────────────────────────────────────────────────────────────── -->
-          <div class="ct-stripwrap">
-            <svg
-              class="ct-strip"
-              id="ct-strip"
-              viewBox="0 0 720 90"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <!-- Gently curved on purpose: contact.ts walks the packet with
-                   getPointAtLength, so a curve costs the same as a straight
-                   line and says "this went somewhere" instead of "this slid". -->
-              <!-- The wire GROWS OUT of the compose card (user call: card,
-                   wire and provider box must read as one apparatus): it
-                   starts at y=0, flush against the card's bottom hairline,
-                   drops away and sweeps into the box. -->
-              <path
-                class="ct-wire"
-                id="ct-wire"
-                d="M 48 0 C 60 34, 320 60, 540 60"
-              />
-              <rect
-                class="ct-endbox"
-                id="ct-endbox"
-                x="540"
-                y="36"
-                width="150"
-                height="48"
-                rx="6"
-              />
-              <!-- Authored at 0,0 in the wire's own coordinate space: the
-                   path's absolute point IS the packet's centre, so nothing
-                   has to be aligned through a matrix (DESIGN.md §6). -->
-              <circle class="ct-packet" id="ct-packet" cx="0" cy="0" r="4" />
-              <!-- THE MINIATURE BELL (user pick): the hero's silhouette at
-                   machine scale, hanging on a 1px thread from the card's
-                   underside beside the provider box. Static and quiet at
-                   rest — it swings ONCE, only when a real send resolves ok
-                   (contact.ts), with the clapper's white flash and one green
-                   ripple: BRAND §2's first sanctioned green, miniaturized.
-                   The ripple lives OUTSIDE the swinging group (the hero's
-                   own law) so it never inherits the swing. -->
-              <g id="ct-bellroot" transform="translate(664, 9)">
-                <path class="ct-thread" d="M 0 -9 L 0 0" />
-                <circle class="ct-ripple" id="ct-ripple" cx="0" cy="17.5" r="0" />
-                <g id="ct-bell">
-                  <path
-                    class="ct-bellbody"
-                    d="M -8 13 C -8 3.5 -4.5 0.5 0 0.5 C 4.5 0.5 8 3.5 8 13 L 10 15 L -10 15 Z"
-                  />
-                  <circle class="ct-clapper" id="ct-clapper" cx="0" cy="17.5" r="1.8" />
-                </g>
-              </g>
-            </svg>
-            <!-- The label is HTML, not <text>, and that is a measurement
-                 decision: this svg is width:100% over a column that ranges
-                 327px to 720px, so anything sized in user units renders
-                 between 5px and 11px. Strokes survive that (non-scaling), a
-                 caption does not. It is parked on the box's centre in
-                 percentages of the same viewBox — 615/720 by 60/90. -->
-            <span class="ct-endlabel" aria-hidden="true">resend</span>
-          </div>
-
           <!-- ── the receipt slot ───────────────────────────────────────────
-               A straight bar with a toothed edge — the machine's own ink, the
-               same idiom scene 5 cuts its receipt with. The band under it is
-               RESERVED at rest so the printed receipt never shifts the page:
-               the card lives above the clip's top edge and slides down into
-               view on a transform alone.
+               The band is RESERVED at rest so the printed receipt never
+               shifts the page: the card lives above the clip's top edge and
+               slides down into view on a transform alone. (The delivery strip
+               and the toothed mouth that once stood here were retired at the
+               user's call — the bell in the send button carries the moment
+               now, and the receipt carries the proof.)
                ─────────────────────────────────────────────────────────────── -->
           <div class="ct-slot">
-            <svg class="ct-mouth" viewBox="0 0 180 12" aria-hidden="true" focusable="false">
-              <path class="ct-mouth-bar" d="M 0 2.5 L 180 2.5" />
-              <path
-                class="ct-teeth"
-                d="M 0 3 L 3 9 L 6 3 L 9 9 L 12 3 L 15 9 L 18 3 L 21 9 L 24 3 L 27 9 L 30 3 L 33 9 L 36 3 L 39 9 L 42 3 L 45 9 L 48 3 L 51 9 L 54 3 L 57 9 L 60 3 L 63 9 L 66 3 L 69 9 L 72 3 L 75 9 L 78 3 L 81 9 L 84 3 L 87 9 L 90 3 L 93 9 L 96 3 L 99 9 L 102 3 L 105 9 L 108 3 L 111 9 L 114 3 L 117 9 L 120 3 L 123 9 L 126 3 L 129 9 L 132 3 L 135 9 L 138 3 L 141 9 L 144 3 L 147 9 L 150 3 L 153 9 L 156 3 L 159 9 L 162 3 L 165 9 L 168 3 L 171 9 L 174 3 L 177 9 L 180 3"
-              />
-            </svg>
             <div class="ct-receipt-clip" id="ct-clip">
               <div class="ct-receipt" id="ct-receipt" role="status" aria-live="polite">
                 <div class="ct-rcpt-ok">

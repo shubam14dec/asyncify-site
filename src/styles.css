@@ -5620,6 +5620,9 @@ html {
    this page, and no hover tint — green is not a hover state. */
 .ct-send {
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   height: 34px;
   padding: 0 16px;
   border: 0;
@@ -5649,96 +5652,28 @@ html {
   cursor: default;
 }
 
-/* ── the delivery strip ─────────────────────────────────────────────────── */
-
-/* Flush against the card (user call): the wire's first point is y=0, so the
-   strip presses its top edge to the card's bottom hairline and the wire
-   reads as growing out of the machine that composed the message. */
-.ct-stripwrap {
-  position: relative;
-  margin-top: 0;
-}
-
-.ct-strip {
-  display: block;
-  width: 100%;
-  height: auto;
+/* ── the button's bell ────────────────────────────────────────────────────
+   The bell lives in the send button (user call): clicking send IS ringing
+   it. Drawn in the button's own dark ink — on a green field the bell is
+   silhouette, not accent — and it swings once on a valid submit. */
+.ct-btn-bell {
+  flex: none;
+  width: 14px;
+  height: 14px;
   overflow: visible;
 }
 
-.ct-wire {
-  fill: none;
-  stroke: var(--hairline-strong);
-  stroke-width: 1.25;
-  stroke-linecap: butt;
-  vector-effect: non-scaling-stroke;
-}
-
-.ct-endbox {
-  fill: none;
-  stroke: var(--hairline);
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
-}
-
-/* Parked on the box's centre in percentages of the svg's own viewBox:
-   615/720 across, 60/90 down. */
-.ct-endlabel {
-  position: absolute;
-  left: 85.417%;
-  top: 66.667%;
-  transform: translate(-50%, -50%);
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 400;
-  letter-spacing: 0.01em;
-  line-height: 1;
-  color: var(--text-faint);
-  pointer-events: none;
-}
-
-/* Hidden at rest, and not by JavaScript: a packet sitting on the wire before
-   anything was sent would be a claim the page cannot back up. */
-.ct-packet {
-  fill: var(--text);
-  opacity: 0;
-}
-
-/* ── the miniature bell ──────────────────────────────────────────────────
-   At rest it simply hangs: every rule here is the finished, quiet state.
-   contact.ts swings it once on a real delivery. */
-.ct-thread {
-  fill: none;
-  stroke: var(--hairline-strong);
-  stroke-width: 1;
-  stroke-linecap: butt;
-  vector-effect: non-scaling-stroke;
-}
-
-/* Bell strokes are primary ink — BRAND §1's own words for the hero bell. */
 .ct-bellbody {
   fill: none;
-  stroke: var(--text);
+  stroke: var(--canvas);
   stroke-width: 1.25;
   stroke-linecap: butt;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
 
-/* One notch back from --text (the hero clapper's exact ink, BRAND §1 note) —
-   the flash to pure white on the strike belongs to the strike, not to rest. */
 .ct-clapper {
-  fill: #d6d6d6;
-}
-
-/* The ring, and the first sanctioned home of green (BRAND §2). r=0 and
-   invisible at rest: a ripple with nothing delivered would be a lie. */
-.ct-ripple {
-  fill: none;
-  stroke: var(--green);
-  stroke-width: 1.25;
-  vector-effect: non-scaling-stroke;
-  opacity: 0;
+  fill: var(--canvas);
 }
 
 /* ── the receipt slot ───────────────────────────────────────────────────── */
@@ -5747,32 +5682,7 @@ html {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: clamp(6px, 1.6vh, 16px);
-}
-
-.ct-mouth {
-  display: block;
-  width: 180px;
-  height: 12px;
-  overflow: visible;
-}
-
-.ct-mouth-bar {
-  fill: none;
-  stroke: var(--hairline-strong);
-  stroke-width: 1.25;
-  stroke-linecap: butt;
-  vector-effect: non-scaling-stroke;
-}
-
-/* The machine's ink, never the paper's — same as scene 5's teeth. */
-.ct-teeth {
-  fill: none;
-  stroke: var(--hairline-strong);
-  stroke-width: 1;
-  stroke-linecap: butt;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
+  margin-top: clamp(20px, 3.5vh, 36px);
 }
 
 /* The band is RESERVED at rest, so printing costs zero layout: the card is

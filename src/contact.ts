@@ -44,10 +44,6 @@ const fromInput = q<HTMLInputElement>("#ct-from");
 const nameInput = q<HTMLInputElement>("#ct-name");
 const messageInput = q<HTMLTextAreaElement>("#ct-message");
 const honeypot = q<HTMLInputElement>("#ct-company");
-const wire = q<SVGPathElement>("#ct-wire");
-const endbox = q<SVGRectElement>("#ct-endbox");
-const packet = q<SVGCircleElement>("#ct-packet");
-const teeth = q<SVGPathElement>(".ct-teeth");
 const receipt = q<HTMLElement>("#ct-receipt");
 const clip = q<HTMLElement>("#ct-clip");
 const dot = q<HTMLElement>("#ct-rcpt-dot");
@@ -57,7 +53,6 @@ const meter = q<HTMLElement>("#ct-meter");
 q<HTMLElement>(".ct-head"); /* the request line exists — q throws if not */
 const bell = q<SVGGElement>("#ct-bell");
 const clapper = q<SVGCircleElement>("#ct-clapper");
-const ripple = q<SVGCircleElement>("#ct-ripple");
 
 const statusEls = new Map<string, HTMLElement>();
 for (const el of document.querySelectorAll<HTMLElement>(".ct-st")) {
@@ -71,8 +66,7 @@ for (const el of document.querySelectorAll<HTMLElement>(".ct-st")) {
 const rootStyle = getComputedStyle(document.documentElement);
 const token = (name: string): string => rootStyle.getPropertyValue(name).trim();
 const GREEN = token("--green");
-const TEXT_DIM = token("--text-dim");
-const HAIRLINE = token("--hairline");
+const CANVAS = token("--canvas");
 
 /* Whatever the browser calls --green once it has parsed it, so the assert
    below compares like with like without a hex ever appearing here. */
@@ -90,7 +84,7 @@ const greenComputed = ((): string => {
    constant at build time and prune the rest of this module (DESIGN.md §3).
    ─────────────────────────────────────────────────────────────────────── */
 
-must(GREEN !== "" && TEXT_DIM !== "" && HAIRLINE !== "", "color tokens did not resolve");
+must(GREEN !== "" && CANVAS !== "", "color tokens did not resolve");
 
 must(form.method.toLowerCase() === "post", "the form is not a POST");
 must(
@@ -99,33 +93,12 @@ must(
 );
 must(send.type === "submit", "the send button is not the form's submit");
 
-const wireLength = wire.getTotalLength();
-must(wireLength > 100, "the wire has no length");
-
-/* The wire has to end INSIDE the provider box, or the packet lands in empty
-   canvas and the whole strip is a lie. Both halves are read back from the
-   markup, so moving either one trips here instead of on screen. */
-const end = wire.getPointAtLength(wireLength);
-const boxX = Number(endbox.getAttribute("x"));
-const boxY = Number(endbox.getAttribute("y"));
-const boxW = Number(endbox.getAttribute("width"));
-const boxH = Number(endbox.getAttribute("height"));
-must(
-  end.x >= boxX - 0.5 &&
-    end.x <= boxX + boxW + 0.5 &&
-    end.y >= boxY - 0.5 &&
-    end.y <= boxY + boxH + 0.5,
-  `the wire ends at ${end.x},${end.y}, outside the resend box`,
-);
-
-must(Number(packet.getAttribute("r")) > 0, "the packet has no radius");
-must(getComputedStyle(packet).opacity === "0", "the packet is visible at rest");
-must(teeth.getTotalLength() > 100, "the receipt mouth has no teeth");
+/* The bell must swing about the point a thread would hold: its body's top
+   centre, which is the local origin the rotation below pivots on. */
+must(bell.querySelector(".ct-bellbody") !== null, "the button's bell has no body");
 must(clip.contains(receipt), "the receipt is not inside its clip");
-must(getComputedStyle(receipt).transform !== "none", "the receipt is not parked above the mouth");
+must(getComputedStyle(receipt).transform !== "none", "the receipt is not parked above its slot");
 must(getComputedStyle(dot).opacity === "0", "the delivered-dot is lit before a delivery");
-must(getComputedStyle(ripple).opacity === "0", "the bell's ripple is ringing before a delivery");
-must(Number(ripple.getAttribute("r")) === 0, "the bell's ripple has a radius at rest");
 
 /* display:none would be the easy way to hide the honeypot and the wrong one:
    some bots read the computed style and skip anything not rendered. */
@@ -168,41 +141,12 @@ function status(next: string): void {
   gsap.to(el, { opacity: 1, duration: 0.18, ease: "power1.out", overwrite: "auto" });
 }
 
-/** The packet's trip, resolving the moment it ARRIVES — the blink it sets off
- *  in the provider box runs on after the promise settles. */
-function flyPacket(): Promise<void> {
-  if (reduced) return Promise.resolve();
-
+/** A narrative beat: the queued/sending words need a moment to be read even
+ *  when the round-trip is quick — the receipt still prints only from the
+ *  REAL response, this just keeps the story legible. */
+function wait(seconds: number): Promise<void> {
   return new Promise<void>((resolve) => {
-    const start = wire.getPointAtLength(0);
-    const walk = { p: 0 };
-    gsap.set(packet, { x: start.x, y: start.y, opacity: 0 });
-
-    const tl = gsap.timeline();
-    tl.to(packet, { opacity: 1, duration: 0.18, ease: "power1.out" }, 0);
-    tl.to(
-      walk,
-      {
-        p: 1,
-        duration: 1.2,
-        ease: "power1.inOut",
-        onUpdate: () => {
-          const pt = wire.getPointAtLength(walk.p * wireLength);
-          gsap.set(packet, { x: pt.x, y: pt.y });
-        },
-        onComplete: resolve,
-      },
-      0,
-    );
-    /* Arrival: the packet is absorbed and the box acknowledges once. Ladder
-       ink only — a border that turns a colour would be a second accent. */
-    tl.to(packet, { opacity: 0, duration: 0.22, ease: "power1.out" }, 1.16);
-    tl.to(endbox, { stroke: TEXT_DIM, duration: 0.16, ease: "power1.out" }, 1.14);
-    tl.to(
-      endbox,
-      { stroke: HAIRLINE, duration: 0.34, ease: "power1.out", clearProps: "stroke" },
-      1.3,
-    );
+    gsap.delayedCall(seconds, resolve);
   });
 }
 
@@ -246,30 +190,23 @@ function printReceipt(held: boolean): void {
   tl.to(dot, { opacity: 0.55, duration: 0.6, ease: "power2.out" }, 0.34);
 }
 
-/** ONE strike, damped to stillness — never a loop (DESIGN law). The swing is
- *  a rotation about the thread pivot (the group's local 0,0), the clapper
- *  flashes pure white with a small pop exactly as the hero's does (BRAND §1
- *  note), and one green ripple expands from the mouth and dies: the first
- *  sanctioned home of green, earned here only by a real delivery. */
+/** ONE strike, damped to stillness — never a loop (DESIGN law). The bell in
+ *  the send button swings about its top-centre (where a thread would hold
+ *  it), and the clapper flashes pure white with a small pop, the hero's own
+ *  strike (BRAND §1 note). Fired by the click itself (user call): pressing
+ *  send IS ringing the bell — the receipt still carries the truth about
+ *  whether the message arrived. */
 function ringBell(): void {
   if (reduced) return;
   const tl = gsap.timeline();
-  tl.to(bell, { rotation: 8, duration: 0.16, ease: "power2.in", svgOrigin: "0 0" }, 0);
-  tl.to(bell, { rotation: -5.5, duration: 0.3, ease: "power1.inOut", svgOrigin: "0 0" }, 0.16);
-  tl.to(bell, { rotation: 3, duration: 0.28, ease: "power1.inOut", svgOrigin: "0 0" }, 0.46);
-  tl.to(bell, { rotation: -1, duration: 0.24, ease: "power1.inOut", svgOrigin: "0 0" }, 0.74);
-  tl.to(bell, { rotation: 0, duration: 0.3, ease: "power1.out", svgOrigin: "0 0" }, 0.98);
-  /* The strike lands where the swing reverses. */
-  tl.to(clapper, { fill: "#ffffff", scale: 1.3, duration: 0.1, ease: "power2.out", svgOrigin: "0 17.5" }, 0.14);
-  tl.to(clapper, { fill: "#d6d6d6", scale: 1, duration: 0.4, ease: "power2.out", svgOrigin: "0 17.5" }, 0.24);
-  tl.fromTo(
-    ripple,
-    { attr: { r: 2 }, opacity: 0.5 },
-    { attr: { r: 16 }, opacity: 0, duration: 0.9, ease: "power2.out", immediateRender: false },
-    0.16,
-  );
-  /* Silence after: the ripple ends at opacity 0 and the radius is cosmetic,
-     so the rest state is intact without a reset. */
+  tl.to(bell, { rotation: 9, duration: 0.14, ease: "power2.in", svgOrigin: "0 0" }, 0);
+  tl.to(bell, { rotation: -6, duration: 0.28, ease: "power1.inOut", svgOrigin: "0 0" }, 0.14);
+  tl.to(bell, { rotation: 3.5, duration: 0.26, ease: "power1.inOut", svgOrigin: "0 0" }, 0.42);
+  tl.to(bell, { rotation: -1.5, duration: 0.22, ease: "power1.inOut", svgOrigin: "0 0" }, 0.68);
+  tl.to(bell, { rotation: 0, duration: 0.28, ease: "power1.out", svgOrigin: "0 0" }, 0.9);
+  /* The strike lands where the swing first reverses. */
+  tl.to(clapper, { fill: "#ffffff", scale: 1.3, duration: 0.1, ease: "power2.out", svgOrigin: "0 17.5" }, 0.12);
+  tl.to(clapper, { fill: CANVAS, scale: 1, duration: 0.4, ease: "power2.out", svgOrigin: "0 17.5" }, 0.22);
 }
 
 type ContactReply = { ok?: boolean; id?: string; error?: string };
@@ -331,15 +268,15 @@ form.addEventListener("submit", (event) => {
   inFlight = true;
   send.disabled = true;
 
+  ringBell();
   status("queued");
   gsap.delayedCall(0.26, () => status("sending"));
 
-  void Promise.all([flyPacket(), post()]).then(([, sent]) => {
+  void Promise.all([wait(reduced ? 0 : 0.9), post()]).then(([, sent]) => {
     if (sent.ok) {
       msOut.textContent = String(sent.ms);
       idOut.textContent = sent.id.slice(0, 10) || "unknown";
       status("delivered");
-      ringBell();
       printReceipt(false);
       return;
     }
