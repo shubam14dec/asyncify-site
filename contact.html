@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>Contact — Asyncify</title>
+    <meta
+      name="description"
+      content="Send a message that delivers for real — composed on the product's own surface, routed through email, and receipted with the milliseconds it took."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="canonical" href="https://asyncify.org/contact" />
+    <!-- The same critical inline frame index.html carries: all real styling
+         arrives through contact.ts (styles.css is a module import), so a cold
+         dev-server load would paint raw HTML for a beat. These few rules make
+         that beat a quiet black nothing; styles.css flips <main> back on. -->
+    <style>
+      html {
+        background: #0a0a0a;
+      }
+      body {
+        margin: 0;
+        background: #0a0a0a;
+      }
+      main {
+        visibility: hidden;
+      }
+    </style>
+  </head>
+
+  <body>
+    <main>
+      <div class="ct-page">
+        <!-- The masthead is index.html's, verbatim, at the SAME 1080px width:
+             navigating between the two pages must not move the wordmark by a
+             pixel. Only the content column below narrows to 720px. -->
+        <header class="nav">
+          <a class="wordmark" href="/" aria-label="Asyncify, home">
+            Asyncify<span class="brand-mark" aria-hidden="true"><span class="brand-dot"></span></span>
+          </a>
+          <nav class="nav-links" aria-label="Primary">
+            <a href="/docs">Docs</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <!-- Off this page the install line lives on the home page's
+                 headline, so the link is a plain cross-page href — index.html
+                 turns its own copy into a glide, this one just travels. -->
+            <a href="/#headline">Install</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <a href="/contact" aria-current="page">Contact</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <a href="https://github.com/shubam14dec/Scalable-Notification-System" target="_blank" rel="noreferrer">GitHub</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <a href="https://www.npmjs.com/org/asyncify-hq" target="_blank" rel="noreferrer">npm</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <a
+              class="nav-version"
+              href="https://github.com/shubam14dec/Scalable-Notification-System/releases"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Current release, v__ASYNCIFY_VERSION__"
+            >v__ASYNCIFY_VERSION__</a>
+          </nav>
+        </header>
+
+        <div class="ct-col">
+          <!-- ── title ──────────────────────────────────────────────────── -->
+          <p class="ct-kicker">contact</p>
+          <h1 class="ct-headline">Send me a notification.</h1>
+          <p class="ct-subline">It delivers for real — and I read every one.</p>
+
+          <!-- ── the compose card ───────────────────────────────────────────
+               A real form wearing the product's compose surface. It is a
+               native POST to the same endpoint the fetch calls, so with
+               JavaScript off it still sends; contact.ts only intercepts the
+               submit to narrate what the server is doing anyway.
+               ─────────────────────────────────────────────────────────────── -->
+          <form class="ct-compose" id="ct-form" action="/api/contact" method="post">
+            <!-- The one field nobody gets to change. Every other compose
+                 surface on the internet asks who to send to; this one already
+                 knows, and the row is here to say so rather than to collect. -->
+            <div class="ct-row ct-row-fixed">
+              <span class="ct-label">to</span>
+              <span class="ct-fixed-value">shubham</span>
+            </div>
+
+            <!-- One chip, lit. The form does not display channels it cannot
+                 use — an unlit sms chip here would be a promise the page
+                 has no way to keep. -->
+            <div class="ct-row ct-row-fixed">
+              <span class="ct-label">channel</span>
+              <span class="ct-chip">email</span>
+            </div>
+
+            <div class="ct-row">
+              <label class="ct-label" for="ct-from">from</label>
+              <input
+                class="ct-input"
+                id="ct-from"
+                name="from"
+                type="email"
+                required
+                maxlength="200"
+                autocomplete="email"
+                spellcheck="false"
+                placeholder="you@company.com"
+              />
+            </div>
+
+            <div class="ct-row">
+              <label class="ct-label" for="ct-name">name</label>
+              <input
+                class="ct-input"
+                id="ct-name"
+                name="name"
+                type="text"
+                maxlength="100"
+                autocomplete="name"
+                placeholder="optional"
+              />
+            </div>
+
+            <div class="ct-row ct-row-payload">
+              <label class="ct-label" for="ct-message">payload</label>
+              <textarea
+                class="ct-input ct-textarea"
+                id="ct-message"
+                name="message"
+                required
+                rows="5"
+                maxlength="2000"
+                placeholder="what's on your mind"
+              ></textarea>
+            </div>
+
+            <!-- The honeypot. Off-screen, never display:none — some bots skip
+                 a field the computed style says is not rendered, and a trap a
+                 bot skips is not a trap. Humans never reach it: it is out of
+                 the tab order, out of the a11y tree, and off the canvas. -->
+            <input
+              class="ct-honeypot"
+              id="ct-company"
+              name="company"
+              type="text"
+              tabindex="-1"
+              autocomplete="off"
+              aria-hidden="true"
+            />
+
+            <div class="ct-row ct-row-foot">
+              <!-- Five words, stacked, crossfaded by opacity. The site never
+                   rewrites one element's text mid-animation — a status that
+                   swaps its own characters flickers, a status that dissolves
+                   into the next one reads as a state change. -->
+              <span class="ct-status" id="ct-status">
+                <span class="ct-st is-on" data-st="ready">ready</span>
+                <span class="ct-st" data-st="queued">queued</span>
+                <span class="ct-st" data-st="sending">sending</span>
+                <span class="ct-st" data-st="delivered">delivered</span>
+                <span class="ct-st ct-st-held" data-st="held">held</span>
+              </span>
+              <button class="ct-send" id="ct-send" type="submit">send notification</button>
+            </div>
+          </form>
+
+          <!-- ── the delivery strip ─────────────────────────────────────────
+               The wire out of the card and into the provider. Drawn at rest —
+               the stylesheet owns the rest state, so this reads as finished
+               structure with JavaScript off. Only the packet is hidden, and
+               only because a packet at rest would be a lie.
+               ─────────────────────────────────────────────────────────────── -->
+          <div class="ct-stripwrap">
+            <svg
+              class="ct-strip"
+              id="ct-strip"
+              viewBox="0 0 720 90"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <!-- Gently curved on purpose: contact.ts walks the packet with
+                   getPointAtLength, so a curve costs the same as a straight
+                   line and says "this went somewhere" instead of "this slid". -->
+              <path
+                class="ct-wire"
+                id="ct-wire"
+                d="M 48 22 C 200 22, 340 60, 540 60"
+              />
+              <rect
+                class="ct-endbox"
+                id="ct-endbox"
+                x="540"
+                y="36"
+                width="150"
+                height="48"
+                rx="6"
+              />
+              <!-- Authored at 0,0 in the wire's own coordinate space: the
+                   path's absolute point IS the packet's centre, so nothing
+                   has to be aligned through a matrix (DESIGN.md §6). -->
+              <circle class="ct-packet" id="ct-packet" cx="0" cy="0" r="4" />
+            </svg>
+            <!-- The label is HTML, not <text>, and that is a measurement
+                 decision: this svg is width:100% over a column that ranges
+                 327px to 720px, so anything sized in user units renders
+                 between 5px and 11px. Strokes survive that (non-scaling), a
+                 caption does not. It is parked on the box's centre in
+                 percentages of the same viewBox — 615/720 by 60/90. -->
+            <span class="ct-endlabel" aria-hidden="true">resend</span>
+          </div>
+
+          <!-- ── the receipt slot ───────────────────────────────────────────
+               A straight bar with a toothed edge — the machine's own ink, the
+               same idiom scene 5 cuts its receipt with. The band under it is
+               RESERVED at rest so the printed receipt never shifts the page:
+               the card lives above the clip's top edge and slides down into
+               view on a transform alone.
+               ─────────────────────────────────────────────────────────────── -->
+          <div class="ct-slot">
+            <svg class="ct-mouth" viewBox="0 0 180 12" aria-hidden="true" focusable="false">
+              <path class="ct-mouth-bar" d="M 0 2.5 L 180 2.5" />
+              <path
+                class="ct-teeth"
+                d="M 0 3 L 3 9 L 6 3 L 9 9 L 12 3 L 15 9 L 18 3 L 21 9 L 24 3 L 27 9 L 30 3 L 33 9 L 36 3 L 39 9 L 42 3 L 45 9 L 48 3 L 51 9 L 54 3 L 57 9 L 60 3 L 63 9 L 66 3 L 69 9 L 72 3 L 75 9 L 78 3 L 81 9 L 84 3 L 87 9 L 90 3 L 93 9 L 96 3 L 99 9 L 102 3 L 105 9 L 108 3 L 111 9 L 114 3 L 117 9 L 120 3 L 123 9 L 126 3 L 129 9 L 132 3 L 135 9 L 138 3 L 141 9 L 144 3 L 147 9 L 150 3 L 153 9 L 156 3 L 159 9 L 162 3 L 165 9 L 168 3 L 171 9 L 174 3 L 177 9 L 180 3"
+              />
+            </svg>
+            <div class="ct-receipt-clip" id="ct-clip">
+              <div class="ct-receipt" id="ct-receipt" role="status" aria-live="polite">
+                <div class="ct-rcpt-ok">
+                  <p class="ct-rcpt-line ct-rcpt-head">
+                    <span class="ct-rcpt-dot" id="ct-rcpt-dot" aria-hidden="true"></span>
+                    <span>delivered · <span id="ct-rcpt-ms">0</span>ms</span>
+                  </p>
+                  <p class="ct-rcpt-line">id <span id="ct-rcpt-id">—</span></p>
+                  <p class="ct-rcpt-line">to shubham · will reply</p>
+                </div>
+                <div class="ct-rcpt-held">
+                  <p class="ct-rcpt-line ct-rcpt-head">
+                    <span class="ct-rcpt-dot" aria-hidden="true"></span>
+                    <span>held · could not send</span>
+                  </p>
+                  <p class="ct-rcpt-line">
+                    <a class="ct-rcpt-link" href="mailto:shubamp981@gmail.com">email me directly</a>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── the escape hatches ─────────────────────────────────────────
+               Always here, no form required. A contact page whose only door
+               is its own machinery is a contact page you can lock yourself
+               out of. -->
+          <p class="ct-routes">
+            <span class="ct-routes-label">or, the direct routes:</span>
+            <a href="mailto:shubamp981@gmail.com">shubamp981@gmail.com</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <a href="https://github.com/shubam14dec/Scalable-Notification-System" target="_blank" rel="noreferrer">github</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <a href="https://www.linkedin.com/in/shubam-patil-491176273" target="_blank" rel="noreferrer">linkedin</a>
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <script type="module" src="/src/contact.ts"></script>
+  </body>
+</html>

@@ -38,11 +38,28 @@ function versionBadge(version: string): Plugin {
   };
 }
 
+/** Absolute path to an html entry beside this config, without pulling in
+ *  @types/node for `path`/`url` (this repo deliberately carries no node types —
+ *  `tsc --noEmit` covers vite.config.ts). `pathname` percent-encodes, so the
+ *  decode is not optional on a checkout whose path contains a space, and the
+ *  leading-slash strip turns `/C:/…` back into a Windows path while leaving a
+ *  POSIX `/home/…` untouched. */
+const page = (file: string): string =>
+  decodeURIComponent(new URL(file, import.meta.url).pathname).replace(/^\/(?=[A-Za-z]:)/, "");
+
 export default defineConfig(async () => {
   const version = await releaseVersion();
   return {
     plugins: [versionBadge(version)],
     build: {
+      // Two pages, one bundle. Both entries go through the version-badge
+      // plugin above, so the release badge is real on either of them.
+      rollupOptions: {
+        input: {
+          main: page("index.html"),
+          contact: page("contact.html"),
+        },
+      },
       target: "es2022",
       // Report anything over the perf budget in DESIGN.md §6 (150 KB gzip JS).
       chunkSizeWarningLimit: 500,

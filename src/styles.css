@@ -5296,3 +5296,508 @@ html {
     text-align: center;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CONTACT — /contact, "Send me a notification."
+   A second page, one column, and one idea: the contact form is the product's
+   own compose surface, and sending it plays out as a real delivery. Every
+   rule below is additive — nothing above this line is touched.
+
+   The stylesheet owns every rest state here (DESIGN.md §3): wire drawn, box
+   drawn, packet invisible, receipt parked above its clip. With JavaScript off
+   the page reads finished and the form posts natively.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.ct-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding: 20px var(--page-pad) clamp(32px, 6vh, 72px);
+}
+
+/* The masthead is shared markup, and the hero's entrance gating hides it
+   (`.nav { opacity: 0 }`) until main.ts reveals it. This page has no entrance
+   timeline, so it takes the nav back — in the stylesheet, not at boot, or the
+   masthead would flash in after first paint on every load. */
+.ct-page .nav {
+  opacity: 1;
+}
+
+/* The current page is said with ink, not with an underline or a pill. */
+.ct-page .nav-links a[aria-current="page"] {
+  color: var(--text);
+}
+
+/* The column. Narrower than the site's 1080px text column on purpose: this
+   page is one form and three lines of type, and a 720px measure is what keeps
+   the compose card from reading as a dashboard panel. */
+.ct-col {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding-top: clamp(36px, 8vh, 88px);
+}
+
+/* ── the title block ────────────────────────────────────────────────────── */
+
+.ct-kicker {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: var(--text-faint);
+}
+
+/* The vh term is not optional (BRAND §3): this page's vertical budget is
+   nav + title + card + strip + slot + routes, and a headline sized off vw
+   alone pushes the receipt slot below the fold on a short laptop. */
+.ct-headline {
+  margin-top: 14px;
+  font-size: clamp(2rem, min(4.6vw, 6vh), 3.25rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.06;
+  color: var(--text);
+  text-wrap: balance;
+}
+
+.ct-subline {
+  margin-top: 12px;
+  max-width: 52ch;
+  font-size: 17px;
+  color: var(--text-dim);
+  text-wrap: pretty;
+}
+
+/* ── the compose card ───────────────────────────────────────────────────── */
+
+.ct-compose {
+  position: relative; /* the honeypot's containing block */
+  margin-top: clamp(28px, 5vh, 48px);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-card);
+  background: var(--surface);
+  overflow: hidden; /* row hairlines stop at the card's corners */
+}
+
+.ct-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 46px;
+  padding: 10px 16px;
+}
+
+/* The structure is the hairline between rows, not a border per control —
+   which is why the inputs below carry none of their own. */
+.ct-row + .ct-row {
+  border-top: 1px solid var(--hairline);
+}
+
+.ct-row-payload {
+  align-items: flex-start;
+  padding-top: 14px;
+}
+
+.ct-label {
+  flex: none;
+  width: 64px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.55;
+  color: var(--text-faint);
+}
+
+.ct-fixed-value {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+
+/* Lit, because this channel is the one that runs. A chip label is lowercase
+   mono because that is how the API names a channel (BRAND §3). */
+.ct-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--r-chip);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: var(--text);
+}
+
+.ct-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.ct-input::placeholder {
+  color: var(--text-faint);
+  opacity: 1; /* Firefox dims placeholders by default; the ladder decides */
+}
+
+.ct-input:focus {
+  outline: none;
+}
+
+.ct-textarea {
+  align-self: stretch;
+  min-height: 96px;
+  resize: vertical;
+}
+
+/* Off-screen, never display:none. A bot that reads computed style skips a
+   field that is not rendered, and a trap a bot skips catches nothing. */
+.ct-honeypot {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.ct-row-foot {
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 16px;
+}
+
+/* Five words in one place, stacked and crossfaded. Sized to the longest of
+   them in its own mono `ch`, so the row never reflows as the state changes. */
+.ct-status {
+  position: relative;
+  flex: none;
+  min-width: 9ch;
+  height: 1.4em;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+}
+
+.ct-st {
+  position: absolute;
+  left: 0;
+  top: 0;
+  white-space: nowrap;
+  color: var(--text-faint);
+  opacity: 0;
+}
+
+.ct-st.is-on {
+  opacity: 1;
+}
+
+/* One rung up the ladder — a delivery is the sentence this page exists to
+   say, and weight/ink is how this site emphasises (BRAND §3). */
+.ct-st[data-st="delivered"] {
+  color: var(--text-dim);
+}
+
+/* Amber's whole domain here: the word that means it did not go. */
+.ct-st-held {
+  color: var(--amber);
+}
+
+/* The page's one green element at rest (BRAND §2). There is no second CTA on
+   this page, and no hover tint — green is not a hover state. */
+.ct-send {
+  flex: none;
+  height: 34px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--r-chip);
+  background: var(--green);
+  color: var(--canvas);
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    opacity 180ms ease,
+    transform 140ms var(--ease-out);
+}
+
+.ct-send:active {
+  transform: scale(0.97);
+}
+
+/* In flight. The label does not change and no spinner appears: the status
+   line and the packet are already saying what is happening. */
+.ct-send:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ── the delivery strip ─────────────────────────────────────────────────── */
+
+.ct-stripwrap {
+  position: relative;
+  margin-top: clamp(10px, 2.2vh, 22px);
+}
+
+.ct-strip {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.ct-wire {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+.ct-endbox {
+  fill: none;
+  stroke: var(--hairline);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Parked on the box's centre in percentages of the svg's own viewBox:
+   615/720 across, 60/90 down. */
+.ct-endlabel {
+  position: absolute;
+  left: 85.417%;
+  top: 66.667%;
+  transform: translate(-50%, -50%);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: var(--text-faint);
+  pointer-events: none;
+}
+
+/* Hidden at rest, and not by JavaScript: a packet sitting on the wire before
+   anything was sent would be a claim the page cannot back up. */
+.ct-packet {
+  fill: var(--text);
+  opacity: 0;
+}
+
+/* ── the receipt slot ───────────────────────────────────────────────────── */
+
+.ct-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: clamp(6px, 1.6vh, 16px);
+}
+
+.ct-mouth {
+  display: block;
+  width: 180px;
+  height: 12px;
+  overflow: visible;
+}
+
+.ct-mouth-bar {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The machine's ink, never the paper's — same as scene 5's teeth. */
+.ct-teeth {
+  fill: none;
+  stroke: var(--hairline-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* The band is RESERVED at rest, so printing costs zero layout: the card is
+   parked above this box's top edge and slides down on a transform alone. */
+.ct-receipt-clip {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  height: 96px;
+  overflow: hidden;
+}
+
+.ct-receipt {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  margin: 0 auto;
+  max-width: 320px;
+  padding: 12px 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-chip);
+  background: var(--surface);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+  /* Above the clip's mouth, out of sight, with slack to spare. */
+  transform: translateY(-160%);
+}
+
+.ct-rcpt-line {
+  margin: 0;
+}
+
+.ct-rcpt-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+/* The delivered-dot doing its one job (BRAND §2). It lives outside the
+   compose card, so the card still carries exactly one green element. */
+.ct-rcpt-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  transform-origin: 50% 50%; /* it pops from its own centre, nowhere else */
+  opacity: 0;
+}
+
+/* Two receipts, one slot. Both are authored in the markup so nothing has to
+   rewrite its own text while it is moving. */
+.ct-rcpt-held {
+  display: none;
+}
+
+.ct-receipt.is-held .ct-rcpt-ok {
+  display: none;
+}
+
+.ct-receipt.is-held .ct-rcpt-held {
+  display: block;
+}
+
+.ct-receipt.is-held .ct-rcpt-dot {
+  background: var(--amber);
+}
+
+.ct-rcpt-link {
+  color: var(--text);
+  border-bottom: 1px solid var(--hairline-strong);
+  transition: border-color 180ms ease;
+}
+
+/* ── the escape hatches ─────────────────────────────────────────────────── */
+
+.ct-routes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: clamp(28px, 5vh, 48px);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  color: var(--text-dim);
+}
+
+.ct-routes-label {
+  color: var(--text-faint);
+}
+
+.ct-routes a {
+  color: var(--text-dim);
+  transition: color 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .ct-routes a:hover {
+    color: var(--text);
+  }
+
+  .ct-rcpt-link:hover {
+    border-color: var(--text);
+  }
+}
+
+/* No pointer to be precise with: the button takes DESIGN.md §5's 40px floor.
+   It sits at 34px otherwise, which is the height the hero's install line
+   already set — on a mouse the two controls should read as the same object. */
+@media (hover: none) {
+  .ct-send {
+    height: 40px;
+  }
+}
+
+/* ── contact: reduced motion ────────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .ct-send {
+    transition-property: opacity;
+  }
+}
+
+/* ── contact: mobile ────────────────────────────────────────────────────── */
+
+@media (max-width: 767px) {
+  .ct-col {
+    padding-top: clamp(28px, 6vh, 56px);
+  }
+
+  .ct-label {
+    width: 56px;
+  }
+
+  .ct-row,
+  .ct-row-foot {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .ct-subline {
+    font-size: 16px;
+    max-width: 40ch;
+  }
+
+  .ct-send {
+    padding: 0 14px;
+  }
+
+  .ct-routes {
+    gap: 6px;
+    font-size: 11.5px;
+  }
+}
