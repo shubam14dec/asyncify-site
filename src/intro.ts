@@ -55,7 +55,7 @@ const SIG_CUE = 0.35;
 /* User-tuned pacing, both directions: 2.2 read as hurried against the
    old stroke-by-stroke write, 3.2 read as dragging once the letters
    began materialising whole ("make this writting fast little bit"). */
-const SIG_WRITE = 2.4;
+const SIG_WRITE = 1.9;
 
 /** A held beat on the finished word, then out. */
 const HOLD = 0.6;
