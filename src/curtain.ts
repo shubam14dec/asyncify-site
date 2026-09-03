@@ -273,24 +273,18 @@ export function mount(container: HTMLElement): Curtain {
   const labelTexL = makeLabelTex();
   const labelTexR = makeLabelTex();
 
-  /* Grade 6 — BLACK SILK (user call: "black on the silk cloth so that where
-     there are curves it is shining, and where the light is thrown"). Velvet
-     was matte: high roughness, the sheen lobe doing all the drawing. Silk is
-     the opposite read: the cloth itself goes nearly true black, roughness
-     drops so the crests carry real specular BANDS of the lamp, and the sheen
-     goes bright silver-gray with a tight lobe — the glossy edge-light that
-     runs along a silk fold. The valleys still fall to nothing; the shine
-     lives only where the cloth curves into the light. Two materials, one per
-     half, because each half shows its own window of the shared label
-     texture. */
+  /* The site's own inks: surface #111111 as the cloth, hairline-strong
+     #3f3f3f as the crest sheen — the curtain is drawn with the page's
+     palette, just folded. Two materials, one per half, because each half
+     shows its own window of the shared label texture. */
   const makeMaterial = (tex: CanvasTexture): MeshPhysicalMaterial =>
     new MeshPhysicalMaterial({
-      color: new Color(0x050505),
-      roughness: 0.38,
+      color: new Color(0x111111),
+      roughness: 0.85,
       metalness: 0,
       sheen: 1,
-      sheenColor: new Color(0x848484),
-      sheenRoughness: 0.25,
+      sheenColor: new Color(0x555555),
+      sheenRoughness: 0.5,
       emissive: new Color(0xffffff),
       emissiveMap: tex,
       emissiveIntensity: 0.85,
@@ -307,9 +301,7 @@ export function mount(container: HTMLElement): Curtain {
      warmth reads brown on dark cloth, so the grade goes fully MONOCHROME —
      black velvet under a silver-gray lamp. With zero hue anywhere in the
      light path, the cloth cannot read as anything but black. */
-  /* Silk wants a harder key than velvet: the specular bands ARE the cloth's
-     legibility now, so the wash comes up and the ambient goes down. */
-  const spot = new SpotLight(0xffffff, 2.4, 0, 0.9, 0.95, 0);
+  const spot = new SpotLight(0xffffff, 2.7, 0, 0.9, 0.95, 0);
   spot.position.set(0, 4.4, 4.2);
   const spotTarget = new Object3D();
   spotTarget.position.set(0, -0.7, 0);
@@ -335,7 +327,7 @@ export function mount(container: HTMLElement): Curtain {
   let bloomAt = -1;
 
   /* Enough to keep the valleys from clipping to absolute nothing. */
-  const ambient = new AmbientLight(0xffffff, 0.26);
+  const ambient = new AmbientLight(0xffffff, 0.35);
   /* A dim front fill so the fabric nearest the camera is not a silhouette. */
   const fill = new DirectionalLight(0xffffff, 0.08);
   fill.position.set(0.4, 0.3, 1);
