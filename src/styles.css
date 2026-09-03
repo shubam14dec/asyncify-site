@@ -6123,10 +6123,10 @@ html {
         wash. It is not a second accent: --green is untouched by this file
         and the rationing law (BRAND §2) is unaffected, because nothing here
         is green and nothing here survives the first visit.
-     2. A cursive face — the signature, and only the signature. Alex Brush
-        (public/fonts/alexbrush.ttf) is declared below and reachable
-        through exactly one selector, .in-sig-word, which lives inside
-        #intro and dies with it — it cannot leak into the page's type.
+     2. (RETIRED, user call) The signature no longer imports a face at
+        all: it is set in the site's own Instrument Serif italic — the
+        emphasis voice of "say." and "agentic" — so the second exemption
+        collapsed back into the brand. Only the gold remains exempt.
 
    Colours here are literal hex, not tokens, deliberately: a token is a thing
    the rest of the site may reach for, and none of this may be reached for.
@@ -6168,18 +6168,11 @@ html.in-lock body {
   place-items: center;
 }
 
-/* One face, for one word: Alex Brush (his pick B off the comparison sheet,
-   2026-09-04; SIL OFL — shippable, unlike the unverified Awesome.ttf it
-   replaced). Fetched only when the intro will actually run: browsers load
-   a face when rendered text uses it, the sole user is inside #intro, and a
-   returning visitor's head script hides #intro before first paint. `block`
-   because the word sits masked invisible until the write anyway — a
-   fallback flash mid-write is the only wrong outcome. */
-@font-face {
-  font-family: "AsyncifySig";
-  src: url("/fonts/alexbrush.ttf") format("truetype");
-  font-display: block;
-}
+/* No @font-face here any more (user call, ending the imported-script era:
+   Awesome -> Alex Brush -> the site's own voice): the signature is set in
+   Instrument Serif italic, which the page already loads via @fontsource
+   for "say.", "agentic", and the doodle captions. The intro adds zero
+   font bytes and finally speaks the site's design language. */
 
 .in-sig {
   /* Down from min(64vw, 620px) — user call: the word ran too big. */
@@ -6192,7 +6185,8 @@ html.in-lock body {
    viewBox does the responsive scaling, so the mask pen and the glyphs can
    never drift apart. */
 .in-sig-word {
-  font-family: "AsyncifySig", "Segoe Script", cursive;
+  font-family: "Instrument Serif", Georgia, serif;
+  font-style: italic;
   font-size: 200px;
   fill: #f4efe6;
   user-select: none;
