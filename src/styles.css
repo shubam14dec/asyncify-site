@@ -5638,8 +5638,8 @@ html {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 40px;
-  padding: 0 18px;
+  height: 36px; /* eased back from 40 (user call: 40 read too big in the card) */
+  padding: 0 16px;
   border: 0;
   border-radius: var(--r-chip);
   background: var(--green);
@@ -5939,7 +5939,12 @@ html {
   }
 }
 
-/* The 40px base height already meets DESIGN.md §5's touch floor. */
+/* No pointer to be precise with: the button takes DESIGN.md §5's 40px floor. */
+@media (hover: none) {
+  .ct-send {
+    height: 40px;
+  }
+}
 
 /* ── contact: reduced motion ────────────────────────────────────────────── */
 
