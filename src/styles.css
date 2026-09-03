@@ -6181,29 +6181,18 @@ html.in-lock body {
   overflow: visible;
 }
 
-/* The word itself: real type in his face, sized in SVG user units — the
-   viewBox does the responsive scaling, so the mask pen and the glyphs can
-   never drift apart. */
-.in-sig-word {
-  font-family: "Instrument Serif", Georgia, serif;
-  font-style: italic;
-  font-size: 200px;
-  fill: #f4efe6;
-  user-select: none;
-}
-
-/* The pen: fat white mask strokes hand-traced along the letterforms.
-   The stylesheet owns the rest state (DESIGN §3): offset === dasharray
-   paints nothing, so a slow boot cannot flash the finished word; 6000 is
-   comfortably longer than any stroke, and intro.ts replaces both with the
-   measured length before it writes. No vector-effect here, so dash space
-   is user units and getTotalLength() needs no scale correction. */
-.in-sig-m {
+/* The signature strokes ARE the ink now (user call, after the mask-pen
+   over real type stuck and dropped ink): an authored pen rendering of the
+   word in Instrument italic's letterforms — what the pen draws is exactly
+   what exists, so nothing can be missing. The stylesheet owns the rest
+   state (DESIGN §3): offset === dasharray paints nothing, so a slow boot
+   cannot flash the finished word; 6000 outlasts any stroke, and intro.ts
+   replaces both with the measured length before it writes. User units —
+   no scale correction. */
+.in-sig-s {
   fill: none;
-  stroke: #fff;
-  /* 40: wide enough to swallow Alex Brush's swells everywhere (user catch:
-     a thinner pen left mid-word chunks of the f loop unwritten). */
-  stroke-width: 40;
+  stroke: #f4efe6;
+  stroke-width: 9;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 6000;
