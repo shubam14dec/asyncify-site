@@ -57,6 +57,16 @@ gsap.registerPlugin(
   SplitText,
 );
 
+/* True while the nav's Install glide is scrolling the page. The deferred
+   scene builds are multi-second synchronous tasks, and BOTH of their
+   triggers could fire mid-glide — the clocked chain's timer, and
+   expediteSceneBuilds, which listens for scroll events the glide itself
+   emits (user catch: the first Install click teleported instead of
+   gliding, the second was smooth — because the first click's own scroll
+   event expedited a synchronous build). While this is set, builds wait;
+   the glide is 0.8s, the wait costs nothing a reader can see. */
+let glideActive = false;
+
 /* The nav's Install link GLIDES to the headline rather than teleporting
    (user call: "it should scroll and take me"). The href stays a real
    anchor — no-JS and reduced-motion readers get the browser's own jump —
@@ -137,11 +147,19 @@ if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
     "click",
     (e) => {
       e.preventDefault();
+      glideActive = true;
       gsap.to(window, {
         scrollTo: { y: "#headline", offsetY: 24, autoKill: true },
         duration: 0.8,
         ease: "power2.inOut",
-        onComplete: showCue,
+        onComplete: () => {
+          glideActive = false;
+          showCue();
+        },
+        /* autoKill's exit: the reader's own wheel took over. */
+        onInterrupt: () => {
+          glideActive = false;
+        },
       });
     },
   );
@@ -389,6 +407,12 @@ function buildNextSceneWhenIdle(): void {
      the previous one finished, which is ~24 painted frames for the bell's
      sway, the typing and the ring to breathe between blocks. */
   window.setTimeout(() => {
+    /* Mid-glide the build yields: back into the queue, try again after. */
+    if (glideActive) {
+      sceneBuilders.unshift(next);
+      buildNextSceneWhenIdle();
+      return;
+    }
     next();
     buildNextSceneWhenIdle();
   }, 400);
@@ -405,6 +429,10 @@ function buildNextSceneWhenIdle(): void {
    every builder run exactly once, so a timer firing into a drained queue is
    a no-op. */
 function expediteSceneBuilds(): void {
+  /* The glide's own scroll events land here too (user catch) — a
+     programmatic scroll is not a reader heading into unbuilt scenes.
+     Keep the listeners armed and stand down until the glide ends. */
+  if (glideActive) return;
   window.removeEventListener("wheel", expediteSceneBuilds);
   window.removeEventListener("touchmove", expediteSceneBuilds);
   window.removeEventListener("scroll", expediteSceneBuilds);
