@@ -390,6 +390,12 @@ export function introGate(): Promise<void> {
             penEnd = at - LIFT;
             /* The pen lifts away from the finished word. */
             if (pen) tl.to(pen, { opacity: 0, duration: 0.3 }, penEnd);
+            /* The ink guarantee (user call): as the pen lifts, the mask's
+               flood layer fades to white and reveals the whole glyph area,
+               so any sliver the traced strokes missed is filled in — the
+               finished word is complete by construction. */
+            const flood = root.querySelector<SVGRectElement>(".in-sig-flood");
+            if (flood) tl.to(flood, { opacity: 1, duration: 0.35, ease: "power1.out" }, penEnd - 0.1);
           }
 
           /* Hold on the finished picture — both the parted cloth and the

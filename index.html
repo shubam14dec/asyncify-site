@@ -146,6 +146,13 @@
               <path class="in-sig-m" d="M 782 178 C 802 176 824 176 842 176"/>
               <path class="in-sig-m" d="M 856 166 C 850 204 854 240 864 252 C 872 262 886 262 896 250"/>
               <path class="in-sig-m" d="M 922 162 C 914 200 904 234 895 256 C 888 292 872 320 852 320 C 832 320 822 306 828 294 C 832 286 840 285 846 289"/>
+              <!-- THE INK GUARANTEE (user call: "make sure the ink is
+                   fully there"): as the pen lifts from the last stroke,
+                   intro.ts fades this flood to white, revealing the ENTIRE
+                   glyph area — any sliver the traced pen missed is filled
+                   by the time the word stands. The finished signature is
+                   complete by construction, not by trace accuracy. -->
+              <rect class="in-sig-flood" x="250" y="35" width="680" height="320" fill="#fff" opacity="0" />
             </mask>
             <radialGradient id="in-pen-glow">
               <stop offset="0%" stop-color="#dcc48a" stop-opacity="0.55" />
