@@ -53,6 +53,8 @@ const meter = q<HTMLElement>("#ct-meter");
 q<HTMLElement>(".ct-head"); /* the request line exists — q throws if not */
 const bell = q<SVGGElement>("#ct-bell");
 const clapper = q<SVGCircleElement>("#ct-clapper");
+const sendLabel = q<HTMLElement>("#ct-send-label");
+const sendDone = q<HTMLElement>("#ct-send-done");
 
 /* Colors come out of the tokens, never out of this file (BRAND.md §1). The
    box blink needs resolved values because gsap interpolates numbers, not
@@ -117,12 +119,46 @@ const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 let inFlight = false;
 
-/** A narrative beat: the queued/sending words need a moment to be read even
- *  when the round-trip is quick — the receipt still prints only from the
- *  REAL response, this just keeps the story legible. */
-function wait(seconds: number): Promise<void> {
+/** THE PACKING (user call, scene 2's digest one size down): a dot lifts from
+ *  each field that holds a value and the set converges into the send button —
+ *  the message visibly assembled from its parts. Runs beside the real POST;
+ *  it is the narrative floor that keeps a fast round-trip legible, and the
+ *  receipt still prints only from what the server answered. */
+function packFields(): Promise<void> {
+  if (reduced) return Promise.resolve();
+  const sources = [fromInput, nameInput, messageInput].filter(
+    (el) => el.value.trim().length > 0,
+  );
+  const target = send.getBoundingClientRect();
+  const tx = target.left + target.width / 2;
+  const ty = target.top + target.height / 2;
+  const dots: HTMLElement[] = [];
   return new Promise<void>((resolve) => {
-    gsap.delayedCall(seconds, resolve);
+    const tl = gsap.timeline({
+      onComplete: () => {
+        for (const d of dots) d.remove();
+        resolve();
+      },
+    });
+    sources.forEach((el, i) => {
+      const r = el.getBoundingClientRect();
+      const sx = r.left + 12; /* the value column's own inset */
+      const sy = r.top + Math.min(r.height, 24) / 2;
+      const dot = document.createElement("span");
+      dot.className = "ct-pack-dot";
+      dot.style.left = `${sx}px`;
+      dot.style.top = `${sy}px`;
+      document.body.appendChild(dot);
+      dots.push(dot);
+      const at = i * 0.09;
+      tl.to(dot, { opacity: 1, duration: 0.12, ease: "power1.out" }, at);
+      tl.to(
+        dot,
+        { x: tx - sx, y: ty - sy, scale: 0.5, duration: 0.55, ease: "power2.in" },
+        at + 0.1,
+      );
+      tl.to(dot, { opacity: 0, duration: 0.1, ease: "power1.in" }, at + 0.58);
+    });
   });
 }
 
@@ -264,10 +300,14 @@ form.addEventListener("submit", (event) => {
 
   ringBell();
 
-  void Promise.all([wait(reduced ? 0 : 0.9), post()]).then(([, sent]) => {
+  void Promise.all([packFields(), post()]).then(([, sent]) => {
     if (sent.ok) {
       msOut.textContent = String(sent.ms);
       idOut.textContent = sent.id.slice(0, 10) || "unknown";
+      /* The button says so itself (user call): the label dissolves into
+         `sent` — but only because the server said it was. */
+      gsap.to(sendLabel, { opacity: 0, duration: 0.18, ease: "power1.out" });
+      gsap.to(sendDone, { opacity: 1, duration: 0.18, ease: "power1.out" });
       printReceipt(false);
       return;
     }

@@ -5656,6 +5656,36 @@ html {
   transform: scale(0.97);
 }
 
+/* Two words in one slot: the label holds the width, `sent` sits centred over
+   it at rest-invisible — contact.ts crossfades them only on a real success. */
+.ct-send-words {
+  position: relative;
+  display: inline-block;
+}
+
+.ct-send-done {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  opacity: 0;
+}
+
+/* THE PACKING DOTS (user call, scene 2's digest miniaturized): one dot per
+   filled field, lifted from the value and converged into the send button.
+   Built by contact.ts on demand, fixed-positioned, gone when they arrive. */
+.ct-pack-dot {
+  position: fixed;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+
 /* In flight. The label does not change and no spinner appears: the status
    line and the packet are already saying what is happening. */
 .ct-send:disabled {

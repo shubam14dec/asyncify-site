@@ -192,7 +192,13 @@
                     <circle class="ct-clapper" id="ct-clapper" cx="0" cy="17.5" r="1.8" />
                   </g>
                 </svg>
-                <span>send notification</span>
+                <!-- Two words, one slot: the label keeps the button's width,
+                     `sent` fades in over it only when the POST truly
+                     succeeded — the crossfade idiom, never a text rewrite. -->
+                <span class="ct-send-words">
+                  <span class="ct-send-label" id="ct-send-label">send notification</span>
+                  <span class="ct-send-done" id="ct-send-done">sent</span>
+                </span>
               </button>
             </div>
           </form>
