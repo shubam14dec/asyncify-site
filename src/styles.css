@@ -5678,21 +5678,40 @@ html {
 
 /* ── the receipt slot ───────────────────────────────────────────────────── */
 
-.ct-slot {
+/* The routes, as a row of the machine (user call): the same mono the card's
+   values wear, links one rung up on hover. */
+.ct-routes-inline {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   align-items: center;
-  margin-top: clamp(20px, 3.5vh, 36px);
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
 }
 
-/* The band is RESERVED at rest, so printing costs zero layout: the card is
-   parked above this box's top edge and slides down on a transform alone. */
+.ct-routes-inline a {
+  color: var(--text-dim);
+  transition: color 180ms ease;
+}
+
+/* Fixed at the viewport's lower right (user call: one screen, no scroll) —
+   a printout costs zero page height. The clip is invisible at rest; the
+   receipt slides down into it on a transform alone. pointer-events pass
+   through the empty clip so nothing under it ever goes dead. */
 .ct-receipt-clip {
-  position: relative;
-  width: 100%;
-  max-width: 320px;
+  position: fixed;
+  right: clamp(16px, 4vw, 48px);
+  bottom: 24px;
+  width: min(320px, calc(100vw - 32px));
   height: 96px;
   overflow: hidden;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.ct-receipt {
+  pointer-events: auto; /* the held receipt carries a real mailto */
 }
 
 .ct-receipt {
@@ -5764,36 +5783,44 @@ html {
   transition: border-color 180ms ease;
 }
 
-/* ── the escape hatches ─────────────────────────────────────────────────── */
-
-.ct-routes {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-top: clamp(28px, 5vh, 48px);
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 0.01em;
-  color: var(--text-dim);
-}
-
-.ct-routes-label {
-  color: var(--text-faint);
-}
-
-.ct-routes a {
-  color: var(--text-dim);
-  transition: color 180ms ease;
-}
-
 @media (hover: hover) and (pointer: fine) {
-  .ct-routes a:hover {
+  .ct-routes-inline a:hover {
     color: var(--text);
   }
 
   .ct-rcpt-link:hover {
     border-color: var(--text);
+  }
+}
+
+/* ── one screen (user call: no scroll) ──────────────────────────────────
+   The page's whole budget is nav + title + card; on a short laptop the
+   flexible costs shrink rather than the page growing a scrollbar. */
+@media (max-height: 820px) {
+  .ct-col {
+    padding-top: clamp(14px, 3vh, 36px);
+  }
+
+  .ct-headline {
+    font-size: clamp(1.7rem, min(4vw, 4.6vh), 2.6rem);
+  }
+
+  .ct-compose {
+    margin-top: clamp(16px, 3vh, 28px);
+  }
+
+  .ct-row {
+    min-height: 42px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .ct-row-payload {
+    padding-bottom: 26px;
+  }
+
+  .ct-textarea {
+    min-height: 68px;
   }
 }
 
