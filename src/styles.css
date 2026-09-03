@@ -6180,18 +6180,36 @@ html.in-lock body {
   font-display: block;
 }
 
-/* The stylesheet owns the rest state (DESIGN §3): fully clipped, so a slow
-   boot cannot flash the finished word. The negative top/bottom/left insets
-   are breathing room — the brush overshoots its em box, and a clip that
-   hugged the box would shave descenders as the wipe travels. intro.ts
-   tweens only the right inset (102% → -8%). */
+.in-sig {
+  width: min(64vw, 620px);
+  /* Swashes overshoot the viewBox at some widths. */
+  overflow: visible;
+}
+
+/* The word itself: real type in his face, sized in SVG user units — the
+   viewBox does the responsive scaling, so the mask pen and the glyphs can
+   never drift apart. */
 .in-sig-word {
   font-family: "AsyncifySig", "Segoe Script", cursive;
-  font-size: clamp(64px, 11.5vw, 150px);
-  line-height: 1.2;
-  color: #f4efe6;
-  clip-path: inset(-35% 102% -35% -8%);
+  font-size: 200px;
+  fill: #f4efe6;
   user-select: none;
+}
+
+/* The pen: fat white mask strokes hand-traced along the letterforms.
+   The stylesheet owns the rest state (DESIGN §3): offset === dasharray
+   paints nothing, so a slow boot cannot flash the finished word; 6000 is
+   comfortably longer than any stroke, and intro.ts replaces both with the
+   measured length before it writes. No vector-effect here, so dash space
+   is user units and getTotalLength() needs no scale correction. */
+.in-sig-m {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 44;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 6000;
+  stroke-dashoffset: 6000;
 }
 
 /* ── the poster: the closed curtain, in CSS alone ───────────────────────── */
@@ -6398,8 +6416,8 @@ html.in-lock body {
 /* ── intro: mobile ─────────────────────────────────────────────────────── */
 
 @media (max-width: 767px) {
-  .in-sig-word {
-    font-size: 15vw;
+  .in-sig {
+    width: 78vw;
   }
 
   .in-btn {

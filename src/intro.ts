@@ -52,7 +52,9 @@ const CLEAR = 0.35;
  *  opened, early enough that the two motions overlap and the writing is not
  *  an epilogue. */
 const SIG_CUE = 0.35;
-const SIG_WRITE = 1.8;
+/* A touch longer than the old single-stroke write: the pen now travels
+   every letterform, and 1.8s read as hurried against real letter shapes. */
+const SIG_WRITE = 2.2;
 
 /** A held beat on the finished word, then out. */
 const HOLD = 0.6;
@@ -180,7 +182,8 @@ export function introGate(): Promise<void> {
       const halfL = root.querySelector<HTMLElement>(".in-half-l");
       const halfR = root.querySelector<HTMLElement>(".in-half-r");
       const host = root.querySelector<HTMLElement>("#in-canvas");
-      const sig = root.querySelector<HTMLElement>(".in-sig-word");
+      /* The mask pen's strokes, in authored (= writing) order. */
+      const sigPaths = Array.from(root.querySelectorAll<SVGPathElement>(".in-sig-m"));
 
       /* No button, no way in — and no way for the visitor out. Bail loudly
          to the page rather than sealing it behind an inert curtain. */
@@ -274,24 +277,35 @@ export function introGate(): Promise<void> {
               .to(halfR, { xPercent: 100, scaleX: 0.86, duration: pull, ease: "power2.inOut" }, CLEAR);
           }
 
-          if (sig) {
-            /* The wipe is the pen. The word is real type now — his
-               brush-script face — so the write-on is a clip travelling left
-               to right instead of a dash offset; the stylesheet owns the
-               fully-clipped rest state, this tween owns only the journey.
-               power1.inOut, not the house expo: a pen accelerates out of
-               the first stroke and eases into the last one. */
-            tl.fromTo(
-              sig,
-              { clipPath: "inset(-35% 102% -35% -8%)" },
-              { clipPath: "inset(-35% -8% -35% -8%)", duration: SIG_WRITE, ease: "power1.inOut" },
-              CLEAR + pull * SIG_CUE,
-            );
+          let penEnd = CLEAR + pull * SIG_CUE;
+          if (sigPaths.length > 0) {
+            /* Stroke by stroke: each mask path is measured and
+               dash-revealed in writing order — A bowl, A stem, the running
+               s-y-n-c-i-f-y line, the i's dab — so the ink appears exactly
+               where a pen would put it down. SIG_WRITE is split by stroke
+               length; the small gap between strokes is the pen lifting.
+               power1.inOut per stroke: a pen accelerates out of a touch-down
+               and eases into a lift. */
+            const LIFT = 0.07;
+            const lens = sigPaths.map((p) => {
+              const len = p.getTotalLength() + 2;
+              p.style.strokeDasharray = String(len);
+              p.style.strokeDashoffset = String(len);
+              return len;
+            });
+            const total = lens.reduce((a, b) => a + b, 0);
+            let at = penEnd;
+            sigPaths.forEach((p, i) => {
+              const d = SIG_WRITE * ((lens[i] ?? 0) / total);
+              tl.to(p, { strokeDashoffset: 0, duration: d, ease: "power1.inOut" }, at);
+              at += d + LIFT;
+            });
+            penEnd = at - LIFT;
           }
 
           /* Hold on the finished picture — both the parted cloth and the
              completed word, whichever of the two lands last. */
-          const settled = Math.max(CLEAR + pull, CLEAR + pull * SIG_CUE + SIG_WRITE);
+          const settled = Math.max(CLEAR + pull, penEnd);
           tl.to({}, { duration: HOLD }, settled);
         } catch {
           /* Guarantee 3. */
