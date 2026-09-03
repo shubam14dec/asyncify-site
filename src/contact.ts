@@ -346,6 +346,14 @@ form.addEventListener("submit", (event) => {
          `sent` — but only because the server said it was. */
       gsap.to(sendLabel, { opacity: 0, duration: 0.18, ease: "power1.out" });
       gsap.to(sendDone, { opacity: 1, duration: 0.18, ease: "power1.out" });
+      /* And the fields EMPTY (user call): the envelope took the values, so
+         paper that still showed them would contradict the story. Only on
+         success — a held send keeps everything, so a retry costs nothing. */
+      form.reset();
+      for (const row of document.querySelectorAll(".ct-row.is-ok")) {
+        row.classList.remove("is-ok");
+      }
+      meter.textContent = "0 / 2000";
       printReceipt(false);
       return;
     }
