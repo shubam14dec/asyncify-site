@@ -6236,16 +6236,20 @@ html.in-lock body {
   will-change: transform;
 
   /* Three layers, front to back:
-       1. the stage wash — a warm pool high and centre, falling off fast;
+       1. the stage wash — a silver-gray pool high and centre, falling off
+          fast. It was champagne once (the bronze grade rounds), and that
+          leftover was the "golden curtain" flashing before the WebGL
+          crossfade (user catch): the poster must be the SAME monochrome
+          cloth as the velvet it stands in for.
        2. the vertical shading — gathered dark at the rail, a floor shadow
           at the hem;
-       3. the pleats themselves — a 46px period of valley -> flank -> crest,
-          where the crest carries the only warm pixels in the cloth. */
+       3. the pleats themselves — a period of valley -> flank -> crest, in
+          the site's own grays. */
   background-image:
     radial-gradient(
       130% 92% at 50% 16%,
-      rgba(196, 166, 112, 0.13) 0%,
-      rgba(150, 126, 84, 0.05) 34%,
+      rgba(190, 190, 190, 0.11) 0%,
+      rgba(140, 140, 140, 0.04) 34%,
       rgba(0, 0, 0, 0) 66%
     ),
     linear-gradient(
