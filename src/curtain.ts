@@ -166,7 +166,7 @@ export function mount(container: HTMLElement): Curtain {
   /* Filmic, and a touch hot: everything in frame is within a stop or two of
      black, and the sheen highlights are the only thing carrying shape. */
   renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.3;
+  renderer.toneMappingExposure = 1.1;
   container.appendChild(renderer.domElement);
 
   const scene = new Scene();
@@ -179,13 +179,18 @@ export function mount(container: HTMLElement): Curtain {
      retroreflective lobe that lights the crests facing the wash while the
      valleys stay dark — so sheen is at full and its colour is the warm
      champagne of the stage lamp, not the cloth. */
+  /* REGRADED after the first screenshot round (user catch, probe-confirmed):
+     the original grade — sheen #8a734a at full, spot 7.2, exposure 1.3 —
+     painted the whole cloth bronze-gold. Black velvet means the CLOTH stays
+     black and only the crests carry a dim warm edge, so every light source
+     comes down hard and the sheen goes dimmer and grayer. */
   const material = new MeshPhysicalMaterial({
-    color: new Color(0x161616),
+    color: new Color(0x0e0e0e),
     roughness: 0.85,
     metalness: 0,
     sheen: 1,
-    sheenColor: new Color(0x8a734a),
-    sheenRoughness: 0.45,
+    sheenColor: new Color(0x9a9186),
+    sheenRoughness: 0.5,
   });
 
   /* ── the stage wash ────────────────────────────────────────────────────
@@ -193,7 +198,12 @@ export function mount(container: HTMLElement): Curtain {
      so the pool falls off down the cloth instead of drawing an edge. No
      decay: this is a theatre lamp a long way off, not a bulb in the room,
      and no shadow map — the fold normals do every bit of the shading. */
-  const spot = new SpotLight(0xffd9a8, 7.2, 0, 1.02, 0.95, 0);
+  /* Grade round 3 (probe loop): rounds 1-2 proved the HUE was the problem —
+     a champagne lamp tints black cloth chocolate no matter the intensity.
+     Black velvet under stage light reads as black cloth with near-NEUTRAL
+     silvery-warm crest light, so the lamp goes almost white with only a
+     whisper of warmth, and the narrower cone pools it centre-top. */
+  const spot = new SpotLight(0xf7efdd, 3.0, 0, 0.9, 0.95, 0);
   spot.position.set(0, 4.4, 4.2);
   const spotTarget = new Object3D();
   spotTarget.position.set(0, -0.7, 0);
@@ -201,9 +211,9 @@ export function mount(container: HTMLElement): Curtain {
   spot.target = spotTarget;
 
   /* Enough to keep the valleys from clipping to absolute nothing. */
-  const ambient = new AmbientLight(0x100e0b, 1.1);
+  const ambient = new AmbientLight(0x0b0b0d, 0.7);
   /* A dim front fill so the fabric nearest the camera is not a silhouette. */
-  const fill = new DirectionalLight(0xa88f66, 0.4);
+  const fill = new DirectionalLight(0xcfc6b8, 0.1);
   fill.position.set(0.4, 0.3, 1);
   scene.add(ambient, fill);
 

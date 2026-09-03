@@ -301,6 +301,12 @@ export function introGate(): Promise<void> {
               { strokeDashoffset: 0, duration: SIG_WRITE, ease: "power1.inOut" },
               CLEAR + pull * SIG_CUE,
             );
+            /* The pen lifts and dots the i — a beat after the word lands. */
+            tl.to(
+              "#in-sig-dot",
+              { opacity: 1, duration: 0.18, ease: "power1.out" },
+              CLEAR + pull * SIG_CUE + SIG_WRITE + 0.08,
+            );
           }
 
           /* Hold on the finished picture — both the parted cloth and the

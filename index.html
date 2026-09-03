@@ -107,61 +107,75 @@
       <div class="in-stage" aria-hidden="true">
         <svg
           class="in-sig"
-          viewBox="52 22 574 176"
+          viewBox="56 44 566 170"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
           aria-hidden="true"
           focusable="false"
         >
-          <!-- One pen stroke, start to finish: capital-A bowl and stem, the
-               s, the y with its descender loop, n, c, i, the f's ascender
-               curl and descender loop, the closing y and its trailing
-               flourish. Authored by hand as cubic segments — every segment
-               starts where the last one ended, so `d` has exactly one M and
-               getTotalLength() measures one continuous line. The i carries
-               no tittle on purpose: a dot is a second stroke. -->
+          <!-- One pen stroke (rebuilt in a probe-screenshot loop after the
+               first draft read as scribble): script a-form capital, a true
+               cursive s, the y with its descender loop, n's arch, an open c,
+               a short dotted i, the f's ascender and descender loops, the
+               closing y with its trailing flourish. One M, all cubics; the
+               i's tittle is the SECOND path below — a pen lifts to dot an i,
+               and intro.ts taps it in after the word completes. -->
           <path
             id="in-sig-path"
             class="in-sig-path"
-            d="M 150 52
-               C 114 32 70 54 68 92
-               C 66 126 96 152 124 140
-               C 143 132 150 96 150 52
-               C 152 82 152 110 158 130
-               C 163 146 178 148 196 126
-               C 202 116 208 104 206 96
-               C 202 88 192 92 190 104
-               C 188 118 196 128 210 132
-               C 222 136 232 130 236 118
-               C 240 108 244 100 246 94
-               C 244 108 244 122 250 130
-               C 258 140 274 136 280 92
-               C 284 122 288 152 276 170
-               C 266 184 250 178 252 164
-               C 254 150 272 140 298 94
-               C 296 110 296 122 300 132
-               C 304 106 314 90 324 96
-               C 328 110 328 122 330 132
-               C 334 142 352 140 382 96
-               C 384 86 366 84 360 98
-               C 354 112 358 130 372 132
-               C 382 133 388 126 392 118
-               C 398 110 400 104 402 96
-               C 404 110 404 122 408 132
-               C 414 142 424 140 436 110
-               C 438 66 438 62 444 50
-               C 448 40 458 44 454 60
-               C 450 84 446 110 444 134
-               C 442 158 436 176 424 172
-               C 414 168 416 152 432 144
-               C 444 138 456 132 466 122
-               C 472 112 476 102 478 92
-               C 476 108 476 122 482 130
-               C 490 140 506 136 512 92
-               C 516 122 520 152 508 170
-               C 498 184 482 178 484 164
-               C 486 152 500 146 530 136
-               C 560 128 590 126 610 116"
+            d="M 128 96
+               C 100 84 74 96 72 120
+               C 70 146 94 158 112 148
+               C 126 140 132 120 132 102
+               C 132 124 134 144 142 150
+               C 148 154 156 146 160 136
+               C 166 126 172 112 178 108
+               C 170 106 164 114 170 122
+               C 176 130 186 132 186 140
+               C 186 146 176 148 170 142
+               C 176 148 188 146 196 136
+               C 200 124 206 114 212 112
+               C 210 126 210 140 216 146
+               C 222 151 230 143 232 130
+               C 234 120 236 114 238 112
+               C 236 138 234 166 228 184
+               C 222 202 206 200 208 186
+               C 210 174 224 166 244 142
+               C 250 132 254 126 258 122
+               C 258 132 258 144 260 148
+               C 262 126 272 112 280 116
+               C 288 120 286 132 285 140
+               C 284 146 286 149 290 148
+               C 294 144 296 136 300 128
+               C 306 120 314 112 322 112
+               C 310 106 296 116 298 132
+               C 300 148 316 152 326 142
+               C 330 136 332 130 336 124
+               C 336 132 336 142 340 148
+               C 344 144 346 136 350 128
+               C 356 108 362 82 370 68
+               C 374 56 386 58 384 72
+               C 382 86 372 100 366 122
+               C 362 142 360 168 358 184
+               C 356 202 340 200 344 186
+               C 347 174 358 168 374 148
+               C 378 142 382 134 388 126
+               C 388 136 388 146 394 149
+               C 402 152 410 142 412 128
+               C 414 118 416 113 418 112
+               C 416 140 414 168 408 186
+               C 402 204 386 202 388 188
+               C 390 176 404 168 436 146
+               C 458 132 500 128 566 124
+               C 588 123 602 122 612 121"
+          />
+          <path
+            id="in-sig-dot"
+            d="M 342 96 C 343 93 347 93 347 96 C 347 99 342 99 342 96"
+            stroke="#f4efe6"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            style="opacity: 0"
           />
         </svg>
       </div>
