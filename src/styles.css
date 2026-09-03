@@ -5382,11 +5382,36 @@ html {
 }
 
 .ct-row {
+  position: relative; /* the focus tick and the meter anchor to the row */
   display: flex;
   align-items: center;
   gap: 14px;
   min-height: 46px;
   padding: 10px 16px;
+}
+
+/* THE INSTRUMENTED ROW (user call: the card read as a normal form). Focus is
+   machine feedback, not decoration: the row under the cursor lights its label
+   one rung and stands a 1px tick on its left edge — the same hairline ink
+   every structural line here uses. */
+.ct-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: var(--hairline-strong);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.ct-row:focus-within::before {
+  opacity: 1;
+}
+
+.ct-row:focus-within .ct-label {
+  color: var(--text);
 }
 
 /* The structure is the hairline between rows, not a border per control —
@@ -5398,6 +5423,37 @@ html {
 .ct-row-payload {
   align-items: flex-start;
   padding-top: 14px;
+  padding-bottom: 30px; /* the meter's shelf, reserved so typing never reflows */
+}
+
+/* The request line: the card stamped with the call it makes. Recessed to the
+   canvas — elevation is color on this site, and a strip one step DOWN reads
+   as machined, not decorated. */
+.ct-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--canvas);
+  border-bottom: 1px solid var(--hairline);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+}
+
+.ct-head-method {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.ct-head-path {
+  color: var(--text-dim);
+}
+
+.ct-head-via {
+  margin-left: auto;
+  color: var(--text-faint);
 }
 
 .ct-label {
@@ -5463,6 +5519,44 @@ html {
   align-self: stretch;
   min-height: 96px;
   resize: vertical;
+}
+
+/* The earned tick: drawn stroke, the site's checkbox idiom. Lit by contact.ts
+   when the field holds a usable value; invisible otherwise, so an empty form
+   makes no claims. */
+.ct-ok {
+  flex: none;
+  width: 10px;
+  height: 8px;
+  overflow: visible;
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.ct-ok path {
+  fill: none;
+  stroke: var(--text-dim);
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.ct-row.is-ok .ct-ok {
+  opacity: 1;
+}
+
+/* The payload meter: a measurement, mono, tabular, one rung above silence. */
+.ct-meter {
+  position: absolute;
+  right: 16px;
+  bottom: 9px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
 }
 
 /* Off-screen, never display:none. A bot that reads computed style skips a
@@ -5557,9 +5651,12 @@ html {
 
 /* ── the delivery strip ─────────────────────────────────────────────────── */
 
+/* Flush against the card (user call): the wire's first point is y=0, so the
+   strip presses its top edge to the card's bottom hairline and the wire
+   reads as growing out of the machine that composed the message. */
 .ct-stripwrap {
   position: relative;
-  margin-top: clamp(10px, 2.2vh, 22px);
+  margin-top: 0;
 }
 
 .ct-strip {
@@ -5782,9 +5879,14 @@ html {
   }
 
   .ct-row,
-  .ct-row-foot {
+  .ct-row-foot,
+  .ct-head {
     padding-left: 14px;
     padding-right: 14px;
+  }
+
+  .ct-meter {
+    right: 14px;
   }
 
   .ct-subline {

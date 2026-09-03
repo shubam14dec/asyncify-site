@@ -53,6 +53,8 @@ const clip = q<HTMLElement>("#ct-clip");
 const dot = q<HTMLElement>("#ct-rcpt-dot");
 const msOut = q<HTMLElement>("#ct-rcpt-ms");
 const idOut = q<HTMLElement>("#ct-rcpt-id");
+const meter = q<HTMLElement>("#ct-meter");
+q<HTMLElement>(".ct-head"); /* the request line exists — q throws if not */
 
 const statusEls = new Map<string, HTMLElement>();
 for (const el of document.querySelectorAll<HTMLElement>(".ct-st")) {
@@ -267,6 +269,21 @@ async function post(): Promise<Sent> {
 /* A shape check, not a validity ruling — the server checks again, and the
    browser's own required/type=email is what reports the problem to the user. */
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+/* ── the instrumented rows ─────────────────────────────────────────────────
+   A field holding a usable value earns its drawn tick (the row's is-ok), and
+   the payload row keeps a live character count against the server's own cap.
+   Pure state → class/text; the transitions live in the stylesheet. */
+function arm(el: HTMLInputElement | HTMLTextAreaElement, usable: () => boolean): void {
+  const row = el.closest<HTMLElement>(".ct-row");
+  if (!row) return;
+  el.addEventListener("input", () => row.classList.toggle("is-ok", usable()));
+}
+arm(fromInput, () => EMAIL.test(fromInput.value.trim()));
+arm(messageInput, () => messageInput.value.trim().length > 0);
+messageInput.addEventListener("input", () => {
+  meter.textContent = `${messageInput.value.length} / 2000`;
+});
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();

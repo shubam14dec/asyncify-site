@@ -77,6 +77,15 @@
                submit to narrate what the server is doing anyway.
                ─────────────────────────────────────────────────────────────── -->
           <form class="ct-compose" id="ct-form" action="/api/contact" method="post">
+            <!-- The request line. This form IS a POST to the product's kind of
+                 endpoint, so the card wears the call it makes — recessed a
+                 step into the canvas, the way a machine stamps its part
+                 number. -->
+            <div class="ct-head" aria-hidden="true">
+              <span class="ct-head-method">POST</span>
+              <span class="ct-head-path">/v1/messages</span>
+              <span class="ct-head-via">via asyncify</span>
+            </div>
             <!-- The one field nobody gets to change. Every other compose
                  surface on the internet asks who to send to; this one already
                  knows, and the row is here to say so rather than to collect. -->
@@ -106,6 +115,11 @@
                 spellcheck="false"
                 placeholder="you@company.com"
               />
+              <!-- The drawn tick, the site's checkbox idiom: a field that
+                   holds a usable value earns its mark. -->
+              <svg class="ct-ok" viewBox="0 0 10 8" aria-hidden="true" focusable="false">
+                <path d="M 1 4.2 L 3.8 7 L 9 1.4" />
+              </svg>
             </div>
 
             <div class="ct-row">
@@ -132,6 +146,14 @@
                 maxlength="2000"
                 placeholder="what's on your mind"
               ></textarea>
+              <svg class="ct-ok" viewBox="0 0 10 8" aria-hidden="true" focusable="false">
+                <path d="M 1 4.2 L 3.8 7 L 9 1.4" />
+              </svg>
+              <!-- The payload measured in the machine's voice: a live count
+                   against the server's own cap. Chars, deliberately — the
+                   cap is a character cap, and a meter must not claim a unit
+                   it does not enforce. -->
+              <span class="ct-meter" id="ct-meter" aria-hidden="true">0 / 2000</span>
             </div>
 
             <!-- The honeypot. Off-screen, never display:none — some bots skip
@@ -181,10 +203,14 @@
               <!-- Gently curved on purpose: contact.ts walks the packet with
                    getPointAtLength, so a curve costs the same as a straight
                    line and says "this went somewhere" instead of "this slid". -->
+              <!-- The wire GROWS OUT of the compose card (user call: card,
+                   wire and provider box must read as one apparatus): it
+                   starts at y=0, flush against the card's bottom hairline,
+                   drops away and sweeps into the box. -->
               <path
                 class="ct-wire"
                 id="ct-wire"
-                d="M 48 22 C 200 22, 340 60, 540 60"
+                d="M 48 0 C 60 34, 320 60, 540 60"
               />
               <rect
                 class="ct-endbox"
