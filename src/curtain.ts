@@ -54,6 +54,8 @@ import {
 export interface Curtain {
   /** Part the curtains. Resolves when the pull has fully landed. */
   open(): Promise<void>;
+  /** The invitation pool breathes brighter under a hovering pointer. */
+  invite(on: boolean): void;
   /** Renderer, geometries, materials, listeners, canvas — all of it. */
   dispose(): void;
 }
@@ -228,6 +230,24 @@ export function mount(container: HTMLElement): Curtain {
   spotTarget.position.set(0, -0.7, 0);
   scene.add(spot, spotTarget);
   spot.target = spotTarget;
+
+  /* THE INVITATION POOL (user pick: the button became light). A second,
+     much tighter spot aimed at the cloth's centre — a defined pool that
+     BENDS over the pleats because the fold normals shade it, which is the
+     whole reason it lives in here and not in CSS. It breathes brighter
+     under a hovering pointer (invite()), blooms once at the click, and
+     hands its light off as the pull begins. */
+  const pool = new SpotLight(0xf5f0e6, 2.0, 0, 0.24, 0.65, 0);
+  pool.position.set(0, 0.7, 4.6);
+  const poolTarget = new Object3D();
+  poolTarget.position.set(0, 0, 0);
+  scene.add(pool, poolTarget);
+  pool.target = poolTarget;
+  const POOL_BASE = 2.0;
+  const POOL_HOVER = 1.5;
+  let poolHover = 0;
+  let poolHoverTarget = 0;
+  let bloomAt = -1;
 
   /* Enough to keep the valleys from clipping to absolute nothing. */
   const ambient = new AmbientLight(0x0b0b0d, 0.7);
@@ -591,6 +611,13 @@ export function mount(container: HTMLElement): Curtain {
     }
 
     const time = (now - t0) / 1000;
+    /* The pool: eased hover breath + a decaying bloom at the click + a slow
+       idle shimmer, all dying with the pull — the light hands the stage
+       over to the part. */
+    poolHover += (poolHoverTarget - poolHover) * 0.07;
+    const bloom = bloomAt >= 0 ? 5.5 * Math.exp(-(now - bloomAt) / 320) : 0;
+    const shimmer = 1 + 0.06 * Math.sin(0.9 * time) * Math.sin(0.57 * time);
+    pool.intensity = (POOL_BASE * shimmer + POOL_HOVER * poolHover + bloom) * (1 - t);
     /* The hand arrives and leaves smoothly, and lets go as the pull begins —
        a parting curtain is nobody's to stroke. The FIELD, though, keeps
        ringing after the hand is gone: injection is gated, propagation
@@ -613,11 +640,17 @@ export function mount(container: HTMLElement): Curtain {
   return {
     open(): Promise<void> {
       if (opening) return Promise.resolve();
+      /* The click's bloom: the light flares once, then the pull takes over. */
+      bloomAt = performance.now();
       return new Promise<void>((resolve) => {
         resolveOpen = resolve;
         openStart = performance.now();
         opening = true;
       });
+    },
+
+    invite(on: boolean): void {
+      poolHoverTarget = on ? 1 : 0;
     },
 
     dispose(): void {
@@ -636,7 +669,7 @@ export function mount(container: HTMLElement): Curtain {
         scene.remove(half.mesh);
         half.geo.dispose();
       }
-      scene.remove(spot, spotTarget, ambient, fill);
+      scene.remove(spot, spotTarget, pool, poolTarget, ambient, fill);
       material.dispose();
       renderer.dispose();
       /* Not merely polite: a browser keeps a small pool of live WebGL

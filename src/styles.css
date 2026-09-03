@@ -6279,39 +6279,42 @@ html.in-lock body {
 
 /* ── the invitation ─────────────────────────────────────────────────────── */
 
+/* The invitation is LIGHT (user pick): the WebGL pool breathes on the
+   cloth, and this button is nothing but the words and a large invisible
+   round hit area over it — no rim, no fill, no chrome to judge. */
 .in-btn {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 110px;
-  height: 110px;
-  margin: -55px 0 0 -55px;
+  width: 210px;
+  height: 210px;
+  margin: -105px 0 0 -105px;
   border-radius: 50%;
-  border: 1px solid rgba(201, 162, 39, 0.42);
-  background: radial-gradient(circle at 50% 32%, #1b1913 0%, #0c0c0c 62%, #060606 100%);
+  border: 0;
+  background: none;
   color: #dcc48a;
   font-family: var(--sans);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   line-height: 1.4;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em; /* recentres wide-tracked text */
   cursor: pointer;
   padding: 0;
   transition:
     transform 140ms ease-out,
-    border-color 180ms ease,
     color 180ms ease;
 }
 
-/* A slow breath around the button — 4.4s, the ambient band in DESIGN §3.
-   It says "this is the thing to press" without a single moving pixel of
-   content. Reduced motion never reaches this element at all. */
-.in-btn::before {
+/* The NO-WebGL fallback only: a soft CSS pool with the old breath, so the
+   poster path still has an invitation made of light. With a live canvas
+   (.in-gl on the root) the real pool does this on the cloth itself. */
+.in-root:not(.in-gl) .in-btn::before {
   content: "";
   position: absolute;
-  inset: -11px;
+  inset: -30px;
   border-radius: 50%;
-  border: 1px solid rgba(201, 162, 39, 0.2);
+  background: radial-gradient(circle, rgba(245, 240, 230, 0.13) 0%, rgba(245, 240, 230, 0.05) 45%, rgba(245, 240, 230, 0) 70%);
   animation: in-breathe 4.4s ease-in-out infinite;
 }
 
@@ -6330,8 +6333,7 @@ html.in-lock body {
 
 @media (hover: hover) and (pointer: fine) {
   .in-btn:hover {
-    border-color: rgba(201, 162, 39, 0.75);
-    color: #f0dcae;
+    color: #f0dcae; /* the pool brightening does the rest (curtain.invite) */
   }
 }
 
@@ -6388,8 +6390,9 @@ html.in-lock body {
   }
 
   .in-btn {
-    width: 96px;
-    height: 96px;
-    margin: -48px 0 0 -48px;
+    width: 170px;
+    height: 170px;
+    margin: -85px 0 0 -85px;
+    font-size: 12px;
   }
 }

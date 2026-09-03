@@ -83,7 +83,7 @@ export function introGate(): Promise<void> {
     let finished = false;
     let started = false;
     let watchdog = 0;
-    let curtain: { open(): Promise<void>; dispose(): void } | null = null;
+    let curtain: { open(): Promise<void>; invite(on: boolean): void; dispose(): void } | null = null;
     let timeline: ReturnType<typeof gsap.timeline> | null = null;
 
     const main = document.querySelector("main");
@@ -213,6 +213,9 @@ export function introGate(): Promise<void> {
             /* Too late to swap mid-pull: the poster is already moving. */
             if (finished || started) return;
             curtain = mod.mount(host);
+            /* The stylesheet gates the CSS fallback glow on this class being
+               ABSENT — with real WebGL, the pool light does the inviting. */
+            root.classList.add("in-gl");
             gsap.to(host, { opacity: 1, duration: 0.5, ease: "power1.inOut" });
             if (poster) gsap.to(poster, { opacity: 0, duration: 0.5, ease: "power1.inOut" });
           })
@@ -322,7 +325,18 @@ export function introGate(): Promise<void> {
          no keyboard branch to write. */
       openBtn.addEventListener("click", reveal);
       skip?.addEventListener("click", skipNow);
-      openBtn.focus({ preventScroll: true });
+      /* The pool breathes brighter under a hovering pointer (or keyboard
+         focus) — the light is the hover state now. */
+      const inviteOn = (): void => curtain?.invite(true);
+      const inviteOff = (): void => curtain?.invite(false);
+      openBtn.addEventListener("pointerenter", inviteOn);
+      openBtn.addEventListener("pointerleave", inviteOff);
+      openBtn.addEventListener("focus", inviteOn);
+      openBtn.addEventListener("blur", inviteOff);
+      /* NO programmatic focus (probe catch): script-focus tripped
+         :focus-visible and drew the site's green ring around the pool of
+         light. A Tab still lands here first and earns the lawful ring;
+         a mouse arrival sees only the light. */
     } catch {
       /* Guarantee 2. */
       finish();
