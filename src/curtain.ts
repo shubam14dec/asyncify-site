@@ -105,13 +105,24 @@ const PACK_DEEPEN = 1.45;
 const SWAY = 0.028;
 const LIFT = 0.055;
 
-/** THE HAND (user call): the pointer presses a soft dimple into the cloth,
- *  following the cursor like a palm run across hanging velvet. Amplitude
- *  and radius as fractions of a half's span; the wobble gives the dent a
- *  living edge instead of a stamped circle. */
-const HAND_AMP = 0.055;
-const HAND_SIGMA = 0.17;
-const HAND_WOB = 0.35;
+/** THE HAND, round 2 (user call: a dent glued to the cursor read fake).
+ *  Real cloth answers a stroke with a WAKE — so the disturbance is now a
+ *  coarse damped wave field the cloth samples: the pointer injects impulses
+ *  scaled by its own speed, and the classic two-buffer ripple integrator
+ *  makes them PROPAGATE outward, trail the stroke, and keep rolling after
+ *  the hand has passed. A still cursor injects almost nothing; a sweep
+ *  leaves a living wake. */
+const FIELD_X = 44;
+const FIELD_Y = 28;
+/** Neighbour coupling per step (wave speed) and per-step energy retention. */
+const FIELD_WAVE = 0.24;
+const FIELD_DAMP = 0.955;
+/** Impulse: a floor for a resting touch plus a speed-scaled term, capped. */
+const FIELD_TOUCH = 0.05;
+const FIELD_STROKE = 0.9;
+const FIELD_MAX_IMPULSE = 0.6;
+/** World amplitude of a full-strength field cell, as a fraction of span. */
+const FIELD_AMP = 0.075;
 
 /** The pull. 2.6s, power2.inOut. */
 const OPEN_MS = 2600;
@@ -314,12 +325,9 @@ export function mount(container: HTMLElement): Curtain {
     const { pos, nrm, dir } = half;
     const n = pos.length / 3;
 
-    /* The hand's dent, precomputed per frame. */
-    const sigma = span * HAND_SIGMA;
-    const sigma2 = sigma * sigma;
-    const reach = 3 * sigma;
-    const handAmp = span * HAND_AMP * handStrength;
-    const handOn = handAmp > 0.0005;
+    /* The wake's world amplitude this frame. */
+    const fieldAmp = span * FIELD_AMP;
+    const fieldOn = handStrength > 0.002 || fieldEnergy > 0.0004;
 
     const amp = span * AMP;
     const swayAmp = span * SWAY * (0.35 + 0.65 * (1 - t));
@@ -402,24 +410,15 @@ export function mount(container: HTMLElement): Curtain {
       let nx = -(depth * aDFold[i]!) / (dir * span * gp);
       let ny = -(amp * aDAmpV[i]! * ampT * fold) / height;
 
-      /* THE HAND: a gaussian press into the cloth under the pointer, with a
-         slow-living edge, and — critically — its own slope folded into the
-         normals so the dent SHADES instead of reading as a flat decal. */
-      if (handOn) {
-        const hdx = wx - handX;
-        if (hdx > -reach && hdx < reach) {
-          const hdy = wy - handY;
-          if (hdy > -reach && hdy < reach) {
-            const d2 = hdx * hdx + hdy * hdy;
-            const gauss = Math.exp(-d2 / (2 * sigma2));
-            const wob = 1 - HAND_WOB * 0.5 + HAND_WOB * 0.5 * Math.sin(4.2 * ((wx + wy) / span) - 5 * time);
-            const press = handAmp * gauss * wob;
-            wz -= press;
-            const slope = press / sigma2;
-            nx += slope * hdx;
-            ny += slope * hdy;
-          }
-        }
+      /* THE WAKE: sample the wave field at this point of cloth. The field's
+         slope folds into the normals, so every travelling ripple SHADES —
+         crests catch the wash, troughs darken — instead of reading as a
+         flat decal. */
+      if (fieldOn) {
+        sampleField(wx, wy);
+        wz += fieldOut[0]! * fieldAmp;
+        nx -= fieldOut[1]! * fieldAmp;
+        ny -= fieldOut[2]! * fieldAmp;
       }
 
       pos[j] = wx;
@@ -467,8 +466,16 @@ export function mount(container: HTMLElement): Curtain {
      the pull — a parting curtain is nobody's to stroke. */
   let handX = 0;
   let handY = 0;
+  let handPX = 0;
+  let handPY = 0;
   let handIn = false;
+  let handFresh = false;
   let handStrength = 0;
+
+  /* The wave field: two buffers, ripple-integrated each frame. Indexed
+     [gy * FIELD_X + gx] over the cloth's world extent. */
+  const fieldZ = new Float32Array(FIELD_X * FIELD_Y);
+  const fieldV = new Float32Array(FIELD_X * FIELD_Y);
 
   function onPointerMove(e: PointerEvent): void {
     const w = container.clientWidth || window.innerWidth;
@@ -476,6 +483,7 @@ export function mount(container: HTMLElement): Curtain {
     handX = (e.clientX / w - 0.5) * viewW;
     handY = (0.5 - e.clientY / h) * viewH;
     handIn = true;
+    handFresh = true;
   }
   function onPointerGone(): void {
     handIn = false;
@@ -483,12 +491,87 @@ export function mount(container: HTMLElement): Curtain {
   window.addEventListener("pointermove", onPointerMove, { passive: true });
   document.documentElement.addEventListener("pointerleave", onPointerGone);
 
+  /** One integration step: inject the pointer's impulse, then let the
+   *  ripple spread and decay. Runs once per frame, over ~1.2k cells. */
+  function stepField(): void {
+    if (handStrength > 0.002 && handIn) {
+      /* Impulse where the hand is, scaled by how fast it moved this frame —
+         a resting touch barely stirs the cloth, a sweep shoves it. */
+      const dx = handX - handPX;
+      const dy = handY - handPY;
+      const speed = Math.sqrt(dx * dx + dy * dy) / Math.max(viewW, 0.001);
+      let force = FIELD_TOUCH * (handFresh ? 1 : 0.2) + FIELD_STROKE * speed * 14;
+      if (force > FIELD_MAX_IMPULSE) force = FIELD_MAX_IMPULSE;
+      force *= handStrength;
+      const gx = Math.round(((handX / viewW) * 0.98 + 0.5) * (FIELD_X - 1));
+      const gy = Math.round(((handY / viewH) * 0.86 + 0.5) * (FIELD_Y - 1));
+      for (let oy = -1; oy <= 1; oy++) {
+        for (let ox = -1; ox <= 1; ox++) {
+          const cx = gx + ox;
+          const cy = gy + oy;
+          if (cx < 0 || cx >= FIELD_X || cy < 0 || cy >= FIELD_Y) continue;
+          const w = ox === 0 && oy === 0 ? 1 : 0.45;
+          fieldV[cy * FIELD_X + cx]! -= force * w;
+        }
+      }
+    }
+    handPX = handX;
+    handPY = handY;
+    handFresh = false;
+
+    for (let gy = 0; gy < FIELD_Y; gy++) {
+      for (let gx = 0; gx < FIELD_X; gx++) {
+        const i = gy * FIELD_X + gx;
+        const zc = fieldZ[i]!;
+        const zl = gx > 0 ? fieldZ[i - 1]! : zc;
+        const zr = gx < FIELD_X - 1 ? fieldZ[i + 1]! : zc;
+        const zu = gy > 0 ? fieldZ[i - FIELD_X]! : zc;
+        const zd = gy < FIELD_Y - 1 ? fieldZ[i + FIELD_X]! : zc;
+        const lap = zl + zr + zu + zd - 4 * zc;
+        fieldV[i] = (fieldV[i]! + lap * FIELD_WAVE) * FIELD_DAMP;
+      }
+    }
+    for (let i = 0; i < fieldZ.length; i++) fieldZ[i] = (fieldZ[i]! + fieldV[i]!) * FIELD_DAMP;
+  }
+
+  /** Bilinear sample of the field at a world point; out[0]=z, out[1]=dz/dx,
+   *  out[2]=dz/dy (world-unit slopes for the normals). */
+  const fieldOut = new Float32Array(3);
+  function sampleField(wx: number, wy: number): void {
+    const fx = ((wx / viewW) * 0.98 + 0.5) * (FIELD_X - 1);
+    const fy = ((wy / viewH) * 0.86 + 0.5) * (FIELD_Y - 1);
+    const x0 = Math.floor(fx);
+    const y0 = Math.floor(fy);
+    if (x0 < 0 || x0 >= FIELD_X - 1 || y0 < 0 || y0 >= FIELD_Y - 1) {
+      fieldOut[0] = 0;
+      fieldOut[1] = 0;
+      fieldOut[2] = 0;
+      return;
+    }
+    const tx = fx - x0;
+    const ty = fy - y0;
+    const i00 = y0 * FIELD_X + x0;
+    const z00 = fieldZ[i00]!;
+    const z10 = fieldZ[i00 + 1]!;
+    const z01 = fieldZ[i00 + FIELD_X]!;
+    const z11 = fieldZ[i00 + FIELD_X + 1]!;
+    const zx0 = z00 + (z10 - z00) * tx;
+    const zx1 = z01 + (z11 - z01) * tx;
+    fieldOut[0] = zx0 + (zx1 - zx0) * ty;
+    /* Cell size in world units gives the gradient its physical scale. */
+    const cellW = (viewW / 0.98) / (FIELD_X - 1);
+    const cellH = (viewH / 0.86) / (FIELD_Y - 1);
+    fieldOut[1] = ((z10 - z00) * (1 - ty) + (z11 - z01) * ty) / cellW;
+    fieldOut[2] = ((z01 - z00) * (1 - tx) + (z11 - z10) * tx) / cellH;
+  }
+
   /* ── the loop ─────────────────────────────────────────────────────────── */
 
   let raf = 0;
   let alive = true;
   let openStart = 0;
   let opening = false;
+  let fieldEnergy = 0;
   let t = 0;
   let resolveOpen: (() => void) | null = null;
   const t0 = performance.now();
@@ -510,9 +593,18 @@ export function mount(container: HTMLElement): Curtain {
 
     const time = (now - t0) / 1000;
     /* The hand arrives and leaves smoothly, and lets go as the pull begins —
-       a parting curtain is nobody's to stroke. */
+       a parting curtain is nobody's to stroke. The FIELD, though, keeps
+       ringing after the hand is gone: injection is gated, propagation
+       is not. */
     const handTarget = handIn ? 1 - t : 0;
     handStrength += (handTarget - handStrength) * 0.08;
+    stepField();
+    fieldEnergy = 0;
+    for (let i = 0; i < fieldZ.length; i += 7) {
+      const z = fieldZ[i]!;
+      fieldEnergy += z > 0 ? z : -z;
+    }
+    fieldEnergy /= fieldZ.length / 7;
     shape(left, t, time);
     shape(right, t, time);
     renderer.render(scene, camera);
