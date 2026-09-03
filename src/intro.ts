@@ -192,6 +192,32 @@ export function introGate(): Promise<void> {
       const sigPaths = Array.from(root.querySelectorAll<SVGPathElement>(".in-sig-m"));
       const pen = root.querySelector<SVGGElement>("#in-pen");
 
+      /* PER-STROKE INK SETTLE (user call: the fill must arrive WITH each
+         letter, not after the whole word). Every mask stroke gets a fat
+         clone — same path, much wider pen, fully drawn but transparent —
+         faded in as its stroke's pen finishes. Each letter is therefore
+         completely inked the moment it is written; the end-of-word flood
+         remains only as a silent backstop. Cloning at runtime keeps the
+         path data in one place. */
+      const settles: SVGPathElement[] = [];
+      try {
+        const sigMask = root.querySelector("#in-sig-mask");
+        if (sigMask) {
+          for (const p of sigPaths) {
+            const c = p.cloneNode(false) as SVGPathElement;
+            c.style.strokeWidth = "68";
+            c.style.strokeDasharray = "none";
+            c.style.strokeDashoffset = "0";
+            c.style.opacity = "0";
+            sigMask.appendChild(c);
+            settles.push(c);
+          }
+        }
+      } catch {
+        /* the settles are a guarantee, not a dependency — the pen still
+           writes without them */
+      }
+
       /* No button, no way in — and no way for the visitor out. Bail loudly
          to the page rather than sealing it behind an inert curtain. */
       if (!btn) {
@@ -385,6 +411,12 @@ export function introGate(): Promise<void> {
                 if (i === 0) tl.to(pen, { opacity: 1, duration: 0.12 }, at);
                 else tl.fromTo(pen, { opacity: 0.3 }, { opacity: 1, duration: LIFT }, at - LIFT / 2);
               }
+              /* The stroke's ink settles as its pen finishes — the fat
+                 clone floods this stroke's full swells over the last
+                 fifth of the write, so the letter never waits for its
+                 missing slivers. */
+              const settle = settles[i];
+              if (settle) tl.to(settle, { opacity: 1, duration: 0.16, ease: "power1.out" }, at + d * 0.8);
               at += d + LIFT;
             });
             penEnd = at - LIFT;
