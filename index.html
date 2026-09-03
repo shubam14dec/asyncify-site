@@ -118,44 +118,41 @@
          ───────────────────────────────────────────────────────────────────── -->
     <div id="intro" class="in-root" role="dialog" aria-modal="true" aria-label="Intro">
       <div class="in-stage" aria-hidden="true">
-        <!-- The signature: DRAWN, not typeset (user call: the mask-pen
-             over real type stuck and dropped ink — "u only create that
-             signature thing on own"). These strokes ARE the ink: an
-             authored pen rendering of "Asyncify" following Instrument
-             Serif italic's letterforms (the site's emphasis voice —
-             "say.", "agentic" — skeletonised in a 6-round trace against
-             the real face), dash-drawn in writing order. What the pen
-             draws is exactly what exists, so no ink can ever be missing
-             and the reveal can never snag on a mask. -->
+        <!-- The signature: INSTRUMENT SERIF ITALIC — the site's own
+             emphasis voice, the face of "say." in the hero, "agentic" at
+             the bridge, the doodle captions (user call: the intro should
+             speak the site's design language, and this face is already
+             loaded by the page, so the intro adds zero font bytes).
+             Written LETTER BY LETTER by the mask-pen: real <text> under a
+             mask of fat white strokes hand-traced along the letterforms in
+             writing order — an inscription, letter by letter, stroke by
+             stroke (A's two diagonals + crossbar, then each lowercase
+             letter's own gestures; retraced in a 6-round probe loop). -->
         <svg class="in-sig" viewBox="260 45 660 300" aria-hidden="true" focusable="false">
           <defs>
+            <mask id="in-sig-mask" maskUnits="userSpaceOnUse" x="250" y="35" width="680" height="320">
+              <path class="in-sig-m" d="M 366 106 C 348 152 318 216 296 258 C 290 265 283 263 281 257"/>
+              <path class="in-sig-m" d="M 371 106 C 388 152 412 214 432 258 C 437 264 445 264 451 259"/>
+              <path class="in-sig-m" d="M 320 209 C 352 206 386 205 418 206"/>
+              <path class="in-sig-m" d="M 476 184 C 464 166 436 166 430 186 C 424 206 448 214 460 226 C 474 238 472 258 456 263 C 440 268 420 260 418 246"/>
+              <path class="in-sig-m" d="M 484 166 C 478 204 482 240 494 252 C 504 262 520 260 534 248"/>
+              <path class="in-sig-m" d="M 553 168 C 546 200 537 232 528 255 C 520 290 506 318 486 320 C 468 320 462 322 450 296 C 453 287 462 285 468 289"/>
+              <path class="in-sig-m" d="M 592 170 C 584 205 578 236 572 261"/>
+              <path class="in-sig-m" d="M 576 208 C 582 184 598 172 614 174 C 630 176 634 190 629 214 C 624 238 619 253 616 264"/>
+              <path class="in-sig-m" d="M 714 186 C 702 168 674 166 658 184 C 644 200 644 232 656 250 C 668 264 692 262 706 248"/>
+              <path class="in-sig-m" d="M 756 170 C 746 174 742 186 739 202 C 735 224 730 244 734 260"/>
+              <path class="in-sig-m" d="M 744 128 C 746 118 762 118 760 130 C 758 140 744 138 744 128"/>
+              <path class="in-sig-m" d="M 846 116 C 838 104 822 104 816 122 C 808 146 806 180 799 215 C 793 252 787 285 777 302 C 769 318 749 318 743 306 C 739 296 749 290 755 295"/>
+              <path class="in-sig-m" d="M 782 178 C 802 176 824 176 842 176"/>
+              <path class="in-sig-m" d="M 856 166 C 850 204 854 240 864 252 C 872 262 886 262 896 250"/>
+              <path class="in-sig-m" d="M 922 162 C 914 200 904 234 895 256 C 888 292 872 320 852 320 C 832 320 822 306 828 294 C 832 286 840 285 846 289"/>
+            </mask>
             <radialGradient id="in-pen-glow">
               <stop offset="0%" stop-color="#dcc48a" stop-opacity="0.55" />
               <stop offset="100%" stop-color="#dcc48a" stop-opacity="0" />
             </radialGradient>
           </defs>
-          <!-- Writing order: A left diagonal, A right diagonal, crossbar,
-               s, y bowl, y stem+descender, n stem, n arch, c, i stem,
-               i dot, f, f crossbar, y bowl, y stem+descender. -->
-          <!-- Calligraphic weight: downstrokes carry the ink (thick), the
-               A's leading diagonal and both crossbars are hairlines
-               (in-thin) — the italic serif's own thick/thin logic. The
-               final y ends in the signature's one flourish. -->
-          <path class="in-sig-s in-thin" d="M 368 104 C 352 148 322 212 298 256 C 292 264 284 263 282 256"/>
-          <path class="in-sig-s" d="M 372 104 C 390 150 413 213 433 257 C 438 264 446 264 452 258"/>
-          <path class="in-sig-s in-thin" d="M 318 210 C 350 205 388 204 420 205"/>
-          <path class="in-sig-s" d="M 477 183 C 466 165 436 165 429 186 C 423 206 447 214 460 227 C 474 239 472 259 455 264 C 439 269 419 260 417 245"/>
-          <path class="in-sig-s" d="M 488 165 C 482 204 485 241 497 253 C 508 263 524 260 537 247"/>
-          <path class="in-sig-s" d="M 553 166 C 546 199 537 232 528 255 C 519 293 504 320 483 322 C 464 323 456 320 449 298 C 451 288 460 285 467 290"/>
-          <path class="in-sig-s" d="M 593 168 C 585 203 578 236 571 262"/>
-          <path class="in-sig-s" d="M 575 209 C 581 184 598 171 615 173 C 632 175 636 190 630 215 C 625 239 620 254 617 265"/>
-          <path class="in-sig-s" d="M 716 184 C 703 166 673 165 657 183 C 642 200 643 233 656 251 C 669 266 694 263 708 247"/>
-          <path class="in-sig-s" d="M 757 168 C 747 173 742 186 739 203 C 735 225 730 245 734 261"/>
-          <path class="in-sig-s" d="M 744 128 C 746 118 762 118 760 130 C 758 140 744 138 744 128"/>
-          <path class="in-sig-s" d="M 848 114 C 840 101 821 102 815 121 C 806 146 805 181 798 216 C 792 253 786 286 776 303 C 767 320 746 319 741 306 C 737 295 748 289 755 295"/>
-          <path class="in-sig-s in-thin" d="M 780 179 C 801 176 825 176 844 176"/>
-          <path class="in-sig-s" d="M 855 164 C 849 203 853 241 866 253 C 877 263 890 259 899 248"/>
-          <path class="in-sig-s" d="M 923 160 C 915 199 905 234 896 256 C 887 298 868 324 842 324 C 816 324 796 316 788 302 C 786 294 794 290 800 294"/>
+          <text class="in-sig-word" x="600" y="260" text-anchor="middle" mask="url(#in-sig-mask)">Asyncify</text>
           <!-- THE PEN (user call: it should be visible): a point of warm
                light riding the stroke tip. intro.ts places it every frame
                at the reveal edge of the stroke being written, blinks it at

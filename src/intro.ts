@@ -187,10 +187,9 @@ export function introGate(): Promise<void> {
       const halfL = root.querySelector<HTMLElement>(".in-half-l");
       const halfR = root.querySelector<HTMLElement>(".in-half-r");
       const host = root.querySelector<HTMLElement>("#in-canvas");
-      /* The signature's strokes, in authored (= writing) order — the
-         strokes ARE the ink — and the visible pen, a point of light
-         placed at the drawing edge. */
-      const sigPaths = Array.from(root.querySelectorAll<SVGPathElement>(".in-sig-s"));
+      /* The mask pen's strokes, in authored (= writing) order — and the
+         visible pen itself, a point of light placed at the reveal edge. */
+      const sigPaths = Array.from(root.querySelectorAll<SVGPathElement>(".in-sig-m"));
       const pen = root.querySelector<SVGGElement>("#in-pen");
 
       /* No button, no way in — and no way for the visitor out. Bail loudly
@@ -210,9 +209,15 @@ export function introGate(): Promise<void> {
       for (const type of SWALLOWED)
         window.addEventListener(type, swallow, { capture: true, passive: true });
 
-      /* (No font warm-up any more: the signature is authored stroke
-         artwork, not type — there is nothing to load and nothing that
-         could render in a fallback face.) */
+      /* Warm the signature face while the visitor waits. It is the site's
+         own Instrument italic (already in the page's @fontsource set), so
+         this is usually already resolved — but the word must never write
+         itself in a fallback serif. Fire-and-forget. */
+      try {
+        void document.fonts.load('italic 400 100px "Instrument Serif"');
+      } catch {
+        /* No FontFaceSet: font-display does its best alone. */
+      }
 
       /* ── the velvet, or nothing ────────────────────────────────────────
          DIRECT TO THE REAL CURTAIN (user call, after two rounds of trying
