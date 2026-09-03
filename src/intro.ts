@@ -180,7 +180,7 @@ export function introGate(): Promise<void> {
       const halfL = root.querySelector<HTMLElement>(".in-half-l");
       const halfR = root.querySelector<HTMLElement>(".in-half-r");
       const host = root.querySelector<HTMLElement>("#in-canvas");
-      const sig = root.querySelector<SVGPathElement>("#in-sig-path");
+      const sig = root.querySelector<HTMLElement>(".in-sig-word");
 
       /* No button, no way in — and no way for the visitor out. Bail loudly
          to the page rather than sealing it behind an inert curtain. */
@@ -198,6 +198,16 @@ export function introGate(): Promise<void> {
       document.addEventListener("keydown", onKey);
       for (const type of SWALLOWED)
         window.addEventListener(type, swallow, { capture: true, passive: true });
+
+      /* Warm the signature face while the visitor reads the invitation.
+         The word is clipped invisible until the write, so a face that
+         arrived late would wipe on in the fallback font — the one wrong
+         outcome. Fire-and-forget; font-display backs it up. */
+      try {
+        void document.fonts.load('400 100px "AsyncifySig"');
+      } catch {
+        /* No FontFaceSet: font-display does its best alone. */
+      }
 
       /* ── the velvet, if it will come ───────────────────────────────────
          Requested immediately, not on click: the chunk is large and the
@@ -224,34 +234,6 @@ export function introGate(): Promise<void> {
           });
       }
 
-      /** Arm the write-on.
-       *
-       *  DESIGN §3's non-scaling-stroke trap, head on: a path with
-       *  `vector-effect: non-scaling-stroke` has its dash pattern measured
-       *  in SCREEN pixels, while `getTotalLength()` answers in user units.
-       *  Setting dasharray to the raw length would therefore be wrong by the
-       *  render scale — on a 620px-wide render of a 574-unit viewBox, by
-       *  about 8%, which is a visible chunk of the flourish left undrawn (or
-       *  a word that finishes early and sits there). Multiplying by the
-       *  measured scale is the whole fix; the stylesheet's 4000 was only
-       *  ever a "longer than anything" rest value. */
-      const armSignature = (): number => {
-        if (!sig) return 0;
-        const len = sig.getTotalLength();
-        if (!(len > 0)) return 0;
-        let scale = 1;
-        const svg = sig.ownerSVGElement;
-        if (svg) {
-          const rendered = svg.getBoundingClientRect().width;
-          const authored = svg.viewBox.baseVal.width;
-          if (rendered > 0 && authored > 0) scale = rendered / authored;
-        }
-        const dash = Math.ceil(len * scale) + 4;
-        sig.style.strokeDasharray = String(dash);
-        sig.style.strokeDashoffset = String(dash);
-        return dash;
-      };
-
       const reveal = (): void => {
         if (started || finished) return;
         started = true;
@@ -261,7 +243,6 @@ export function introGate(): Promise<void> {
 
         try {
           openBtn.removeEventListener("click", reveal);
-          const dash = armSignature();
           const gl = curtain;
           const pull = gl ? PULL_GL : PULL_CSS;
 
@@ -293,20 +274,18 @@ export function introGate(): Promise<void> {
               .to(halfR, { xPercent: 100, scaleX: 0.86, duration: pull, ease: "power2.inOut" }, CLEAR);
           }
 
-          if (sig && dash > 0) {
-            /* power1.inOut, not the house expo: a pen accelerates out of the
-               first stroke and eases into the last one. An expo curve writes
-               the whole word in the first third and then crawls. */
-            tl.to(
+          if (sig) {
+            /* The wipe is the pen. The word is real type now — his
+               brush-script face — so the write-on is a clip travelling left
+               to right instead of a dash offset; the stylesheet owns the
+               fully-clipped rest state, this tween owns only the journey.
+               power1.inOut, not the house expo: a pen accelerates out of
+               the first stroke and eases into the last one. */
+            tl.fromTo(
               sig,
-              { strokeDashoffset: 0, duration: SIG_WRITE, ease: "power1.inOut" },
+              { clipPath: "inset(-35% 102% -35% -8%)" },
+              { clipPath: "inset(-35% -8% -35% -8%)", duration: SIG_WRITE, ease: "power1.inOut" },
               CLEAR + pull * SIG_CUE,
-            );
-            /* The pen lifts and dots the i — a beat after the word lands. */
-            tl.to(
-              "#in-sig-dot",
-              { opacity: 1, duration: 0.18, ease: "power1.out" },
-              CLEAR + pull * SIG_CUE + SIG_WRITE + 0.08,
             );
           }
 

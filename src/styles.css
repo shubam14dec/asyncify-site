@@ -6123,9 +6123,11 @@ html {
         wash. It is not a second accent: --green is untouched by this file
         and the rationing law (BRAND §2) is unaffected, because nothing here
         is green and nothing here survives the first visit.
-     2. A cursive stroke — the signature, and only the signature. No cursive
-        font is loaded; the word is an authored SVG path (index.html), so
-        this costs the page nothing and cannot leak into type.
+     2. A cursive face — the signature, and only the signature. His
+        brush-script Awesome.ttf (public/fonts/awesome.ttf) is declared
+        below and reachable through exactly one selector, .in-sig-word,
+        which lives inside #intro and dies with it — it cannot leak into
+        the page's type.
 
    Colours here are literal hex, not tokens, deliberately: a token is a thing
    the rest of the site may reach for, and none of this may be reached for.
@@ -6166,26 +6168,30 @@ html.in-lock body {
   place-items: center;
 }
 
-.in-sig {
-  width: min(64vw, 620px);
-  /* The flourish's last few units sit outside the box at some widths. */
-  overflow: visible;
+/* His face, for one word (user call, 2026-09-04). Fetched only when the
+   intro will actually run: browsers load a face when rendered text uses it,
+   the sole user is inside #intro, and a returning visitor's head script
+   hides #intro before first paint. `block` because the word sits clipped
+   invisible until the write anyway — a fallback-flash mid-wipe is the only
+   wrong outcome. */
+@font-face {
+  font-family: "AsyncifySig";
+  src: url("/fonts/awesome.ttf") format("truetype");
+  font-display: block;
 }
 
-/* The stylesheet owns the rest state (DESIGN §3): a boot-time gsap.set is one
-   frame too late and the finished signature would flash. 4000 is comfortably
-   longer than the path at any rendered width, so offset === dasharray paints
-   nothing; intro.ts replaces both with the measured length before it writes.
-   `butt` because a zero-length dash with a round cap is a painted dot. */
-.in-sig-path {
-  fill: none;
-  stroke: #f4efe6;
-  stroke-width: 2;
-  stroke-linecap: butt;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-  stroke-dasharray: 4000;
-  stroke-dashoffset: 4000;
+/* The stylesheet owns the rest state (DESIGN §3): fully clipped, so a slow
+   boot cannot flash the finished word. The negative top/bottom/left insets
+   are breathing room — the brush overshoots its em box, and a clip that
+   hugged the box would shave descenders as the wipe travels. intro.ts
+   tweens only the right inset (102% → -8%). */
+.in-sig-word {
+  font-family: "AsyncifySig", "Segoe Script", cursive;
+  font-size: clamp(64px, 11.5vw, 150px);
+  line-height: 1.2;
+  color: #f4efe6;
+  clip-path: inset(-35% 102% -35% -8%);
+  user-select: none;
 }
 
 /* ── the poster: the closed curtain, in CSS alone ───────────────────────── */
@@ -6392,8 +6398,8 @@ html.in-lock body {
 /* ── intro: mobile ─────────────────────────────────────────────────────── */
 
 @media (max-width: 767px) {
-  .in-sig {
-    width: 78vw;
+  .in-sig-word {
+    font-size: 15vw;
   }
 
   .in-btn {
