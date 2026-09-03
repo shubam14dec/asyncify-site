@@ -300,6 +300,25 @@ window.addEventListener("pagereveal", (e: Event) => {
   }
 });
 
+/* The outgoing side, main.ts's twin: catch the leaving document's own
+   transition promises (the second uncaught-AbortError source) and still
+   GSAP for the capture. */
+window.addEventListener("pageswap", (e: Event) => {
+  const vt = (
+    e as Event & {
+      viewTransition?: { ready: Promise<void>; finished: Promise<void> };
+    }
+  ).viewTransition;
+  if (!vt) return;
+  vt.ready.catch(() => {});
+  vt.finished.catch(() => {});
+  gsap.globalTimeline.pause();
+  const resume = (): void => {
+    gsap.globalTimeline.resume();
+  };
+  vt.finished.then(resume, resume);
+});
+
 /* THE ARRIVAL PULSE (the hybrid's second half): a reader who navigated here
    from inside the site arrived AS a message, and the brand's delivered-dot
    beats once to receive them — scale only, because the dot's resting breath

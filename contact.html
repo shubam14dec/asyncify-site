@@ -1,5 +1,10 @@
 <!doctype html>
-<html lang="en">
+<!-- pg-contact: this page ANIMATES its arrival (the rise). The home page
+     deliberately does not — its boot (ScrollTrigger refresh, bell layout)
+     owns the main thread on load and was aborting any transition still
+     running (user's AbortError console) — so the rise is scoped to pages
+     light enough to honor it. -->
+<html lang="en" class="pg-contact">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />

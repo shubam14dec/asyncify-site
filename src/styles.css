@@ -5930,12 +5930,20 @@ html {
 }
 
 /* Tightened after his AbortError report: every ms a transition runs is a ms
-   the main thread can kill it — ~440ms total instead of ~580. */
+   the main thread can kill it — and the ARRIVAL animation runs only on
+   pages that can afford it. The home page's boot (ScrollTrigger refresh,
+   bell layout measuring) owns the main thread on load and was aborting the
+   transition mid-rise; home now reveals instantly after the sink and the
+   breath, and only light pages (html.pg-contact) play the rise. */
 ::view-transition-old(root) {
   animation: 150ms cubic-bezier(0.4, 0, 1, 1) both vt-sink;
 }
 
 ::view-transition-new(root) {
+  animation: none;
+}
+
+html.pg-contact::view-transition-new(root) {
   animation: 200ms cubic-bezier(0, 0, 0.2, 1) 90ms both vt-rise;
 }
 

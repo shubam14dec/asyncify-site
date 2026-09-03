@@ -98,6 +98,26 @@ window.addEventListener("pagereveal", (e: Event) => {
   }
 });
 
+/* The OUTGOING side of the same telemetry: the leaving document holds its
+   own transition object, and a skip rejects ITS promises too — the second
+   source of his uncaught AbortError. Caught, and GSAP stops ticking so the
+   old page's last frames cost the capture nothing. */
+window.addEventListener("pageswap", (e: Event) => {
+  const vt = (
+    e as Event & {
+      viewTransition?: { ready: Promise<void>; finished: Promise<void> };
+    }
+  ).viewTransition;
+  if (!vt) return;
+  vt.ready.catch(() => {});
+  vt.finished.catch(() => {});
+  gsap.globalTimeline.pause();
+  const resume = (): void => {
+    gsap.globalTimeline.resume();
+  };
+  vt.finished.then(resume, resume);
+});
+
 /* The nav's Install link GLIDES to the headline rather than teleporting
    (user call: "it should scroll and take me"). The href stays a real
    anchor — no-JS and reduced-motion readers get the browser's own jump —
