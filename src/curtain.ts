@@ -38,6 +38,7 @@
 
 import {
   AmbientLight,
+  CanvasTexture,
   Color,
   DirectionalLight,
   Mesh,
@@ -210,17 +211,55 @@ export function mount(container: HTMLElement): Curtain {
      painted the whole cloth bronze-gold. Black velvet means the CLOTH stays
      black and only the crests carry a dim warm edge, so every light source
      comes down hard and the sheen goes dimmer and grayer. */
+  /* THE WORDS, WRITTEN ON THE CLOTH (user call): "click to reveal" is
+     rendered to a canvas and glued to the mesh as an emissive map, so the
+     letters ride the folds, compress into the gather, and sway with the
+     velvet — paint, not a floating label. The UVs are WORLD-aligned in
+     resize(), so the text draws seamlessly across both halves and their
+     centre overlap (both paint the same world pixels; depth picks one). */
+  const labelCanvas = document.createElement("canvas");
+  labelCanvas.width = 2048;
+  labelCanvas.height = 1024;
+  const lctx = labelCanvas.getContext("2d");
+  if (lctx) {
+    lctx.clearRect(0, 0, 2048, 1024);
+    lctx.fillStyle = "#dcc48a";
+    lctx.textAlign = "center";
+    lctx.textBaseline = "middle";
+    try {
+      (lctx as CanvasRenderingContext2D & { letterSpacing: string }).letterSpacing = "18px";
+    } catch {
+      /* older engines: tighter tracking, still legible */
+    }
+    lctx.font = "500 54px system-ui, Segoe UI, Arial, sans-serif";
+    lctx.fillText("click to reveal", 1024 + 9, 512);
+  }
+  const makeLabelTex = (): CanvasTexture => {
+    const t = new CanvasTexture(labelCanvas);
+    t.anisotropy = 4;
+    return t;
+  };
+  const labelTexL = makeLabelTex();
+  const labelTexR = makeLabelTex();
+
   /* The site's own inks: surface #111111 as the cloth, hairline-strong
      #3f3f3f as the crest sheen — the curtain is drawn with the page's
-     palette, just folded. */
-  const material = new MeshPhysicalMaterial({
-    color: new Color(0x111111),
-    roughness: 0.85,
-    metalness: 0,
-    sheen: 1,
-    sheenColor: new Color(0x555555),
-    sheenRoughness: 0.5,
-  });
+     palette, just folded. Two materials, one per half, because each half
+     shows its own window of the shared label texture. */
+  const makeMaterial = (tex: CanvasTexture): MeshPhysicalMaterial =>
+    new MeshPhysicalMaterial({
+      color: new Color(0x111111),
+      roughness: 0.85,
+      metalness: 0,
+      sheen: 1,
+      sheenColor: new Color(0x555555),
+      sheenRoughness: 0.5,
+      emissive: new Color(0xffffff),
+      emissiveMap: tex,
+      emissiveIntensity: 0.85,
+    });
+  const materialL = makeMaterial(labelTexL);
+  const materialR = makeMaterial(labelTexR);
 
   /* ── the stage wash ────────────────────────────────────────────────────
      One warm spot from top-centre-front, wide and very soft (penumbra 0.95)
@@ -278,7 +317,7 @@ export function mount(container: HTMLElement): Curtain {
     const n = base.length / 3;
 
     const half: Half = {
-      mesh: new Mesh(geo, material),
+      mesh: new Mesh(geo, dir > 0 ? materialL : materialR),
       geo,
       pos: base,
       nrm: geo.attributes.normal!.array as Float32Array,
@@ -479,6 +518,18 @@ export function mount(container: HTMLElement): Curtain {
        the frame for the same reason at the hem. */
     span = viewW * 0.53;
     height = viewH * 1.14;
+
+    /* World-align the label windows: the full cloth spans 1.02·viewW from
+       the left half's outer edge to the right's; each half shows the slice
+       of the texture its REST-state geometry covers, so the words sit
+       seamlessly across the centre. (During the pull, the vertices carry
+       their UVs into the stack — the paint compresses with the cloth.) */
+    const totalW = 1.02;
+    const share = 0.53 / totalW;
+    labelTexL.repeat.set(share, 1);
+    labelTexL.offset.set(0, 0);
+    labelTexR.repeat.set(share, 1);
+    labelTexR.offset.set(1 - share, 0);
   }
 
   resize();
@@ -625,6 +676,10 @@ export function mount(container: HTMLElement): Curtain {
     const bloom = bloomAt >= 0 ? 5.5 * Math.exp(-(now - bloomAt) / 320) : 0;
     const shimmer = 1 + 0.06 * Math.sin(0.9 * time) * Math.sin(0.57 * time);
     pool.intensity = (POOL_BASE * shimmer + POOL_HOVER * poolHover + bloom) * (1 - t);
+    /* The painted words brighten with the hover and leave with the pull. */
+    const labelI = (0.85 + 0.45 * poolHover) * (1 - t) * (1 - t);
+    materialL.emissiveIntensity = labelI;
+    materialR.emissiveIntensity = labelI;
     /* The hand arrives and leaves smoothly, and lets go as the pull begins —
        a parting curtain is nobody's to stroke. The FIELD, though, keeps
        ringing after the hand is gone: injection is gated, propagation
@@ -677,7 +732,10 @@ export function mount(container: HTMLElement): Curtain {
         half.geo.dispose();
       }
       scene.remove(spot, spotTarget, pool, poolTarget, ambient, fill);
-      material.dispose();
+      labelTexL.dispose();
+      labelTexR.dispose();
+      materialL.dispose();
+      materialR.dispose();
       renderer.dispose();
       /* Not merely polite: a browser keeps a small pool of live WebGL
          contexts and silently kills the oldest. Handing this one back means

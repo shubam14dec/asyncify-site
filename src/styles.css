@@ -6337,6 +6337,13 @@ html.in-lock body {
   }
 }
 
+/* With live WebGL the words are PAINTED ON THE CLOTH (the emissive map in
+   curtain.ts) — the DOM copy stands down to a silent hit area, staying in
+   the tree for the screen reader and the no-WebGL fallback. */
+.in-root.in-gl .in-btn-ink {
+  opacity: 0;
+}
+
 .in-btn:active {
   transform: scale(0.97);
 }
