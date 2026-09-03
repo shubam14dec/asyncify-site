@@ -5670,18 +5670,20 @@ html {
   transform: scale(0.97);
 }
 
-/* Two words in one slot: the label holds the width, `sent` sits centred over
-   it at rest-invisible — contact.ts crossfades them only on a real success. */
+/* Two words, one button: the label holds the width; `sent` anchors to the
+   BUTTON's own centre (user catch: anchored to the words slot it sat right
+   of true centre, because the bell's 23px lives left of the words) —
+   contact.ts fades it in only on a real success, while bell and label are
+   hidden, so the button is empty except for this one centred word. */
 .ct-send-words {
-  position: relative;
   display: inline-block;
 }
 
 .ct-send-done {
   position: absolute;
   left: 50%;
-  top: 0;
-  transform: translateX(-50%);
+  top: 50%;
+  transform: translate(-50%, -50%);
   white-space: nowrap;
   opacity: 0;
 }
