@@ -5442,18 +5442,14 @@ html {
   line-height: 1.4;
 }
 
-.ct-head-method {
+/* The hero install line's own split: faint prompt, bright command. */
+.ct-head-prompt {
+  color: var(--text-faint);
+}
+
+.ct-head-cmd {
   font-weight: 500;
   color: var(--text);
-}
-
-.ct-head-path {
-  color: var(--text-dim);
-}
-
-.ct-head-via {
-  margin-left: auto;
-  color: var(--text-faint);
 }
 
 .ct-label {

@@ -77,14 +77,13 @@
                submit to narrate what the server is doing anyway.
                ─────────────────────────────────────────────────────────────── -->
           <form class="ct-compose" id="ct-form" action="/api/contact" method="post">
-            <!-- The request line. This form IS a POST to the product's kind of
-                 endpoint, so the card wears the call it makes — recessed a
-                 step into the canvas, the way a machine stamps its part
-                 number. -->
+            <!-- The command line (user pick): the site's own CLI in the
+                 hero's own $ idiom — the card is the command a developer
+                 would type, and it names its recipient. Recessed a step
+                 into the canvas, the way a machine stamps its part number. -->
             <div class="ct-head" aria-hidden="true">
-              <span class="ct-head-method">POST</span>
-              <span class="ct-head-path">/v1/messages</span>
-              <span class="ct-head-via">via asyncify</span>
+              <span class="ct-head-prompt">$</span>
+              <span class="ct-head-cmd">asyncify send --to shubam</span>
             </div>
             <!-- The one field nobody gets to change. Every other compose
                  surface on the internet asks who to send to; this one already
