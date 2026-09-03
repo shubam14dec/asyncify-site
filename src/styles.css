@@ -6251,17 +6251,20 @@ html.in-lock body {
       rgba(0, 0, 0, 0.28) 74%,
       rgba(0, 0, 0, 0.88) 100%
     ),
+    /* Silk-matched (grade 6): deeper black between folds, and the crest line
+       jumps brighter and narrower — a specular band, not a velvet glow — so
+       the WebGL cross-fade lands on a poster that already reads as silk. */
     repeating-linear-gradient(
       90deg,
-      #080808 0px,
-      #0a0a0a 37px,
-      #111111 73px,
-      #262626 97px,
-      #3f3f3f 105px,
-      #262626 118px,
-      #111111 152px,
-      #0a0a0a 183px,
-      #080808 210px
+      #030303 0px,
+      #050505 37px,
+      #0c0c0c 73px,
+      #2a2a2a 99px,
+      #5a5a5a 105px,
+      #2a2a2a 112px,
+      #0c0c0c 152px,
+      #050505 183px,
+      #030303 210px
     );
   background-repeat: no-repeat, no-repeat, repeat;
 }
