@@ -55,6 +55,9 @@ const msOut = q<HTMLElement>("#ct-rcpt-ms");
 const idOut = q<HTMLElement>("#ct-rcpt-id");
 const meter = q<HTMLElement>("#ct-meter");
 q<HTMLElement>(".ct-head"); /* the request line exists — q throws if not */
+const bell = q<SVGGElement>("#ct-bell");
+const clapper = q<SVGCircleElement>("#ct-clapper");
+const ripple = q<SVGCircleElement>("#ct-ripple");
 
 const statusEls = new Map<string, HTMLElement>();
 for (const el of document.querySelectorAll<HTMLElement>(".ct-st")) {
@@ -121,6 +124,8 @@ must(teeth.getTotalLength() > 100, "the receipt mouth has no teeth");
 must(clip.contains(receipt), "the receipt is not inside its clip");
 must(getComputedStyle(receipt).transform !== "none", "the receipt is not parked above the mouth");
 must(getComputedStyle(dot).opacity === "0", "the delivered-dot is lit before a delivery");
+must(getComputedStyle(ripple).opacity === "0", "the bell's ripple is ringing before a delivery");
+must(Number(ripple.getAttribute("r")) === 0, "the bell's ripple has a radius at rest");
 
 /* display:none would be the easy way to hide the honeypot and the wrong one:
    some bots read the computed style and skip anything not rendered. */
@@ -241,6 +246,32 @@ function printReceipt(held: boolean): void {
   tl.to(dot, { opacity: 0.55, duration: 0.6, ease: "power2.out" }, 0.34);
 }
 
+/** ONE strike, damped to stillness — never a loop (DESIGN law). The swing is
+ *  a rotation about the thread pivot (the group's local 0,0), the clapper
+ *  flashes pure white with a small pop exactly as the hero's does (BRAND §1
+ *  note), and one green ripple expands from the mouth and dies: the first
+ *  sanctioned home of green, earned here only by a real delivery. */
+function ringBell(): void {
+  if (reduced) return;
+  const tl = gsap.timeline();
+  tl.to(bell, { rotation: 8, duration: 0.16, ease: "power2.in", svgOrigin: "0 0" }, 0);
+  tl.to(bell, { rotation: -5.5, duration: 0.3, ease: "power1.inOut", svgOrigin: "0 0" }, 0.16);
+  tl.to(bell, { rotation: 3, duration: 0.28, ease: "power1.inOut", svgOrigin: "0 0" }, 0.46);
+  tl.to(bell, { rotation: -1, duration: 0.24, ease: "power1.inOut", svgOrigin: "0 0" }, 0.74);
+  tl.to(bell, { rotation: 0, duration: 0.3, ease: "power1.out", svgOrigin: "0 0" }, 0.98);
+  /* The strike lands where the swing reverses. */
+  tl.to(clapper, { fill: "#ffffff", scale: 1.3, duration: 0.1, ease: "power2.out", svgOrigin: "0 17.5" }, 0.14);
+  tl.to(clapper, { fill: "#d6d6d6", scale: 1, duration: 0.4, ease: "power2.out", svgOrigin: "0 17.5" }, 0.24);
+  tl.fromTo(
+    ripple,
+    { attr: { r: 2 }, opacity: 0.5 },
+    { attr: { r: 16 }, opacity: 0, duration: 0.9, ease: "power2.out", immediateRender: false },
+    0.16,
+  );
+  /* Silence after: the ripple ends at opacity 0 and the radius is cosmetic,
+     so the rest state is intact without a reset. */
+}
+
 type ContactReply = { ok?: boolean; id?: string; error?: string };
 type Sent = { ok: boolean; id: string; ms: number };
 
@@ -308,6 +339,7 @@ form.addEventListener("submit", (event) => {
       msOut.textContent = String(sent.ms);
       idOut.textContent = sent.id.slice(0, 10) || "unknown";
       status("delivered");
+      ringBell();
       printReceipt(false);
       return;
     }

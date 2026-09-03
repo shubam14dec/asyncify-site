@@ -225,6 +225,25 @@
                    path's absolute point IS the packet's centre, so nothing
                    has to be aligned through a matrix (DESIGN.md §6). -->
               <circle class="ct-packet" id="ct-packet" cx="0" cy="0" r="4" />
+              <!-- THE MINIATURE BELL (user pick): the hero's silhouette at
+                   machine scale, hanging on a 1px thread from the card's
+                   underside beside the provider box. Static and quiet at
+                   rest — it swings ONCE, only when a real send resolves ok
+                   (contact.ts), with the clapper's white flash and one green
+                   ripple: BRAND §2's first sanctioned green, miniaturized.
+                   The ripple lives OUTSIDE the swinging group (the hero's
+                   own law) so it never inherits the swing. -->
+              <g id="ct-bellroot" transform="translate(664, 9)">
+                <path class="ct-thread" d="M 0 -9 L 0 0" />
+                <circle class="ct-ripple" id="ct-ripple" cx="0" cy="17.5" r="0" />
+                <g id="ct-bell">
+                  <path
+                    class="ct-bellbody"
+                    d="M -8 13 C -8 3.5 -4.5 0.5 0 0.5 C 4.5 0.5 8 3.5 8 13 L 10 15 L -10 15 Z"
+                  />
+                  <circle class="ct-clapper" id="ct-clapper" cx="0" cy="17.5" r="1.8" />
+                </g>
+              </g>
             </svg>
             <!-- The label is HTML, not <text>, and that is a measurement
                  decision: this svg is width:100% over a column that ranges
