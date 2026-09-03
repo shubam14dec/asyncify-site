@@ -246,9 +246,16 @@ function printReceipt(held: boolean): void {
  *  strike (BRAND §1 note). Fired by the click itself (user call): pressing
  *  send IS ringing the bell — the receipt still carries the truth about
  *  whether the message arrived. */
+let ringing = false;
+
 function ringBell(): void {
-  if (reduced) return;
-  const tl = gsap.timeline();
+  if (reduced || ringing) return;
+  ringing = true;
+  const tl = gsap.timeline({
+    onComplete: () => {
+      ringing = false;
+    },
+  });
   tl.to(bell, { rotation: 9, duration: 0.14, ease: "power2.in", svgOrigin: "0 0" }, 0);
   tl.to(bell, { rotation: -6, duration: 0.28, ease: "power1.inOut", svgOrigin: "0 0" }, 0.14);
   tl.to(bell, { rotation: 3.5, duration: 0.26, ease: "power1.inOut", svgOrigin: "0 0" }, 0.42);
@@ -257,6 +264,17 @@ function ringBell(): void {
   /* The strike lands where the swing first reverses. */
   tl.to(clapper, { fill: "#ffffff", scale: 1.3, duration: 0.1, ease: "power2.out", svgOrigin: "0 17.5" }, 0.12);
   tl.to(clapper, { fill: CANVAS, scale: 1, duration: 0.4, ease: "power2.out", svgOrigin: "0 17.5" }, 0.22);
+}
+
+/* The hover's motion IS the bell (user call, replacing the scale): a fine
+   pointer arriving on a live button gets the strike — the same one the
+   click and the envelope's hand-off play, and the `ringing` guard keeps
+   overlapping triggers from double-swinging. */
+if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
+  send.addEventListener("pointerenter", () => {
+    if (send.disabled || inFlight) return;
+    ringBell();
+  });
 }
 
 type ContactReply = { ok?: boolean; id?: string; error?: string };

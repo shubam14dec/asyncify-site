@@ -5657,10 +5657,11 @@ html {
     transform 160ms var(--ease-out);
 }
 
+/* Hover keeps only the paint half (user call: the scale read wrong) — the
+   motion half is the bell itself: contact.ts rings it on pointerenter. */
 @media (hover: hover) and (pointer: fine) {
   .ct-send:hover:not(:disabled) {
     filter: brightness(1.08);
-    transform: scale(1.02);
   }
 }
 
