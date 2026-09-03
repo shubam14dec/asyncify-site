@@ -5700,6 +5700,28 @@ html {
   color: var(--text-faint);
 }
 
+/* The ping glyph rides the label's ink: dot filled, arcs stroked, nothing
+   animated at rest. */
+.ct-ping {
+  flex: none;
+  width: 14px;
+  height: 12px;
+  overflow: visible;
+  color: var(--text-faint);
+}
+
+.ct-ping circle {
+  fill: currentColor;
+}
+
+.ct-ping path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  vector-effect: non-scaling-stroke;
+}
+
 .ct-routes a {
   color: var(--text-dim);
   transition: color 180ms ease;
