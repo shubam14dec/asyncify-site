@@ -65,10 +65,10 @@ export interface Curtain {
 const SEG_X = 96;
 const SEG_Y = 64;
 
-/** Folds across one half at rest. Eight and a half, not eight: an integer
- *  count puts a crest at both edges of both halves and the centre seam reads
- *  as a mirror. */
-const FOLDS = 8.5;
+/** Folds across one half at rest. Reduced from 8.5 (user call: too many
+ *  curves) — five and a half reads as heavy, generous cloth; the half-fold
+ *  keeps the centre seam from mirroring. */
+const FOLDS = 5.5;
 
 /** The secondary ripple rides at 2.6× the primary and 0.34 of its depth —
  *  incommensurate, so no two folds in the run are quite the same shape. */
