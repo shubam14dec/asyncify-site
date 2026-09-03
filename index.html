@@ -89,7 +89,7 @@
          THE CURTAIN.  A first-visit-only theatre intro (user-decreed).  The
          layers, back to front:
            .in-stage    near-black stage + the "Asyncify" signature, set in
-                        his brush-script face and wiped on like handwriting.
+                        Alex Brush and written letter by letter by a mask pen.
            .in-poster   the pure-CSS closed curtain — zero JS, painted with
                         the first frame, and the ONLY curtain if WebGL is
                         unavailable (it opens by transform instead).
@@ -105,22 +105,25 @@
          ───────────────────────────────────────────────────────────────────── -->
     <div id="intro" class="in-root" role="dialog" aria-modal="true" aria-label="Intro">
       <div class="in-stage" aria-hidden="true">
-        <!-- The signature: his brush-script face (public/fonts/awesome.ttf,
-             intro-only @font-face), written LETTER BY LETTER (user call,
-             2026-09-04). A filled font cannot be dash-drawn, so the classic
-             mask-pen: the word is real <text>, and over it sits a mask of
-             fat white strokes hand-traced along this font's letterforms in
-             writing order (A bowl, A stem, the running s-y-n-c-i-f-y line,
-             the i's dab — authored in a probe-screenshot loop, 7 rounds).
-             intro.ts dash-reveals the mask strokes in sequence, so the ink
-             appears exactly where and when a pen would put it down. -->
-        <svg class="in-sig" viewBox="300 70 620 300" aria-hidden="true" focusable="false">
+        <!-- The signature: ALEX BRUSH (user pick B from the comparison
+             sheet, 2026-09-04; OFL, public/fonts/alexbrush.ttf, intro-only
+             @font-face), written LETTER BY LETTER. A filled font cannot be
+             dash-drawn, so the classic mask-pen: the word is real <text>,
+             and over it sits a mask of fat white strokes hand-traced along
+             this face's letterforms in writing order (the capital's great
+             C-swash, its right leg, its crossbar, the running
+             s-y-n-c-i-f-y line, the i's dot — retraced for this font in a
+             probe-screenshot loop, 5 rounds). intro.ts dash-reveals the
+             mask strokes in sequence, so the ink appears exactly where and
+             when a pen would put it down. -->
+        <svg class="in-sig" viewBox="255 70 705 300" aria-hidden="true" focusable="false">
           <defs>
-            <mask id="in-sig-mask" maskUnits="userSpaceOnUse" x="290" y="50" width="650" height="340">
-              <path class="in-sig-m" d="M 452 186 C 408 168 354 196 342 244 C 332 288 374 302 416 288 C 446 276 458 240 460 206 M 380 264 C 400 246 424 224 446 206"/>
-              <path class="in-sig-m" d="M 496 108 C 484 150 466 220 450 275 C 445 293 460 296 480 282"/>
-              <path class="in-sig-m" d="M 480 284 C 492 244 510 200 528 174 C 538 160 552 168 544 184 C 534 200 520 240 514 262 C 506 288 504 312 518 316 C 530 318 542 288 552 264 C 548 238 560 192 578 176 C 594 166 604 180 598 208 C 592 238 586 262 588 278 C 590 296 586 326 568 342 C 548 356 530 344 544 324 C 558 306 582 294 606 266 C 614 234 624 182 638 168 C 650 158 662 172 654 198 C 646 232 642 262 646 272 C 654 242 664 196 678 184 C 688 176 696 188 690 214 C 682 246 680 270 686 278 C 698 250 714 196 732 176 C 746 162 756 176 742 194 C 724 212 706 244 708 264 C 712 282 732 280 741 262 C 736 250 728 242 722 246 C 730 234 742 222 752 208 C 762 194 772 184 780 176 C 786 168 792 174 788 188 C 780 214 770 256 768 276 C 768 290 780 288 790 268 C 798 238 806 178 816 136 C 822 110 838 102 850 110 C 862 120 854 140 840 152 C 828 162 818 192 812 232 C 802 278 800 306 794 320 C 788 348 760 352 762 328 C 766 306 782 292 806 278 C 818 272 826 278 824 290 C 830 252 842 202 854 184 C 864 174 872 186 866 212 C 858 242 854 266 856 286 C 856 222 858 160 862 126 C 864 108 874 110 874 132 C 872 172 864 246 858 282 C 854 314 842 344 820 354 C 798 360 788 344 802 327 C 818 308 850 298 880 266 C 894 258 906 268 910 282"/>
-              <path class="in-sig-m" d="M 760 152 C 764 140 778 136 782 146 C 784 156 768 160 760 152"/>
+            <mask id="in-sig-mask" maskUnits="userSpaceOnUse" x="245" y="55" width="725" height="330">
+              <path class="in-sig-m" d="M 420 185 C 382 158 324 166 294 210 C 272 250 286 284 320 289 C 336 291 350 281 356 269"/>
+              <path class="in-sig-m" d="M 488 104 C 466 152 441 222 420 264 C 415 277 429 278 449 262"/>
+              <path class="in-sig-m" d="M 380 208 C 405 204 445 202 480 204"/>
+              <path class="in-sig-m" d="M 449 262 C 468 240 495 205 518 189 C 532 180 542 188 534 201 C 522 219 510 245 510 262 C 510 276 526 280 540 266 C 544 260 548 254 550 248 C 556 220 566 192 582 185 C 596 179 604 189 600 209 C 596 231 594 251 596 265 C 600 237 606 199 614 187 C 610 225 602 285 592 318 C 584 344 558 348 555 325 C 554 306 570 288 596 266 C 604 258 613 250 622 243 C 628 217 636 189 646 183 C 656 179 660 189 654 211 C 648 237 646 259 650 269 C 660 245 672 199 684 187 C 694 179 702 189 698 213 C 693 237 692 259 696 269 C 700 277 708 271 714 257 C 722 237 734 199 750 187 C 760 181 766 193 756 205 C 740 219 728 239 730 255 C 732 271 748 273 762 257 C 764 231 774 195 786 183 C 792 175 798 181 794 193 C 788 215 784 247 784 263 C 784 275 794 273 802 257 C 810 235 822 175 834 135 C 844 103 862 92 868 110 C 876 130 868 158 852 180 C 838 200 830 235 826 268 C 822 305 816 329 804 339 C 792 347 774 341 778 321 C 786 303 812 287 834 265 C 840 241 856 195 872 183 C 886 175 894 185 890 205 C 885 229 882 251 884 265 C 890 237 898 201 908 187 C 914 179 922 185 920 201 C 916 231 910 277 898 309 C 888 337 862 345 858 325 C 855 309 868 293 894 273 C 910 279 928 266 945 254"/>
+              <path class="in-sig-m" d="M 800 158 C 803 146 816 146 814 158 C 811 168 801 168 800 158"/>
             </mask>
           </defs>
           <text class="in-sig-word" x="600" y="260" text-anchor="middle" mask="url(#in-sig-mask)">Asyncify</text>

@@ -6123,11 +6123,10 @@ html {
         wash. It is not a second accent: --green is untouched by this file
         and the rationing law (BRAND §2) is unaffected, because nothing here
         is green and nothing here survives the first visit.
-     2. A cursive face — the signature, and only the signature. His
-        brush-script Awesome.ttf (public/fonts/awesome.ttf) is declared
-        below and reachable through exactly one selector, .in-sig-word,
-        which lives inside #intro and dies with it — it cannot leak into
-        the page's type.
+     2. A cursive face — the signature, and only the signature. Alex Brush
+        (public/fonts/alexbrush.ttf) is declared below and reachable
+        through exactly one selector, .in-sig-word, which lives inside
+        #intro and dies with it — it cannot leak into the page's type.
 
    Colours here are literal hex, not tokens, deliberately: a token is a thing
    the rest of the site may reach for, and none of this may be reached for.
@@ -6168,15 +6167,16 @@ html.in-lock body {
   place-items: center;
 }
 
-/* His face, for one word (user call, 2026-09-04). Fetched only when the
-   intro will actually run: browsers load a face when rendered text uses it,
-   the sole user is inside #intro, and a returning visitor's head script
-   hides #intro before first paint. `block` because the word sits clipped
-   invisible until the write anyway — a fallback-flash mid-wipe is the only
-   wrong outcome. */
+/* One face, for one word: Alex Brush (his pick B off the comparison sheet,
+   2026-09-04; SIL OFL — shippable, unlike the unverified Awesome.ttf it
+   replaced). Fetched only when the intro will actually run: browsers load
+   a face when rendered text uses it, the sole user is inside #intro, and a
+   returning visitor's head script hides #intro before first paint. `block`
+   because the word sits masked invisible until the write anyway — a
+   fallback flash mid-write is the only wrong outcome. */
 @font-face {
   font-family: "AsyncifySig";
-  src: url("/fonts/awesome.ttf") format("truetype");
+  src: url("/fonts/alexbrush.ttf") format("truetype");
   font-display: block;
 }
 
@@ -6205,7 +6205,9 @@ html.in-lock body {
 .in-sig-m {
   fill: none;
   stroke: #fff;
-  stroke-width: 44;
+  /* 36, down from the 44 the old fat brush needed: Alex Brush's strokes
+     are finer, and the pen only has to swallow their swells. */
+  stroke-width: 36;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 6000;
