@@ -1486,8 +1486,11 @@ function inQuad(quad: readonly (readonly [number, number])[], px: number, py: nu
    faintest ink on the ladder only made it hard to find, and a door nobody
    finds is a door nobody takes. Same behaviour, two rungs brighter and three
    sizes up, with a curve and a head scaled to match. */
-const TEAR_HERE = "Tear here";
-const TEAR_HERE_X = 977;
+const TEAR_HERE = "Click here"; /* user call: renamed from "Tear here" */
+/* 970, was 977: "Click here" is one glyph wider than "Tear here", and at
+   977 its monoWidth ran past the frame assert's ceiling by ~5u. Still
+   comfortably right of the paper's 952 minimum. */
+const TEAR_HERE_X = 970;
 const TEAR_HERE_Y = 583;
 /** QUIET IN BEHAVIOUR IS NOT QUIET IN VOLUME. This is the only instruction on
  *  the whole stage and it is what stands between the reader and the door, so
