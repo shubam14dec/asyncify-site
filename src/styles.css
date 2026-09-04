@@ -969,11 +969,6 @@ html {
   color: var(--text-dim);
 }
 
-.install-cue-head {
-  display: block;
-  margin-top: -9px; /* the head stands on the drain line's own tip */
-}
-
 /* The cue's mouse (user call, from his reference shot): outline body,
    green wheel, and a small downward bob — the exact gesture being asked
    for. CSS-animated so it needs no teardown; the cue itself is only ever

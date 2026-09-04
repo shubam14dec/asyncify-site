@@ -127,16 +127,8 @@ if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
         '<rect x="1" y="1" width="16" height="26" rx="8" fill="none" stroke="#6e6e6e" stroke-width="1.2" />' +
         '<rect class="install-cue-wheel" x="7.8" y="6" width="2.4" height="6" rx="1.2" /></svg>',
     );
-    const line = document.createElement("div");
-    line.className = "scroll-hint";
-    cue.append(line);
-    // The head, drawn in the site's stroke language: two 1px barbs standing
-    // on the drain line's tip — the line becomes an arrow.
-    cue.insertAdjacentHTML(
-      "beforeend",
-      '<svg class="install-cue-head" width="13" height="8" viewBox="0 0 13 8" aria-hidden="true">' +
-        '<path d="M 1 1 L 6.5 6.5 L 12 1" fill="none" stroke="#6e6e6e" stroke-width="1" /></svg>',
-    );
+    // (The drain line + arrow head that stood below the mouse were removed
+    // at the user's call — the bobbing mouse carries the gesture alone.)
     document.body.appendChild(cue);
     gsap.fromTo(cue, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" });
     const landingY = window.scrollY;
