@@ -1487,10 +1487,13 @@ function inQuad(quad: readonly (readonly [number, number])[], px: number, py: nu
    finds is a door nobody takes. Same behaviour, two rungs brighter and three
    sizes up, with a curve and a head scaled to match. */
 const TEAR_HERE = "Click here"; /* user call: renamed from "Tear here" */
-/* 970, was 977: "Click here" is one glyph wider than "Tear here", and at
-   977 its monoWidth ran past the frame assert's ceiling by ~5u. Still
-   comfortably right of the paper's 952 minimum. */
-const TEAR_HERE_X = 970;
+/* 978 (user-nudged right from 970 after the "Click here" rename). The
+   frame assert's old monoWidth bound (0.61/glyph) no longer fits a label
+   this long at this anchor — but the whisper is SET IN THE SERIF italic,
+   whose real advance runs ~0.45; the assert now uses 0.5, still a
+   conservative overstatement, just no longer a mono-sized fiction. */
+const TEAR_HERE_X = 978;
+const TEAR_HERE_ADV = 0.5;
 const TEAR_HERE_Y = 583;
 /** QUIET IN BEHAVIOUR IS NOT QUIET IN VOLUME. This is the only instruction on
  *  the whole stage and it is what stands between the reader and the door, so
@@ -3843,7 +3846,10 @@ export function createEditScene(): EditScene {
     if (TEAR_HERE_X < RCPT_X + RCPT_W + 12) {
       throw new Error("[edit] `tear here` is printed on the paper it is about");
     }
-    if (TEAR_HERE_X + monoWidth(TEAR_HERE, TEAR_HERE_SIZE) > FRAME_W - 4 || TEAR_HERE_Y > FRAME_H - 40) {
+    if (
+      TEAR_HERE_X + TEAR_HERE.length * TEAR_HERE_SIZE * TEAR_HERE_ADV > FRAME_W - 4 ||
+      TEAR_HERE_Y > FRAME_H - 40
+    ) {
       throw new Error("[edit] `tear here` runs off the frame");
     }
     /* THE HEAD IS DERIVED FROM ITS CURVE, not authored (three hand-authored
