@@ -1754,7 +1754,7 @@ const CLOCK_FADE = 1.0;
    ══════════════════════════════════════════════════════════════════════════ */
 const TITLE_NUM = "05";
 const TITLE_NAME = "the edit";
-const TITLE_HEAD = "Prompt edits are deploys.";
+const TITLE_HEAD = "No edit goes straight to production."; /* user pick, from the suggestion round */
 const TITLE_SUB = "Watch one travel.";
 
 /** Geist Mono's advance at 1em plus the 0.01em tracking every mono run on this
