@@ -112,24 +112,26 @@ if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
     cue = document.createElement("div");
     cue.className = "install-cue";
     cue.setAttribute("aria-hidden", "true");
-    const label = document.createElement("span");
-    label.className = "install-cue-text";
-    label.textContent = "the story continues below · scroll";
-    const line = document.createElement("div");
-    line.className = "scroll-hint";
-    cue.append(label);
-    // The mouse (user call, from his reference): a 1px outline body with a
-    // green wheel tick, bobbing gently downward (CSS animation) — the
-    // gesture the reader is being asked to make. The hero's own tiny hint
-    // keeps its no-mouse stance; this louder guided-landing cue speaks
-    // plainer on purpose.
-    cue.insertAdjacentHTML(
-      "beforeend",
-      '<svg class="install-cue-mouse" width="18" height="28" viewBox="0 0 18 28" aria-hidden="true">' +
-        '<rect x="1" y="1" width="16" height="26" rx="8" fill="none" stroke="#6e6e6e" stroke-width="1.2" />' +
+    // One row (user call): the mouse sits inline beside its own word —
+    // "scroll · ..." — a 1px outline body with a green wheel tick, bobbing
+    // gently downward (CSS animation), the gesture the reader is being
+    // asked to make. The hero's own tiny hint keeps its no-mouse stance;
+    // this louder guided-landing cue speaks plainer on purpose.
+    const row = document.createElement("div");
+    row.className = "install-cue-row";
+    row.insertAdjacentHTML(
+      "afterbegin",
+      '<svg class="install-cue-mouse" width="13" height="20" viewBox="0 0 18 28" aria-hidden="true">' +
+        '<rect x="1" y="1" width="16" height="26" rx="8" fill="none" stroke="#6e6e6e" stroke-width="1.4" />' +
         '<rect class="install-cue-wheel" x="7.8" y="6" width="2.4" height="6" rx="1.2" /></svg>',
     );
-    cue.append(line);
+    const label = document.createElement("span");
+    label.className = "install-cue-text";
+    label.textContent = "scroll · the story continues below";
+    row.append(label);
+    const line = document.createElement("div");
+    line.className = "scroll-hint";
+    cue.append(row, line);
     // The head, drawn in the site's stroke language: two 1px barbs standing
     // on the drain line's tip — the line becomes an arrow.
     cue.insertAdjacentHTML(
