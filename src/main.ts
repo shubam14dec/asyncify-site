@@ -117,7 +117,19 @@ if (window.matchMedia("(prefers-reduced-motion: no-preference)").matches) {
     label.textContent = "the story continues below · scroll";
     const line = document.createElement("div");
     line.className = "scroll-hint";
-    cue.append(label, line);
+    cue.append(label);
+    // The mouse (user call, from his reference): a 1px outline body with a
+    // green wheel tick, bobbing gently downward (CSS animation) — the
+    // gesture the reader is being asked to make. The hero's own tiny hint
+    // keeps its no-mouse stance; this louder guided-landing cue speaks
+    // plainer on purpose.
+    cue.insertAdjacentHTML(
+      "beforeend",
+      '<svg class="install-cue-mouse" width="18" height="28" viewBox="0 0 18 28" aria-hidden="true">' +
+        '<rect x="1" y="1" width="16" height="26" rx="8" fill="none" stroke="#6e6e6e" stroke-width="1.2" />' +
+        '<rect class="install-cue-wheel" x="7.8" y="6" width="2.4" height="6" rx="1.2" /></svg>',
+    );
+    cue.append(line);
     // The head, drawn in the site's stroke language: two 1px barbs standing
     // on the drain line's tip — the line becomes an arrow.
     cue.insertAdjacentHTML(
