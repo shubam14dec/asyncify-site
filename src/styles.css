@@ -295,8 +295,10 @@ html {
   padding: 8px 14px;
   /* The hover look promoted to REST (user call, 2026-09-17: "if i dont
      hover also then it should be like how it is now"): filled ring at
-     rest, one rung brighter on hover. */
-  border: 1px solid var(--text-faint);
+     rest, one rung brighter on hover. The ring is translucent white, not
+     a flat grey token — over the soft fill the grey read chalky; letting
+     the canvas through keeps the ring crisp at 1px (user dial). */
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.04);
   color: var(--text);
@@ -306,7 +308,7 @@ html {
 
 @media (hover: hover) and (pointer: fine) {
   .nav-links a.nav-dash:hover {
-    border-color: var(--text-dim);
+    border-color: rgba(255, 255, 255, 0.32);
     background: rgba(255, 255, 255, 0.08);
   }
 }
@@ -6672,8 +6674,22 @@ html {
   color: var(--text-faint);
 }
 
+/* The home finale is a crowded stage (buttons, the install reprise), so this
+   copy of the line sits a rung brighter than the contact page's — body ink
+   for the claim, full ink for the door — or the reader never finds it. It
+   is the LAST line on the page, snug under .prf-footer's small mono row
+   (user call: under the CTAs it drowned), and it centers when the footer
+   does. */
 .prf-journey {
-  margin-top: 20px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+@media (max-width: 767px) {
+  .prf-journey {
+    text-align: center;
+  }
 }
 
 .ct-journey {
@@ -6687,6 +6703,12 @@ html {
   text-underline-offset: 3px;
   text-decoration-color: var(--hairline-strong);
   transition: color 180ms ease;
+}
+
+/* AFTER the shared rule, deliberately: the finale's copy starts at full ink
+   (its hover has nowhere to climb and stays put). */
+.prf-journey a {
+  color: var(--text);
 }
 
 @media (hover: hover) and (pointer: fine) {
