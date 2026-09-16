@@ -22,8 +22,13 @@ export async function onRequest(context: MiddlewareContext): Promise<Response> {
   if (url.hostname === "journey.asyncify.org" && url.pathname === "/") {
     /* A Request built FROM the incoming one keeps its headers (the fetch
        contract's second argument is a RequestInit, not a Request — the
-       Request constructor is the sanctioned way to rewrite just the URL). */
-    return context.env.ASSETS.fetch(new Request(new URL("/journey.html", url), context.request));
+       Request constructor is the sanctioned way to rewrite just the URL).
+       The CLEAN url, never "/journey.html": ASSETS reproduces the
+       project's clean-URL behavior, so asking for the .html path returns
+       the 308 that Pages sends publicly — and this handler would hand
+       that redirect to the visitor instead of the page (live bug,
+       2026-09-17: journey.asyncify.org/ bounced to /journey). */
+    return context.env.ASSETS.fetch(new Request(new URL("/journey", url), context.request));
   }
   return context.next();
 }
