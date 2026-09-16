@@ -277,6 +277,56 @@ html {
   }
 }
 
+/* The Dashboard door: the row's ONE pill (deploy-day rider, then his
+   2026-09-17 "take the attention there"). Full-ink text inside a hairline
+   ring, wearing the brand's pulsing delivered-dot as a live-light — the
+   same glyph as the wordmark's mark, so the pill says "the product this
+   page describes is RUNNING; enter here" without spending a new green.
+   The dot gets its 6px box from this flex row, same anatomy note as
+   .prf-finale-dot. Hover brightens the ring, not the text — the text is
+   already at the ladder's top. */
+.nav-links a.nav-dash {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  /* line-height 1 so the padding is the real geometry: the inherited
+     line box was adding phantom height and the ring sat lop-sided. */
+  line-height: 1;
+  padding: 8px 14px;
+  /* The hover look promoted to REST (user call, 2026-09-17: "if i dont
+     hover also then it should be like how it is now"): filled ring at
+     rest, one rung brighter on hover. */
+  border: 1px solid var(--text-faint);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  white-space: nowrap;
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .nav-links a.nav-dash:hover {
+    border-color: var(--text-dim);
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+/* A phone's nav cannot pay for the whole shelf. The registry pair (npm +
+   version) is the measurement, not the journey — it goes first, with its
+   seps (.nav-registry marks all four), and the row tightens one notch.
+   What survives is the journey itself: learn, run, source, talk, enter. */
+@media (max-width: 767px) {
+  .nav-registry,
+  .nav-version {
+    display: none;
+  }
+
+  .nav-links {
+    gap: 8px;
+    font-size: 13px;
+  }
+}
+
 /* ── the scene (SVG) ────────────────────────────────────────────────────── */
 
 .scene {

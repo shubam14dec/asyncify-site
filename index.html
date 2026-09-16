@@ -76,8 +76,7 @@
             Asyncify<span class="brand-mark" aria-hidden="true"><span class="brand-dot"></span></span>
           </a>
           <nav class="nav-links" aria-label="Primary">
-            <a href="/docs">Docs</a>
-            <span class="nav-sep" aria-hidden="true">·</span>
+            <!-- Docs removed from the nav (user call, 2026-09-17). -->
             <!-- Points at the HEADLINE, not the install line (user call): the
                  destination is the hero's opening breath — "Your product has
                  something to say." — with the install line arriving just
@@ -86,20 +85,18 @@
             <a href="#headline">Install</a>
             <span class="nav-sep" aria-hidden="true">·</span>
             <!-- The external links open in a NEW tab (user call): the
-                 story stays where the reader left it. Docs and Install are
-                 this site's own and stay in-tab. -->
-            <!-- GITHUB LINK HIDDEN (user call, 2026-09-04): restore this
-                 pair when the platform is deployed — he will say when.
+                 story stays where the reader left it. Install is this
+                 site's own and stays in-tab. -->
+            <!-- Restored 2026-09-17: hidden 2026-09-04 until the platform
+                 deployed; it did (2026-09-06), and he called for it back. -->
             <a href="https://github.com/shubam14dec/Scalable-Notification-System" target="_blank" rel="noreferrer">GitHub</a>
             <span class="nav-sep" aria-hidden="true">·</span>
-            -->
-
             <!-- Lowercase because that is the product's name for itself —
                  the registry's, not a stylization (user call to add it).
                  The ORG page, not one package's (his catch): all five
                  published packages on one shelf. -->
-            <a href="https://www.npmjs.com/org/asyncify-hq" target="_blank" rel="noreferrer">npm</a>
-            <span class="nav-sep" aria-hidden="true">·</span>
+            <a class="nav-registry" href="https://www.npmjs.com/org/asyncify-hq" target="_blank" rel="noreferrer">npm</a>
+            <span class="nav-sep nav-registry" aria-hidden="true">·</span>
             <!-- The version is REAL: vite fetches @asyncify-hq/node's published
                  version from the npm registry at build time and replaces the
                  token below (see vite.config.ts) — the badge can never name a
@@ -112,10 +109,17 @@
               rel="noreferrer"
               aria-label="Current release, v__ASYNCIFY_VERSION__"
             >v__ASYNCIFY_VERSION__</a>
-            <span class="nav-sep" aria-hidden="true">·</span>
-            <!-- LAST on purpose (user call): the row ends on reaching the
-                 human — learn, run, source, version, then talk to me. -->
+            <span class="nav-sep nav-registry" aria-hidden="true">·</span>
+            <!-- Second-to-last now: the reader learns, runs, reads source,
+                 then talks to me — and the row ends on the door into the
+                 running product (deploy-day rider, added 2026-09-17). -->
             <a href="/contact">Contact</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <!-- The one place the nav points at the product itself: the
+                 row's only pill, wearing the brand's pulsing delivered-dot
+                 as a live-light — the product is running, enter here. New
+                 tab, like every external door. -->
+            <a class="nav-dash" href="https://app.asyncify.org" target="_blank" rel="noreferrer"><span class="brand-dot" aria-hidden="true"></span>Dashboard</a>
           </nav>
         </header>
 
@@ -267,8 +271,8 @@
           </p>
           <!-- The buttons that stood here (ghost Get started + GitHub) were
                retired (user call): the install line IS the hero's call to
-               action — Docs and GitHub still live in the nav, and the one
-               green CTA stays in scene 5 (BRAND.md §2). -->
+               action — GitHub still lives in the nav, and the one green
+               CTA stays in scene 5 (BRAND.md §2). -->
 
           <!-- The first delivery is to your clipboard. One line of terminal
                text, not a fake terminal window (DESIGN.md §7): the command IS
