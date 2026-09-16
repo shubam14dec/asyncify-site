@@ -6658,6 +6658,44 @@ html {
   transform: translateY(12px);
 }
 
+/* ── the journey line ──────────────────────────────────────────────────────
+   One receipt-idiom row on the home finale (.prf-journey, rises with the
+   finale's prf-fin stagger) and the contact footer (.ct-journey): a dated,
+   factual claim in the mono voice, with the link the only part at body ink.
+   ─────────────────────────────────────────────────────────────────────── */
+
+.prf-journey,
+.ct-journey {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  color: var(--text-faint);
+}
+
+.prf-journey {
+  margin-top: 20px;
+}
+
+.ct-journey {
+  margin-top: 14px;
+}
+
+.prf-journey a,
+.ct-journey a {
+  color: var(--text-dim);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--hairline-strong);
+  transition: color 180ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .prf-journey a:hover,
+  .ct-journey a:hover {
+    color: var(--text);
+  }
+}
+
 /* ── desktop ────────────────────────────────────────────────────────────── */
 
 @media (min-width: 768px) {
