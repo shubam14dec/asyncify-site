@@ -1,0 +1,906 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>The build — Asyncify</title>
+    <meta
+      name="description"
+      content="How Asyncify was built: 75 days from empty repo to a production notification platform with agents built in — every date a commit date."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- The middleware serves this file at story.asyncify.org/, so that is the
+         URL this page canonicalises to — not /story.html on either host. -->
+    <link rel="canonical" href="https://story.asyncify.org/" />
+    <!-- Share cards, mirroring index.html and contact.html's set. Same og.png —
+         one image, one identity, whichever subdomain the link points at. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Asyncify" />
+    <meta property="og:title" content="The build — Asyncify" />
+    <meta
+      property="og:description"
+      content="75 days from empty repo to a production notification platform with agents built in — every date a commit date."
+    />
+    <meta property="og:url" content="https://story.asyncify.org/" />
+    <meta property="og:image" content="https://asyncify.org/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="The build — Asyncify" />
+    <meta
+      name="twitter:description"
+      content="75 days from empty repo to a production notification platform with agents built in — every date a commit date."
+    />
+    <meta name="twitter:image" content="https://asyncify.org/og.png" />
+    <!-- The same critical inline frame index.html and contact.html carry: all
+         real styling arrives through story.ts (styles.css is a module import),
+         so a cold dev-server load would paint raw HTML for a beat. These few
+         rules make that beat a quiet black nothing; styles.css flips <main>
+         back on. -->
+    <style>
+      html {
+        background: #0a0a0a;
+      }
+      body {
+        margin: 0;
+        background: #0a0a0a;
+      }
+      main {
+        visibility: hidden;
+      }
+    </style>
+  </head>
+
+  <body>
+    <main>
+      <div class="st-page">
+        <!-- The masthead is index.html's, at the SAME 1080px width.
+             EVERY INTERNAL LINK HERE IS ABSOLUTE TO asyncify.org, on purpose:
+             this page is served at story.asyncify.org/ by functions/_middleware.ts,
+             so a relative "/" would land the reader back on THIS page and there
+             would be no way out of the story. -->
+        <header class="nav">
+          <a class="wordmark" href="https://asyncify.org/" aria-label="Asyncify, home">
+            Asyncify<span class="brand-mark" aria-hidden="true"><span class="brand-dot"></span></span>
+          </a>
+          <nav class="nav-links" aria-label="Primary">
+            <a href="https://asyncify.org/#headline">Install</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <a href="https://github.com/shubam14dec/Scalable-Notification-System" target="_blank" rel="noreferrer">GitHub</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <a class="nav-registry" href="https://www.npmjs.com/org/asyncify-hq" target="_blank" rel="noreferrer">npm</a>
+            <span class="nav-sep nav-registry" aria-hidden="true">·</span>
+            <a
+              class="nav-version"
+              href="https://github.com/shubam14dec/Scalable-Notification-System/releases"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Current release, v__ASYNCIFY_VERSION__"
+            >v__ASYNCIFY_VERSION__</a>
+            <span class="nav-sep nav-registry" aria-hidden="true">·</span>
+            <a href="https://asyncify.org/contact">Contact</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <a class="nav-dash" href="https://app.asyncify.org" target="_blank" rel="noreferrer"><span class="brand-dot" aria-hidden="true"></span>Dashboard</a>
+          </nav>
+        </header>
+
+        <div class="st-col">
+          <!-- ── hero ───────────────────────────────────────────────────────
+               Not full-viewport: this page is a scroll, and a 100dvh hero
+               would spend the reader's first screen on a title. -->
+          <section class="st-hero">
+            <p class="st-kicker">the build story</p>
+            <h1 class="st-headline">
+              75 days, from empty repo to <span class="hl-accent">production.</span>
+            </h1>
+            <p class="st-subline">
+              Three repos, 888 commits, and a task board kept since day one. Every date on
+              this page is a commit date — the product's own history, not a retelling.
+            </p>
+          </section>
+
+          <!-- ── the figures ────────────────────────────────────────────────
+               Hairline-separated cells, no cards: six numbers that each label
+               themselves in plain words. -->
+          <section class="st-stats" aria-label="The build in figures">
+            <div class="st-stat">
+              <p class="st-stat-n">75</p>
+              <p class="st-stat-l">days building</p>
+            </div>
+            <div class="st-stat">
+              <p class="st-stat-n">888</p>
+              <p class="st-stat-l">commits</p>
+            </div>
+            <div class="st-stat">
+              <p class="st-stat-n">59</p>
+              <p class="st-stat-l">phases shipped</p>
+            </div>
+            <div class="st-stat">
+              <p class="st-stat-n">1,384</p>
+              <p class="st-stat-l">CI tests green</p>
+            </div>
+            <div class="st-stat">
+              <p class="st-stat-n">5</p>
+              <p class="st-stat-l">npm packages</p>
+            </div>
+            <div class="st-stat">
+              <p class="st-stat-n">0</p>
+              <p class="st-stat-l">open ports in production</p>
+            </div>
+          </section>
+
+          <!-- ── the suite, over time ───────────────────────────────────────
+               The fourteen waypoints the board recorded, drawn as bar heights.
+               The heights are proportional to the counts (tallest 64px); the
+               first is floored at 3px because 51 tests is 2.4px and a bar
+               nobody can see is not a bar. Hairline-strong ink, except today's
+               count — the last bar is the only one at --green-dim, because it
+               is the one that is currently true.
+
+               Fourteen labels do not fit a 360px phone, so only five are
+               drawn and the stylesheet keeps the first and last of those at
+               phone width: the shape is the story, the endpoints are the
+               measurement. -->
+          <section class="st-bars-wrap" aria-label="The test suite over time">
+            <div class="st-bars">
+              <div class="st-bar-col">
+                <span class="st-bar" style="height: 3px"></span>
+                <span class="st-bar-n is-first">51</span>
+              </div>
+              <div class="st-bar-col"><span class="st-bar" style="height: 7px"></span></div>
+              <div class="st-bar-col"><span class="st-bar" style="height: 9px"></span></div>
+              <div class="st-bar-col"><span class="st-bar" style="height: 12px"></span></div>
+              <div class="st-bar-col"><span class="st-bar" style="height: 14px"></span></div>
+              <div class="st-bar-col">
+                <span class="st-bar" style="height: 15px"></span>
+                <span class="st-bar-n">320</span>
+              </div>
+              <div class="st-bar-col"><span class="st-bar" style="height: 20px"></span></div>
+              <div class="st-bar-col"><span class="st-bar" style="height: 23px"></span></div>
+              <div class="st-bar-col">
+                <span class="st-bar" style="height: 25px"></span>
+                <span class="st-bar-n">543</span>
+              </div>
+              <div class="st-bar-col"><span class="st-bar" style="height: 32px"></span></div>
+              <div class="st-bar-col">
+                <span class="st-bar" style="height: 48px"></span>
+                <span class="st-bar-n">1,033</span>
+              </div>
+              <div class="st-bar-col"><span class="st-bar" style="height: 52px"></span></div>
+              <div class="st-bar-col"><span class="st-bar" style="height: 61px"></span></div>
+              <div class="st-bar-col">
+                <span class="st-bar is-now" style="height: 64px"></span>
+                <span class="st-bar-n is-last">1,384</span>
+              </div>
+            </div>
+            <p class="st-bars-cap">the CI test suite, over time</p>
+          </section>
+
+          <!-- ── the timeline ───────────────────────────────────────────────
+               One spine, chronological, no pinning. Three kinds of entry hang
+               off it: an era (dated range + what it was), a milestone (a green
+               delivery moment, dotted ON the spine), and a card from the task
+               board. -->
+          <section class="st-tl" aria-label="The build, month by month">
+            <p class="st-month">July</p>
+
+            <div class="st-mark">
+              <span class="st-mark-dot" aria-hidden="true"></span>
+              <p class="st-mark-line"><span class="st-mark-date">Jul 5</span> first commit</p>
+            </div>
+
+            <article class="st-era">
+              <p class="st-era-date">Jul 5 → Jul 6</p>
+              <h2 class="st-era-title">The engine</h2>
+              <p class="st-era-sum">
+                The whole multi-tenant delivery platform lands in two days: accounts through
+                templates, API through dashboard.
+              </p>
+              <ul class="st-era-list">
+                <li>Multi-tenant foundation — accounts, organizations, environments, API keys</li>
+                <li>Dashboard shell: auth, activity, workflow editor, message timeline, analytics</li>
+                <li>Node SDK, React inbox widget, subscriber tokens</li>
+                <li>Versioned MJML template system with a live-preview editor</li>
+                <li>
+                  Delivery guarantees in the spine from the start: retries with backoff,
+                  provider failover chains and circuit breakers, a dead-letter queue,
+                  idempotency keys, digest windows, priority lanes, suppression
+                </li>
+                <li>Rebranded to Asyncify (<code>@asyncify-hq</code>) on Jul 6</li>
+              </ul>
+            </article>
+
+            <article class="st-era">
+              <p class="st-era-date">Jul 6 → Jul 7</p>
+              <h2 class="st-era-title">Making it shippable</h2>
+              <p class="st-era-sum">
+                The code becomes a product other people could install and read.
+              </p>
+              <ul class="st-era-list">
+                <li>Dual ESM+CJS builds, package READMEs, LICENSE, registry metadata</li>
+                <li>First test suite: 51 Vitest tests, plus an instant API-key revocation fix</li>
+                <li>Engineering and email-deliverability skill libraries written down</li>
+                <li>
+                  README rewritten as a plain-English architecture walkthrough, with a
+                  request-flow doc — "anatomy of a notification"
+                </li>
+              </ul>
+            </article>
+
+            <article class="st-era">
+              <p class="st-era-date">Jul 7 → Jul 10</p>
+              <h2 class="st-era-title">The agents track opens</h2>
+              <p class="st-era-sum">
+                Notifications stop being one-way. A reply comes back up the same pipe.
+              </p>
+              <ul class="st-era-list">
+                <li>Conversation core: a two-way agent bridge riding the queue spine</li>
+                <li><code>@asyncify-hq/agent</code> SDK, a self-registering demo brain, AgentChat widget</li>
+                <li>
+                  Telegram channel (webhook ingestion + channel-aware replies), then email
+                  (inbound webhook + replies through the provider chain)
+                </li>
+                <li>
+                  Managed LLM brains — zero-code agents — then LLM tool use, usage accounting
+                  and per-agent token caps
+                </li>
+                <li>
+                  Auto-resolve on inactivity; subscriber linking — one human, one subscriber,
+                  identity unified across every channel
+                </li>
+              </ul>
+            </article>
+
+            <article class="st-beat">
+              <p class="st-beat-kicker">from the board · ~Jul 9 → Jul 10</p>
+              <h2 class="st-beat-title">The phantom email, exorcised</h2>
+              <p class="st-beat-body">
+                A managed agent promised a confirmation email to a Telegram user who had no
+                email on file — a model's lie that exposed something structural: to the
+                platform, one human was three strangers (a Telegram chat, an email address, a
+                widget session). Subscriber linking shipped — one human, one subscriber,
+                identity unified across every channel — and the acceptance test was the failed
+                scenario replayed to a pass: a real email landing in a real inbox, started
+                from a Telegram chat.
+              </p>
+            </article>
+
+            <div class="st-mark">
+              <span class="st-mark-dot" aria-hidden="true"></span>
+              <p class="st-mark-line">
+                <span class="st-mark-date">Jul 10</span> token-less publishing live — Changesets
+                + OIDC trusted publishing (PR #1)
+              </p>
+            </div>
+
+            <article class="st-era">
+              <p class="st-era-date">Jul 10</p>
+              <h2 class="st-era-title">Release automation and CI</h2>
+              <p class="st-era-sum">Publishing stops being a person with a token.</p>
+              <ul class="st-era-list">
+                <li>CI on every push: typecheck, tests, builds (Node 24 runner)</li>
+                <li>npm workspaces across <code>packages/*</code></li>
+                <li>
+                  Changesets + OIDC trusted publishing; first token-less release verified live
+                  the same day (PR #1) — the package was on npm 33 seconds after the merge,
+                  with a provenance attestation
+                </li>
+              </ul>
+            </article>
+
+            <article class="st-era">
+              <p class="st-era-date">Jul 11 → Jul 13</p>
+              <h2 class="st-era-title">Depth, security and the CLI</h2>
+              <p class="st-era-sum">
+                A comparison sweep against a leading notification platform sets the agenda;
+                six phases answer it.
+              </p>
+              <ul class="st-era-list">
+                <li>SSRF guard on every tenant-supplied outbound URL (Phase 9)</li>
+                <li>Connection/endpoint model split — one credential, many destinations</li>
+                <li>Slack as a third agent channel</li>
+                <li>Cards v2: select and text-input cards, plan-card streaming</li>
+                <li>
+                  <code>@asyncify-hq/cli</code> — <code>asyncify dev</code> and
+                  <code>create-agent</code>; the public URL becomes a runtime value instead of
+                  a build-time one
+                </li>
+              </ul>
+            </article>
+
+            <article class="st-era">
+              <p class="st-era-date">Jul 14 → Jul 19</p>
+              <h2 class="st-era-title">Onboarding, tools and approvals</h2>
+              <p class="st-era-sum">Agents get hands, and humans get a veto.</p>
+              <ul class="st-era-list">
+                <li>
+                  Onboarding: Slack quick-setup, rotation auto-update, welcome messages, QR
+                  flows; agents that speak first on a new DM
+                </li>
+                <li>Agent tools: customer registry, signed execution, human approval, evals</li>
+                <li>Channel approvals — tap Approve/Deny straight from Slack or Telegram</li>
+                <li>
+                  Per-channel agent routing: one bot token serving three brains — #billing to
+                  one agent, #support and DMs to another — with zero webhook re-registration
+                </li>
+                <li>
+                  A hand-rolled, zero-dependency QR generator (vendored, self-decoded in
+                  tests, proven by a real phone camera) keeps the React package clean
+                </li>
+              </ul>
+            </article>
+
+            <div class="st-mark">
+              <span class="st-mark-dot" aria-hidden="true"></span>
+              <p class="st-mark-line">
+                <span class="st-mark-date">Jul 19</span> five packages live under
+                <code>@asyncify-hq</code> — node, react, agent, cli, react-native
+              </p>
+            </div>
+
+            <article class="st-beat">
+              <p class="st-beat-kicker">from the board · ~July → August</p>
+              <h2 class="st-beat-title">
+                The DNS race no manual drill could hit, in two acts
+              </h2>
+              <p class="st-beat-body">
+                The CLI registered a webhook seconds after the dev tunnel printed its URL —
+                before the DNS record existed; the third party negative-cached the NXDOMAIN
+                and refused the hostname for about four minutes. Invisible across four-plus
+                hand rotations, because a human pasting a URL always takes over a minute.
+                Fixed with a readiness gate: two consecutive 200s through the tunnel. Act two,
+                fourteen days and eleven recorded failures later: that gate asked the local
+                resolver, so it failed precisely on machines whose ISP lagged while the rest
+                of the world resolved fine. The gate now asks the world, not the machine it
+                runs on.
+              </p>
+            </article>
+
+            <article class="st-era">
+              <p class="st-era-date">Jul 21 → Jul 29</p>
+              <h2 class="st-era-title">Production-grade agents</h2>
+              <p class="st-era-sum">
+                The arc that makes an agent something you would put in front of customers.
+              </p>
+              <ul class="st-era-list">
+                <li>
+                  Observability: per-turn traces, a Turn Inspector, agent health endpoints,
+                  and OpenTelemetry export — model and tool spans walked as a real Jaeger
+                  waterfall on debut day
+                </li>
+                <li>Evals-as-gate plus guardrails: repeat-action guard, daily token budgets</li>
+                <li>
+                  Knowledge (RAG) + episodic memory with cited, grounded answers;
+                  bring-your-own embedding model and vector store
+                </li>
+                <li>
+                  Long-term memory, rolling summarization, prompt caching, budget intelligence
+                  — measured live: an 18-turn conversation replayed at 1,451 tokens against
+                  ~2,300 before the fold
+                </li>
+                <li>Dashboard live events — 13 pollers retired for 41 WebSocket emit points</li>
+                <li>HITL handoff: agent to human and back, with the handback attributed</li>
+              </ul>
+            </article>
+
+            <article class="st-beat">
+              <p class="st-beat-kicker">from the board · Jul 8 → Jul 24</p>
+              <h2 class="st-beat-title">
+                The fabrication saga — a weak model kept inventing policy
+              </h2>
+              <p class="st-beat-body">
+                The first managed-brain agents did the one thing an automated support agent
+                must never do: make things up. The fixes arrived as a ladder, each one from a
+                real failure. An anti-fabrication clause went into the tool description itself
+                (Jul 8). Replayed history was rewritten to carry real tool blocks instead of
+                prose breadcrumbs, because prose breadcrumbs could be forged by the model
+                (Jul 9). Then on Jul 24 three incidents landed in a single end-to-end session:
+                the model delivered its own chain-of-thought as the customer reply; with its
+                knowledge base emptied it invented a returns policy; and when the tester
+                simply pushed back — "yes or no?" — it broke again. Each got a detector or a
+                directive plus a regression test.
+              </p>
+            </article>
+
+            <article class="st-era">
+              <p class="st-era-date">Jul 30 → Aug 18</p>
+              <h2 class="st-era-title">The marketing site</h2>
+              <p class="st-era-sum">
+                A separate repo: a five-scene scroll story that explains the product by
+                animating it.
+              </p>
+              <ul class="st-era-list">
+                <li>Scene 1 hero: a real damped-pendulum bell, six-channel delivery fan</li>
+                <li>
+                  Scene 2 "the engine": pinned schematic of flood, idempotency, retries with a
+                  growing backoff ladder, failover, dead-letter queue, priority lanes
+                </li>
+                <li>
+                  Install unit in the hero (<code>npm i @asyncify-hq/…</code>), then a
+                  first-paint overhaul: 10.3s → 0.4s
+                </li>
+                <li>
+                  Engineering budgets held: ~140 of a 150 KB gzip JS budget, ~9.3 of 12 KB
+                  CSS; a ~6,000-line scene module guarded by ~155 boot-time asserts run
+                  against the real markup
+                </li>
+                <li>
+                  Later: a contact page where the form is the product's compose surface
+                  (Sep 3), SEO hygiene and share cards (Sep 12), nav rework (Sep 17)
+                </li>
+              </ul>
+            </article>
+
+            <p class="st-month">August</p>
+
+            <article class="st-beat">
+              <p class="st-beat-kicker">from the board · Aug 6, applied through September</p>
+              <h2 class="st-beat-title">A design law, written from a torn animation</h2>
+              <p class="st-beat-body">
+                The site's two hand-off scenes kept tearing at their seam because one
+                animation computed the other's endpoint arithmetically. The fix was to state
+                the endpoint by reference to the element itself — and the lesson was promoted
+                to a numbered law in the site's design document, then reused every time a
+                later scene had to end where another began. A sibling law came out of the
+                performance work on Aug 17: "the stylesheet owns the first paint". Both exist
+                because a bug was traced to its cause rather than tuned away.
+              </p>
+            </article>
+
+            <div class="st-mark">
+              <span class="st-mark-dot" aria-hidden="true"></span>
+              <p class="st-mark-line">
+                <span class="st-mark-date">Aug 18</span> site launch — asyncify.org live
+              </p>
+            </div>
+
+            <article class="st-era">
+              <p class="st-era-date">Aug 21 → Aug 26</p>
+              <h2 class="st-era-title">The quality ladder</h2>
+              <p class="st-era-sum">
+                The ladder that turns "the agent seems fine" into a measurement.
+              </p>
+              <ul class="st-era-list">
+                <li>LLM-judge dimensions on eval scenarios: groundedness, tone, refusal</li>
+                <li>A blocking agent-evals gate in CI</li>
+                <li>
+                  Prompt versioning + canary — a version trials on a share of real
+                  conversations, with a per-arm comparison so "Promote" is a decision
+                </li>
+                <li>Model routing: cheap-first turns, escalation as law</li>
+                <li>Two content gates — an inbound topic gate, an outbound reply-rule gate</li>
+              </ul>
+            </article>
+
+            <div class="st-mark">
+              <span class="st-mark-dot" aria-hidden="true"></span>
+              <p class="st-mark-line">
+                <span class="st-mark-date">Aug 22</span> the agent-evals gate goes blocking in
+                CI — and catches a real regression on its first run
+              </p>
+            </div>
+
+            <article class="st-beat">
+              <p class="st-beat-kicker">from the board · Aug 22</p>
+              <h2 class="st-beat-title">
+                The gate that caught its own author, on its first run
+              </h2>
+              <p class="st-beat-body">
+                The blocking agent-evals gate shipped in CI, and the very first run failed —
+                not on a flake, but because the refund-path scenario had quietly rotted
+                against the current agent. The scenario was rewritten, the second run went
+                green, and the phase closed with the gate "live-proven on debut". Two days
+                later the gate's path list was widened, because the phase that added it had
+                only triggered it through a README file: a change to the conversation
+                processor alone would have skipped a real behavior change.
+              </p>
+            </article>
+
+            <article class="st-era">
+              <p class="st-era-date">Aug 26 → Aug 31</p>
+              <h2 class="st-era-title">Operability and honesty</h2>
+              <ul class="st-era-list">
+                <li>Kill-switch: pause an agent with grace, not a 409</li>
+                <li>Config-as-code: an agent becomes a file — Export / Import / Promote</li>
+                <li>
+                  A crashed turn now leaves its trace behind, and the inspector shows how it
+                  died
+                </li>
+                <li>
+                  Channel honesty and hygiene fixes; the dev tunnel gate asks the world rather
+                  than the local machine
+                </li>
+                <li>
+                  Scene 5 of the site rebuilt as "the edit" — one prompt change walking
+                  through seven stations of the quality ladder
+                </li>
+              </ul>
+            </article>
+
+            <article class="st-beat">
+              <p class="st-beat-kicker">from the board · ~August</p>
+              <h2 class="st-beat-title">The 87-day sweep</h2>
+              <p class="st-beat-body">
+                The first design for draining stale conversations would have taken ~87 days to
+                clear five million rows — per-conversation delayed jobs, rejected on the spot
+                as per-user-per-event work. It shipped instead as one set-based SQL sweep
+                (SKIP LOCKED, 5,000 rows a batch, a 55-second drain budget) that clears the
+                same backlog in one or two ticks. Then the knob was re-cut from hours down to
+                minutes — so the end-to-end test runs through the real product on one real
+                minute of silence, instead of faking a clock.
+              </p>
+            </article>
+
+            <p class="st-month">September</p>
+
+            <article class="st-era">
+              <p class="st-era-date">Sep 5</p>
+              <h2 class="st-era-title">Production hardening</h2>
+              <p class="st-era-sum">
+                One day of finding everything that only breaks outside a laptop.
+              </p>
+              <ul class="st-era-list">
+                <li>
+                  The Docker image could not actually be built: <code>NODE_ENV=production</code>
+                  above <code>npm ci</code> omitted the runtime's own TypeScript runner, and
+                  workspaces were never copied. Both fixed with the reason written into the
+                  comment
+                </li>
+                <li>
+                  <code>ws://localhost:3001</code> was hardcoded in three places — the
+                  WebSocket origin is now derived from where the page is served, and dev
+                  proxies the exact prefix prod uses
+                </li>
+                <li>
+                  A production preflight that refuses to boot on dev defaults: weak or shared
+                  <code>JWT_SECRET</code>, missing credential encryption key, webhook signing
+                  disabled, SSRF escape hatch left open
+                </li>
+                <li>
+                  The production compose stack: one box, one hostname, zero published ports;
+                  ingress only through an outbound named tunnel
+                </li>
+                <li><code>DEPLOYMENT.md</code> rewritten from aspiration into the runbook that matches</li>
+              </ul>
+            </article>
+
+            <div class="st-mark">
+              <!-- The one dot that breathes: the site's brand pulse, reused for
+                   the moment the product actually went live. -->
+              <span class="st-mark-dot is-live" aria-hidden="true"></span>
+              <p class="st-mark-line">
+                <span class="st-mark-date">Sep 6</span> production deploy day —
+                app.asyncify.org live, 16/16 E2E steps verified
+              </p>
+            </div>
+
+            <article class="st-era">
+              <p class="st-era-date">Sep 6</p>
+              <h2 class="st-era-title">Deploy day</h2>
+              <p class="st-era-sum">
+                Live at app.asyncify.org on a single €5.50-a-month VPS: compose, a permanent
+                named tunnel, one hostname, zero published ports.
+              </p>
+              <ul class="st-era-list">
+                <li>
+                  All 16 end-to-end steps user-verified, including a cold-reboot self-raise in
+                  43 seconds
+                </li>
+                <li>
+                  Two defects were found only by the real box: the Node 20 base crashed every
+                  entrypoint at require time, and the dashboard image had to build without the
+                  workspace type gate
+                </li>
+              </ul>
+            </article>
+
+            <article class="st-era">
+              <p class="st-era-date">Sep 7</p>
+              <h2 class="st-era-title">Dashboard polish and continuous deployment</h2>
+              <ul class="st-era-list">
+                <li>
+                  The agent editor split into Edit / Guardrails / Cost &amp; routing / Memory —
+                  four tabs over one form, so a half-typed field never dies on a tab switch
+                </li>
+                <li>One house dropdown everywhere: a custom Select replaces all 19 native ones</li>
+                <li>
+                  Merging to <code>production</code> now ships app.asyncify.org via GitHub
+                  Actions; PR #23 was the first automated deploy — merge to live in 3m47s
+                </li>
+              </ul>
+            </article>
+
+            <div class="st-mark">
+              <span class="st-mark-dot" aria-hidden="true"></span>
+              <p class="st-mark-line">
+                <span class="st-mark-date">Sep 7</span> continuous deployment — merge to
+                <code>production</code> ships the product
+              </p>
+            </div>
+
+            <article class="st-era">
+              <p class="st-era-date">Sep 7 → Sep 8</p>
+              <h2 class="st-era-title">Security hardening</h2>
+              <p class="st-era-sum">
+                Three parallel audit sweeps, then seven slices, with riders to Sep 13.
+              </p>
+              <ul class="st-era-list">
+                <li>The operator plane: global writes stop accepting tenant keys</li>
+                <li>
+                  Abuse brakes: per-IP rate limits, per-tenant token keys, scoped provider
+                  webhooks
+                </li>
+                <li>
+                  Rate-limit brakes on every auth door: login 10 / signup 3 / refresh 30 per
+                  minute per IP; widget 60/min with 20 turns/min per subscriber
+                </li>
+                <li>
+                  Dependency highs cut 10 → 1 (root) and 2 → 0 (dashboard); an enumeration
+                  oracle closed, scrypt raised to N=65536, logs masked
+                </li>
+                <li>"Continue with Google" — a server-side OIDC redirect flow</li>
+              </ul>
+            </article>
+
+            <article class="st-era">
+              <p class="st-era-date">Sep 8 → Sep 13</p>
+              <h2 class="st-era-title">The product's front of house</h2>
+              <ul class="st-era-list">
+                <li>Invite-gated beta access: request → approve → invite → gated signup</li>
+                <li>
+                  Auth pages redesigned as one designed object, with receipts falling out of
+                  the brand bell
+                </li>
+                <li>
+                  First-run guided tour (seven stops) and the one-time reveal of the two
+                  provisioned API keys
+                </li>
+                <li>
+                  Refresh-token rotation with a theft alarm, and a logout that means it —
+                  legacy tokens grandfathered by deriving an id from each token's own hash:
+                  zero forced re-logins, and no skeleton key minted
+                </li>
+                <li>
+                  Operator account suspension: revoke, every door shut, restore with data
+                  intact
+                </li>
+              </ul>
+            </article>
+
+            <article class="st-beat">
+              <p class="st-beat-kicker">from the board · Sep 13</p>
+              <h2 class="st-beat-title">
+                "Authenticating a route is not scoping its data"
+              </h2>
+              <p class="st-beat-body">
+                Every tenant's Overview page was showing the global dead-letter count. The
+                route was authenticated; it simply was not scoped. The fix added a
+                tenant-scoped stats endpoint and gated the platform telemetry stream to the
+                operator seat at the source — and the one-line law went into the engineering
+                ledger so the next route inherits it. It was found by the product's own owner
+                reading his dashboard, which is also how the refresh-token hole was found: a
+                question about what logout actually does exposed that it cleared local storage
+                and nothing else, and rotation with a theft alarm shipped the following day.
+              </p>
+            </article>
+
+            <article class="st-era">
+              <p class="st-era-date">Sep 14 → Sep 16</p>
+              <h2 class="st-era-title">The launch film</h2>
+              <p class="st-era-sum">
+                A five-act animated film (~64s) built in code, iterated to v15 across 42
+                commits.
+              </p>
+              <ul class="st-era-list">
+                <li>
+                  The failure field, the burst, the workflow executing, one agent answering
+                  back on every channel, and the production harness enforced on camera
+                </li>
+                <li>
+                  A synthesized sound layer and then a music bed were both built and then
+                  deliberately removed — it ships silent
+                </li>
+              </ul>
+            </article>
+
+            <div class="st-mark">
+              <span class="st-mark-dot" aria-hidden="true"></span>
+              <p class="st-mark-line">
+                <span class="st-mark-date">Sep 16</span> launch film finished — five acts,
+                ~64 seconds
+              </p>
+            </div>
+          </section>
+
+          <!-- ── the ledger ─────────────────────────────────────────────────
+               The same history without the prose: date, event, nothing else.
+               Two columns at every width — the date is short enough to hold
+               its own on a 360px phone. -->
+          <section class="st-ledger">
+            <h2 class="st-ledger-head">The ledger — every dated milestone</h2>
+            <dl class="st-ledger-list">
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 5</dt>
+                <dd class="st-ldg-event">First commit — the multi-channel notification engine</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 5</dt>
+                <dd class="st-ldg-event">Multi-tenant foundation: accounts, orgs, environments, API keys</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 5</dt>
+                <dd class="st-ldg-event">Node SDK + React inbox widget (Phase D)</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 6</dt>
+                <dd class="st-ldg-event">Rebrand to Asyncify / the @asyncify-hq npm org</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 6</dt>
+                <dd class="st-ldg-event">Publish prep: dual ESM+CJS builds; first packages go out</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 7</dt>
+                <dd class="st-ldg-event">First test suite — 51 tests</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 7</dt>
+                <dd class="st-ldg-event">The agents track opens: the two-way conversation bridge</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 8</dt>
+                <dd class="st-ldg-event">Telegram becomes the first outside agent channel; email follows</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 8</dt>
+                <dd class="st-ldg-event">Managed LLM brains — zero-code agents</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 8</dt>
+                <dd class="st-ldg-event">LLM tool use, with an anti-fabrication clause in the tool contract</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 10</dt>
+                <dd class="st-ldg-event">CI on every push</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 10</dt>
+                <dd class="st-ldg-event">Token-less publishing live: Changesets + OIDC trusted publishing (PR #1)</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 12</dt>
+                <dd class="st-ldg-event">SSRF guard on tenant-supplied outbound URLs</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 12</dt>
+                <dd class="st-ldg-event">Slack joins as the third agent channel</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 13</dt>
+                <dd class="st-ldg-event">@asyncify-hq/cli@0.1.0 — the agents track's fourth package</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 18</dt>
+                <dd class="st-ldg-event">Push &amp; SMS hardening; native mobile SDK verified on a real device</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 19</dt>
+                <dd class="st-ldg-event">@asyncify-hq/react-native@0.1.0 published (five packages live)</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 21</dt>
+                <dd class="st-ldg-event">Agent observability: turn traces + the Turn Inspector</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 24</dt>
+                <dd class="st-ldg-event">Knowledge (RAG) + episodic memory, with cited answers</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 25</dt>
+                <dd class="st-ldg-event">Long-term memory, rolling summarization, prompt caching, budgets</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 27</dt>
+                <dd class="st-ldg-event">Human-in-the-loop handoff: agent → human → agent</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Jul 30</dt>
+                <dd class="st-ldg-event">First commit of the marketing site</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Aug 17</dt>
+                <dd class="st-ldg-event">Site first paint cut from 10.3s to 0.4s</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Aug 18</dt>
+                <dd class="st-ldg-event is-major">Site launch — asyncify.org live</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Aug 21</dt>
+                <dd class="st-ldg-event">LLM-judge scoring lands on evals</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Aug 22</dt>
+                <dd class="st-ldg-event">
+                  The agent-evals gate goes blocking in CI — and catches a real regression on
+                  its first run
+                </dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Aug 22</dt>
+                <dd class="st-ldg-event">Prompt versioning + canary trials on live conversations</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Aug 23</dt>
+                <dd class="st-ldg-event">Model routing: cheap-first turns with escalation</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Aug 26</dt>
+                <dd class="st-ldg-event">Kill-switch + config-as-code (an agent becomes a file)</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Sep 5</dt>
+                <dd class="st-ldg-event">Production preflight: the app refuses to boot on dev defaults</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Sep 6</dt>
+                <dd class="st-ldg-event is-major">
+                  Production deploy day — app.asyncify.org live; 16/16 E2E steps verified
+                </dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Sep 7</dt>
+                <dd class="st-ldg-event">Continuous deployment: merge to production ships the product</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Sep 8</dt>
+                <dd class="st-ldg-event">Security hardening S1 ships; "Continue with Google" goes live</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Sep 10</dt>
+                <dd class="st-ldg-event">Production becomes an invite-gated beta</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Sep 12</dt>
+                <dd class="st-ldg-event">Refresh-token rotation with theft alarm; logout that revokes</dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Sep 13</dt>
+                <dd class="st-ldg-event">
+                  Cross-tenant data leak found and closed; operator account suspension ships
+                </dd>
+              </div>
+              <div class="st-ldg-row">
+                <dt class="st-ldg-date">Sep 16</dt>
+                <dd class="st-ldg-event is-major">Launch film finished — five acts, ~64 seconds</dd>
+              </div>
+            </dl>
+          </section>
+
+          <!-- ── the finale ─────────────────────────────────────────────────
+               The page's ONE green fill (BRAND §2, use 3 of 3). Nothing above
+               this line is a filled button. -->
+          <section class="st-finale">
+            <p class="st-finale-line">Built in 75 days. Running right now.</p>
+            <div class="st-finale-actions">
+              <a class="btn-green" href="https://app.asyncify.org" target="_blank" rel="noreferrer"
+                >See it running <span class="arrow" aria-hidden="true">→</span></a
+              >
+              <a
+                class="btn-text"
+                href="https://github.com/shubam14dec/Scalable-Notification-System"
+                target="_blank"
+                rel="noreferrer"
+                >read the source</a
+              >
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <script type="module" src="/src/story.ts"></script>
+  </body>
+</html>

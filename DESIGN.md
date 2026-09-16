@@ -201,10 +201,16 @@ scene, not with `if (reduced)` scattered inside tweens.
 | Metric | Budget |
 | --- | --- |
 | JS, gzipped | **< 150 KB** |
-| CSS, gzipped | < 12 KB |
+| CSS, gzipped | < 14 KB |
 | Frame rate during the hero ring | 60fps on a mid-tier laptop |
 | Console errors / warnings | 0 |
 | Layout-triggering animated properties | 0 |
+
+The CSS budget was < 12 KB while this was a one-page site; raised to < 14 KB
+on 2026-09-17 when the third page (the build story) landed at 12.28 KB — the
+stylesheet is shared, so the budget scales with the page count, not with any
+one page's appetite. The discipline stands: a new page buys its rules by
+sharing voices (see the `st-` section's grouping), never by adding a color.
 
 Fonts are self-hosted woff2, `font-display: swap`, latin subset only. Only the weights listed
 in BRAND §3 are imported. GSAP plugins are imported individually (`gsap/DrawSVGPlugin`), never

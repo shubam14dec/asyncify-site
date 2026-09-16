@@ -52,12 +52,14 @@ export default defineConfig(async () => {
   return {
     plugins: [versionBadge(version)],
     build: {
-      // Two pages, one bundle. Both entries go through the version-badge
-      // plugin above, so the release badge is real on either of them.
+      // Three pages, one bundle. Every entry goes through the version-badge
+      // plugin above, so the release badge is real on all of them. `story` is
+      // built here and served at story.asyncify.org/ by functions/_middleware.ts.
       rollupOptions: {
         input: {
           main: page("index.html"),
           contact: page("contact.html"),
+          story: page("story.html"),
         },
       },
       target: "es2022",
