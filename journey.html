@@ -11,9 +11,9 @@
       content="How Asyncify was built: 75 days from empty repo to a production notification platform with agents built in — every date a commit date."
     />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <!-- The middleware serves this file at story.asyncify.org/, so that is the
-         URL this page canonicalises to — not /story.html on either host. -->
-    <link rel="canonical" href="https://story.asyncify.org/" />
+    <!-- The middleware serves this file at journey.asyncify.org/, so that is
+         the URL this page canonicalises to — not /journey.html on either host. -->
+    <link rel="canonical" href="https://journey.asyncify.org/" />
     <!-- Share cards, mirroring index.html and contact.html's set. Same og.png —
          one image, one identity, whichever subdomain the link points at. -->
     <meta property="og:type" content="website" />
@@ -23,7 +23,7 @@
       property="og:description"
       content="75 days from empty repo to a production notification platform with agents built in — every date a commit date."
     />
-    <meta property="og:url" content="https://story.asyncify.org/" />
+    <meta property="og:url" content="https://journey.asyncify.org/" />
     <meta property="og:image" content="https://asyncify.org/og.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -35,7 +35,7 @@
     />
     <meta name="twitter:image" content="https://asyncify.org/og.png" />
     <!-- The same critical inline frame index.html and contact.html carry: all
-         real styling arrives through story.ts (styles.css is a module import),
+         real styling arrives through journey.ts (styles.css is a module import),
          so a cold dev-server load would paint raw HTML for a beat. These few
          rules make that beat a quiet black nothing; styles.css flips <main>
          back on. -->
@@ -58,7 +58,7 @@
       <div class="st-page">
         <!-- The masthead is index.html's, at the SAME 1080px width.
              EVERY INTERNAL LINK HERE IS ABSOLUTE TO asyncify.org, on purpose:
-             this page is served at story.asyncify.org/ by functions/_middleware.ts,
+             this page is served at journey.asyncify.org/ by functions/_middleware.ts,
              so a relative "/" would land the reader back on THIS page and there
              would be no way out of the story. -->
         <header class="nav">
@@ -901,6 +901,6 @@
       </div>
     </main>
 
-    <script type="module" src="/src/story.ts"></script>
+    <script type="module" src="/src/journey.ts"></script>
   </body>
 </html>

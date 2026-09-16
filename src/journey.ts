@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════════
-   story.asyncify.org — /story.html
+   journey.asyncify.org — /journey.html
    The product's build timeline. One tall page, plain scroll: no pinning, no
    scrub, nothing that takes the scrollbar away from the reader. The only
    motion is an entry arriving — a 12px rise and a fade, once, as it crosses
@@ -43,7 +43,7 @@ const risers = Array.from(document.querySelectorAll<HTMLElement>(RISE_SELECTOR))
 
 /* Reads the DOM, so it cannot fold to a constant at build time and prune the
    rest of this module (DESIGN.md §3). */
-if (risers.length === 0) throw new Error("story: no entries to reveal");
+if (risers.length === 0) throw new Error("journey: no entries to reveal");
 
 /* ── media gating ──────────────────────────────────────────────────────────
    One matchMedia owns the choice, and it owns the hidden rest state with it:

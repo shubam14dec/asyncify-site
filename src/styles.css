@@ -6172,7 +6172,7 @@ html {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   THE BUILD — story.asyncify.org
+   THE BUILD — journey.asyncify.org
    One tall page, plain scroll, no pinning: a spine with three kinds of entry
    hanging off it (era, milestone, board card), a ledger, one green button.
 
@@ -6650,7 +6650,7 @@ html {
 }
 
 /* ── the rest state the motion reveals from ─────────────────────────────────
-   Added by story.ts, never authored on the element: with JavaScript off the
+   Added by journey.ts, never authored on the element: with JavaScript off the
    class never lands and the page reads finished. The tweens write inline
    opacity and transform, which win over these. */
 .st-motion .st-rise {
