@@ -6682,6 +6682,12 @@ html {
    does. */
 .prf-journey {
   margin-top: 10px;
+}
+
+/* Both copies at the brighter rung (user call, first home then contact):
+   body ink for the claim, full ink for the door. */
+.prf-journey,
+.ct-journey {
   font-size: 13px;
   color: var(--text-dim);
 }
@@ -6705,9 +6711,10 @@ html {
   transition: color 180ms ease;
 }
 
-/* AFTER the shared rule, deliberately: the finale's copy starts at full ink
-   (its hover has nowhere to climb and stays put). */
-.prf-journey a {
+/* AFTER the shared rule, deliberately: both copies start at full ink
+   (their hover has nowhere to climb and stays put). */
+.prf-journey a,
+.ct-journey a {
   color: var(--text);
 }
 
