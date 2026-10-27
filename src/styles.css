@@ -6795,3 +6795,182 @@ html {
     grid-template-columns: 96px 1fr;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE GO DESIGN — go.asyncify.org
+   journey's shell (st-page, st-hero, st-finale) and its three voices, plus
+   the few things only this page has: one data table, the diagrams, the Go
+   listings, and the "say it like this" lines. Additive, tokens only — no new
+   colors, no shadows, no gradients. The section column stops at 880px: the
+   widest Go line (~110 columns at 12px mono) fits inside it on a laptop.
+
+   Phone rule: tables and <pre> blocks scroll INSIDE themselves; the body
+   never scrolls sideways.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.gl-sec {
+  max-width: 880px;
+  margin-top: clamp(56px, 9vh, 104px);
+  padding-top: clamp(32px, 5vh, 48px);
+  border-top: 1px solid var(--hairline);
+}
+
+/* journey's era voice at section rank: one step larger, and the same 10px
+   under the number at every width (journey zeroes it on desktop). */
+.gl-sec .st-era-title {
+  margin-top: 10px;
+  font-size: 22px;
+  text-wrap: balance;
+}
+
+.gl-sec .st-era-sum {
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+.gl-p,
+.gl-ol li,
+.gl-sec .st-era-list li {
+  max-width: 66ch;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-dim);
+  text-wrap: pretty;
+}
+
+.gl-p {
+  margin-top: 16px;
+}
+
+.gl-ol {
+  margin: 12px 0 0;
+  padding-left: 22px;
+}
+
+.gl-ol li {
+  margin-top: 8px;
+  padding-left: 4px;
+}
+
+.gl-ol li::marker {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.gl-sec .st-era-list li {
+  margin-top: 14px;
+}
+
+.gl-sec strong {
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* ── the mapping table ──────────────────────────────────────────────────────
+   A quiet data table: hairline rows, no fills, no cards. The Go column is at
+   body ink and its primitives are <code> (mono, via .st-page code). Below
+   560px the wrapper scrolls rather than crushing the columns. */
+.gl-tw {
+  margin-top: 24px;
+  overflow-x: auto;
+}
+
+.gl-table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.gl-table th {
+  padding: 0 16px 10px 0;
+  text-align: left;
+  font: 400 11px/1 var(--mono);
+  letter-spacing: 0.01em;
+  color: var(--text-faint);
+  border-bottom: 1px solid var(--hairline-strong);
+}
+
+.gl-table td {
+  padding: 12px 16px 12px 0;
+  vertical-align: top;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--hairline);
+  text-wrap: pretty;
+}
+
+.gl-table td:first-child {
+  width: 36%;
+}
+
+.gl-table td + td {
+  color: var(--text);
+}
+
+/* ── diagrams and listings ──────────────────────────────────────────────────
+   One box for both — a --surface panel, one hairline, card radius — told
+   apart by ink: listings at --text, diagrams a rung down at --text-dim. No
+   syntax highlighting: plain mono is the site's voice. tab-size 4 keeps the
+   listings' real tabs at Go's usual visual width.
+
+   Diagrams skip Geist Mono ON PURPOSE: the self-hosted latin subset carries
+   no box-drawing or arrow glyphs, so ┌─│► would fall back per glyph to a
+   different font with a different advance and the columns would shear. The
+   system mono draws every character at one width. */
+.gl-code,
+.gl-diagram {
+  margin: 20px 0 0;
+  padding: 18px 20px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.6;
+  tab-size: 4;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-card);
+  overflow-x: auto;
+}
+
+.gl-diagram {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  line-height: 1.4;
+  color: var(--text-dim);
+}
+
+/* The global focus ring resets the radius to the chip's; a scrollable
+   panel keeps its own. */
+.gl-code:focus-visible,
+.gl-diagram:focus-visible,
+.gl-tw:focus-visible {
+  border-radius: var(--r-card);
+}
+
+.gl-fig {
+  margin: 0;
+}
+
+.gl-cap {
+  margin-top: 10px;
+}
+
+/* ── say it like this ───────────────────────────────────────────────────────
+   One treatment for all six: a hairline-strong rule on the left, the mono
+   kicker, and the line itself at full ink — the sentence to carry out of the
+   room, so it is the brightest prose in its section. */
+.gl-say {
+  max-width: 66ch;
+  margin: 28px 0 0;
+  padding: 2px 0 2px 18px;
+  border-left: 1px solid var(--hairline-strong);
+}
+
+.gl-say-l {
+  margin-top: 10px;
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--text);
+  text-wrap: pretty;
+}

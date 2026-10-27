@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <title>Asyncify in Go — Asyncify</title>
+    <meta
+      name="description"
+      content="The Go design for Asyncify: the same production notification architecture re-expressed in Go's concurrency model — goroutines, channels, select, context, worker pools."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!-- The middleware serves this file at go.asyncify.org/, so that is the URL
+         this page canonicalises to — not /go.html on either host. -->
+    <link rel="canonical" href="https://go.asyncify.org/" />
+    <!-- Share cards, mirroring journey.html's set. Same og.png — one image, one
+         identity, whichever subdomain the link points at. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Asyncify" />
+    <meta property="og:title" content="Asyncify in Go — Asyncify" />
+    <meta
+      property="og:description"
+      content="The Go design for Asyncify: the same production notification architecture re-expressed in Go's concurrency model — goroutines, channels, select, context, worker pools."
+    />
+    <meta property="og:url" content="https://go.asyncify.org/" />
+    <meta property="og:image" content="https://asyncify.org/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Asyncify in Go — Asyncify" />
+    <meta
+      name="twitter:description"
+      content="The Go design for Asyncify: the same production notification architecture re-expressed in Go's concurrency model — goroutines, channels, select, context, worker pools."
+    />
+    <meta name="twitter:image" content="https://asyncify.org/og.png" />
+    <!-- The same critical inline frame the other three pages carry: all real
+         styling arrives through go.ts (styles.css is a module import), so a
+         cold dev-server load would paint raw HTML for a beat. These few rules
+         make that beat a quiet black nothing; styles.css flips <main> back on. -->
+    <style>
+      html {
+        background: #0a0a0a;
+      }
+      body {
+        margin: 0;
+        background: #0a0a0a;
+      }
+      main {
+        visibility: hidden;
+      }
+    </style>
+  </head>
+
+  <body>
+    <main>
+      <div class="st-page">
+        <!-- The masthead is index.html's, at the SAME 1080px width.
+             EVERY INTERNAL LINK HERE IS ABSOLUTE TO asyncify.org, on purpose:
+             this page is served at go.asyncify.org/ by functions/_middleware.ts,
+             so a relative "/" would land the reader back on THIS page and there
+             would be no way out of the design. -->
+        <header class="nav">
+          <a class="wordmark" href="https://asyncify.org/" aria-label="Asyncify, home">
+            Asyncify<span class="brand-mark" aria-hidden="true"><span class="brand-dot"></span></span>
+          </a>
+          <nav class="nav-links" aria-label="Primary">
+            <a href="https://asyncify.org/#headline">Install</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <a href="https://github.com/shubam14dec/Scalable-Notification-System" target="_blank" rel="noreferrer">GitHub</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <a class="nav-registry" href="https://www.npmjs.com/org/asyncify-hq" target="_blank" rel="noreferrer">npm</a>
+            <span class="nav-sep nav-registry" aria-hidden="true">·</span>
+            <a
+              class="nav-version"
+              href="https://github.com/shubam14dec/Scalable-Notification-System/releases"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Current release, v__ASYNCIFY_VERSION__"
+            >v__ASYNCIFY_VERSION__</a>
+            <span class="nav-sep nav-registry" aria-hidden="true">·</span>
+            <a href="https://asyncify.org/contact">Contact</a>
+            <span class="nav-sep" aria-hidden="true">·</span>
+            <a class="nav-dash" href="https://app.asyncify.org" target="_blank" rel="noreferrer"><span class="brand-dot" aria-hidden="true"></span>Dashboard</a>
+          </nav>
+        </header>
+
+        <div class="st-col">
+          <!-- ── hero ───────────────────────────────────────────────────────
+               journey.html's hero, shell and all: not full-viewport, because
+               this page is a scroll and the first screen owes the reader the
+               start of the mapping, not a title card. -->
+          <section class="st-hero">
+            <p class="st-kicker">the go design</p>
+            <h1 class="st-headline">The same machine, in <span class="hl-accent">Go.</span></h1>
+            <p class="st-subline">
+              Asyncify runs in production on TypeScript. This page is the Go design — the same
+              architecture, re-expressed in Go's concurrency model, concept by concept. Same laws,
+              different primitives.
+            </p>
+          </section>
+
+          <!-- ── the eight sections ─────────────────────────────────────────
+               One shape, repeated: a mono number, a title, a one-line
+               definition (journey's era-title/era-sum voices), then the body.
+               Every <pre> below is pasted from the content source by script and
+               must stay character-for-character — tabs included. Each one
+               scrolls inside itself (tabindex so a keyboard can scroll it too);
+               the page never scrolls sideways. -->
+
+          <section class="gl-sec" aria-labelledby="gl-h1">
+            <p class="st-beat-kicker">01</p>
+            <h2 class="st-era-title" id="gl-h1">The mapping</h2>
+            <div class="gl-tw" tabindex="0" role="region" aria-label="The mapping, production to Go">
+              <table class="gl-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Asyncify in production</th>
+                    <th scope="col">The Go expression</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Worker processes consuming BullMQ lanes</td>
+                    <td>
+                      Worker pools of goroutines — one pool per channel × priority, each sized
+                      independently, so p0's pool can never be starved by a p2 blast
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>The 50,000-job backpressure watermark</td>
+                    <td>
+                      A bounded buffered channel — a blocking send IS the backpressure; the float
+                      valve becomes a language feature
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Step delays + digest windows</td>
+                    <td><code>time.Timer</code> + <code>select</code></td>
+                  </tr>
+                  <tr>
+                    <td>The graceful drain on deploy</td>
+                    <td><code>context</code> cancellation + <code>sync.WaitGroup</code></td>
+                  </tr>
+                  <tr>
+                    <td>Per-tenant rate limits (50/s, overflow to 5×)</td>
+                    <td>A token bucket per tenant (<code>golang.org/x/time/rate</code>)</td>
+                  </tr>
+                  <tr>
+                    <td>Circuit breaker per provider</td>
+                    <td>
+                      A <code>sync.Mutex</code>-guarded struct: consecutive-failure counter +
+                      open-until timestamp
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>WebSocket gateway</td>
+                    <td>
+                      One goroutine per connection + a hub goroutine owning the registry, fed by
+                      channels
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Open-pixel / webhook status updates</td>
+                    <td>Plain HTTP handlers writing Postgres — language-agnostic by design</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="gl-sec" aria-labelledby="gl-h2">
+            <p class="st-beat-kicker">02</p>
+            <h2 class="st-era-title" id="gl-h2">Goroutines: a worker is a goroutine, not a process</h2>
+            <p class="st-era-sum">
+              A goroutine is a function running concurrently, cheap enough (≈2KB stack) to start
+              thousands.
+            </p>
+            <p class="gl-p">
+              In Asyncify-in-Go: today each delivery lane is consumed by worker processes; in Go, a
+              lane is consumed by a POOL of goroutines — spawn 32 for email-p1, 8 for sms-p1, 64 for
+              inapp-p0, tune per lane. Where Node scales lanes by processes, Go scales them by
+              numbers in one process.
+            </p>
+            <figure class="gl-fig">
+              <pre class="gl-diagram" tabindex="0">                        ┌─ goroutine #1 ──► Resend
+  deliver-email-p1 ─────┼─ goroutine #2 ──► Resend
+  (channel)             ├─ ...
+                        └─ goroutine #32 ─► Resend
+                                 │
+                                 ▼
+                     one status writer goroutine
+                     (fan-in over a results channel)</pre>
+              <figcaption class="st-beat-kicker gl-cap">fan-out / fan-in</figcaption>
+            </figure>
+            <pre class="gl-code" tabindex="0">func startPool(ctx context.Context, n int, jobs &lt;-chan Job, wg *sync.WaitGroup) {
+	for i := 0; i &lt; n; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for {
+				select {
+				case &lt;-ctx.Done():
+					return // shutdown: stop taking work
+				case job, ok := &lt;-jobs:
+					if !ok {
+						return // lane closed: drain complete
+					}
+					deliver(ctx, job)
+				}
+			}
+		}()
+	}
+}</pre>
+            <blockquote class="gl-say">
+              <p class="st-beat-kicker">say it like this</p>
+              <p class="gl-say-l">
+                “a delivery worker stops being a process and becomes a number — p0 gets its own
+                pool, so a million-row broadcast physically cannot occupy a transactional worker.
+                Same law as my production system, enforced by the runtime instead of the
+                deployment.”
+              </p>
+            </blockquote>
+          </section>
+
+          <section class="gl-sec" aria-labelledby="gl-h3">
+            <p class="st-beat-kicker">03</p>
+            <h2 class="st-era-title" id="gl-h3">
+              Channels, buffered vs unbuffered: the watermark becomes the language
+            </h2>
+            <p class="st-era-sum">
+              A channel is a typed pipe between goroutines; an unbuffered channel hands off
+              synchronously (sender waits for receiver), a buffered channel queues up to its
+              capacity and THEN blocks the sender.
+            </p>
+            <p class="gl-p">
+              In Asyncify-in-Go — the star mapping. Today the broadcast streamer asks Redis "how
+              many jobs are waiting?" before every page and sleeps above 50,000. In Go, the entire
+              mechanism is one line:
+            </p>
+            <pre class="gl-code" tabindex="0">jobs := make(chan Job, 50_000) // the watermark IS the buffer size</pre>
+            <p class="gl-p">
+              When the buffer is full, <code>jobs &lt;- job</code> BLOCKS. The streamer pauses not
+              because it checked a counter, but because the language refused the send until a
+              worker made room. The sawtooth behavior is identical; the code implementing it
+              disappears.
+            </p>
+            <p class="gl-p">
+              Unbuffered contrast: the WS hub hands a message to a connection's writer goroutine
+              over an UNBUFFERED channel — a synchronous handoff, so a slow client exerts
+              backpressure one message at a time instead of hoarding a queue.
+            </p>
+            <figure class="gl-fig">
+              <pre class="gl-diagram" tabindex="0">STREAMER                    make(chan Job, 50_000)              WORKER POOL
+reads 100 subscribers       ┌────────────────────────┐
+from Postgres (keyset) ───► │ [job][job][job] ... 50k│ ◄─── each goroutine:
+      │                     └────────────────────────┘        job := &lt;-jobs
+      │  buffer full? the SEND BLOCKS —
+      └─ the streamer sleeps inside the language,
+         resumes the instant a worker receives</pre>
+              <figcaption class="st-beat-kicker gl-cap">the float valve</figcaption>
+            </figure>
+            <pre class="gl-code" tabindex="0">func streamBroadcast(ctx context.Context, tenantID string, jobs chan&lt;- Job) error {
+	cursor := ""
+	for {
+		subs, next, err := pageSubscribers(ctx, tenantID, cursor, 100) // keyset: WHERE id &gt; cursor LIMIT 100
+		if err != nil || len(subs) == 0 {
+			return err
+		}
+		for _, s := range subs {
+			select {
+			case jobs &lt;- newJob(s): // blocks at 50k in flight: backpressure for free
+			case &lt;-ctx.Done():
+				return ctx.Err()
+			}
+		}
+		cursor = next
+	}
+}</pre>
+            <blockquote class="gl-say">
+              <p class="st-beat-kicker">say it like this</p>
+              <p class="gl-say-l">
+                “in production I implemented backpressure as a watermark check against Redis. In
+                Go I'd delete that code — a bounded buffered channel IS a watermark. Blocking send
+                is the feature.”
+              </p>
+            </blockquote>
+          </section>
+
+          <section class="gl-sec" aria-labelledby="gl-h4">
+            <p class="st-beat-kicker">04</p>
+            <h2 class="st-era-title" id="gl-h4">select: one goroutine, several doors</h2>
+            <p class="st-era-sum">
+              <code>select</code> blocks on several channel operations at once and takes whichever
+              is ready first — concurrency's switch statement.
+            </p>
+            <p class="gl-p">In Asyncify-in-Go, three real uses:</p>
+            <ol class="gl-ol">
+              <li>Every pool worker: job channel vs <code>ctx.Done()</code> (section 2's loop).</li>
+              <li>The digest window: items arriving vs the 120s timer vs shutdown.</li>
+              <li>The breaker's half-open probe: timer-gated single retry.</li>
+            </ol>
+            <figure class="gl-fig">
+              <pre class="gl-diagram" tabindex="0">                    ┌──────────────────────────────┐
+  incoming deals ──►│                              │
+  (channel)         │   one goroutine per OPEN     │──► on timer: render
+  windowTimer.C ───►│   digest window, select-ing  │    {{digest_items}},
+  (120s)            │   on three doors             │    send ONE email
+  ctx.Done() ──────►│                              │
+                    └──────────────────────────────┘</pre>
+              <figcaption class="st-beat-kicker gl-cap">the digest window as three doors</figcaption>
+            </figure>
+            <pre class="gl-code" tabindex="0">func digestWindow(ctx context.Context, incoming &lt;-chan Item, window time.Duration) {
+	timer := time.NewTimer(window) // the caller starts this goroutine on the
+	// window's FIRST item — same anchor rule as production
+	defer timer.Stop()
+	var batch []Item
+	for {
+		select {
+		case item := &lt;-incoming: // a later deal merges into the open window
+			batch = append(batch, item)
+		case &lt;-timer.C: // 120s up: drain, render, send once
+			sendDigest(render(batch))
+			return
+		case &lt;-ctx.Done(): // shutdown mid-window: persist, never lose
+			persist(batch)
+			return
+		}
+	}
+}</pre>
+            <blockquote class="gl-say">
+              <p class="st-beat-kicker">say it like this</p>
+              <p class="gl-say-l">
+                “the digest window is a goroutine selecting on three doors: another item, the
+                timer, or shutdown. The shutdown door persists the batch — degrade to later, never
+                to lost, same law as production.”
+              </p>
+            </blockquote>
+          </section>
+
+          <section class="gl-sec" aria-labelledby="gl-h5">
+            <p class="st-beat-kicker">05</p>
+            <h2 class="st-era-title" id="gl-h5">WaitGroup + Mutex: the drain and the shared counter</h2>
+            <p class="st-era-sum">
+              <code>sync.WaitGroup</code> counts live goroutines so shutdown can wait for them;
+              <code>sync.Mutex</code> serializes access to state that several goroutines must
+              mutate.
+            </p>
+            <p class="gl-p">
+              WaitGroup in Asyncify-in-Go — the graceful drain. On deploy, production today stops
+              intake and gives in-flight sends a grace period. In Go:
+            </p>
+            <pre class="gl-code" tabindex="0">// Two separate signals, or the grace period is a lie: closing the jobs
+// channel stops INTAKE (workers drain what's buffered, then exit via the
+// `ok` check in their loop); hardCancel aborts in-flight sends — and it
+// fires only if the ceiling is hit.
+close(jobs)
+done := make(chan struct{})
+go func() {
+	wg.Wait() // every in-flight deliver() returns
+	close(done)
+}()
+select {
+case &lt;-done: // clean drain — nothing was aborted
+case &lt;-time.After(30 * time.Second):
+	hardCancel() // ceiling reached: the context tree aborts stragglers
+}</pre>
+            <p class="gl-p">
+              Mutex in Asyncify-in-Go — the circuit breaker. Jobs flow by message-passing
+              (channels), but the breaker is genuinely SHARED state: every worker in a lane consults
+              the same failure counter. Go's proverb is "share memory by communicating" — and where
+              you deliberately don't, you lock:
+            </p>
+            <pre class="gl-code" tabindex="0">type Breaker struct {
+	mu        sync.Mutex
+	failures  int       // CONSECUTIVE transient failures — OnSuccess zeroes it
+	openUntil time.Time // zero = closed
+	probing   bool      // half-open: exactly one probe in flight
+}
+
+func (b *Breaker) Allow() bool {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if time.Now().Before(b.openUntil) {
+		return false // open: fail fast — the failover chain tries the next provider
+	}
+	if b.openUntil.IsZero() {
+		return true // closed: requests flow
+	}
+	if b.probing {
+		return false // half-open: someone else holds the single probe
+	}
+	b.probing = true // this request becomes the probe
+	return true
+}
+
+func (b *Breaker) OnSuccess() {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	b.failures, b.openUntil, b.probing = 0, time.Time{}, false // close fully
+}
+
+func (b *Breaker) OnFailure() {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if b.probing { // the half-open probe failed: straight back to open
+		b.probing = false
+		b.openUntil = time.Now().Add(30 * time.Second)
+		return
+	}
+	if b.failures++; b.failures &gt;= 5 { // 5 CONSECUTIVE → open 30s (prod thresholds)
+		b.openUntil = time.Now().Add(30 * time.Second)
+		b.failures = 0
+	}
+}</pre>
+            <blockquote class="gl-say">
+              <p class="st-beat-kicker">say it like this</p>
+              <p class="gl-say-l">
+                “channels where work FLOWS, a mutex where state is genuinely shared — the breaker
+                is the honest example: every worker must see the same failure count, so it's a
+                locked struct, not a message.”
+              </p>
+            </blockquote>
+          </section>
+
+          <section class="gl-sec" aria-labelledby="gl-h6">
+            <p class="st-beat-kicker">06</p>
+            <h2 class="st-era-title" id="gl-h6">context: timeouts and cancellation as a tree</h2>
+            <p class="st-era-sum">
+              A <code>context</code> carries deadlines and cancellation down a call tree — cancel
+              the parent and everything beneath it stops.
+            </p>
+            <p class="gl-p">Three real uses in Asyncify-in-Go:</p>
+            <ol class="gl-ol">
+              <li>
+                Per-send provider timeout — today a 10s HTTP timeout per provider call; in Go,
+                <code>context.WithTimeout</code> wraps each send, and the HTTP client aborts
+                mid-flight when it expires.
+              </li>
+              <li>
+                Shutdown as a tree — one <code>cancel()</code> at main propagates through streamer
+                → pools → in-flight HTTP calls. The same signal that stops intake aborts
+                stragglers; the WaitGroup drain (section 5) collects the bodies.
+              </li>
+              <li>
+                The eval runner — a canceled run stops every scenario goroutine with one call,
+                instead of each checking a flag.
+              </li>
+            </ol>
+            <pre class="gl-code" tabindex="0">func deliver(ctx context.Context, job Job) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	if err := providerSend(ctx, job.Message); err != nil {
+		classify(err) // permanent vs transient — same taxonomy as production
+	}
+}</pre>
+            <figure class="gl-fig">
+              <pre class="gl-diagram" tabindex="0">     hardCancel() at main
+               │
+      ┌────────┼──────────┐
+      │        │          │
+  streamer   pools      ws hub
+  page read  in-flight  per-conn
+  aborts     sends      writers
+             abort      close</pre>
+              <figcaption class="st-beat-kicker gl-cap">the cancellation tree</figcaption>
+            </figure>
+            <blockquote class="gl-say">
+              <p class="st-beat-kicker">say it like this</p>
+              <p class="gl-say-l">
+                “shutdown isn't a broadcast flag I check in loops — it's a tree. One cancel at the
+                root reaches every in-flight HTTP call, and the WaitGroup tells me when the tree is
+                empty.”
+              </p>
+            </blockquote>
+          </section>
+
+          <section class="gl-sec" aria-labelledby="gl-h7">
+            <p class="st-beat-kicker">07</p>
+            <h2 class="st-era-title" id="gl-h7">The worker pool pattern: the whole machine</h2>
+            <p class="st-era-sum">The capstone: the full event journey, Go edition.</p>
+            <pre class="gl-diagram" tabindex="0"> ACME'S BACKEND
+      │ POST /v1/events/trigger
+      ▼
+ API (net/http handler goroutine per request)
+   • auth → tenant         • token bucket per tenant (x/time/rate):
+   • dedupe (tenant, txn)    within limit → lane · burst → overflow chan · 5× → 429
+   • EVENT ROW → Postgres outbox (unchanged — durability is not a language feature)
+   • job → lane channel, 202 in ms
+      ▼
+ LANE CHANNELS (bounded buffers = watermarks)
+   email-p0 ══► pool (8)     ─┐
+   email-p1 ══► pool (32)     ├─ each worker: select { job / ctx.Done }
+   email-p2 ══► pool (16)     │  status guard → render → deliver(ctx, 10s)
+   inapp-p1 ══► pool (64)    ─┘  → breaker.OnFailure / OnSuccess → row update
+      ▼
+ FEEDBACK (plain HTTP handlers — webhooks, open pixel → Postgres)
+ DRAIN (deploy): close(jobs) → pools finish the buffer → wg.Wait() ≤ 30s
+                 → hardCancel() only if the ceiling hits</pre>
+            <blockquote class="gl-say">
+              <p class="st-beat-kicker">say it like this</p>
+              <p class="gl-say-l">
+                “one pool per lane, each a number I tune; bounded channels as watermarks; context
+                as the kill tree; WaitGroup as the drain. The architecture is unchanged from my
+                production system — Go just gives three of its mechanisms to the runtime.”
+              </p>
+            </blockquote>
+          </section>
+
+          <section class="gl-sec" aria-labelledby="gl-h8">
+            <p class="st-beat-kicker">08</p>
+            <h2 class="st-era-title" id="gl-h8">What Go does NOT replace</h2>
+            <ul class="st-era-list">
+              <li>
+                <strong>Channels are in-process and die with the process.</strong> A channel is not
+                a queue you can restart into. Redis (or any durable broker) stays for cross-process,
+                crash-surviving handoff; channels orchestrate INSIDE a worker binary. The rule:
+                channels for flow, Redis for durability.
+              </li>
+              <li>
+                <strong>The Postgres outbox + reconciler stay exactly as they are.</strong> If the
+                binary dies, the outbox replays non-terminal events — at-least-once with idempotent
+                replays is an architecture property, not a language property.
+              </li>
+              <li>
+                <strong>The idempotency layers carry over unchanged</strong>: (tenant,
+                transactionId) dedupe at the API, deterministic job IDs at the queue, the status
+                guard at the worker, and the honest at-least-once window at the provider call.
+              </li>
+              <li>
+                <strong>So would I rewrite it in Go?</strong> For the delivery workers — gladly: the
+                pool/backpressure/drain code shrinks dramatically and one binary replaces several
+                processes. For the API and dashboard — the TypeScript serves fine. Languages are
+                tools; the laws (degrade to later never to lost, authenticate AND scope,
+                at-least-once with dedupe) are the system.
+              </li>
+            </ul>
+          </section>
+
+          <!-- ── the finale ─────────────────────────────────────────────────
+               The page's ONE green fill (BRAND §2, use 3 of 3). Nothing above
+               this line is a filled button. -->
+          <section class="st-finale">
+            <p class="st-finale-line">Same laws. Different primitives.</p>
+            <div class="st-finale-actions">
+              <a class="btn-green" href="https://app.asyncify.org" target="_blank" rel="noreferrer"
+                >See it running <span class="arrow" aria-hidden="true">→</span></a
+              >
+              <a class="btn-text" href="https://journey.asyncify.org">the build story</a>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <script type="module" src="/src/go.ts"></script>
+  </body>
+</html>

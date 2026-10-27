@@ -52,14 +52,16 @@ export default defineConfig(async () => {
   return {
     plugins: [versionBadge(version)],
     build: {
-      // Three pages, one bundle. Every entry goes through the version-badge
-      // plugin above, so the release badge is real on all of them. `journey` is
-      // built here and served at journey.asyncify.org/ by functions/_middleware.ts.
+      // Four pages, one bundle. Every entry goes through the version-badge
+      // plugin above, so the release badge is real on all of them. `journey` and
+      // `go` are built here and served at journey.asyncify.org/ and
+      // go.asyncify.org/ by functions/_middleware.ts.
       rollupOptions: {
         input: {
           main: page("index.html"),
           contact: page("contact.html"),
           journey: page("journey.html"),
+          go: page("go.html"),
         },
       },
       target: "es2022",

@@ -4,6 +4,10 @@
    one hostname and that one path are rewritten; everything else — assets, the
    contact endpoint, apex traffic — falls straight through.
 
+   go.asyncify.org does the same for the Go design page, built as /go.html:
+   its "/" — and only its "/" — is rewritten to the CLEAN "/go", for the same
+   308 reason spelled out in the journey branch below.
+
    Local types, like functions/api/contact.ts: this repo carries no
    @cloudflare/workers-types on purpose, and the shape below is all this
    handler uses. */
@@ -29,6 +33,10 @@ export async function onRequest(context: MiddlewareContext): Promise<Response> {
        that redirect to the visitor instead of the page (live bug,
        2026-09-17: journey.asyncify.org/ bounced to /journey). */
     return context.env.ASSETS.fetch(new Request(new URL("/journey", url), context.request));
+  }
+  if (url.hostname === "go.asyncify.org" && url.pathname === "/") {
+    /* Same pattern, same trap: "/go", never "/go.html". */
+    return context.env.ASSETS.fetch(new Request(new URL("/go", url), context.request));
   }
   return context.next();
 }
